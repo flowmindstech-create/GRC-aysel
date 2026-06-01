@@ -21,7 +21,11 @@ const navItems = [
   { href: '/settings',    label: 'Settings',     icon: Settings },
 ]
 
-export function Sidebar() {
+interface SidebarProps {
+  onMobileClose?: () => void
+}
+
+export function Sidebar({ onMobileClose }: SidebarProps) {
   const pathname = usePathname()
   const [collapsed, setCollapsed] = useState(false)
 
@@ -54,6 +58,7 @@ export function Sidebar() {
             <Link
               key={href}
               href={href}
+              onClick={onMobileClose}
               className={cn(
                 'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 group',
                 active
@@ -98,7 +103,7 @@ export function Sidebar() {
       {/* Collapse toggle */}
       <button
         onClick={() => setCollapsed(!collapsed)}
-        className="absolute -right-3 top-20 z-10 w-6 h-6 rounded-full border border-slate-700 bg-slate-900 flex items-center justify-center text-slate-400 hover:text-white transition-colors"
+        className="hidden md:flex absolute -right-3 top-20 z-10 w-6 h-6 rounded-full border border-slate-700 bg-slate-900 items-center justify-center text-slate-400 hover:text-white transition-colors"
       >
         {collapsed ? <ChevronRight className="w-3 h-3" /> : <ChevronLeft className="w-3 h-3" />}
       </button>
