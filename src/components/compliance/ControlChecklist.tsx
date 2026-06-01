@@ -113,7 +113,7 @@ export function ControlChecklist() {
     return <Circle className="w-5 h-5" style={{ color: 'var(--muted-fg)' }} />
   }
 
-  const inputClass = "w-full px-3.5 py-2 rounded-xl text-xs border bg-transparent outline-none focus:border-indigo-500 transition-colors"
+  const inputClass = "w-full px-3.5 py-2 rounded-xl text-xs border bg-transparent outline-none focus:border-sky-500 transition-colors"
   const labelClass = "block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1"
 
   return (
@@ -124,7 +124,7 @@ export function ControlChecklist() {
         actions={
           <button 
             onClick={() => setShowAddModal(true)}
-            className="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition-colors shadow-lg shadow-indigo-650/20"
+            className="px-3.5 py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition-colors shadow-lg shadow-indigo-650/20"
           >
             <Plus className="w-3.5 h-3.5" /> Add Control
           </button>
@@ -140,7 +140,7 @@ export function ControlChecklist() {
           return (
             <button key={fw.key} onClick={() => { setActiveFramework(fw.key); setNewFramework(fw.key); }}
               className={cn('p-5 card text-left transition-all cursor-pointer', {
-                'ring-2 ring-indigo-500': activeFramework === fw.key,
+                'ring-2 ring-sky-500': activeFramework === fw.key,
               })}>
               <p className="text-sm font-semibold mb-3" style={{ color: 'var(--foreground)' }}>{fw.label}</p>
               <p className="text-2xl font-black mb-2" style={{ color: fwColor }}>{fwScore}%</p>
@@ -183,7 +183,7 @@ export function ControlChecklist() {
                 </button>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-mono font-bold text-indigo-500">{control.control_id}</span>
+                    <span className="text-xs font-mono font-bold text-sky-500">{control.control_id}</span>
                     <span className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>{control.title}</span>
                   </div>
                   {control.reviewed_by && (
@@ -206,7 +206,7 @@ export function ControlChecklist() {
                 >
                   <p className="text-sm" style={{ color: 'var(--muted-fg)' }}>{control.description}</p>
                   <div className="flex gap-2">
-                    <button className="px-3 py-1.5 text-xs font-medium rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 cursor-pointer">
+                    <button className="px-3 py-1.5 text-xs font-medium rounded-lg bg-sky-500 text-white hover:bg-sky-600 cursor-pointer">
                       Upload Evidence
                     </button>
                     <button className="px-3 py-1.5 text-xs font-medium rounded-lg border hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer"
@@ -308,7 +308,7 @@ export function ControlChecklist() {
                   </button>
                   <button
                     type="submit"
-                    className="px-5 py-2 rounded-xl text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-600/20 cursor-pointer"
+                    className="px-5 py-2 rounded-xl text-xs font-bold text-white bg-sky-500 hover:bg-sky-600 transition-colors shadow-lg shadow-sky-500/20 cursor-pointer"
                   >
                     Add Control
                   </button>
@@ -321,3 +321,4 @@ export function ControlChecklist() {
     </div>
   )
 }
+

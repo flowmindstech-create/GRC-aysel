@@ -115,3 +115,4 @@ export function IncidentFormDialog({ incident, onClose, onSave }: Props) {
     </AnimatePresence>
   )
 }
+

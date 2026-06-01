@@ -148,3 +148,4 @@ export function Sidebar({ onMobileClose }: SidebarProps) {
     </aside>
   )
 }
+

@@ -101,9 +101,9 @@ export function DashboardClient({
     <main className="flex-1 overflow-y-auto p-6">
       {/* Jira Integration Bar */}
       {jiraConfig && jiraConfig.connected && (
-        <div className="flex flex-wrap items-center justify-between gap-4 p-4 mb-6 rounded-xl border bg-indigo-500/5 border-indigo-500/10 animate-fade-in">
+        <div className="flex flex-wrap items-center justify-between gap-4 p-4 mb-6 rounded-xl border bg-sky-500/5 border-sky-500/10 animate-fade-in">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-indigo-600/10 border border-indigo-500/20 flex items-center justify-center text-indigo-500 shrink-0">
+            <div className="w-10 h-10 rounded-xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-500 shrink-0">
               <Database className="w-5 h-5" />
             </div>
             <div>
@@ -122,7 +122,7 @@ export function DashboardClient({
             <button
               onClick={handleFullSync}
               disabled={syncing}
-              className="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 cursor-pointer disabled:opacity-50 transition-colors animate-pulse-ring"
+              className="px-3.5 py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 cursor-pointer disabled:opacity-50 transition-colors animate-pulse-ring"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${syncing ? 'animate-spin' : ''}`} />
               {syncing ? 'Syncing...' : 'Sync Now'}
@@ -139,8 +139,8 @@ export function DashboardClient({
           value={stats.total_risks}
           subtitle={`${stats.critical_risks} critical`}
           icon={ShieldAlert}
-          iconColor="text-indigo-500"
-          iconBg="bg-indigo-500/10"
+          iconColor="text-sky-500"
+          iconBg="bg-sky-500/10"
           trend={{ value: 12, label: 'vs. last month' }}
         />
         <StatsCard
@@ -193,14 +193,14 @@ export function DashboardClient({
         <div className="card p-5">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>Open Risks</h3>
-            <Link href="/risks" className="text-xs text-indigo-500 hover:text-indigo-400 font-medium">View all →</Link>
+            <Link href="/risks" className="text-xs text-sky-500 hover:text-sky-400 font-medium">View all →</Link>
           </div>
           <div className="space-y-3">
             {openRisks.slice(0, 5).map(risk => (
               <Link key={risk.id} href="/risks"
                 className="flex items-start gap-3 p-3 rounded-xl hover:bg-black/[0.03] dark:hover:bg-white/[0.03] transition-colors cursor-pointer group text-left">
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs font-medium truncate group-hover:text-indigo-500 transition-colors"
+                  <p className="text-xs font-medium truncate group-hover:text-sky-500 transition-colors"
                     style={{ color: 'var(--foreground)' }}>
                     {risk.title}
                   </p>
@@ -212,7 +212,7 @@ export function DashboardClient({
                 <div className="flex flex-col items-end gap-1.5 shrink-0">
                   <RiskLevelBadge level={risk.level} />
                   {risk.jira_issue_key && (
-                    <span className="text-[9px] px-1.5 py-0.5 rounded bg-indigo-500/10 text-indigo-500 font-mono font-bold border border-indigo-500/10">
+                    <span className="text-[9px] px-1.5 py-0.5 rounded bg-sky-500/10 text-sky-500 font-mono font-bold border border-sky-500/10">
                       {risk.jira_issue_key}
                     </span>
                   )}
@@ -226,13 +226,13 @@ export function DashboardClient({
         <div className="card p-5">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>Active Incidents</h3>
-            <Link href="/incidents" className="text-xs text-indigo-500 hover:text-indigo-400 font-medium">View all →</Link>
+            <Link href="/incidents" className="text-xs text-sky-500 hover:text-sky-400 font-medium">View all →</Link>
           </div>
           <div className="space-y-3">
             {openIncidents.map(incident => (
               <div key={incident.id} className="p-3 rounded-xl relative overflow-hidden" style={{ background: 'var(--muted)' }}>
                 {incident.jira_issue_key && (
-                  <span className="absolute top-2.5 right-2.5 text-[9px] px-1.5 py-0.5 rounded bg-indigo-500/10 text-indigo-500 font-mono font-bold border border-indigo-500/10">
+                  <span className="absolute top-2.5 right-2.5 text-[9px] px-1.5 py-0.5 rounded bg-sky-500/10 text-sky-500 font-mono font-bold border border-sky-500/10">
                     {incident.jira_issue_key}
                   </span>
                 )}
@@ -259,3 +259,4 @@ export function DashboardClient({
     </main>
   )
 }
+

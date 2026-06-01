@@ -131,7 +131,7 @@ export function IncidentTable() {
                 <div className="flex items-center gap-1.5" onClick={e => e.stopPropagation()}>
                   <IncidentStatusBadge status={inc.status} />
                   {jiraConfig && jiraConfig.connected && inc.jira_issue_key && (
-                    <span className="text-[9px] px-1.5 py-0.5 rounded bg-indigo-500/10 text-indigo-500 font-mono font-bold border border-indigo-500/10" title={`Jira: ${inc.jira_issue_status}`}>
+                    <span className="text-[9px] px-1.5 py-0.5 rounded bg-sky-500/10 text-sky-500 font-mono font-bold border border-sky-500/10" title={`Jira: ${inc.jira_issue_status}`}>
                       {inc.jira_issue_key}
                     </span>
                   )}
@@ -163,7 +163,7 @@ export function IncidentTable() {
                 </div>
               </div>
 
-              <h3 className="text-sm font-semibold leading-snug mb-1 group-hover:text-indigo-500 transition-colors"
+              <h3 className="text-sm font-semibold leading-snug mb-1 group-hover:text-sky-500 transition-colors"
                 style={{ color: 'var(--foreground)' }}>{inc.title}</h3>
               <p className="text-xs leading-relaxed mb-3 line-clamp-2" style={{ color: 'var(--muted-fg)' }}>
                 {inc.description}
@@ -207,3 +207,4 @@ export function IncidentTable() {
     </div>
   )
 }
+

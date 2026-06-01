@@ -94,7 +94,7 @@ export function IncidentDetailSheet({ incident, onClose, onUpdate }: Props) {
               <div className="p-3 rounded-xl" style={{ background: 'var(--muted)' }}>
                 <p className="text-[10px] font-semibold uppercase tracking-wide mb-1" style={{ color: 'var(--muted-fg)' }}>Reported By</p>
                 <div className="flex items-center gap-1.5">
-                  <div className="w-5 h-5 rounded-full bg-indigo-600 flex items-center justify-center text-white text-[10px] font-bold">
+                  <div className="w-5 h-5 rounded-full bg-sky-500 flex items-center justify-center text-white text-[10px] font-bold">
                     {incident.reporter_name?.[0]}
                   </div>
                   <p className="text-xs font-medium" style={{ color: 'var(--foreground)' }}>{incident.reporter_name ?? '—'}</p>
@@ -171,7 +171,7 @@ export function IncidentDetailSheet({ incident, onClose, onUpdate }: Props) {
                     <p className="text-xs font-semibold text-orange-500 uppercase tracking-wider">Jira Escalation</p>
                   </div>
                   {incident.jira_issue_key && (
-                    <span className="text-[10px] px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-500 font-mono font-bold border border-indigo-500/10">
+                    <span className="text-[10px] px-2 py-0.5 rounded bg-sky-500/10 text-sky-500 font-mono font-bold border border-sky-500/10">
                       {incident.jira_issue_key}
                     </span>
                   )}
@@ -219,7 +219,7 @@ export function IncidentDetailSheet({ incident, onClose, onUpdate }: Props) {
                         href={`https://${jiraConfig.instanceUrl}/browse/${incident.jira_issue_key}`}
                         target="_blank"
                         rel="noreferrer"
-                        className="text-[10px] text-indigo-500 hover:text-indigo-600 font-semibold flex items-center gap-1 cursor-pointer"
+                        className="text-[10px] text-sky-500 hover:text-sky-500 font-semibold flex items-center gap-1 cursor-pointer"
                       >
                         <ExternalLink className="w-3 h-3" />
                         Open in Jira
@@ -234,7 +234,7 @@ export function IncidentDetailSheet({ incident, onClose, onUpdate }: Props) {
                           toast.success('Bidirectional sync completed!')
                         }}
                         disabled={syncing}
-                        className="text-[10px] text-indigo-500 hover:text-indigo-600 font-semibold flex items-center gap-1 cursor-pointer disabled:opacity-50"
+                        className="text-[10px] text-sky-500 hover:text-sky-500 font-semibold flex items-center gap-1 cursor-pointer disabled:opacity-50"
                       >
                         <RefreshCw className={`w-3 h-3 ${syncing ? 'animate-spin' : ''}`} />
                         Sync Now
@@ -346,3 +346,4 @@ export function IncidentDetailSheet({ incident, onClose, onUpdate }: Props) {
     </AnimatePresence>
   )
 }
+

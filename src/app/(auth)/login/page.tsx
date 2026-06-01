@@ -57,7 +57,7 @@ export default function LoginPage() {
   }
 
 
-  const inp = "w-full pl-10 pr-4 py-3 rounded-xl text-sm border outline-none transition-all focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500"
+  const inp = "w-full pl-10 pr-4 py-3 rounded-xl text-sm border outline-none transition-all focus:ring-2 focus:ring-sky-500/30 focus:border-sky-500"
   const sty = { background: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.1)', color: 'white' }
 
   return (
@@ -66,12 +66,12 @@ export default function LoginPage() {
       <div className="hidden lg:flex flex-col justify-between w-1/2 p-12"
         style={{ background: 'linear-gradient(135deg, #0f0c29, #302b63, #24243e)' }}>
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center">
+          <div className="w-9 h-9 rounded-xl bg-sky-500 flex items-center justify-center">
             <Shield className="w-5 h-5 text-white" />
           </div>
           <div>
             <p className="font-bold text-white text-lg leading-none">RiskShield</p>
-            <p className="text-xs text-indigo-400">IRM Platform</p>
+            <p className="text-xs text-sky-400">IRM Platform</p>
           </div>
         </div>
 
@@ -80,7 +80,7 @@ export default function LoginPage() {
             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
             className="text-4xl font-black text-white leading-tight mb-4">
             Enterprise Risk<br />Management.<br />
-            <span className="text-indigo-400">AI-Powered.</span>
+            <span className="text-sky-400">AI-Powered.</span>
           </motion.h1>
           <p className="text-slate-400 text-base leading-relaxed max-w-md">
             Protect your business with intelligent risk identification, incident management, and compliance tracking — all in one platform.
@@ -108,7 +108,7 @@ export default function LoginPage() {
           className="w-full max-w-md">
           {/* Mobile logo */}
           <div className="flex items-center gap-2 mb-8 lg:hidden">
-            <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-lg bg-sky-500 flex items-center justify-center">
               <Shield className="w-4 h-4 text-white" />
             </div>
             <span className="font-bold text-lg" style={{ color: 'var(--foreground)' }}>RiskShield</span>
@@ -133,7 +133,7 @@ export default function LoginPage() {
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <label className="text-xs font-semibold" style={{ color: 'var(--foreground)' }}>Password</label>
-                <Link href="/forgot-password" className="text-xs text-indigo-500 hover:text-indigo-400">Forgot password?</Link>
+                <Link href="/forgot-password" className="text-xs text-sky-500 hover:text-sky-400">Forgot password?</Link>
               </div>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'var(--muted-fg)' }} />
@@ -151,7 +151,7 @@ export default function LoginPage() {
             </div>
 
             <button type="submit" disabled={loading}
-              className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 transition-all shadow-lg shadow-indigo-600/25 mt-2">
+              className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold text-white bg-sky-500 hover:bg-sky-600 disabled:opacity-60 transition-all shadow-lg shadow-sky-500/25 mt-2">
               {loading ? (
                 <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               ) : (
@@ -162,7 +162,7 @@ export default function LoginPage() {
 
           <p className="text-sm text-center mt-6" style={{ color: 'var(--muted-fg)' }}>
             Don&apos;t have an account?{' '}
-            <Link href="/register" className="text-indigo-500 hover:text-indigo-400 font-medium">Create account</Link>
+            <Link href="/register" className="text-sky-500 hover:text-sky-400 font-medium">Create account</Link>
           </p>
 
           {/* Demo hint */}
@@ -175,7 +175,7 @@ export default function LoginPage() {
             className="w-full mt-6 p-3 rounded-xl text-center cursor-pointer hover:bg-white/5 transition-colors border"
             style={{ background: 'var(--muted)', borderColor: 'var(--border)' }}
           >
-            <p className="text-xs font-bold text-indigo-400">
+            <p className="text-xs font-bold text-sky-400">
               🚀 Access Demo Directly Without Registration →
             </p>
           </button>
@@ -184,3 +184,4 @@ export default function LoginPage() {
     </div>
   )
 }
+

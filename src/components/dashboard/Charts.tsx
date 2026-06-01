@@ -74,3 +74,4 @@ export function RiskCategoryChart({ stats }: Props) {
     </div>
   )
 }
+

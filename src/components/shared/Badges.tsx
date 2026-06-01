@@ -31,7 +31,7 @@ const riskStatusStyles: Record<RiskStatus, string> = {
   open:        'bg-red-500/10 text-red-500',
   in_progress: 'bg-blue-500/10 text-blue-500',
   mitigated:   'bg-green-500/10 text-green-500',
-  accepted:    'bg-purple-500/10 text-purple-500',
+  accepted:    'bg-sky-500/10 text-sky-400',
   closed:      'bg-slate-500/10 text-slate-500',
 }
 const riskStatusLabels: Record<RiskStatus, string> = {
@@ -119,3 +119,4 @@ export function VendorStatusBadge({ status }: { status: VendorStatus }) {
     </span>
   )
 }
+

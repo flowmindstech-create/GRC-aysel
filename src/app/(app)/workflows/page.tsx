@@ -382,7 +382,7 @@ export default function WorkflowsPage() {
             onClick={() => setActiveTab('risk')}
             className={`px-6 py-3 text-xs font-bold uppercase tracking-wider border-b-2 transition-all flex items-center gap-2 cursor-pointer ${
               activeTab === 'risk'
-                ? 'border-indigo-500 text-indigo-500 bg-indigo-500/[0.02]'
+                ? 'border-sky-500 text-sky-500 bg-sky-500/[0.02]'
                 : 'border-transparent text-slate-400 hover:text-slate-200'
             }`}
           >
@@ -392,7 +392,7 @@ export default function WorkflowsPage() {
             onClick={() => setActiveTab('intake')}
             className={`px-6 py-3 text-xs font-bold uppercase tracking-wider border-b-2 transition-all flex items-center gap-2 cursor-pointer ${
               activeTab === 'intake'
-                ? 'border-indigo-500 text-indigo-500 bg-indigo-500/[0.02]'
+                ? 'border-sky-500 text-sky-500 bg-sky-500/[0.02]'
                 : 'border-transparent text-slate-400 hover:text-slate-200'
             }`}
           >
@@ -435,7 +435,7 @@ export default function WorkflowsPage() {
                     <h3 className="text-sm font-bold text-white uppercase tracking-wider">Visual Workflow Diagram</h3>
                     <p className="text-xs text-slate-400 mt-1">Interactive nodes showing branches, appetite gates, and decisions.</p>
                   </div>
-                  <span className="text-[10px] px-2 py-0.5 rounded font-mono font-bold bg-indigo-500/10 text-indigo-400 border border-indigo-500/10 uppercase">
+                  <span className="text-[10px] px-2 py-0.5 rounded font-mono font-bold bg-sky-500/10 text-sky-400 border border-sky-500/10 uppercase">
                     Interactive Map
                   </span>
                 </div>
@@ -579,8 +579,8 @@ export default function WorkflowsPage() {
                             title={node.label}
                           >
                             <div className={`w-[48px] h-[48px] rotate-45 border flex items-center justify-center transition-all ${
-                              active ? 'bg-indigo-600/30 border-indigo-500 shadow-lg shadow-indigo-600/20' : 
-                              completed ? 'bg-slate-900 border-indigo-500 text-indigo-400' : 'bg-slate-900 border-white/10 text-slate-500'
+                              active ? 'bg-sky-500/30 border-sky-500 shadow-lg shadow-sky-500/20' : 
+                              completed ? 'bg-slate-900 border-sky-500 text-sky-400' : 'bg-slate-900 border-white/10 text-slate-500'
                             }`}>
                               <HelpCircle className="w-4 h-4 -rotate-45" />
                             </div>
@@ -600,14 +600,14 @@ export default function WorkflowsPage() {
                           style={{ left: `${node.x}px`, top: `${node.y}px`, width: '120px', height: '45px' }}
                           className={`absolute pointer-events-auto rounded-xl border p-2 text-left flex flex-col justify-center transition-all cursor-pointer ${
                             active
-                              ? 'bg-indigo-600/20 border-indigo-500 text-white shadow-xl shadow-indigo-600/10 ring-2 ring-indigo-500/20 font-bold'
+                              ? 'bg-sky-500/20 border-sky-500 text-white shadow-xl shadow-sky-500/10 ring-2 ring-sky-500/20 font-bold'
                               : completed
-                              ? 'bg-slate-900/60 border-indigo-500/30 text-indigo-400 hover:border-indigo-400'
+                              ? 'bg-slate-900/60 border-sky-500/30 text-sky-400 hover:border-indigo-400'
                               : 'bg-slate-900/20 border-white/5 text-slate-500 hover:border-white/10'
                           }`}
                         >
                           <span className="text-[9px] truncate w-full flex items-center gap-1">
-                            {active && <Sparkles className="w-2.5 h-2.5 text-indigo-400 shrink-0 animate-pulse" />}
+                            {active && <Sparkles className="w-2.5 h-2.5 text-sky-400 shrink-0 animate-pulse" />}
                             {node.label}
                           </span>
                         </button>
@@ -618,8 +618,8 @@ export default function WorkflowsPage() {
 
                 {/* Flow description */}
                 {selectedRisk && (
-                  <div className="p-4 rounded-xl bg-indigo-500/5 border border-indigo-500/10 text-xs flex gap-3 items-start">
-                    <TrendingUp className="w-4 h-4 text-indigo-400 shrink-0 mt-0.5 animate-pulse" />
+                  <div className="p-4 rounded-xl bg-sky-500/5 border border-sky-500/10 text-xs flex gap-3 items-start">
+                    <TrendingUp className="w-4 h-4 text-sky-400 shrink-0 mt-0.5 animate-pulse" />
                     <div>
                       <p className="font-bold text-slate-200">Current Step: {RISK_STEPS.find(s => s.id === selectedRisk.workflow_step)?.label}</p>
                       <p className="text-slate-400 mt-0.5">{RISK_STEPS.find(s => s.id === selectedRisk.workflow_step)?.desc}</p>
@@ -633,7 +633,7 @@ export default function WorkflowsPage() {
                 {selectedRisk ? (
                   <div className="space-y-6">
                     <div>
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-400 border border-indigo-500/10 uppercase tracking-widest">Active Step Panel</span>
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-sky-500/10 text-sky-400 border border-sky-500/10 uppercase tracking-widest">Active Step Panel</span>
                       <h4 className="text-base font-bold text-white mt-2">
                         {RISK_STEPS.find(s => s.id === selectedRisk.workflow_step)?.label}
                       </h4>
@@ -648,7 +648,7 @@ export default function WorkflowsPage() {
                           <p className="text-xs text-slate-300">New risk identified. Progress to registration stage.</p>
                           <button
                             onClick={() => handleProgressRisk('registered')}
-                            className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-all shadow-lg shadow-indigo-600/20"
+                            className="w-full py-2.5 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-all shadow-lg shadow-sky-500/20"
                           >
                             <Play className="w-3.5 h-3.5" /> Start Registration
                           </button>
@@ -667,7 +667,7 @@ export default function WorkflowsPage() {
                           </div>
                           <button
                             onClick={() => handleProgressRisk('assessed_inherent')}
-                            className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-all shadow-lg"
+                            className="w-full py-2.5 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-all shadow-lg"
                           >
                             Go to Inherent Assessment
                             <ArrowRight className="w-3.5 h-3.5" />
@@ -712,7 +712,7 @@ export default function WorkflowsPage() {
 
                           <button
                             onClick={() => handleProgressRisk('control_mapped')}
-                            className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-all shadow-lg"
+                            className="w-full py-2.5 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-all shadow-lg"
                           >
                             Confirm & Map Controls
                             <ArrowRight className="w-3.5 h-3.5" />
@@ -739,9 +739,9 @@ export default function WorkflowsPage() {
                                         setMappedControlIds(prev => [...prev, c.id])
                                       }
                                     }}
-                                    className="rounded border-slate-700 text-indigo-600 focus:ring-indigo-500 h-3.5 w-3.5 bg-transparent"
+                                    className="rounded border-slate-700 text-sky-500 focus:ring-sky-500 h-3.5 w-3.5 bg-transparent"
                                   />
-                                  <span className="text-[10px] font-bold text-indigo-400 font-mono shrink-0">{c.control_id}</span>
+                                  <span className="text-[10px] font-bold text-sky-400 font-mono shrink-0">{c.control_id}</span>
                                   <span className="text-slate-300 truncate">{c.title}</span>
                                 </label>
                               )
@@ -749,7 +749,7 @@ export default function WorkflowsPage() {
                           </div>
                           <button
                             onClick={() => handleProgressRisk('control_assessed')}
-                            className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-all shadow-lg"
+                            className="w-full py-2.5 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-all shadow-lg"
                           >
                             Assess Control Effectiveness
                             <ArrowRight className="w-3.5 h-3.5" />
@@ -763,8 +763,8 @@ export default function WorkflowsPage() {
                           <p className="text-xs font-semibold text-slate-300">Rate control effectiveness on the 6 policy sub-criteria (1 = Best/Strong, 5 = Worst/Weak):</p>
                           
                           {/* Design section */}
-                          <div className="space-y-3.5 border-l-2 border-indigo-500/20 pl-3">
-                            <span className="text-[10px] uppercase font-bold text-indigo-400 tracking-wider">Control Design</span>
+                          <div className="space-y-3.5 border-l-2 border-sky-500/20 pl-3">
+                            <span className="text-[10px] uppercase font-bold text-sky-400 tracking-wider">Control Design</span>
                             
                             {/* Compliance */}
                             <div className="space-y-1">
@@ -897,14 +897,14 @@ export default function WorkflowsPage() {
                               <p className="font-bold text-slate-400">Effectiveness Rating:</p>
                               <p className="text-[9px] text-slate-500 mt-0.5">Average Score: {(((designCompliance + designStrength + designTimeliness)/3 + (implRelevance + implSustainability + implTraceability)/3)/2).toFixed(2)}</p>
                             </div>
-                            <span className="font-black text-indigo-400 capitalize">
+                            <span className="font-black text-sky-400 capitalize">
                               {evaluateControlEffectiveness(designCompliance, designStrength, designTimeliness, implRelevance, implSustainability, implTraceability).label}
                             </span>
                           </div>
 
                           <button
                             onClick={() => handleProgressRisk('assessed_residual')}
-                            className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-all shadow-lg"
+                            className="w-full py-2.5 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-all shadow-lg"
                           >
                             Calculate Residual Level
                             <ArrowRight className="w-3.5 h-3.5" />
@@ -917,11 +917,11 @@ export default function WorkflowsPage() {
                         <div className="space-y-4">
                           <div className="text-xs space-y-1.5 p-3 rounded-lg bg-black/10 border border-white/5 text-slate-400">
                             <p>Inherent Risk Level: <strong className="text-rose-400 capitalize">{calculateInherentLevel(selectedRisk.inherent_likelihood || 3, selectedRisk.inherent_impact || 3)}</strong></p>
-                            <p>Control Effectiveness: <strong className="text-indigo-400 capitalize">{selectedRisk.control_effectiveness || 'adequate'}</strong></p>
+                            <p>Control Effectiveness: <strong className="text-sky-400 capitalize">{selectedRisk.control_effectiveness || 'adequate'}</strong></p>
                           </div>
 
-                          <div className="p-4 bg-indigo-500/10 rounded-xl border border-indigo-500/20 text-center">
-                            <p className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest">Computed Residual Risk Level</p>
+                          <div className="p-4 bg-sky-500/10 rounded-xl border border-sky-500/20 text-center">
+                            <p className="text-[10px] font-bold text-sky-400 uppercase tracking-widest">Computed Residual Risk Level</p>
                             <p className="text-2xl font-black text-white capitalize mt-1.5">
                               {calculateResidualLevel(
                                 calculateInherentLevel(selectedRisk.inherent_likelihood || 3, selectedRisk.inherent_impact || 3),
@@ -933,7 +933,7 @@ export default function WorkflowsPage() {
 
                           <button
                             onClick={() => handleProgressRisk('owner_review')}
-                            className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-all shadow-lg"
+                            className="w-full py-2.5 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-all shadow-lg"
                           >
                             Submit to Owner Review
                             <ArrowRight className="w-3.5 h-3.5" />
@@ -998,7 +998,7 @@ export default function WorkflowsPage() {
 
                             <button
                               onClick={() => handleProgressRisk('appetite_check')}
-                              className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-all shadow-lg"
+                              className="w-full py-2.5 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-all shadow-lg"
                             >
                               Approve & Run Appetite Check
                             </button>
@@ -1024,7 +1024,7 @@ export default function WorkflowsPage() {
                                   onClick={() => setSelectedStrategy(opt)}
                                   className={`p-2 rounded border cursor-pointer text-center capitalize transition-all ${
                                     selectedStrategy === opt
-                                      ? 'border-indigo-500 text-white bg-indigo-600/20'
+                                      ? 'border-sky-500 text-white bg-sky-500/20'
                                       : 'border-white/5 text-slate-400 hover:border-white/10'
                                   }`}
                                 >
@@ -1041,14 +1041,14 @@ export default function WorkflowsPage() {
                               value={treatmentPlan}
                               onChange={(e) => setTreatmentPlan(e.target.value)}
                               rows={3}
-                              className="w-full px-3 py-2 rounded-xl text-xs border border-white/10 bg-transparent outline-none text-white focus:border-indigo-500 resize-none"
+                              className="w-full px-3 py-2 rounded-xl text-xs border border-white/10 bg-transparent outline-none text-white focus:border-sky-500 resize-none"
                             />
                           </div>
 
                           <button
                             onClick={() => handleProgressRisk('action_plan')}
                             disabled={!treatmentPlan.trim()}
-                            className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-all shadow-lg disabled:opacity-50"
+                            className="w-full py-2.5 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-all shadow-lg disabled:opacity-50"
                           >
                             Save & Plan Mitigation Actions
                             <ArrowRight className="w-3.5 h-3.5" />
@@ -1066,13 +1066,13 @@ export default function WorkflowsPage() {
                               value={actionPlan}
                               onChange={(e) => setActionPlan(e.target.value)}
                               rows={3}
-                              className="w-full px-3 py-2 rounded-xl text-xs border border-white/10 bg-transparent outline-none text-white focus:border-indigo-500 resize-none"
+                              className="w-full px-3 py-2 rounded-xl text-xs border border-white/10 bg-transparent outline-none text-white focus:border-sky-500 resize-none"
                             />
                           </div>
                           <button
                             onClick={() => handleProgressRisk('implementation')}
                             disabled={!actionPlan.trim()}
-                            className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-all shadow-lg disabled:opacity-50"
+                            className="w-full py-2.5 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-all shadow-lg disabled:opacity-50"
                           >
                             Send to Implementation Phase
                             <ArrowRight className="w-3.5 h-3.5" />
@@ -1089,7 +1089,7 @@ export default function WorkflowsPage() {
                           </div>
                           <button
                             onClick={() => handleProgressRisk('validation')}
-                            className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-all"
+                            className="w-full py-2.5 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-all"
                           >
                             Mark Actions Completed
                           </button>
@@ -1106,13 +1106,13 @@ export default function WorkflowsPage() {
                               value={validationEvidence}
                               onChange={(e) => setValidationEvidence(e.target.value)}
                               rows={3}
-                              className="w-full px-3 py-2 rounded-xl text-xs border border-white/10 bg-transparent outline-none text-white focus:border-indigo-500 resize-none"
+                              className="w-full px-3 py-2 rounded-xl text-xs border border-white/10 bg-transparent outline-none text-white focus:border-sky-500 resize-none"
                             />
                           </div>
                           <button
                             onClick={() => handleProgressRisk('residual_reassessment')}
                             disabled={!validationEvidence.trim()}
-                            className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-all shadow-lg disabled:opacity-50"
+                            className="w-full py-2.5 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-all shadow-lg disabled:opacity-50"
                           >
                             Proceed to Reassessment
                           </button>
@@ -1156,7 +1156,7 @@ export default function WorkflowsPage() {
 
                           <button
                             onClick={() => handleProgressRisk('verify_reassessment')}
-                            className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-all"
+                            className="w-full py-2.5 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-all"
                           >
                             Run Final Appetite Verification
                           </button>
@@ -1201,7 +1201,7 @@ export default function WorkflowsPage() {
                                   onClick={() => setEscalationAction(opt.value as any)}
                                   className={`p-2 rounded border cursor-pointer text-center transition-all ${
                                     escalationAction === opt.value
-                                      ? 'border-indigo-500 text-white bg-indigo-600/20'
+                                      ? 'border-sky-500 text-white bg-sky-500/20'
                                       : 'border-white/5 text-slate-400 hover:border-white/10'
                                   }`}
                                 >
@@ -1212,7 +1212,7 @@ export default function WorkflowsPage() {
                           </div>
                           <button
                             onClick={() => handleProgressRisk('escalated_decision')}
-                            className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
+                            className="w-full py-2.5 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
                           >
                             Apply Decision & Close
                           </button>
@@ -1268,7 +1268,7 @@ export default function WorkflowsPage() {
                 </div>
                 <button
                   onClick={() => setShowCreateIntake(true)}
-                  className="p-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg flex items-center justify-center cursor-pointer transition-colors"
+                  className="p-1.5 bg-sky-500 hover:bg-sky-600 text-white rounded-lg flex items-center justify-center cursor-pointer transition-colors"
                 >
                   <Plus className="w-4 h-4" />
                 </button>
@@ -1276,9 +1276,9 @@ export default function WorkflowsPage() {
 
               {/* Create Intake Panel */}
               {showCreateIntake && (
-                <form onSubmit={handleCreateIntake} className="p-4 rounded-xl bg-slate-900 border border-indigo-500/20 space-y-3 animate-fade-in">
+                <form onSubmit={handleCreateIntake} className="p-4 rounded-xl bg-slate-900 border border-sky-500/20 space-y-3 animate-fade-in">
                   <div className="flex justify-between items-center border-b border-white/5 pb-2">
-                    <p className="text-xs font-bold text-indigo-400">New GRC Record</p>
+                    <p className="text-xs font-bold text-sky-400">New GRC Record</p>
                     <button type="button" onClick={() => setShowCreateIntake(false)} className="text-[10px] text-slate-500 hover:text-slate-400">Cancel</button>
                   </div>
                   <div className="space-y-1">
@@ -1286,7 +1286,7 @@ export default function WorkflowsPage() {
                     <input
                       type="text" required placeholder="e.g. Weak password policy..."
                       value={intakeTitle} onChange={e => setIntakeTitle(e.target.value)}
-                      className="w-full px-2.5 py-1.5 rounded-lg text-xs bg-black/20 border border-white/10 text-white outline-none focus:border-indigo-500"
+                      className="w-full px-2.5 py-1.5 rounded-lg text-xs bg-black/20 border border-white/10 text-white outline-none focus:border-sky-500"
                     />
                   </div>
                   <div className="space-y-1">
@@ -1294,7 +1294,7 @@ export default function WorkflowsPage() {
                     <textarea
                       placeholder="Enter detailed description..."
                       value={intakeDesc} onChange={e => setIntakeDesc(e.target.value)}
-                      className="w-full px-2.5 py-1.5 rounded-lg text-xs bg-black/20 border border-white/10 text-white outline-none focus:border-indigo-500 resize-none"
+                      className="w-full px-2.5 py-1.5 rounded-lg text-xs bg-black/20 border border-white/10 text-white outline-none focus:border-sky-500 resize-none"
                       rows={2}
                     />
                   </div>
@@ -1326,7 +1326,7 @@ export default function WorkflowsPage() {
                   </div>
                   <button
                     type="submit"
-                    className="w-full py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg cursor-pointer"
+                    className="w-full py-1.5 bg-sky-500 hover:bg-sky-600 text-white text-xs font-semibold rounded-lg cursor-pointer"
                   >
                     Submit
                   </button>
@@ -1344,7 +1344,7 @@ export default function WorkflowsPage() {
                         onClick={() => setSelectedIntakeId(item.id)}
                         className={`p-3 rounded-xl border transition-all cursor-pointer ${
                           active
-                            ? 'border-indigo-500 bg-indigo-500/5'
+                            ? 'border-sky-500 bg-sky-500/5'
                             : 'border-white/5 bg-white/[0.02] hover:border-white/10'
                         }`}
                       >
@@ -1449,8 +1449,8 @@ export default function WorkflowsPage() {
                                 title={node.label}
                               >
                                 <div className={`w-[48px] h-[48px] rotate-45 border flex items-center justify-center transition-all ${
-                                  active ? 'bg-indigo-600/30 border-indigo-500 shadow-lg shadow-indigo-600/20' : 
-                                  completed ? 'bg-slate-900 border-indigo-500 text-indigo-400' : 'bg-slate-900 border-white/10 text-slate-500'
+                                  active ? 'bg-sky-500/30 border-sky-500 shadow-lg shadow-sky-500/20' : 
+                                  completed ? 'bg-slate-900 border-sky-500 text-sky-400' : 'bg-slate-900 border-white/10 text-slate-500'
                                 }`}>
                                   <HelpCircle className="w-4 h-4 -rotate-45" />
                                 </div>
@@ -1465,9 +1465,9 @@ export default function WorkflowsPage() {
                               style={{ left: `${node.x}px`, top: `${node.y}px`, width: '120px', height: '45px' }}
                               className={`absolute rounded-xl border p-2 text-left flex flex-col justify-center transition-all ${
                                 active
-                                  ? 'bg-indigo-600/20 border-indigo-500 text-white font-bold'
+                                  ? 'bg-sky-500/20 border-sky-500 text-white font-bold'
                                   : completed
-                                  ? 'bg-slate-900/60 border-indigo-500/30 text-indigo-400'
+                                  ? 'bg-slate-900/60 border-sky-500/30 text-sky-400'
                                   : 'bg-slate-900/20 border-white/5 text-slate-500'
                               }`}
                             >
@@ -1495,7 +1495,7 @@ export default function WorkflowsPage() {
                         <p className="text-xs text-slate-400 italic">"{selectedIntake.description}"</p>
                         <button
                           onClick={() => handleProgressIntake('classification')}
-                          className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer"
+                          className="w-full py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer"
                         >
                           Progress to Classification
                           <ArrowRight className="w-3.5 h-3.5" />
@@ -1509,13 +1509,13 @@ export default function WorkflowsPage() {
                         <div className="grid grid-cols-2 gap-2 text-xs">
                           {['cybersecurity', 'financial', 'operational', 'legal'].map(c => (
                             <div key={c} className={`p-2.5 rounded-lg border text-center capitalize ${
-                              selectedIntake.classification === c ? 'border-indigo-500 text-white bg-indigo-600/10' : 'border-white/5 text-slate-400'
+                              selectedIntake.classification === c ? 'border-sky-500 text-white bg-sky-500/10' : 'border-white/5 text-slate-400'
                             }`}>{c}</div>
                           ))}
                         </div>
                         <button
                           onClick={() => handleProgressIntake('control_mapping')}
-                          className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer"
+                          className="w-full py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer"
                         >
                           Confirm & Map Controls
                           <ArrowRight className="w-3.5 h-3.5" />
@@ -1540,9 +1540,9 @@ export default function WorkflowsPage() {
                                       setIntakeControlIds(prev => [...prev, c.id])
                                     }
                                   }}
-                                  className="rounded border-slate-700 text-indigo-600 focus:ring-indigo-500 h-3.5 w-3.5 bg-transparent"
+                                  className="rounded border-slate-700 text-sky-500 focus:ring-sky-500 h-3.5 w-3.5 bg-transparent"
                                 />
-                                <span className="text-[10px] font-bold text-indigo-400 font-mono shrink-0">{c.control_id}</span>
+                                <span className="text-[10px] font-bold text-sky-400 font-mono shrink-0">{c.control_id}</span>
                                 <span className="text-slate-300 truncate">{c.title}</span>
                               </label>
                             )
@@ -1550,7 +1550,7 @@ export default function WorkflowsPage() {
                         </div>
                         <button
                           onClick={() => handleProgressIntake('evidence_collection')}
-                          className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer"
+                          className="w-full py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer"
                         >
                           Go to Evidence Collection
                           <ArrowRight className="w-3.5 h-3.5" />
@@ -1565,7 +1565,7 @@ export default function WorkflowsPage() {
                           <input
                             type="text" placeholder="e.g. s3://acme-audit/controls/A.9.1.pdf"
                             value={intakeEvidenceUrl} onChange={e => setIntakeEvidenceUrl(e.target.value)}
-                            className="w-full px-3 py-2 rounded-xl text-xs bg-black/20 border border-white/10 text-white outline-none focus:border-indigo-500"
+                            className="w-full px-3 py-2 rounded-xl text-xs bg-black/20 border border-white/10 text-white outline-none focus:border-sky-500"
                           />
                         </div>
                         <div className="space-y-1.5">
@@ -1573,14 +1573,14 @@ export default function WorkflowsPage() {
                           <textarea
                             placeholder="Add compliance notes and evidence description..."
                             value={intakeEvidenceNote} onChange={e => setIntakeEvidenceNote(e.target.value)}
-                            className="w-full px-3 py-2 rounded-xl text-xs bg-black/20 border border-white/10 text-white outline-none focus:border-indigo-500 resize-none"
+                            className="w-full px-3 py-2 rounded-xl text-xs bg-black/20 border border-white/10 text-white outline-none focus:border-sky-500 resize-none"
                             rows={2}
                           />
                         </div>
                         <button
                           onClick={() => handleProgressIntake('compliance_assessment')}
                           disabled={!intakeEvidenceUrl.trim()}
-                          className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-55"
+                          className="w-full py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-55"
                         >
                           Run Compliance Assessment
                         </button>
@@ -1610,7 +1610,7 @@ export default function WorkflowsPage() {
                         </div>
                         <button
                           onClick={() => handleProgressIntake('gap_assessment')}
-                          className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer"
+                          className="w-full py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer"
                         >
                           Verify Assessment Results
                         </button>
@@ -1624,7 +1624,7 @@ export default function WorkflowsPage() {
                         </div>
                         <button
                           onClick={() => handleProgressIntake('non_compliance')}
-                          className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer"
+                          className="w-full py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer"
                         >
                           Route to Non-Compliance
                         </button>
@@ -1638,7 +1638,7 @@ export default function WorkflowsPage() {
                           <button
                             type="button" onClick={() => setIntakeGapRiskRequired(true)}
                             className={`p-3 rounded-xl border text-xs font-bold transition-all text-center ${
-                              intakeGapRiskRequired ? 'border-indigo-500 text-white bg-indigo-600/10' : 'border-white/5 text-slate-400'
+                              intakeGapRiskRequired ? 'border-sky-500 text-white bg-sky-500/10' : 'border-white/5 text-slate-400'
                             }`}
                           >
                             Route to Risk Register
@@ -1646,7 +1646,7 @@ export default function WorkflowsPage() {
                           <button
                             type="button" onClick={() => setIntakeGapRiskRequired(false)}
                             className={`p-3 rounded-xl border text-xs font-bold transition-all text-center ${
-                              !intakeGapRiskRequired ? 'border-indigo-500 text-white bg-indigo-600/10' : 'border-white/5 text-slate-400'
+                              !intakeGapRiskRequired ? 'border-sky-500 text-white bg-sky-500/10' : 'border-white/5 text-slate-400'
                             }`}
                           >
                             Issue Issue Action Plan
@@ -1654,7 +1654,7 @@ export default function WorkflowsPage() {
                         </div>
                         <button
                           onClick={() => handleProgressIntake('non_compliance')}
-                          className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer"
+                          className="w-full py-2.5 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer"
                         >
                           Confirm & Route Task
                         </button>
@@ -1666,7 +1666,7 @@ export default function WorkflowsPage() {
                         <p className="text-xs text-slate-300">Creates a new risk in the Risk Register and routes it to Phase 1 for inherent assessment.</p>
                         <button
                           onClick={() => handleProgressIntake('risk_routing')}
-                          className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer"
+                          className="w-full py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer"
                         >
                           Create Risk Card & Route
                         </button>
@@ -1680,14 +1680,14 @@ export default function WorkflowsPage() {
                           <textarea
                             placeholder="Enter task details, target timelines, and action owner..."
                             value={intakeIssuePlan} onChange={e => setIntakeIssuePlan(e.target.value)}
-                            className="w-full px-3 py-2 rounded-xl text-xs bg-black/20 border border-white/10 text-white outline-none focus:border-indigo-500 resize-none"
+                            className="w-full px-3 py-2 rounded-xl text-xs bg-black/20 border border-white/10 text-white outline-none focus:border-sky-500 resize-none"
                             rows={3}
                           />
                         </div>
                         <button
                           onClick={() => handleProgressIntake('action_plan')}
                           disabled={!intakeIssuePlan.trim()}
-                          className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-55"
+                          className="w-full py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-55"
                         >
                           Complete & Close GRC Item
                         </button>
@@ -1714,3 +1714,4 @@ export default function WorkflowsPage() {
     </div>
   )
 }
+

@@ -57,7 +57,7 @@ export default function SettingsPage() {
                   <button key={s.id}
                     onClick={() => setActiveSection(s.id)}
                     className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium text-left transition-colors ${
-                      active ? 'bg-indigo-600 text-white' : 'hover:bg-black/5 dark:hover:bg-white/5'
+                      active ? 'bg-sky-500 text-white' : 'hover:bg-black/5 dark:hover:bg-white/5'
                     }`}
                     style={{ color: active ? 'white' : 'var(--muted-fg)' }}>
                     <Icon className="w-4 h-4" />{s.label}
@@ -73,13 +73,13 @@ export default function SettingsPage() {
                 <div className="card p-6">
                   <h3 className="text-sm font-semibold mb-5" style={{ color: 'var(--foreground)' }}>Profile Information</h3>
                   <div className="flex items-center gap-4 mb-6">
-                    <div className="w-16 h-16 rounded-2xl bg-indigo-600 flex items-center justify-center text-white text-xl font-black">
+                    <div className="w-16 h-16 rounded-2xl bg-sky-500 flex items-center justify-center text-white text-xl font-black">
                       {user.full_name[0]}
                     </div>
                     <div>
                       <p className="text-base font-semibold" style={{ color: 'var(--foreground)' }}>{user.full_name}</p>
                       <p className="text-sm capitalize" style={{ color: 'var(--muted-fg)' }}>{user.role.replace('_', ' ')}</p>
-                      <button className="text-xs text-indigo-500 hover:text-indigo-400 mt-1">Change avatar</button>
+                      <button className="text-xs text-sky-500 hover:text-sky-400 mt-1">Change avatar</button>
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
@@ -94,13 +94,13 @@ export default function SettingsPage() {
                           {f.label}
                         </label>
                         <input defaultValue={f.value}
-                          className="w-full px-3 py-2.5 rounded-xl text-sm border outline-none focus:ring-2 focus:ring-indigo-500/30 capitalize"
+                          className="w-full px-3 py-2.5 rounded-xl text-sm border outline-none focus:ring-2 focus:ring-sky-500/30 capitalize"
                           style={{ background: 'var(--muted)', borderColor: 'var(--border)', color: 'var(--foreground)' }} />
                       </div>
                     ))}
                   </div>
                   <div className="mt-5 flex justify-end">
-                    <button className="px-5 py-2 rounded-xl text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700">
+                    <button className="px-5 py-2 rounded-xl text-sm font-semibold text-white bg-sky-500 hover:bg-sky-600">
                       Save Changes
                     </button>
                   </div>
@@ -127,7 +127,7 @@ export default function SettingsPage() {
                         </div>
                         <label className="relative inline-flex items-center cursor-pointer">
                           <input type="checkbox" defaultChecked={n.enabled} className="sr-only peer" />
-                          <div className="w-11 h-6 rounded-full peer peer-checked:bg-indigo-600 peer-focus:ring-2 peer-focus:ring-indigo-500/30 transition-colors"
+                          <div className="w-11 h-6 rounded-full peer peer-checked:bg-sky-500 peer-focus:ring-2 peer-focus:ring-sky-500/30 transition-colors"
                             style={{ background: n.enabled ? undefined : 'var(--border)' }} />
                           <div className="absolute left-1 top-1 bg-white rounded-full h-4 w-4 transition-transform peer-checked:translate-x-5" />
                         </label>
@@ -145,23 +145,23 @@ export default function SettingsPage() {
                     <div>
                       <label className="block text-xs font-semibold mb-1.5" style={{ color: 'var(--foreground)' }}>Current Password</label>
                       <input type="password" placeholder="••••••••"
-                        className="w-full px-3 py-2.5 rounded-xl text-sm border outline-none focus:ring-2 focus:ring-indigo-500/30"
+                        className="w-full px-3 py-2.5 rounded-xl text-sm border outline-none focus:ring-2 focus:ring-sky-500/30"
                         style={{ background: 'var(--muted)', borderColor: 'var(--border)', color: 'var(--foreground)' }} />
                     </div>
                     <div>
                       <label className="block text-xs font-semibold mb-1.5" style={{ color: 'var(--foreground)' }}>New Password</label>
                       <input type="password" placeholder="••••••••"
-                        className="w-full px-3 py-2.5 rounded-xl text-sm border outline-none focus:ring-2 focus:ring-indigo-500/30"
+                        className="w-full px-3 py-2.5 rounded-xl text-sm border outline-none focus:ring-2 focus:ring-sky-500/30"
                         style={{ background: 'var(--muted)', borderColor: 'var(--border)', color: 'var(--foreground)' }} />
                     </div>
                     <div>
                       <label className="block text-xs font-semibold mb-1.5" style={{ color: 'var(--foreground)' }}>Confirm New Password</label>
                       <input type="password" placeholder="••••••••"
-                        className="w-full px-3 py-2.5 rounded-xl text-sm border outline-none focus:ring-2 focus:ring-indigo-500/30"
+                        className="w-full px-3 py-2.5 rounded-xl text-sm border outline-none focus:ring-2 focus:ring-sky-500/30"
                         style={{ background: 'var(--muted)', borderColor: 'var(--border)', color: 'var(--foreground)' }} />
                     </div>
                     <div className="flex justify-end">
-                      <button className="px-5 py-2 rounded-xl text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700">
+                      <button className="px-5 py-2 rounded-xl text-sm font-semibold text-white bg-sky-500 hover:bg-sky-600">
                         Update Password
                       </button>
                     </div>
@@ -197,7 +197,7 @@ export default function SettingsPage() {
                         style={{ background: 'var(--muted)', borderColor: 'var(--border)', color: 'var(--foreground)' }} />
                     </div>
                     <div className="flex justify-end">
-                      <button className="px-5 py-2 rounded-xl text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700">
+                      <button className="px-5 py-2 rounded-xl text-sm font-semibold text-white bg-sky-500 hover:bg-sky-600">
                         Save API Config
                       </button>
                     </div>
@@ -215,7 +215,7 @@ export default function SettingsPage() {
                       {['Light', 'Dark', 'System'].map(t => (
                         <button key={t}
                           className={`px-5 py-2.5 rounded-xl text-sm font-medium border transition-all ${
-                            t === 'System' ? 'border-indigo-500 bg-indigo-600 text-white' : 'hover:bg-black/5 dark:hover:bg-white/5'
+                            t === 'System' ? 'border-sky-500 bg-sky-500 text-white' : 'hover:bg-black/5 dark:hover:bg-white/5'
                           }`}
                           style={{ borderColor: t === 'System' ? undefined : 'var(--border)', color: t === 'System' ? undefined : 'var(--muted-fg)' }}>
                           {t}
@@ -253,7 +253,7 @@ export default function SettingsPage() {
                               className={`px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition-colors ${
                                 int.connected
                                   ? 'bg-green-500/10 text-green-500 hover:bg-green-500/20'
-                                  : 'bg-indigo-600 text-white hover:bg-indigo-700'
+                                  : 'bg-sky-500 text-white hover:bg-sky-600'
                               }`}>
                               {int.connected ? (int.id === 'jira' ? 'Configure' : 'Connected') : 'Connect'}
                             </button>
@@ -289,7 +289,7 @@ export default function SettingsPage() {
                             placeholder="https://your-domain.atlassian.net"
                             value={jiraConfig.instanceUrl}
                             onChange={e => setJiraConfig({ ...jiraConfig, instanceUrl: e.target.value })}
-                            className="w-full px-3 py-2.5 rounded-xl text-sm border outline-none font-mono focus:ring-2 focus:ring-indigo-500/30"
+                            className="w-full px-3 py-2.5 rounded-xl text-sm border outline-none font-mono focus:ring-2 focus:ring-sky-500/30"
                             style={{ background: 'var(--muted)', borderColor: 'var(--border)', color: 'var(--foreground)' }}
                           />
                         </div>
@@ -303,7 +303,7 @@ export default function SettingsPage() {
                               placeholder="admin@company.com"
                               value={jiraConfig.email}
                               onChange={e => setJiraConfig({ ...jiraConfig, email: e.target.value })}
-                              className="w-full px-3 py-2.5 rounded-xl text-sm border outline-none focus:ring-2 focus:ring-indigo-500/30"
+                              className="w-full px-3 py-2.5 rounded-xl text-sm border outline-none focus:ring-2 focus:ring-sky-500/30"
                               style={{ background: 'var(--muted)', borderColor: 'var(--border)', color: 'var(--foreground)' }}
                             />
                           </div>
@@ -314,7 +314,7 @@ export default function SettingsPage() {
                               placeholder="Enter API Token..."
                               value={jiraConfig.apiToken}
                               onChange={e => setJiraConfig({ ...jiraConfig, apiToken: e.target.value })}
-                              className="w-full px-3 py-2.5 rounded-xl text-sm border outline-none font-mono focus:ring-2 focus:ring-indigo-500/30"
+                              className="w-full px-3 py-2.5 rounded-xl text-sm border outline-none font-mono focus:ring-2 focus:ring-sky-500/30"
                               style={{ background: 'var(--muted)', borderColor: 'var(--border)', color: 'var(--foreground)' }}
                             />
                           </div>
@@ -397,7 +397,7 @@ export default function SettingsPage() {
                         {/* Verification details */}
                         {testStatus !== 'idle' && (
                           <div className={`p-3.5 rounded-xl text-xs border flex items-center gap-2.5 ${
-                            testStatus === 'testing' ? 'bg-indigo-500/5 text-indigo-500 border-indigo-500/20' :
+                            testStatus === 'testing' ? 'bg-sky-500/5 text-sky-500 border-sky-500/20' :
                             testStatus === 'success' ? 'bg-green-500/5 text-green-500 border-green-500/20' :
                             'bg-red-500/5 text-red-500 border-red-500/20'
                           }`}>
@@ -465,7 +465,7 @@ export default function SettingsPage() {
                               setIsJiraOpen(false)
                               toast.success('Jira configuration saved successfully!')
                             }}
-                            className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="px-5 py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-xs font-semibold transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             Save Integration
                           </button>
@@ -489,12 +489,12 @@ export default function SettingsPage() {
                       <div key={f.label}>
                         <label className="block text-xs font-semibold mb-1.5" style={{ color: 'var(--foreground)' }}>{f.label}</label>
                         <input defaultValue={f.value}
-                          className="w-full px-3 py-2.5 rounded-xl text-sm border outline-none focus:ring-2 focus:ring-indigo-500/30"
+                          className="w-full px-3 py-2.5 rounded-xl text-sm border outline-none focus:ring-2 focus:ring-sky-500/30"
                           style={{ background: 'var(--muted)', borderColor: 'var(--border)', color: 'var(--foreground)' }} />
                       </div>
                     ))}
                     <div className="flex justify-end">
-                      <button className="px-5 py-2 rounded-xl text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700">
+                      <button className="px-5 py-2 rounded-xl text-sm font-semibold text-white bg-sky-500 hover:bg-sky-600">
                         Save Organization
                       </button>
                     </div>
@@ -508,3 +508,4 @@ export default function SettingsPage() {
     </>
   )
 }
+

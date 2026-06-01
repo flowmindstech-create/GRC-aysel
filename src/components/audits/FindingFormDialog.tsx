@@ -155,3 +155,4 @@ export function FindingFormDialog({ auditId, onClose, onSave }: Props) {
     </AnimatePresence>
   )
 }
+

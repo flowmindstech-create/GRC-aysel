@@ -19,8 +19,8 @@ interface StatsCardProps {
 
 export function StatsCard({
   title, value, subtitle, icon: Icon,
-  iconColor = 'text-indigo-500',
-  iconBg = 'bg-indigo-500/10',
+  iconColor = 'text-sky-500',
+  iconBg = 'bg-sky-500/10',
   trend, className, index = 0,
 }: StatsCardProps) {
   const TrendIcon = trend
@@ -57,3 +57,4 @@ export function StatsCard({
     </motion.div>
   )
 }
+

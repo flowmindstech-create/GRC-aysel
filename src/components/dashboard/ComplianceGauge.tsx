@@ -57,3 +57,4 @@ export function ComplianceGauge({ score }: Props) {
     </div>
   )
 }
+

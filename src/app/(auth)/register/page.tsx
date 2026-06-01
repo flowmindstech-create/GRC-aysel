@@ -63,13 +63,13 @@ export default function RegisterPage() {
   }
 
 
-  const inp = "w-full pl-10 pr-4 py-3 rounded-xl text-sm border outline-none transition-all focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500"
+  const inp = "w-full pl-10 pr-4 py-3 rounded-xl text-sm border outline-none transition-all focus:ring-2 focus:ring-sky-500/30 focus:border-sky-500"
 
   return (
     <div className="min-h-screen flex items-center justify-center p-8" style={{ background: 'var(--background)' }}>
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md">
         <div className="flex items-center gap-2 mb-8">
-          <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center">
+          <div className="w-8 h-8 rounded-lg bg-sky-500 flex items-center justify-center">
             <Shield className="w-4 h-4 text-white" />
           </div>
           <span className="font-bold text-lg" style={{ color: 'var(--foreground)' }}>RiskShield</span>
@@ -107,7 +107,7 @@ export default function RegisterPage() {
           </div>
 
           <button type="submit" disabled={loading}
-            className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 transition-all shadow-lg shadow-indigo-600/25 mt-2">
+            className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold text-white bg-sky-500 hover:bg-sky-600 disabled:opacity-60 transition-all shadow-lg shadow-sky-500/25 mt-2">
             {loading
               ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               : <><span>Create Account</span><ArrowRight className="w-4 h-4" /></>}
@@ -116,9 +116,10 @@ export default function RegisterPage() {
 
         <p className="text-sm text-center mt-6" style={{ color: 'var(--muted-fg)' }}>
           Already have an account?{' '}
-          <Link href="/login" className="text-indigo-500 hover:text-indigo-400 font-medium">Sign in</Link>
+          <Link href="/login" className="text-sky-500 hover:text-sky-400 font-medium">Sign in</Link>
         </p>
       </motion.div>
     </div>
   )
 }
+

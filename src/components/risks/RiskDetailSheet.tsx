@@ -253,7 +253,7 @@ export function RiskDetailSheet({ risk, onClose, onUpdate }: Props) {
                 <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--muted-fg)' }}>Workflow Progress</p>
                 <a
                   href="/workflows"
-                  className="text-[10px] text-indigo-500 hover:text-indigo-600 font-bold flex items-center gap-1 cursor-pointer"
+                  className="text-[10px] text-sky-500 hover:text-sky-500 font-bold flex items-center gap-1 cursor-pointer"
                 >
                   Open in Dashboard <ExternalLink className="w-3 h-3" />
                 </a>
@@ -267,14 +267,14 @@ export function RiskDetailSheet({ risk, onClose, onUpdate }: Props) {
                     {risk.status === 'closed' ? 'Risk completed' : 'Risk is active'}
                   </p>
                 </div>
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-indigo-900/10 text-indigo-400 border border-indigo-500/10">
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-sky-900/10 text-sky-400 border border-sky-500/10">
                   {risk.status.toUpperCase()}
                 </span>
               </div>
               <div className="mt-3">
                 <div className="w-full bg-slate-200 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
                   <div
-                    className="bg-indigo-600 h-1.5 rounded-full transition-all duration-500"
+                    className="bg-sky-500 h-1.5 rounded-full transition-all duration-500"
                     style={{
                       width: `${Math.round((([
                         'identified', 'registered', 'assessed_inherent', 'control_mapped', 
@@ -301,7 +301,7 @@ export function RiskDetailSheet({ risk, onClose, onUpdate }: Props) {
               {/* Active Step Panel (Inline Progression) */}
               <div className="mt-4 pt-4 border-t" style={{ borderColor: 'var(--border)' }}>
                 <div className="flex items-center gap-1.5 mb-2">
-                  <Play className="w-3.5 h-3.5 text-indigo-400" />
+                  <Play className="w-3.5 h-3.5 text-sky-400" />
                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest font-mono">Active Step Action</span>
                 </div>
                 
@@ -311,7 +311,7 @@ export function RiskDetailSheet({ risk, onClose, onUpdate }: Props) {
                       <p className="text-xs text-slate-400">New risk identified. Progress to registration stage.</p>
                       <button
                         onClick={() => handleProgressRisk('registered')}
-                        className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-colors shadow-lg shadow-indigo-600/20"
+                        className="w-full py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-colors shadow-lg shadow-sky-500/20"
                       >
                         <Play className="w-3.5 h-3.5" /> Start Registration
                       </button>
@@ -323,7 +323,7 @@ export function RiskDetailSheet({ risk, onClose, onUpdate }: Props) {
                       <p className="text-xs text-slate-400">The risk details are documented. Proceed to inherent risk assessment.</p>
                       <button
                         onClick={() => handleProgressRisk('assessed_inherent')}
-                        className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-colors shadow-lg"
+                        className="w-full py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-colors shadow-lg"
                       >
                         Go to Inherent Assessment <ArrowRight className="w-3.5 h-3.5" />
                       </button>
@@ -358,7 +358,7 @@ export function RiskDetailSheet({ risk, onClose, onUpdate }: Props) {
                       </div>
                       <button
                         onClick={() => handleProgressRisk('control_mapped')}
-                        className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-colors shadow-lg"
+                        className="w-full py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-colors shadow-lg"
                       >
                         Confirm & Map Controls <ArrowRight className="w-3.5 h-3.5" />
                       </button>
@@ -383,9 +383,9 @@ export function RiskDetailSheet({ risk, onClose, onUpdate }: Props) {
                                     setMappedControlIds(prev => [...prev, c.id])
                                   }
                                 }}
-                                className="rounded border-slate-700 text-indigo-600 focus:ring-indigo-500 h-3 w-3 bg-transparent cursor-pointer"
+                                className="rounded border-slate-700 text-sky-500 focus:ring-sky-500 h-3 w-3 bg-transparent cursor-pointer"
                               />
-                              <span className="text-[9px] font-bold text-indigo-400 font-mono shrink-0">{c.control_id}</span>
+                              <span className="text-[9px] font-bold text-sky-400 font-mono shrink-0">{c.control_id}</span>
                               <span className="text-slate-350 truncate">{c.title}</span>
                             </label>
                           )
@@ -393,7 +393,7 @@ export function RiskDetailSheet({ risk, onClose, onUpdate }: Props) {
                       </div>
                       <button
                         onClick={() => handleProgressRisk('control_assessed')}
-                        className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-colors shadow-lg"
+                        className="w-full py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-colors shadow-lg"
                       >
                         Assess Control Effectiveness <ArrowRight className="w-3.5 h-3.5" />
                       </button>
@@ -451,14 +451,14 @@ export function RiskDetailSheet({ risk, onClose, onUpdate }: Props) {
 
                       <div className="p-2 rounded bg-black/20 border border-white/5 flex justify-between items-center text-xs">
                         <span className="text-slate-400 font-semibold">Effectiveness:</span>
-                        <span className="font-bold text-indigo-400 capitalize">
+                        <span className="font-bold text-sky-400 capitalize">
                           {evaluateControlEffectiveness(designCompliance, designStrength, designTimeliness, implRelevance, implSustainability, implTraceability).label}
                         </span>
                       </div>
 
                       <button
                         onClick={() => handleProgressRisk('assessed_residual')}
-                        className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-colors shadow-lg"
+                        className="w-full py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-colors shadow-lg"
                       >
                         Calculate Residual Level <ArrowRight className="w-3.5 h-3.5" />
                       </button>
@@ -467,8 +467,8 @@ export function RiskDetailSheet({ risk, onClose, onUpdate }: Props) {
 
                   {risk.workflow_step === 'assessed_residual' && (
                     <div className="space-y-3">
-                      <div className="p-3 bg-indigo-500/5 rounded-xl border border-indigo-500/10 text-center">
-                        <p className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest font-mono">Computed Residual Risk</p>
+                      <div className="p-3 bg-sky-500/5 rounded-xl border border-sky-500/10 text-center">
+                        <p className="text-[10px] font-bold text-sky-400 uppercase tracking-widest font-mono">Computed Residual Risk</p>
                         <p className="text-xl font-black text-white capitalize mt-1">
                           {calculateResidualLevel(
                             calculateInherentLevel(risk.inherent_likelihood || 3, risk.inherent_impact || 3),
@@ -478,7 +478,7 @@ export function RiskDetailSheet({ risk, onClose, onUpdate }: Props) {
                       </div>
                       <button
                         onClick={() => handleProgressRisk('owner_review')}
-                        className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-colors shadow-lg"
+                        className="w-full py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-colors shadow-lg"
                       >
                         Submit to Owner Review <ArrowRight className="w-3.5 h-3.5" />
                       </button>
@@ -535,7 +535,7 @@ export function RiskDetailSheet({ risk, onClose, onUpdate }: Props) {
 
                         <button
                           onClick={() => handleProgressRisk('appetite_check')}
-                          className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-colors shadow-lg"
+                          className="w-full py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-colors shadow-lg"
                         >
                           Confirm & Run Appetite Check
                         </button>
@@ -560,7 +560,7 @@ export function RiskDetailSheet({ risk, onClose, onUpdate }: Props) {
                               onClick={() => setSelectedStrategy(opt)}
                               className={`py-1 px-2 rounded border cursor-pointer capitalize text-center ${
                                 selectedStrategy === opt
-                                  ? 'border-indigo-500 text-white bg-indigo-600/20'
+                                  ? 'border-sky-500 text-white bg-sky-500/20'
                                   : 'border-white/5 text-slate-400 hover:border-white/10'
                               }`}
                             >
@@ -576,14 +576,14 @@ export function RiskDetailSheet({ risk, onClose, onUpdate }: Props) {
                           value={treatmentPlan}
                           onChange={(e) => setTreatmentPlan(e.target.value)}
                           rows={2}
-                          className="w-full px-2.5 py-1.5 rounded-lg text-xs border border-white/10 bg-transparent outline-none text-white focus:border-indigo-500 resize-none"
+                          className="w-full px-2.5 py-1.5 rounded-lg text-xs border border-white/10 bg-transparent outline-none text-white focus:border-sky-500 resize-none"
                         />
                       </div>
 
                       <button
                         onClick={() => handleProgressRisk('action_plan')}
                         disabled={!treatmentPlan.trim()}
-                        className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-colors disabled:opacity-50"
+                        className="w-full py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-colors disabled:opacity-50"
                       >
                         Save & Plan Actions <ArrowRight className="w-3.5 h-3.5" />
                       </button>
@@ -599,13 +599,13 @@ export function RiskDetailSheet({ risk, onClose, onUpdate }: Props) {
                           value={actionPlan}
                           onChange={(e) => setActionPlan(e.target.value)}
                           rows={2}
-                          className="w-full px-2.5 py-1.5 rounded-lg text-xs border border-white/10 bg-transparent outline-none text-white focus:border-indigo-500 resize-none"
+                          className="w-full px-2.5 py-1.5 rounded-lg text-xs border border-white/10 bg-transparent outline-none text-white focus:border-sky-500 resize-none"
                         />
                       </div>
                       <button
                         onClick={() => handleProgressRisk('implementation')}
                         disabled={!actionPlan.trim()}
-                        className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-colors disabled:opacity-50"
+                        className="w-full py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-colors disabled:opacity-50"
                       >
                         Send to Implementation <ArrowRight className="w-3.5 h-3.5" />
                       </button>
@@ -620,7 +620,7 @@ export function RiskDetailSheet({ risk, onClose, onUpdate }: Props) {
                       </div>
                       <button
                         onClick={() => handleProgressRisk('validation')}
-                        className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
+                        className="w-full py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
                       >
                         Mark Actions Completed
                       </button>
@@ -636,13 +636,13 @@ export function RiskDetailSheet({ risk, onClose, onUpdate }: Props) {
                           value={validationEvidence}
                           onChange={(e) => setValidationEvidence(e.target.value)}
                           rows={2}
-                          className="w-full px-2.5 py-1.5 rounded-lg text-xs border border-white/10 bg-transparent outline-none text-white focus:border-indigo-500 resize-none"
+                          className="w-full px-2.5 py-1.5 rounded-lg text-xs border border-white/10 bg-transparent outline-none text-white focus:border-sky-500 resize-none"
                         />
                       </div>
                       <button
                         onClick={() => handleProgressRisk('residual_reassessment')}
                         disabled={!validationEvidence.trim()}
-                        className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-colors disabled:opacity-50"
+                        className="w-full py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-colors disabled:opacity-50"
                       >
                         Proceed to Reassessment
                       </button>
@@ -669,7 +669,7 @@ export function RiskDetailSheet({ risk, onClose, onUpdate }: Props) {
                       </div>
                       <button
                         onClick={() => handleProgressRisk('verify_reassessment')}
-                        className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
+                        className="w-full py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
                       >
                         Run Appetite Verification
                       </button>
@@ -711,7 +711,7 @@ export function RiskDetailSheet({ risk, onClose, onUpdate }: Props) {
                               onClick={() => setEscalationAction(opt.value as any)}
                               className={`py-1 px-2 rounded border cursor-pointer text-center ${
                                 escalationAction === opt.value
-                                  ? 'border-indigo-500 text-white bg-indigo-600/20'
+                                  ? 'border-sky-500 text-white bg-sky-500/20'
                                   : 'border-white/5 text-slate-400 hover:border-white/10'
                               }`}
                             >
@@ -722,7 +722,7 @@ export function RiskDetailSheet({ risk, onClose, onUpdate }: Props) {
                       </div>
                       <button
                         onClick={() => handleProgressRisk('escalated_decision')}
-                        className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
+                        className="w-full py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
                       >
                         Apply Decision & Close
                       </button>
@@ -766,7 +766,7 @@ export function RiskDetailSheet({ risk, onClose, onUpdate }: Props) {
             {/* RCSA Profile */}
             {(risk.sub_category || risk.owner_dept || risk.owner_role || (risk.confidentiality !== undefined && risk.confidentiality > 0)) && (
               <div className="space-y-3 p-4 rounded-xl border text-xs bg-slate-900/40" style={{ borderColor: 'var(--border)', background: 'var(--card)' }}>
-                <p className="text-[10px] font-bold text-indigo-400 uppercase tracking-wide border-b pb-1" style={{ borderColor: 'var(--border)' }}>RCSA Assessment Details</p>
+                <p className="text-[10px] font-bold text-sky-400 uppercase tracking-wide border-b pb-1" style={{ borderColor: 'var(--border)' }}>RCSA Assessment Details</p>
                 <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-[11px]">
                   {risk.sub_category && <p style={{ color: 'var(--muted-fg)' }}>Sub-Category: <strong className="text-slate-200 capitalize">{risk.sub_category}</strong></p>}
                   {risk.owner_dept && <p style={{ color: 'var(--muted-fg)' }}>Department: <strong className="text-slate-200 capitalize">{risk.owner_dept}</strong></p>}
@@ -804,7 +804,7 @@ export function RiskDetailSheet({ risk, onClose, onUpdate }: Props) {
                 {/* Control Assessment Details */}
                 {(risk.control_design_compliance !== undefined || risk.control_effectiveness) && (
                   <div className="mt-3 pt-3 border-t text-[11px] space-y-2.5" style={{ borderColor: 'var(--border)' }}>
-                    <p className="text-[10px] font-bold text-indigo-400 uppercase tracking-wide">Control Performance Scores</p>
+                    <p className="text-[10px] font-bold text-sky-400 uppercase tracking-wide">Control Performance Scores</p>
                     <div className="grid grid-cols-2 gap-3 bg-black/20 p-2.5 rounded-lg border border-white/5">
                       <div>
                         <p className="text-[9px] text-slate-350 font-bold uppercase">Control Design: {risk.control_design ? `${risk.control_design}/5` : '—'}</p>
@@ -824,8 +824,8 @@ export function RiskDetailSheet({ risk, onClose, onUpdate }: Props) {
                       </div>
                     </div>
                     <div className="flex justify-between items-center text-[10px] text-slate-400">
-                      <span>Effectiveness: <strong className="text-indigo-400 capitalize">{risk.control_effectiveness ?? '—'}</strong></span>
-                      <span>Target Residual: <strong className="text-indigo-400 uppercase">{risk.target_residual_risk ?? 'low'}</strong></span>
+                      <span>Effectiveness: <strong className="text-sky-400 capitalize">{risk.control_effectiveness ?? '—'}</strong></span>
+                      <span>Target Residual: <strong className="text-sky-400 uppercase">{risk.target_residual_risk ?? 'low'}</strong></span>
                     </div>
                   </div>
                 )}
@@ -844,7 +844,7 @@ export function RiskDetailSheet({ risk, onClose, onUpdate }: Props) {
                 <p className="text-xs font-semibold uppercase tracking-wide mb-2" style={{ color: 'var(--muted-fg)' }}>
                   Mitigation Actions
                 </p>
-                <div className="p-4 rounded-xl border-l-4 border-indigo-500"
+                <div className="p-4 rounded-xl border-l-4 border-sky-500"
                   style={{ background: 'var(--muted)' }}>
                   <p className="text-sm leading-relaxed" style={{ color: 'var(--foreground)' }}>{risk.mitigation}</p>
                 </div>
@@ -855,8 +855,8 @@ export function RiskDetailSheet({ risk, onClose, onUpdate }: Props) {
             <div className="p-4 rounded-xl border"
               style={{ background: 'linear-gradient(135deg, #312e8120, #1e1b4b20)', borderColor: '#6366f130' }}>
               <div className="flex items-center gap-2 mb-2">
-                <Zap className="w-3.5 h-3.5 text-indigo-400" />
-                <p className="text-xs font-semibold text-indigo-400">AI Risk Summary</p>
+                <Zap className="w-3.5 h-3.5 text-sky-400" />
+                <p className="text-xs font-semibold text-sky-400">AI Risk Summary</p>
               </div>
               <p className="text-xs leading-relaxed" style={{ color: 'var(--muted-fg)' }}>
                 This {risk.level} severity {risk.category} risk has a composite score of {score}/25.
@@ -872,11 +872,11 @@ export function RiskDetailSheet({ risk, onClose, onUpdate }: Props) {
               <div className="card p-4 space-y-4 border-l-4 border-indigo-600 animate-fade-in">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Database className="w-4 h-4 text-indigo-500" />
-                    <p className="text-xs font-semibold text-indigo-500 uppercase tracking-wider">Jira Sync Engine</p>
+                    <Database className="w-4 h-4 text-sky-500" />
+                    <p className="text-xs font-semibold text-sky-500 uppercase tracking-wider">Jira Sync Engine</p>
                   </div>
                   {risk.jira_issue_key && (
-                    <span className="text-[10px] px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-500 font-mono font-bold border border-indigo-500/10">
+                    <span className="text-[10px] px-2 py-0.5 rounded bg-sky-500/10 text-sky-500 font-mono font-bold border border-sky-500/10">
                       {risk.jira_issue_key}
                     </span>
                   )}
@@ -925,7 +925,7 @@ export function RiskDetailSheet({ risk, onClose, onUpdate }: Props) {
                         href={`https://${jiraConfig.instanceUrl}/browse/${risk.jira_issue_key}`}
                         target="_blank"
                         rel="noreferrer"
-                        className="text-[10px] text-indigo-500 hover:text-indigo-600 font-semibold flex items-center gap-1 cursor-pointer"
+                        className="text-[10px] text-sky-500 hover:text-sky-500 font-semibold flex items-center gap-1 cursor-pointer"
                       >
                         <ExternalLink className="w-3 h-3" />
                         Open in Jira
@@ -940,7 +940,7 @@ export function RiskDetailSheet({ risk, onClose, onUpdate }: Props) {
                           toast.success('Bidirectional sync completed!')
                         }}
                         disabled={syncing}
-                        className="text-[10px] text-indigo-500 hover:text-indigo-600 font-semibold flex items-center gap-1 cursor-pointer disabled:opacity-50"
+                        className="text-[10px] text-sky-500 hover:text-sky-500 font-semibold flex items-center gap-1 cursor-pointer disabled:opacity-50"
                       >
                         <RefreshCw className={`w-3 h-3 ${syncing ? 'animate-spin' : ''}`} />
                         Sync Now
@@ -995,7 +995,7 @@ export function RiskDetailSheet({ risk, onClose, onUpdate }: Props) {
                         <button
                           type="submit"
                           disabled={submittingComment || !newComment.trim()}
-                          className="px-2.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold cursor-pointer disabled:opacity-50"
+                          className="px-2.5 py-1.5 bg-sky-500 hover:bg-sky-600 text-white rounded-lg text-xs font-semibold cursor-pointer disabled:opacity-50"
                         >
                           <Send className="w-3.5 h-3.5" />
                         </button>
@@ -1030,7 +1030,7 @@ export function RiskDetailSheet({ risk, onClose, onUpdate }: Props) {
                         toast.success(`Ticket ${updated.jira_issue_key} successfully created in Jira!`)
                       }}
                       disabled={syncing}
-                      className="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 cursor-pointer mx-auto transition-colors disabled:opacity-50"
+                      className="px-3.5 py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 cursor-pointer mx-auto transition-colors disabled:opacity-50"
                     >
                       <Database className="w-3.5 h-3.5" />
                       Create Jira Ticket
@@ -1047,7 +1047,7 @@ export function RiskDetailSheet({ risk, onClose, onUpdate }: Props) {
               style={{ borderColor: 'var(--border)', color: 'var(--foreground)' }}>
               Edit Risk
             </button>
-            <button className="flex-1 py-2 rounded-xl text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 transition-colors cursor-pointer">
+            <button className="flex-1 py-2 rounded-xl text-sm font-semibold text-white bg-sky-500 hover:bg-sky-600 transition-colors cursor-pointer">
               Mark Mitigated
             </button>
           </div>
@@ -1056,4 +1056,5 @@ export function RiskDetailSheet({ risk, onClose, onUpdate }: Props) {
     </AnimatePresence>
   )
 }
+
 

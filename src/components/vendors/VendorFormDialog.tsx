@@ -65,7 +65,7 @@ export function VendorFormDialog({ vendor, onClose, onSave }: Props) {
 
   const inputClass = cn(
     'w-full px-3 py-2.5 rounded-xl text-sm outline-none transition-colors',
-    'border focus:ring-2 focus:ring-purple-500/30 focus:border-purple-500'
+    'border focus:ring-2 focus:ring-sky-500/30 focus:border-sky-500'
   )
 
   return (
@@ -135,7 +135,7 @@ export function VendorFormDialog({ vendor, onClose, onSave }: Props) {
                 </span>
               </div>
               <input type="range" min={0} max={100} {...register('risk_score', { valueAsNumber: true })}
-                className="w-full accent-purple-600" />
+                className="w-full accent-sky-500" />
             </div>
 
             {/* Row: Contact Name + Contact Email */}
@@ -177,7 +177,7 @@ export function VendorFormDialog({ vendor, onClose, onSave }: Props) {
             Cancel
           </button>
           <button type="submit" form="vendor-form"
-            className="px-5 py-2 rounded-xl text-sm font-semibold text-white bg-purple-600 hover:bg-purple-700 transition-colors shadow-lg shadow-purple-600/20">
+            className="px-5 py-2 rounded-xl text-sm font-semibold text-white bg-sky-500 hover:bg-sky-600 transition-colors shadow-lg shadow-sky-500/20">
             {isEdit ? 'Save Changes' : 'Add Vendor'}
           </button>
         </div>
@@ -185,3 +185,4 @@ export function VendorFormDialog({ vendor, onClose, onSave }: Props) {
     </div>
   )
 }
+

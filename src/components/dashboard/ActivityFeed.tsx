@@ -21,7 +21,7 @@ const entityColors: Record<string, string> = {
   incident: 'text-orange-500 bg-orange-500/10',
   control:  'text-green-500 bg-green-500/10',
   audit:    'text-blue-500 bg-blue-500/10',
-  vendor:   'text-purple-500 bg-purple-500/10',
+  vendor:   'text-sky-400 bg-sky-500/10',
 }
 
 interface Props { activities: Activity[] }
@@ -30,7 +30,7 @@ export function ActivityFeed({ activities }: Props) {
   return (
     <div className="card p-5">
       <div className="flex items-center gap-2 mb-5">
-        <ActivityIcon className="w-4 h-4 text-indigo-500" />
+        <ActivityIcon className="w-4 h-4 text-sky-500" />
         <h3 className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>Recent Activity</h3>
       </div>
       <div className="space-y-4">
@@ -67,3 +67,4 @@ export function ActivityFeed({ activities }: Props) {
     </div>
   )
 }
+

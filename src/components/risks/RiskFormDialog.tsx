@@ -176,7 +176,7 @@ export function RiskFormDialog({ risk, onClose, onSave }: Props) {
 
   const inputClass = cn(
     'w-full px-3 py-2 rounded-xl text-xs outline-none transition-colors bg-transparent border',
-    'focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500'
+    'focus:ring-2 focus:ring-sky-500/30 focus:border-sky-500'
   )
   const sty = { background: 'var(--muted)', borderColor: 'var(--border)', color: 'var(--foreground)' }
 
@@ -221,7 +221,7 @@ export function RiskFormDialog({ risk, onClose, onSave }: Props) {
             <button
               onClick={() => setActiveTab('general')}
               className={cn('py-3 border-b-2 transition-colors flex items-center gap-1.5 cursor-pointer', {
-                'border-indigo-500 text-indigo-500': activeTab === 'general',
+                'border-sky-500 text-sky-500': activeTab === 'general',
                 'border-transparent text-slate-400 hover:text-slate-300': activeTab !== 'general',
               })}
             >
@@ -230,7 +230,7 @@ export function RiskFormDialog({ risk, onClose, onSave }: Props) {
             <button
               onClick={() => setActiveTab('rcsa')}
               className={cn('py-3 border-b-2 transition-colors flex items-center gap-1.5 cursor-pointer', {
-                'border-indigo-500 text-indigo-500': activeTab === 'rcsa',
+                'border-sky-500 text-sky-500': activeTab === 'rcsa',
                 'border-transparent text-slate-400 hover:text-slate-300': activeTab !== 'rcsa',
               })}
             >
@@ -328,7 +328,7 @@ export function RiskFormDialog({ risk, onClose, onSave }: Props) {
 
                   {/* Impact categories */}
                   <div className="space-y-3">
-                    <h4 className="text-[11px] font-bold text-indigo-400 uppercase tracking-wide border-b pb-1" style={{ borderColor: 'var(--border)' }}>1. Security Confidentiality, Integrity & Availability (CIA) Impacts</h4>
+                    <h4 className="text-[11px] font-bold text-sky-400 uppercase tracking-wide border-b pb-1" style={{ borderColor: 'var(--border)' }}>1. Security Confidentiality, Integrity & Availability (CIA) Impacts</h4>
                     <div className="grid grid-cols-3 gap-3">
                       {[
                         { name: 'confidentiality', label: 'Confidentiality' },
@@ -347,7 +347,7 @@ export function RiskFormDialog({ risk, onClose, onSave }: Props) {
 
                   {/* Impact Domains */}
                   <div className="space-y-3">
-                    <h4 className="text-[11px] font-bold text-indigo-400 uppercase tracking-wide border-b pb-1" style={{ borderColor: 'var(--border)' }}>2. Impact Domains (Operational, Financial, Reputation, Compliance)</h4>
+                    <h4 className="text-[11px] font-bold text-sky-400 uppercase tracking-wide border-b pb-1" style={{ borderColor: 'var(--border)' }}>2. Impact Domains (Operational, Financial, Reputation, Compliance)</h4>
                     <div className="grid grid-cols-2 gap-3">
                       {[
                         { name: 'operational_impact', label: 'Operational Impact' },
@@ -367,10 +367,10 @@ export function RiskFormDialog({ risk, onClose, onSave }: Props) {
 
                   {/* Probability */}
                   <div className="space-y-3">
-                    <h4 className="text-[11px] font-bold text-indigo-400 uppercase tracking-wide border-b pb-1" style={{ borderColor: 'var(--border)' }}>3. Likelihood / Probability Rating</h4>
+                    <h4 className="text-[11px] font-bold text-sky-400 uppercase tracking-wide border-b pb-1" style={{ borderColor: 'var(--border)' }}>3. Likelihood / Probability Rating</h4>
                     <div className="p-3 rounded-lg border bg-black/10" style={{ borderColor: 'var(--border)' }}>
                       <label className="text-[10px] font-semibold text-slate-400 block mb-1.5">
-                        Likelihood: <strong className="text-indigo-400">{likelihood} / 5</strong>
+                        Likelihood: <strong className="text-sky-400">{likelihood} / 5</strong>
                       </label>
                       <input type="range" min={1} max={5} {...register('likelihood', { valueAsNumber: true })} className="w-full py-1 bg-transparent cursor-pointer" />
                       <div className="flex justify-between text-[8px] text-slate-500 mt-2 font-mono">
@@ -385,12 +385,12 @@ export function RiskFormDialog({ risk, onClose, onSave }: Props) {
 
                   {/* Control Effectiveness sliders */}
                   <div className="space-y-3">
-                    <h4 className="text-[11px] font-bold text-indigo-400 uppercase tracking-wide border-b pb-1" style={{ borderColor: 'var(--border)' }}>4. Control Effectiveness Evaluation (6 sub-criteria)</h4>
+                    <h4 className="text-[11px] font-bold text-sky-400 uppercase tracking-wide border-b pb-1" style={{ borderColor: 'var(--border)' }}>4. Control Effectiveness Evaluation (6 sub-criteria)</h4>
                     
                     <div className="grid grid-cols-2 gap-4">
                       {/* Design Column */}
                       <div className="space-y-3 p-3 rounded-xl border bg-black/10" style={{ borderColor: 'var(--border)' }}>
-                        <span className="text-[10px] uppercase font-bold text-indigo-400 tracking-wider">Control Design (1-5)</span>
+                        <span className="text-[10px] uppercase font-bold text-sky-400 tracking-wider">Control Design (1-5)</span>
                         
                         {[
                           { name: 'control_design_compliance', label: 'Compliance & Coverage' },
@@ -443,7 +443,7 @@ export function RiskFormDialog({ risk, onClose, onSave }: Props) {
                             <p className="font-bold text-slate-400">Calculated Effectiveness Rating:</p>
                             <p className="text-[9px] text-slate-500 mt-0.5">Average Score: {eff.score.toFixed(2)}</p>
                           </div>
-                          <span className="font-black text-indigo-400 uppercase">
+                          <span className="font-black text-sky-400 uppercase">
                             {eff.label}
                           </span>
                         </div>
@@ -453,7 +453,7 @@ export function RiskFormDialog({ risk, onClose, onSave }: Props) {
 
                   {/* Target Residual Risk & Appetite check */}
                   <div className="space-y-3">
-                    <h4 className="text-[11px] font-bold text-indigo-400 uppercase tracking-wide border-b pb-1" style={{ borderColor: 'var(--border)' }}>5. Target residual risk & Appetite check</h4>
+                    <h4 className="text-[11px] font-bold text-sky-400 uppercase tracking-wide border-b pb-1" style={{ borderColor: 'var(--border)' }}>5. Target residual risk & Appetite check</h4>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="block text-[10px] font-bold text-slate-400 mb-1.5">Target Residual Risk</label>
@@ -521,7 +521,7 @@ export function RiskFormDialog({ risk, onClose, onSave }: Props) {
             <button
               type="submit"
               form="risk-form"
-              className="px-5 py-2 rounded-xl text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-600/20"
+              className="px-5 py-2 rounded-xl text-xs font-bold text-white bg-sky-500 hover:bg-sky-600 transition-all shadow-lg shadow-sky-500/20"
             >
               {isEdit ? 'Save Changes' : 'Create Risk'}
             </button>
@@ -531,3 +531,4 @@ export function RiskFormDialog({ risk, onClose, onSave }: Props) {
     </AnimatePresence>
   )
 }
+

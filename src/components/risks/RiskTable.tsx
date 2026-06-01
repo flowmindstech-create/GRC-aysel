@@ -85,7 +85,7 @@ export function RiskTable() {
         actions={
           <button
             onClick={() => setShowForm(true)}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-600/20"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white bg-sky-500 hover:bg-sky-600 transition-colors shadow-lg shadow-sky-500/20"
           >
             <Plus className="w-4 h-4" /> New Risk
           </button>
@@ -111,7 +111,7 @@ export function RiskTable() {
           {LEVELS.map(l => (
             <button key={l} onClick={() => setLevelFilter(l)}
               className={cn('px-3 py-1.5 rounded-lg text-xs font-medium capitalize transition-all', {
-                'bg-indigo-600 text-white shadow': levelFilter === l,
+                'bg-sky-500 text-white shadow': levelFilter === l,
                 'hover:bg-black/5 dark:hover:bg-white/5': levelFilter !== l,
               })}
               style={{ color: levelFilter === l ? 'white' : 'var(--muted-fg)' }}>
@@ -169,7 +169,7 @@ export function RiskTable() {
                     onClick={() => setDetailRisk(risk)}
                   >
                     <td className="px-4 py-3.5 max-w-xs">
-                      <p className="text-sm font-medium truncate group-hover:text-indigo-500 transition-colors"
+                      <p className="text-sm font-medium truncate group-hover:text-sky-500 transition-colors"
                         style={{ color: 'var(--foreground)' }}>
                         {risk.title}
                       </p>
@@ -190,7 +190,7 @@ export function RiskTable() {
                       {jiraConfig && jiraConfig.connected ? (
                         risk.jira_issue_key ? (
                           <div className="flex items-center gap-1.5">
-                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-indigo-500/10 text-indigo-500 font-mono font-bold border border-indigo-500/10" title="Open in Jira">
+                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-sky-500/10 text-sky-500 font-mono font-bold border border-sky-500/10" title="Open in Jira">
                               {risk.jira_issue_key}
                             </span>
                             <span className="text-[10px] font-semibold uppercase px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
@@ -213,7 +213,7 @@ export function RiskTable() {
                               }
                             }}
                             disabled={syncingId !== null}
-                            className="flex items-center gap-1 text-[10px] font-semibold text-indigo-500 hover:text-indigo-600 bg-indigo-500/5 hover:bg-indigo-500/10 px-2 py-1 rounded-lg border border-indigo-500/20 cursor-pointer disabled:opacity-50 transition-colors"
+                            className="flex items-center gap-1 text-[10px] font-semibold text-sky-500 hover:text-sky-500 bg-sky-500/5 hover:bg-sky-500/10 px-2 py-1 rounded-lg border border-sky-500/20 cursor-pointer disabled:opacity-50 transition-colors"
                           >
                             {syncingId === risk.id ? (
                               <RefreshCw className="w-3 h-3 animate-spin" />
@@ -229,7 +229,7 @@ export function RiskTable() {
                     </td>
                     <td className="px-4 py-3.5">
                       <div className="flex items-center gap-1.5">
-                        <div className="w-5 h-5 rounded-full bg-indigo-600 flex items-center justify-center text-white text-[10px] font-bold">
+                        <div className="w-5 h-5 rounded-full bg-sky-500 flex items-center justify-center text-white text-[10px] font-bold">
                           {risk.owner_name?.[0] ?? '?'}
                         </div>
                         <span className="text-xs" style={{ color: 'var(--foreground)' }}>
@@ -322,3 +322,4 @@ export function RiskTable() {
     </div>
   )
 }
+

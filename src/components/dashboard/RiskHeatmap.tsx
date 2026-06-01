@@ -104,3 +104,4 @@ export function RiskHeatmap({ stats }: RiskHeatmapProps) {
     </div>
   )
 }
+

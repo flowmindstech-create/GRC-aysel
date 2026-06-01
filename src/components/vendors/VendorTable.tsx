@@ -96,7 +96,7 @@ export function VendorTable() {
         subtitle={`${vendors.length} vendors · ${vendors.filter(v => v.risk_score >= 70).length} high risk`}
         actions={
           <button onClick={() => setShowForm(true)}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white bg-purple-600 hover:bg-purple-700 shadow-lg shadow-purple-600/20">
+            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white bg-sky-500 hover:bg-sky-600 shadow-lg shadow-sky-500/20">
             <Plus className="w-4 h-4" /> Add Vendor
           </button>
         }
@@ -105,7 +105,7 @@ export function VendorTable() {
       {/* Stats */}
       <div className="grid grid-cols-4 gap-4 mb-6">
         {[
-          { label: 'Total Vendors', value: vendors.length, color: 'text-purple-500' },
+          { label: 'Total Vendors', value: vendors.length, color: 'text-sky-400' },
           { label: 'High Risk (≥70)', value: vendors.filter(v => v.risk_score >= 70).length, color: 'text-red-500' },
           { label: 'Avg Risk Score', value: vendors.length ? Math.round(vendors.reduce((s, v) => s + v.risk_score, 0) / vendors.length) : 0, color: 'text-orange-500' },
           { label: 'Renewals < 90d', value: vendors.filter(v => v.contract_renewal && !isPast(new Date(v.contract_renewal))).length, color: 'text-yellow-500' },
@@ -191,7 +191,7 @@ export function VendorTable() {
                     <div className="flex items-center gap-6 text-sm">
                       {vendor.contact_name && (
                         <div className="flex items-center gap-2">
-                          <div className="w-6 h-6 rounded-full bg-purple-600 flex items-center justify-center text-white text-[10px] font-bold">
+                          <div className="w-6 h-6 rounded-full bg-sky-500 flex items-center justify-center text-white text-[10px] font-bold">
                             {vendor.contact_name[0]}
                           </div>
                           <span style={{ color: 'var(--foreground)' }}>{vendor.contact_name}</span>
@@ -199,7 +199,7 @@ export function VendorTable() {
                       )}
                       {vendor.contact_email && (
                         <a href={`mailto:${vendor.contact_email}`}
-                          className="flex items-center gap-1.5 text-xs text-indigo-500 hover:text-indigo-400">
+                          className="flex items-center gap-1.5 text-xs text-sky-500 hover:text-sky-400">
                           <Mail className="w-3.5 h-3.5" />{vendor.contact_email}
                         </a>
                       )}
@@ -210,8 +210,8 @@ export function VendorTable() {
                       <div className="p-4 rounded-xl border"
                         style={{ background: 'linear-gradient(135deg, #312e8110, #1e1b4b10)', borderColor: '#6366f130' }}>
                         <div className="flex items-center gap-2 mb-2">
-                          <Zap className="w-3.5 h-3.5 text-indigo-400" />
-                          <p className="text-xs font-semibold text-indigo-400">AI Vendor Analysis</p>
+                          <Zap className="w-3.5 h-3.5 text-sky-400" />
+                          <p className="text-xs font-semibold text-sky-400">AI Vendor Analysis</p>
                         </div>
                         <p className="text-xs leading-relaxed" style={{ color: 'var(--muted-fg)' }}>{vendor.ai_summary}</p>
                       </div>
@@ -219,13 +219,13 @@ export function VendorTable() {
 
                     {/* Actions */}
                     <div className="flex gap-2">
-                      <button className="px-3 py-1.5 text-xs font-medium rounded-lg bg-purple-600 text-white hover:bg-purple-700">
+                      <button className="px-3 py-1.5 text-xs font-medium rounded-lg bg-sky-500 text-white hover:bg-sky-600">
                         Security Questionnaire
                       </button>
                       <button onClick={() => handleRegenerateAi(vendor)} disabled={loadingAi === vendor.id}
                         className="px-3 py-1.5 text-xs font-medium rounded-lg border hover:bg-black/5 dark:hover:bg-white/5 flex items-center gap-1 disabled:opacity-60"
                         style={{ borderColor: 'var(--border)', color: 'var(--foreground)' }}>
-                        <Zap className="w-3.5 h-3.5 text-indigo-500 animate-pulse" /> 
+                        <Zap className="w-3.5 h-3.5 text-sky-500 animate-pulse" /> 
                         {loadingAi === vendor.id ? 'Analyzing...' : 'Regenerate AI Summary'}
                       </button>
                       <button onClick={() => { setEditVendor(vendor); setShowForm(true) }}
@@ -252,3 +252,4 @@ export function VendorTable() {
     </div>
   )
 }
+

@@ -7,11 +7,11 @@ export const metadata: Metadata = {
 }
 
 const FEATURES = [
-  { icon: ShieldAlert, title: 'Risk Register', desc: 'Identify, assess and track risks with a 5×5 likelihood/impact matrix and automated scoring.', color: 'text-indigo-500 bg-indigo-500/10' },
+  { icon: ShieldAlert, title: 'Risk Register', desc: 'Identify, assess and track risks with a 5×5 likelihood/impact matrix and automated scoring.', color: 'text-sky-500 bg-sky-500/10' },
   { icon: AlertTriangle, title: 'Incident Management', desc: 'Report incidents, assign investigators, track resolution timelines and severity escalations.', color: 'text-orange-500 bg-orange-500/10' },
   { icon: ClipboardCheck, title: 'Compliance Tracking', desc: 'Map controls to ISO 27001, SOC2 and GDPR frameworks. Track pass/fail with evidence upload.', color: 'text-green-500 bg-green-500/10' },
   { icon: Search, title: 'Audit Management', desc: 'Plan and execute internal audits, track findings and generate exportable audit reports.', color: 'text-blue-500 bg-blue-500/10' },
-  { icon: Users, title: 'Vendor Risk', desc: 'Score your vendors, track contract renewals, run security questionnaires and get AI summaries.', color: 'text-purple-500 bg-purple-500/10' },
+  { icon: Users, title: 'Vendor Risk', desc: 'Score your vendors, track contract renewals, run security questionnaires and get AI summaries.', color: 'text-sky-400 bg-sky-500/10' },
   { icon: Zap, title: 'AI Insights', desc: 'GPT-4o powered risk summaries, mitigation suggestions, incident analysis, and compliance recommendations.', color: 'text-yellow-500 bg-yellow-500/10' },
 ]
 
@@ -28,23 +28,23 @@ export default function LandingPage() {
       <nav className="flex items-center justify-between px-8 py-4 border-b sticky top-0 z-50 backdrop-blur-md"
         style={{ background: 'var(--card)', borderColor: 'var(--border)' }}>
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center">
+          <div className="w-8 h-8 rounded-lg bg-sky-500 flex items-center justify-center">
             <Shield className="w-4 h-4 text-white" />
           </div>
           <span className="font-black text-lg" style={{ color: 'var(--foreground)' }}>RiskShield</span>
         </div>
         <div className="hidden md:flex items-center gap-6 text-sm font-medium" style={{ color: 'var(--muted-fg)' }}>
-          <a href="#features" className="hover:text-indigo-500 transition-colors">Features</a>
-          <a href="#pricing" className="hover:text-indigo-500 transition-colors">Pricing</a>
-          <a href="#testimonials" className="hover:text-indigo-500 transition-colors">Reviews</a>
+          <a href="#features" className="hover:text-sky-500 transition-colors">Features</a>
+          <a href="#pricing" className="hover:text-sky-500 transition-colors">Pricing</a>
+          <a href="#testimonials" className="hover:text-sky-500 transition-colors">Reviews</a>
         </div>
         <div className="flex items-center gap-3">
-          <Link href="/login" className="text-sm font-medium hover:text-indigo-500 transition-colors"
+          <Link href="/login" className="text-sm font-medium hover:text-sky-500 transition-colors"
             style={{ color: 'var(--muted-fg)' }}>
             Sign in
           </Link>
           <Link href="/register"
-            className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-600/25">
+            className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-bold text-white bg-sky-500 hover:bg-sky-600 transition-colors shadow-lg shadow-sky-500/25">
             Start Free Trial <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
@@ -54,13 +54,13 @@ export default function LandingPage() {
       <section className="text-center px-8 py-24 max-w-5xl mx-auto">
         <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold mb-6"
           style={{ background: 'var(--muted)', border: '1px solid var(--border)', color: 'var(--muted-fg)' }}>
-          <Zap className="w-3 h-3 text-indigo-500" />
+          <Zap className="w-3 h-3 text-sky-500" />
           AI-Powered · GPT-4o · ISO 27001 · SOC2
         </div>
         <h1 className="text-5xl md:text-7xl font-black leading-tight mb-6" style={{ color: 'var(--foreground)' }}>
           Enterprise Risk
           <br />
-          <span className="text-indigo-500">Management.</span>
+          <span className="text-sky-500">Management.</span>
           <br />
           <span className="text-3xl md:text-5xl" style={{ color: 'var(--muted-fg)' }}>Built for SMEs.</span>
         </h1>
@@ -69,7 +69,7 @@ export default function LandingPage() {
         </p>
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
           <Link href="/register"
-            className="flex items-center gap-2 px-8 py-4 rounded-2xl text-base font-bold text-white bg-indigo-600 hover:bg-indigo-700 transition-all shadow-2xl shadow-indigo-600/30 hover:scale-105">
+            className="flex items-center gap-2 px-8 py-4 rounded-2xl text-base font-bold text-white bg-sky-500 hover:bg-sky-600 transition-all shadow-2xl shadow-sky-500/30 hover:scale-105">
             Start 14-Day Free Trial <ArrowRight className="w-5 h-5" />
           </Link>
           <Link href="/dashboard"
@@ -129,7 +129,7 @@ export default function LandingPage() {
 
       {/* Features */}
       <section id="features" className="px-8 py-20 max-w-6xl mx-auto">
-        <p className="text-center text-xs font-semibold uppercase tracking-widest text-indigo-500 mb-3">Everything you need</p>
+        <p className="text-center text-xs font-semibold uppercase tracking-widest text-sky-500 mb-3">Everything you need</p>
         <h2 className="text-3xl font-black text-center mb-4" style={{ color: 'var(--foreground)' }}>
           Full IRM suite. No bloat.
         </h2>
@@ -183,7 +183,7 @@ export default function LandingPage() {
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Link href="/register"
-            className="flex items-center justify-center gap-2 px-8 py-4 rounded-2xl text-base font-bold text-white bg-indigo-600 hover:bg-indigo-700 shadow-xl shadow-indigo-600/25 transition-all">
+            className="flex items-center justify-center gap-2 px-8 py-4 rounded-2xl text-base font-bold text-white bg-sky-500 hover:bg-sky-600 shadow-xl shadow-sky-500/25 transition-all">
             Start Free Trial <ArrowRight className="w-5 h-5" />
           </Link>
           <Link href="/dashboard"
@@ -197,14 +197,14 @@ export default function LandingPage() {
       {/* Footer */}
       <footer className="border-t px-8 py-8 text-center text-sm" style={{ borderColor: 'var(--border)', color: 'var(--muted-fg)' }}>
         <div className="flex items-center justify-center gap-2 mb-4">
-          <div className="w-6 h-6 rounded-lg bg-indigo-600 flex items-center justify-center">
+          <div className="w-6 h-6 rounded-lg bg-sky-500 flex items-center justify-center">
             <Shield className="w-3 h-3 text-white" />
           </div>
           <span className="font-bold" style={{ color: 'var(--foreground)' }}>RiskShield</span>
         </div>
         <div className="flex items-center justify-center gap-4 flex-wrap">
           {['Privacy Policy', 'Terms of Service', 'Security', 'Status', 'Contact'].map(l => (
-            <a key={l} href="#" className="hover:text-indigo-500 transition-colors">{l}</a>
+            <a key={l} href="#" className="hover:text-sky-500 transition-colors">{l}</a>
           ))}
         </div>
         <p className="mt-4">© 2025 RiskShield. All rights reserved.</p>
@@ -212,3 +212,4 @@ export default function LandingPage() {
     </div>
   )
 }
+
