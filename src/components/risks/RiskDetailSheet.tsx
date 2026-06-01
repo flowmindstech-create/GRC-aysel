@@ -830,7 +830,7 @@ export function RiskDetailSheet({ risk, onClose, onUpdate }: Props) {
                   </div>
                 )}
               </div>
-            )}    )}    )}
+            )}
 
             {/* Mitigation */}
             {risk.mitigation && (
