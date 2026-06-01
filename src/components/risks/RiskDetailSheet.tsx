@@ -18,6 +18,12 @@ import {
   type TreatmentStrategy
 } from '@/lib/rcsa'
 
+interface Props {
+  risk: Risk
+  onClose: () => void
+  onUpdate?: (risk: Risk) => void
+}
+
 export function RiskDetailSheet({ risk, onClose, onUpdate }: Props) {
   const [jiraConfig, setJiraConfig] = useState<any>(null)
   const [syncing, setSyncing] = useState(false)
