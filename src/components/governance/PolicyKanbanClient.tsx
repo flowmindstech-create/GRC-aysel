@@ -1,196 +1,372 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
-import { motion } from 'framer-motion'
+import { useState, useEffect } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { dbExt } from '@/lib/db-extensions'
-import type { Policy, PolicyStatus } from '@/types'
+import type { Policy, PolicyStatus, PolicyCategory, PolicyApproval } from '@/types'
 import { cn } from '@/lib/utils'
-import {
-  BookOpen, Plus, Search, FileText, CheckCircle2,
-  Clock, AlertCircle, RefreshCw, Send, ShieldAlert
-} from 'lucide-react'
+import { Plus, X, Clock, ArrowRight, CheckCircle2 } from 'lucide-react'
+import { formatDistanceToNow } from 'date-fns'
+import { toast } from 'sonner'
 
-const COLUMNS: { id: PolicyStatus; label: string; color: string; border: string }[] = [
-  { id: 'draft', label: 'Draft', color: 'text-slate-400 bg-slate-400/5', border: 'border-slate-500/20' },
-  { id: 'in_review', label: 'In Review', color: 'text-sky-400 bg-sky-400/5', border: 'border-sky-500/20' },
-  { id: 'committee_review', label: 'Committee Review', color: 'text-amber-400 bg-amber-400/5', border: 'border-amber-500/20' },
-  { id: 'approved', label: 'Approved', color: 'text-green-400 bg-green-400/5', border: 'border-green-500/20' },
-  { id: 'published', label: 'Published', color: 'text-indigo-400 bg-indigo-400/5', border: 'border-indigo-500/20' }
+const COLUMNS: { status: PolicyStatus; label: string; rgb: string }[] = [
+  { status: 'draft',             label: 'Draft',            rgb: '100,116,139' },
+  { status: 'in_review',        label: 'In Review',        rgb: '59,130,246'  },
+  { status: 'committee_review', label: 'Committee Review', rgb: '168,85,247'  },
+  { status: 'approved',         label: 'Approved',         rgb: '14,165,233'  },
+  { status: 'published',        label: 'Published',        rgb: '5,150,105'   },
 ]
 
-export function PolicyKanbanClient() {
-  const [policies, setPolicies] = useState<Policy[]>([])
-  const [loading, setLoading] = useState(true)
-  const [search, setSearch] = useState('')
-  const [showAdd, setShowAdd] = useState(false)
-  const [newPolicy, setNewPolicy] = useState({
-    policy_id: '',
-    title: '',
-    description: '',
-    category: 'information_security' as const,
-    version: '1.0',
-    owner_dept: '',
-    body: ''
-  })
+const NEXT_STATUS: Partial<Record<PolicyStatus, PolicyStatus>> = {
+  draft:            'in_review',
+  in_review:        'committee_review',
+  committee_review: 'approved',
+  approved:         'published',
+}
 
-  useEffect(() => {
-    dbExt.getPolicies().then(data => {
-      setPolicies(data)
-      setLoading(false)
-    })
-  }, [])
+const CATEGORY_COLOR: Record<PolicyCategory, string> = {
+  information_security: 'text-blue-400',
+  operational:          'text-orange-400',
+  hr:                   'text-pink-400',
+  financial:            'text-yellow-400',
+  compliance:           'text-purple-400',
+  risk:                 'text-red-400',
+  other:                'text-slate-400',
+}
 
-  const filtered = useMemo(() => {
-    return policies.filter(p =>
-      !search ||
-      p.title.toLowerCase().includes(search.toLowerCase()) ||
-      p.policy_id.toLowerCase().includes(search.toLowerCase()) ||
-      (p.description || '').toLowerCase().includes(search.toLowerCase())
-    )
-  }, [policies, search])
+// ── Policy Card ───────────────────────────────────────────────────────────────
 
-  async function handleAdd() {
-    if (!newPolicy.policy_id || !newPolicy.title) return
+function PolicyCard({ policy, onAdvance, onClick }: {
+  policy: Policy
+  onAdvance: (id: string, next: PolicyStatus) => void
+  onClick: () => void
+}) {
+  const next    = NEXT_STATUS[policy.status]
+  const elapsed = formatDistanceToNow(new Date(policy.created_at), { addSuffix: true })
+
+  return (
+    <motion.div layout initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }}
+      className="card p-3.5 cursor-pointer group" onClick={onClick}>
+      <div className="flex items-start justify-between gap-2 mb-2">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-1.5 mb-0.5">
+            <span className="text-[10px] font-mono" style={{ color: 'var(--muted-fg)' }}>{policy.policy_id}</span>
+            <span className={cn('text-[9px] font-semibold uppercase', CATEGORY_COLOR[policy.category])}>
+              {policy.category.replace('_', ' ')}
+            </span>
+          </div>
+          <p className="text-xs font-semibold leading-snug group-hover:text-sky-400 transition-colors"
+            style={{ color: 'var(--foreground)' }}>{policy.title}</p>
+        </div>
+        <span className="text-[10px] shrink-0 px-1.5 py-0.5 rounded font-medium"
+          style={{ background: 'rgba(14,165,233,0.1)', color: 'var(--brand-500)' }}>
+          v{policy.version}
+        </span>
+      </div>
+      {policy.owner_dept && (
+        <p className="text-[10px] mb-2" style={{ color: 'var(--muted-fg)' }}>{policy.owner_dept}</p>
+      )}
+      <div className="flex items-center justify-between">
+        <span className="text-[10px] flex items-center gap-1" style={{ color: 'var(--muted-fg)' }}>
+          <Clock className="w-2.5 h-2.5" />{elapsed}
+        </span>
+        {next ? (
+          <button onClick={e => { e.stopPropagation(); onAdvance(policy.id, next) }}
+            className="flex items-center gap-1 text-[10px] font-semibold px-2 py-1 rounded-lg hover:bg-sky-500/10 transition-all"
+            style={{ color: 'var(--brand-500)' }}>
+            Advance <ArrowRight className="w-3 h-3" />
+          </button>
+        ) : policy.status === 'published' ? (
+          <CheckCircle2 className="w-4 h-4 text-green-500" />
+        ) : null}
+      </div>
+    </motion.div>
+  )
+}
+
+// ── New Policy Dialog ─────────────────────────────────────────────────────────
+
+function NewPolicyDialog({ onClose, onCreate }: { onClose: () => void; onCreate: (p: Policy) => void }) {
+  const [title, setTitle]       = useState('')
+  const [category, setCategory] = useState<PolicyCategory>('information_security')
+  const [dept, setDept]         = useState('')
+  const [desc, setDesc]         = useState('')
+  const [saving, setSaving]     = useState(false)
+
+  async function handleSubmit() {
+    if (!title.trim()) return
+    setSaving(true)
+    const now = new Date().toISOString()
+    const seq = String(Math.floor(Math.random() * 900) + 100)
     const policy: Policy = {
-      id: crypto.randomUUID(),
-      org_id: '00000000-0000-0000-0000-000000000001',
-      status: 'draft',
-      linked_control_ids: [],
-      linked_requirement_ids: [],
-      change_history: [],
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      ...newPolicy
+      id: crypto.randomUUID(), org_id: '00000000-0000-0000-0000-000000000001',
+      policy_id: `POL-${new Date().getFullYear()}-${seq}`,
+      title: title.trim(), description: desc.trim(), category,
+      version: '1.0', status: 'draft', owner_dept: dept.trim(),
+      linked_control_ids: [], linked_requirement_ids: [], change_history: [],
+      created_at: now, updated_at: now,
     }
     const saved = await dbExt.savePolicy(policy)
-    setPolicies(prev => [saved, ...prev])
-    setShowAdd(false)
-    setNewPolicy({
-      policy_id: '',
-      title: '',
-      description: '',
-      category: 'information_security',
-      version: '1.0',
-      owner_dept: '',
-      body: ''
-    })
-  }
-
-  async function handleMove(id: string, nextStatus: PolicyStatus) {
-    const p = policies.find(x => x.id === id)
-    if (!p) return
-    const updated = { ...p, status: nextStatus, updated_at: new Date().toISOString() }
-    const saved = await dbExt.savePolicy(updated)
-    setPolicies(prev => prev.map(x => x.id === id ? saved : x))
+    onCreate(saved); setSaving(false); onClose()
   }
 
   return (
-    <div className="space-y-6">
-      {/* Top Toolbar */}
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-3 bg-card border rounded-xl px-3 py-1.5" style={{ borderColor: 'var(--border)' }}>
-          <Search className="w-4 h-4 text-muted-foreground" />
-          <input
-            type="text"
-            placeholder="Search policies..."
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            className="bg-transparent border-none outline-none text-sm w-64"
-            style={{ color: 'var(--foreground)' }}
-          />
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <motion.div initial={{ opacity: 0, scale: 0.96, y: 8 }} animate={{ opacity: 1, scale: 1, y: 0 }}
+        className="relative w-full max-w-md rounded-2xl border shadow-2xl"
+        style={{ background: 'var(--card)', borderColor: 'var(--border)' }}>
+        <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: 'var(--border)' }}>
+          <h2 className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>New Policy</h2>
+          <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-white/5">
+            <X className="w-4 h-4" style={{ color: 'var(--muted-fg)' }} />
+          </button>
         </div>
-        <button
-          onClick={() => setShowAdd(true)}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white bg-sky-500 hover:bg-sky-600 transition-colors shadow-lg shadow-sky-500/20"
-        >
-          <Plus className="w-4 h-4" /> Create Policy
+        <div className="px-5 py-4 space-y-3">
+          {[
+            { label: 'Title *', val: title, set: setTitle, ph: 'e.g. Information Security Policy' },
+            { label: 'Owner Department', val: dept, set: setDept, ph: 'e.g. IT Security' },
+          ].map(f => (
+            <div key={f.label}>
+              <label className="block text-xs font-medium mb-1.5" style={{ color: 'var(--muted-fg)' }}>{f.label}</label>
+              <input value={f.val} onChange={e => f.set(e.target.value)} placeholder={f.ph}
+                className="w-full px-3 py-2 rounded-lg text-sm outline-none"
+                style={{ background: 'var(--muted)', border: '1px solid var(--border)', color: 'var(--foreground)' }}
+                onFocus={e => (e.target.style.borderColor = 'var(--brand-500)')}
+                onBlur={e => (e.target.style.borderColor = 'var(--border)')} />
+            </div>
+          ))}
+          <div>
+            <label className="block text-xs font-medium mb-1.5" style={{ color: 'var(--muted-fg)' }}>Category</label>
+            <select value={category} onChange={e => setCategory(e.target.value as PolicyCategory)}
+              className="w-full px-3 py-2 rounded-lg text-sm outline-none"
+              style={{ background: 'var(--muted)', border: '1px solid var(--border)', color: 'var(--foreground)' }}>
+              {(['information_security','operational','hr','financial','compliance','risk','other'] as PolicyCategory[]).map(c => (
+                <option key={c} value={c}>{c.replace('_', ' ')}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs font-medium mb-1.5" style={{ color: 'var(--muted-fg)' }}>Description</label>
+            <textarea value={desc} onChange={e => setDesc(e.target.value)} rows={2}
+              placeholder="Brief summary…"
+              className="w-full px-3 py-2 rounded-lg text-sm outline-none resize-none"
+              style={{ background: 'var(--muted)', border: '1px solid var(--border)', color: 'var(--foreground)' }} />
+          </div>
+        </div>
+        <div className="flex justify-end gap-3 px-5 py-4 border-t" style={{ borderColor: 'var(--border)' }}>
+          <button onClick={onClose} className="px-4 py-2 rounded-lg text-sm" style={{ color: 'var(--muted-fg)' }}>Cancel</button>
+          <button onClick={handleSubmit} disabled={!title.trim() || saving}
+            className="px-5 py-2 rounded-lg text-sm font-semibold text-white disabled:opacity-50"
+            style={{ background: 'var(--brand-500)' }}>
+            {saving ? 'Creating…' : 'Create Policy'}
+          </button>
+        </div>
+      </motion.div>
+    </div>
+  )
+}
+
+// ── Policy Detail Drawer ──────────────────────────────────────────────────────
+
+function PolicyDetailDrawer({ policy, onClose, onUpdate }: { policy: Policy; onClose: () => void; onUpdate: (p: Policy) => void }) {
+  const [approvals, setApprovals] = useState<PolicyApproval[]>([])
+  const [comment, setComment]     = useState('')
+
+  useEffect(() => {
+    dbExt.getPolicyApprovals(policy.id).then(setApprovals)
+  }, [policy.id])
+
+  async function handleAction(action: 'approved' | 'rejected') {
+    const stageMap: Partial<Record<PolicyStatus, PolicyApproval['stage']>> = {
+      in_review: 'internal_review', committee_review: 'committee_review', approved: 'final_approval',
+    }
+    const approval: PolicyApproval = {
+      id: crypto.randomUUID(), policy_id: policy.id, org_id: policy.org_id,
+      stage: stageMap[policy.status] ?? 'internal_review',
+      action, actor_name: 'Ali Hasanov', comments: comment.trim(),
+      created_at: new Date().toISOString(),
+    }
+    await dbExt.addPolicyApproval(approval)
+    setApprovals(prev => [...prev, approval])
+    setComment('')
+
+    const newStatus: PolicyStatus = action === 'approved' && NEXT_STATUS[policy.status]
+      ? NEXT_STATUS[policy.status]! : 'draft'
+    const updated = { ...policy, status: newStatus, updated_at: new Date().toISOString() }
+    const saved = await dbExt.savePolicy(updated)
+    onUpdate(saved)
+    toast.success(action === 'approved' ? `Advanced to ${newStatus.replace('_', ' ')}` : 'Returned to Draft')
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex">
+      <div className="flex-1 bg-black/40 backdrop-blur-sm" onClick={onClose} />
+      <motion.div initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }}
+        transition={{ type: 'spring', damping: 28, stiffness: 280 }}
+        className="w-full max-w-md border-l flex flex-col overflow-y-auto"
+        style={{ background: 'var(--card)', borderColor: 'var(--border)' }}>
+        <div className="flex items-center justify-between px-5 py-4 border-b shrink-0" style={{ borderColor: 'var(--border)' }}>
+          <div>
+            <p className="text-[10px] font-mono" style={{ color: 'var(--muted-fg)' }}>{policy.policy_id}</p>
+            <h2 className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>{policy.title}</h2>
+          </div>
+          <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-white/5">
+            <X className="w-4 h-4" style={{ color: 'var(--muted-fg)' }} />
+          </button>
+        </div>
+        <div className="flex-1 p-5 space-y-5">
+          <div className="grid grid-cols-2 gap-3">
+            {[
+              { label: 'Status',    value: policy.status.replace(/_/g, ' ') },
+              { label: 'Version',   value: `v${policy.version}` },
+              { label: 'Category',  value: policy.category.replace('_', ' ') },
+              { label: 'Owner',     value: policy.owner_dept ?? '—' },
+              { label: 'Effective', value: policy.effective_date ?? '—' },
+              { label: 'Review',    value: policy.review_date ?? '—' },
+            ].map(f => (
+              <div key={f.label}>
+                <p className="text-[9px] uppercase tracking-widest mb-0.5" style={{ color: 'var(--muted-fg)', opacity: 0.5 }}>{f.label}</p>
+                <p className="text-xs font-medium capitalize" style={{ color: 'var(--foreground)' }}>{f.value}</p>
+              </div>
+            ))}
+          </div>
+          {policy.description && (
+            <div>
+              <p className="text-[9px] uppercase tracking-widest mb-1" style={{ color: 'var(--muted-fg)', opacity: 0.5 }}>Description</p>
+              <p className="text-xs" style={{ color: 'var(--muted-fg)' }}>{policy.description}</p>
+            </div>
+          )}
+          {approvals.length > 0 && (
+            <div>
+              <p className="text-[9px] uppercase tracking-widest mb-2" style={{ color: 'var(--muted-fg)', opacity: 0.5 }}>Approval History</p>
+              <div className="space-y-2">
+                {approvals.map(a => (
+                  <div key={a.id} className="p-2.5 rounded-lg"
+                    style={{ background: a.action === 'approved' ? 'rgba(5,150,105,0.08)' : a.action === 'rejected' ? 'rgba(225,29,72,0.08)' : 'var(--muted)' }}>
+                    <p className="text-[10px] font-semibold capitalize" style={{ color: 'var(--foreground)' }}>
+                      {a.action.replace('_', ' ')} — {a.stage.replace('_', ' ')}
+                    </p>
+                    {a.actor_name && <p className="text-[10px]" style={{ color: 'var(--muted-fg)' }}>by {a.actor_name}</p>}
+                    {a.comments && <p className="text-[10px] mt-0.5 italic" style={{ color: 'var(--muted-fg)' }}>"{a.comments}"</p>}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          {NEXT_STATUS[policy.status] && (
+            <div className="space-y-3">
+              <p className="text-[9px] uppercase tracking-widest" style={{ color: 'var(--muted-fg)', opacity: 0.5 }}>Approval Action</p>
+              <textarea value={comment} onChange={e => setComment(e.target.value)}
+                placeholder="Add review comment (optional)…" rows={2}
+                className="w-full px-3 py-2 rounded-lg text-xs outline-none resize-none"
+                style={{ background: 'var(--muted)', border: '1px solid var(--border)', color: 'var(--foreground)' }} />
+              <div className="grid grid-cols-2 gap-2">
+                <button onClick={() => handleAction('rejected')}
+                  className="py-2 rounded-lg text-xs font-semibold"
+                  style={{ background: 'rgba(225,29,72,0.1)', color: '#e11d48', border: '1px solid rgba(225,29,72,0.3)' }}>
+                  Reject
+                </button>
+                <button onClick={() => handleAction('approved')}
+                  className="py-2 rounded-lg text-xs font-semibold text-white"
+                  style={{ background: 'var(--brand-500)' }}>
+                  Approve →
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </motion.div>
+    </div>
+  )
+}
+
+// ── Main ─────────────────────────────────────────────────────────────────────
+
+export function PolicyKanbanClient() {
+  const [policies, setPolicies] = useState<Policy[]>([])
+  const [loading, setLoading]   = useState(true)
+  const [showForm, setShowForm] = useState(false)
+  const [selected, setSelected] = useState<Policy | null>(null)
+
+  useEffect(() => {
+    dbExt.getPolicies().then(p => { setPolicies(p); setLoading(false) })
+  }, [])
+
+  async function handleAdvance(id: string, next: PolicyStatus) {
+    const policy = policies.find(p => p.id === id)
+    if (!policy) return
+    const saved = await dbExt.savePolicy({ ...policy, status: next, updated_at: new Date().toISOString() })
+    setPolicies(prev => prev.map(p => p.id === saved.id ? saved : p))
+    toast.success(`Advanced to ${next.replace(/_/g, ' ')}`)
+  }
+
+  function handleUpdate(updated: Policy) {
+    setPolicies(prev => prev.map(p => p.id === updated.id ? updated : p))
+    setSelected(updated)
+  }
+
+  const stats = {
+    total:     policies.length,
+    published: policies.filter(p => p.status === 'published').length,
+    pending:   policies.filter(p => ['in_review','committee_review'].includes(p.status)).length,
+    draft:     policies.filter(p => p.status === 'draft').length,
+  }
+
+  return (
+    <div className="space-y-5">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {[
+          { label: 'Total Policies', value: stats.total,     rgb: '14,165,233' },
+          { label: 'Published',      value: stats.published, rgb: '5,150,105'  },
+          { label: 'Pending Review', value: stats.pending,   rgb: '217,119,6'  },
+          { label: 'In Draft',       value: stats.draft,     rgb: '100,116,139'},
+        ].map((s, i) => (
+          <motion.div key={s.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
+            className="card p-4 overflow-hidden">
+            <div className="absolute top-0 left-0 right-0 h-px"
+              style={{ background: `linear-gradient(90deg,transparent,rgba(${s.rgb},0.7),transparent)` }} />
+            <p className="text-2xl font-bold" style={{ color: `rgb(${s.rgb})` }}>{s.value}</p>
+            <p className="text-xs mt-0.5" style={{ color: 'var(--muted-fg)' }}>{s.label}</p>
+          </motion.div>
+        ))}
+      </div>
+
+      <div className="flex justify-end">
+        <button onClick={() => setShowForm(true)}
+          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-white"
+          style={{ background: 'var(--brand-500)' }}>
+          <Plus className="w-4 h-4" /> New Policy
         </button>
       </div>
 
-      {/* Kanban Board */}
       {loading ? (
-        <div className="flex items-center justify-center h-64 text-muted-foreground">Loading policies...</div>
+        <div className="flex items-center justify-center h-40" style={{ color: 'var(--muted-fg)' }}>Loading…</div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+        <div className="flex gap-4 overflow-x-auto pb-4">
           {COLUMNS.map(col => {
-            const items = filtered.filter(p => p.status === col.id)
+            const colPolicies = policies.filter(p => p.status === col.status)
             return (
-              <div key={col.id} className="flex flex-col min-h-[500px] rounded-2xl bg-card/40 border p-4" style={{ borderColor: 'var(--border)' }}>
-                <div className="flex items-center justify-between mb-4">
+              <div key={col.status} className="flex-shrink-0 w-60">
+                <div className="flex items-center justify-between mb-3 px-1">
                   <div className="flex items-center gap-2">
-                    <span className={cn('w-2 h-2 rounded-full', 
-                      col.id === 'draft' ? 'bg-slate-400' :
-                      col.id === 'in_review' ? 'bg-sky-400' :
-                      col.id === 'committee_review' ? 'bg-amber-400' :
-                      col.id === 'approved' ? 'bg-green-400' : 'bg-indigo-400'
-                    )} />
-                    <h3 className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>{col.label}</h3>
+                    <span className="w-2 h-2 rounded-full" style={{ background: `rgb(${col.rgb})` }} />
+                    <span className="text-xs font-semibold" style={{ color: 'var(--foreground)' }}>{col.label}</span>
                   </div>
-                  <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-muted text-muted-foreground">{items.length}</span>
+                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full"
+                    style={{ background: `rgba(${col.rgb},0.15)`, color: `rgb(${col.rgb})` }}>
+                    {colPolicies.length}
+                  </span>
                 </div>
-
-                <div className="flex-1 space-y-3 overflow-y-auto">
-                  {items.map(p => (
-                    <div key={p.id} className="card p-3 space-y-3 relative group hover:border-sky-500/40 transition-all">
-                      <div>
-                        <div className="flex items-center justify-between gap-1">
-                          <span className="text-[10px] font-mono text-sky-400 uppercase tracking-wide">{p.policy_id}</span>
-                          <span className="text-[10px] text-muted-foreground">v{p.version}</span>
-                        </div>
-                        <h4 className="text-xs font-semibold mt-1" style={{ color: 'var(--foreground)' }}>{p.title}</h4>
-                        {p.description && <p className="text-[11px] text-muted-foreground mt-1 line-clamp-2">{p.description}</p>}
-                      </div>
-
-                      {p.owner_dept && (
-                        <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
-                          <BookOpen className="w-3 h-3 text-muted-foreground/60" />
-                          <span>{p.owner_dept}</span>
-                        </div>
-                      )}
-
-                      {/* Moving buttons */}
-                      <div className="flex items-center justify-end gap-1.5 border-t pt-2 mt-2 opacity-0 group-hover:opacity-100 transition-opacity" style={{ borderColor: 'var(--border)' }}>
-                        {col.id === 'draft' && (
-                          <button
-                            onClick={() => handleMove(p.id, 'in_review')}
-                            className="flex items-center gap-1 text-[10px] font-medium text-sky-400 hover:text-sky-300"
-                          >
-                            Submit <Send className="w-2.5 h-2.5" />
-                          </button>
-                        )}
-                        {col.id === 'in_review' && (
-                          <button
-                            onClick={() => handleMove(p.id, 'committee_review')}
-                            className="flex items-center gap-1 text-[10px] font-medium text-amber-400 hover:text-amber-300"
-                          >
-                            To Committee <ShieldAlert className="w-2.5 h-2.5" />
-                          </button>
-                        )}
-                        {col.id === 'committee_review' && (
-                          <button
-                            onClick={() => handleMove(p.id, 'approved')}
-                            className="flex items-center gap-1 text-[10px] font-medium text-green-400 hover:text-green-300"
-                          >
-                            Approve <CheckCircle2 className="w-2.5 h-2.5" />
-                          </button>
-                        )}
-                        {col.id === 'approved' && (
-                          <button
-                            onClick={() => handleMove(p.id, 'published')}
-                            className="flex items-center gap-1 text-[10px] font-medium text-indigo-400 hover:text-indigo-300"
-                          >
-                            Publish <BookOpen className="w-2.5 h-2.5" />
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-
-                  {items.length === 0 && (
-                    <div className="flex flex-col items-center justify-center h-28 border border-dashed rounded-xl" style={{ borderColor: 'var(--border)' }}>
-                      <p className="text-[10px] text-muted-foreground">No policies</p>
-                    </div>
-                  )}
+                <div className="space-y-2 min-h-20">
+                  <AnimatePresence>
+                    {colPolicies.length === 0 ? (
+                      <div className="text-center py-6 rounded-xl border border-dashed text-[10px]"
+                        style={{ borderColor: 'var(--border)', color: 'var(--muted-fg)' }}>Empty</div>
+                    ) : colPolicies.map(p => (
+                      <PolicyCard key={p.id} policy={p} onAdvance={handleAdvance} onClick={() => setSelected(p)} />
+                    ))}
+                  </AnimatePresence>
                 </div>
               </div>
             )
@@ -198,105 +374,10 @@ export function PolicyKanbanClient() {
         </div>
       )}
 
-      {/* Add Modal */}
-      {showAdd && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowAdd(false)} />
-          <div className="relative w-full max-w-lg rounded-2xl border shadow-2xl p-6 bg-card" style={{ borderColor: 'var(--border)' }}>
-            <h3 className="text-sm font-semibold mb-4" style={{ color: 'var(--foreground)' }}>Create Policy</h3>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-xs font-semibold text-muted-foreground mb-1">Policy Code *</label>
-                <input
-                  type="text"
-                  placeholder="e.g. POL-2024-001"
-                  value={newPolicy.policy_id}
-                  onChange={e => setNewPolicy(prev => ({ ...prev, policy_id: e.target.value }))}
-                  className="w-full px-3 py-2 rounded-xl bg-muted border text-sm outline-none"
-                  style={{ borderColor: 'var(--border)', color: 'var(--foreground)' }}
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-muted-foreground mb-1">Title *</label>
-                <input
-                  type="text"
-                  placeholder="Policy Title"
-                  value={newPolicy.title}
-                  onChange={e => setNewPolicy(prev => ({ ...prev, title: e.target.value }))}
-                  className="w-full px-3 py-2 rounded-xl bg-muted border text-sm outline-none"
-                  style={{ borderColor: 'var(--border)', color: 'var(--foreground)' }}
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-muted-foreground mb-1">Description</label>
-                <textarea
-                  placeholder="Brief description"
-                  value={newPolicy.description}
-                  onChange={e => setNewPolicy(prev => ({ ...prev, description: e.target.value }))}
-                  className="w-full px-3 py-2 rounded-xl bg-muted border text-sm outline-none h-16 resize-none"
-                  style={{ borderColor: 'var(--border)', color: 'var(--foreground)' }}
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-semibold text-muted-foreground mb-1">Category</label>
-                  <select
-                    value={newPolicy.category}
-                    onChange={e => setNewPolicy(prev => ({ ...prev, category: e.target.value as any }))}
-                    className="w-full px-3 py-2 rounded-xl bg-muted border text-sm outline-none cursor-pointer"
-                    style={{ borderColor: 'var(--border)', color: 'var(--foreground)' }}
-                  >
-                    <option value="information_security">InfoSec</option>
-                    <option value="operational">Operational</option>
-                    <option value="hr">HR</option>
-                    <option value="financial">Financial</option>
-                    <option value="compliance">Compliance</option>
-                    <option value="risk">Risk</option>
-                    <option value="other">Other</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-muted-foreground mb-1">Department</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. IT Security"
-                    value={newPolicy.owner_dept}
-                    onChange={e => setNewPolicy(prev => ({ ...prev, owner_dept: e.target.value }))}
-                    className="w-full px-3 py-2 rounded-xl bg-muted border text-sm outline-none"
-                    style={{ borderColor: 'var(--border)', color: 'var(--foreground)' }}
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-muted-foreground mb-1">Policy Content / Body</label>
-                <textarea
-                  placeholder="Write the policy statement body content here..."
-                  value={newPolicy.body}
-                  onChange={e => setNewPolicy(prev => ({ ...prev, body: e.target.value }))}
-                  className="w-full px-3 py-2 rounded-xl bg-muted border text-sm outline-none h-32 resize-none"
-                  style={{ borderColor: 'var(--border)', color: 'var(--foreground)' }}
-                />
-              </div>
-            </div>
-            <div className="flex justify-end gap-3 mt-6">
-              <button
-                onClick={() => setShowAdd(false)}
-                className="px-4 py-2 rounded-xl text-sm"
-                style={{ color: 'var(--muted-fg)' }}
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleAdd}
-                disabled={!newPolicy.policy_id || !newPolicy.title}
-                className="px-5 py-2 rounded-xl text-sm font-semibold text-white bg-sky-500 hover:bg-sky-600 disabled:opacity-50 transition-colors"
-              >
-                Create
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {showForm && <NewPolicyDialog onClose={() => setShowForm(false)} onCreate={p => setPolicies(prev => [p, ...prev])} />}
+      <AnimatePresence>
+        {selected && <PolicyDetailDrawer policy={selected} onClose={() => setSelected(null)} onUpdate={handleUpdate} />}
+      </AnimatePresence>
     </div>
   )
 }

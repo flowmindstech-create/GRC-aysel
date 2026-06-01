@@ -7,6 +7,7 @@ import {
   LayoutDashboard, ShieldAlert, AlertTriangle, ClipboardCheck,
   Search, Users, Settings, ChevronLeft, ChevronRight,
   Shield, Zap, GitBranch, Workflow, FileSearch, Activity,
+  BookOpen, Network, ScrollText,
 } from 'lucide-react'
 import { useState } from 'react'
 
@@ -33,8 +34,11 @@ const navGroups = [
   {
     label: 'Admin',
     items: [
-      { href: '/vendors',  label: 'Vendors',  icon: Users },
-      { href: '/settings', label: 'Settings', icon: Settings },
+      { href: '/controls',              label: 'Control Library', icon: BookOpen  },
+      { href: '/control-mapping',       label: 'Ctrl Mapping',    icon: Network   },
+      { href: '/governance/policies',   label: 'Policies',        icon: ScrollText},
+      { href: '/vendors',               label: 'Vendors',         icon: Users     },
+      { href: '/settings',              label: 'Settings',        icon: Settings  },
     ],
   },
 ]
