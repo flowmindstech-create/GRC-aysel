@@ -51,7 +51,7 @@ CREATE TABLE IF NOT EXISTS risks (
   title                   TEXT NOT NULL,
   description             TEXT NOT NULL,
   category                TEXT NOT NULL CHECK (category IN ('cybersecurity','financial','operational','legal','hr','strategic','compliance')),
-  level                   TEXT NOT NULL CHECK (level IN ('low','medium','high','critical')),
+  level                   TEXT NOT NULL CHECK (level IN ('minimal','low','medium','high','critical')),
   status                  TEXT NOT NULL DEFAULT 'open' CHECK (status IN ('open','in_progress','mitigated','accepted','closed')),
   owner_id                UUID REFERENCES profiles(id),
   due_date                DATE,

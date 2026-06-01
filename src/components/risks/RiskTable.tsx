@@ -17,7 +17,7 @@ import { cn } from '@/lib/utils'
 import { RiskFormDialog } from './RiskFormDialog'
 import { RiskDetailSheet } from './RiskDetailSheet'
 
-const LEVELS: (RiskLevel | 'all')[] = ['all', 'critical', 'high', 'medium', 'low']
+const LEVELS: (RiskLevel | 'all')[] = ['all', 'critical', 'high', 'medium', 'low', 'minimal']
 const CATEGORIES: (RiskCategory | 'all')[] = [
   'all', 'cybersecurity', 'financial', 'operational', 'legal', 'hr', 'strategic',
 ]

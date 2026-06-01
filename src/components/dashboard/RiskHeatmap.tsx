@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion'
 import type { DashboardStats } from '@/types'
 import { cn } from '@/lib/utils'
+import { calculateInherentLevel } from '@/lib/rcsa'
 
 interface RiskHeatmapProps {
   stats: DashboardStats
@@ -16,7 +17,6 @@ function buildHeatmapData(): Cell[] {
   for (let impact = 5; impact >= 1; impact--) {
     for (let likelihood = 1; likelihood <= 5; likelihood++) {
       // Distribute sample risks into approximate cells
-      const score = likelihood * impact
       const count =
         (likelihood === 4 && impact === 5) ? 1 :  // critical
         (likelihood === 5 && impact === 5) ? 1 :  // critical
@@ -33,11 +33,15 @@ function buildHeatmapData(): Cell[] {
 }
 
 function getCellColor(likelihood: number, impact: number) {
-  const score = likelihood * impact
-  if (score >= 16) return 'bg-red-500 text-white'
-  if (score >= 9)  return 'bg-orange-500 text-white'
-  if (score >= 4)  return 'bg-yellow-400 text-slate-800'
-  return 'bg-green-400 text-slate-800'
+  const level = calculateInherentLevel(likelihood, impact)
+  switch (level) {
+    case 'critical': return 'bg-red-500 text-white'
+    case 'high':     return 'bg-orange-500 text-white'
+    case 'medium':   return 'bg-yellow-400 text-slate-800'
+    case 'low':      return 'bg-green-400 text-slate-800'
+    case 'minimal':  return 'bg-emerald-400 text-slate-800'
+    default:         return 'bg-green-400 text-slate-800'
+  }
 }
 
 function getCellOpacity(count: number) {
@@ -58,6 +62,7 @@ export function RiskHeatmap({ stats }: RiskHeatmapProps) {
           <p className="text-xs mt-0.5" style={{ color: 'var(--muted-fg)' }}>Likelihood × Impact matrix</p>
         </div>
         <div className="flex items-center gap-3 text-[10px]" style={{ color: 'var(--muted-fg)' }}>
+          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded bg-emerald-400" />Minimal</span>
           <span className="flex items-center gap-1"><span className="w-2 h-2 rounded bg-green-400" />Low</span>
           <span className="flex items-center gap-1"><span className="w-2 h-2 rounded bg-yellow-400" />Medium</span>
           <span className="flex items-center gap-1"><span className="w-2 h-2 rounded bg-orange-500" />High</span>

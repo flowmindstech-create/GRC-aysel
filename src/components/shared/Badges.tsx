@@ -7,6 +7,7 @@ const riskLevelStyles: Record<RiskLevel, string> = {
   high:     'bg-orange-500/15 text-orange-500 border-orange-500/30',
   medium:   'bg-yellow-500/15 text-yellow-600 dark:text-yellow-400 border-yellow-500/30',
   low:      'bg-green-500/15 text-green-600 dark:text-green-400 border-green-500/30',
+  minimal:  'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30',
 }
 
 export function RiskLevelBadge({ level }: { level: RiskLevel }) {
@@ -20,6 +21,7 @@ export function RiskLevelBadge({ level }: { level: RiskLevel }) {
         'bg-orange-500': level === 'high',
         'bg-yellow-500': level === 'medium',
         'bg-green-500':  level === 'low',
+        'bg-emerald-500': level === 'minimal',
       })} />
       {level}
     </span>

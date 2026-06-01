@@ -283,7 +283,7 @@ export const MOCK_DASHBOARD_STATS: DashboardStats = {
   critical_risks: 2,
   open_incidents: 2,
   compliance_score: 68,
-  risk_by_level: { low: 1, medium: 2, high: 2, critical: 2 },
+  risk_by_level: { minimal: 0, low: 1, medium: 2, high: 2, critical: 2 },
   risk_by_category: {
     cybersecurity: 3, financial: 1, operational: 1,
     legal: 2, hr: 1, strategic: 0, compliance: 0,

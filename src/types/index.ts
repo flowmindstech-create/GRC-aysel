@@ -21,7 +21,7 @@ export interface Organization {
 
 // ─── Risks ───────────────────────────────────────────────────────────────────
 
-export type RiskLevel = 'low' | 'medium' | 'high' | 'critical'
+export type RiskLevel = 'minimal' | 'low' | 'medium' | 'high' | 'critical'
 export type RiskStatus = 'open' | 'in_progress' | 'mitigated' | 'accepted' | 'closed'
 export type RiskCategory =
   | 'cybersecurity'

@@ -12,9 +12,10 @@ export function calcRiskScore(likelihood: number, impact: number): number {
 }
 
 export function scoreToLevel(score: number): RiskLevel {
-  if (score <= 4)  return 'low'
-  if (score <= 9)  return 'medium'
-  if (score <= 15) return 'high'
+  if (score <= 3)  return 'minimal'
+  if (score <= 6)  return 'low'
+  if (score <= 10) return 'medium'
+  if (score <= 16) return 'high'
   return 'critical'
 }
 

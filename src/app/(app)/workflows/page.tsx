@@ -246,7 +246,7 @@ export default function WorkflowsPage() {
       updates.validation_evidence = validationEvidence
     } else if (nextStep === 'verify_reassessment') {
       const reassessedLevel = calculateInherentLevel(resLikelihood, resImpact)
-      if (reassessedLevel === 'low') {
+      if (reassessedLevel === 'low' || reassessedLevel === 'minimal') {
         updates.workflow_step = 'accepted'
         updates.status = 'mitigated'
       } else {

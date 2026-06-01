@@ -20,7 +20,7 @@ const schema = z.object({
   title: z.string().min(5, 'Title must be at least 5 characters'),
   description: z.string().min(10, 'Description required'),
   category: z.enum(['cybersecurity', 'financial', 'operational', 'legal', 'hr', 'strategic', 'compliance']),
-  level: z.enum(['low', 'medium', 'high', 'critical']),
+  level: z.enum(['minimal', 'low', 'medium', 'high', 'critical']),
   status: z.enum(['open', 'in_progress', 'mitigated', 'accepted', 'closed']),
   owner_id: z.string().optional(),
   due_date: z.string().optional(),

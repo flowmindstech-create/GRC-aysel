@@ -148,3 +148,7 @@ INSERT INTO risks (
   NOW(), NOW()
 )
 ON CONFLICT (id) DO NOTHING;
+
+-- 7. Update check constraints to support 5 risk levels (minimal)
+ALTER TABLE risks DROP CONSTRAINT IF EXISTS risks_level_check;
+ALTER TABLE risks ADD CONSTRAINT risks_level_check CHECK (level IN ('minimal','low','medium','high','critical'));

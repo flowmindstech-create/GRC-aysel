@@ -31,6 +31,9 @@ function setLocalItem<T>(key: string, value: T) {
 }
 
 const isSupabaseConfigured = () => {
+  if (typeof window !== 'undefined' && document.cookie.includes('mock-session=true')) {
+    return false
+  }
   return !!(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
 }
 
@@ -388,6 +391,7 @@ export const db = {
     const complianceScore = totalControls > 0 ? Math.round((passedControls / totalControls) * 100) : 100
 
     const riskByLevel = {
+      minimal: risks.filter(r => r.level === 'minimal').length,
       low: risks.filter(r => r.level === 'low').length,
       medium: risks.filter(r => r.level === 'medium').length,
       high: risks.filter(r => r.level === 'high').length,
