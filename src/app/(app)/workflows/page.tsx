@@ -361,7 +361,7 @@ export default function WorkflowsPage() {
               {selectedRisk ? (
                 <div className="space-y-6 pt-4">
                   {/* Visual flowchart layout */}
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                     {/* Phase 1 */}
                     <div className="space-y-3 p-3 rounded-xl bg-slate-900/40 border border-white/5">
                       <p className="text-[10px] font-bold text-indigo-400 uppercase tracking-wide border-b border-white/5 pb-1">Mərhələ 1: Giriş</p>
@@ -1043,8 +1043,10 @@ export default function WorkflowsPage() {
                   
                   {/* Visual Intake Stepper Progress */}
                   <div>
-                    <h3 className="text-sm font-bold text-white uppercase tracking-wider">Giriş və Uyğunluq Qiymətləndirilməsi Mərhələləri</h3>
-                    <div className="flex items-center gap-1 mt-4">
+                    <h3 className="text-sm font-bold text-white uppercase tracking-wider">Giriş və Uyğunluq Mərhələləri</h3>
+                    
+                    {/* Desktop view stepper */}
+                    <div className="hidden md:flex items-center gap-1 mt-4">
                       {[
                         { step: 'registration', label: '1. Giriş' },
                         { step: 'classification', label: '2. Təsnifat' },
@@ -1055,7 +1057,6 @@ export default function WorkflowsPage() {
                         { step: 'closed', label: '7. Bağlı' }
                       ].map((s, idx, arr) => {
                         const active = selectedIntake.step === s.step
-                        // check if completed
                         const stepsOrder = arr.map(x => x.step)
                         const currentIdx = stepsOrder.indexOf(selectedIntake.step)
                         const myIdx = stepsOrder.indexOf(s.step)
@@ -1074,6 +1075,35 @@ export default function WorkflowsPage() {
                           </div>
                         )
                       })}
+                    </div>
+
+                    {/* Mobile view stepper */}
+                    <div className="flex md:hidden items-center justify-between p-3 rounded-xl bg-slate-900 border border-white/5 mt-4">
+                      <div>
+                        <p className="text-[10px] text-indigo-400 uppercase font-bold">
+                          Mərhələ {[
+                            'registration', 'classification', 'control_mapping', 
+                            'evidence_collection', 'compliance_assessment', 'gap_assessment', 'closed'
+                          ].indexOf(selectedIntake.step) + 1} / 7
+                        </p>
+                        <p className="text-xs font-bold text-white mt-0.5">
+                          {[
+                            { step: 'registration', label: 'Giriş' },
+                            { step: 'classification', label: 'Təsnifat' },
+                            { step: 'control_mapping', label: 'Nəzarət Eşlənməsi' },
+                            { step: 'evidence_collection', label: 'Sübut Toplanması' },
+                            { step: 'compliance_assessment', label: 'Uyğunluq Qiymətləndirilməsi' },
+                            { step: 'gap_assessment', label: 'Boşluq Təsbiti' },
+                            { step: 'closed', label: 'Mərhələ Bağlı' }
+                          ].find(x => x.step === selectedIntake.step)?.label}
+                        </p>
+                      </div>
+                      <span className="text-[10px] font-mono font-bold text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded border border-indigo-500/10">
+                        {Math.round((([
+                          'registration', 'classification', 'control_mapping', 
+                          'evidence_collection', 'compliance_assessment', 'gap_assessment', 'closed'
+                        ].indexOf(selectedIntake.step) + 1) / 7) * 100)}%
+                      </span>
                     </div>
                   </div>
 
