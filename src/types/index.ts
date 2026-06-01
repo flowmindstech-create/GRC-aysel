@@ -127,12 +127,19 @@ export interface IncidentTimelineEvent {
 
 export type ControlFramework = 'iso27001' | 'soc2' | 'gdpr' | 'pci_dss'
 export type ControlStatus = 'pass' | 'fail' | 'partial' | 'na'
+export type ControlType = 'preventive' | 'detective' | 'corrective' | 'directive'
+export type ControlClassification = 'manual' | 'automated' | 'hybrid'
+export type EffectivenessRating = 'effective' | 'partially_effective' | 'ineffective' | 'na'
+export type DesignEffectiveness = 'pass' | 'fail' | 'partial' | 'not_tested'
+export type OperatingEffectiveness = 'pass' | 'fail' | 'partial' | 'not_tested'
+export type ExecutionFrequency = 'continuous' | 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'annual' | 'ad_hoc'
+export type ControlApprovalStatus = 'draft' | 'pending_review' | 'approved' | 'retired'
 
 export interface Control {
   id: string
   org_id: string
   framework: ControlFramework
-  control_id: string   // e.g. "A.5.1"
+  control_id: string
   title: string
   description: string
   status: ControlStatus
@@ -141,6 +148,38 @@ export interface Control {
   reviewed_at?: string
   reviewed_by?: string
   created_at: string
+  // Phase 1 additions — expanded control card
+  req_id?: string
+  control_type?: ControlType
+  classification?: ControlClassification
+  objective?: string
+  owner_id?: string
+  owner_dept?: string
+  systems_tools?: string[]
+  execution_frequency?: ExecutionFrequency
+  execution_detail?: string
+  evidence_requirements?: string
+  kci_definition?: string
+  effectiveness_rating?: EffectivenessRating
+  design_effectiveness?: DesignEffectiveness
+  operating_effectiveness?: OperatingEffectiveness
+  last_tested_at?: string
+  next_test_date?: string
+  approval_status?: ControlApprovalStatus
+  approved_by?: string
+  approved_at?: string
+  is_live?: boolean
+  live_date?: string
+  version?: number
+  change_history?: ControlChangeEntry[]
+  updated_at?: string
+}
+
+export interface ControlChangeEntry {
+  version: number
+  changed_by: string
+  changed_at: string
+  summary: string
 }
 
 // ─── Audits ──────────────────────────────────────────────────────────────────
@@ -287,10 +326,33 @@ export type GRCIntakeStep =
   | 'evidence_collection'
   | 'compliance_assessment'
   | 'gap_assessment'
+  | 'inherent_assessment'
+  | 'control_effectiveness_review'
+  | 'residual_assessment'
+  | 'owner_review'
+  | 'mgt_review'
+  | 'appetite_gate'
+  | 'action_plan'
+  | 'assignment'
+  | 'implementation'
+  | 'evidence_upload'
+  | 'validation'
+  | 'reassessment'
+  | 'escalation'
+  | 'committee_review'
+  | 'monitoring'
   | 'compliant_closed'
   | 'non_compliance'
   | 'risk_routing'
-  | 'action_plan'
+  | 'closed'
+
+export type GRCIntakeStatus =
+  | 'draft'
+  | 'under_review'
+  | 'compliant'
+  | 'non_compliant'
+  | 'escalated'
+  | 'accepted'
   | 'closed'
 
 export interface GRCIntakeItem {
@@ -303,11 +365,160 @@ export interface GRCIntakeItem {
   mapped_control_ids: string[]
   evidence_url?: string
   evidence_note?: string
-  status: 'draft' | 'under_review' | 'compliant' | 'non_compliant' | 'closed'
+  status: GRCIntakeStatus
   step: GRCIntakeStep
   gap_identified?: boolean
   risk_creation_required?: boolean
   risk_created_id?: string
   created_at: string
+  // Phase 1 additions — full compliance workflow fields
+  inherent_likelihood?: number
+  inherent_impact?: number
+  inherent_risk_level?: RiskLevel
+  control_effectiveness?: EffectivenessRating
+  residual_likelihood?: number
+  residual_impact?: number
+  residual_risk_level?: RiskLevel
+  risk_owner_id?: string
+  risk_owner_reviewed_at?: string
+  mgt_reviewed_at?: string
+  mgt_reviewer_id?: string
+  appetite_decision?: 'accept' | 'treat'
+  action_plan?: string
+  assigned_to?: string
+  implementation_due?: string
+  implementation_evidence_url?: string
+  validation_note?: string
+  validated_at?: string
+  validated_by?: string
+  post_treatment_appetite?: 'within' | 'outside'
+  escalated_at?: string
+  committee_decision?: string
+  closed_at?: string
+}
+
+// ─── Requirements ─────────────────────────────────────────────────────────────
+
+export type RequirementSourceType = 'regulatory' | 'audit_finding' | 'risk_event' | 'internal_policy'
+export type RequirementClassification = 'mandatory' | 'advisory' | 'best_practice'
+export type RequirementStatus = 'open' | 'mapped' | 'compliant' | 'non_compliant' | 'waived' | 'closed'
+
+export interface Requirement {
+  id: string
+  org_id: string
+  req_id: string
+  source_type: RequirementSourceType
+  source_ref?: string
+  framework?: ControlFramework | 'custom' | 'none'
+  title: string
+  description?: string
+  classification: RequirementClassification
+  status: RequirementStatus
+  due_date?: string
+  owner_id?: string
+  created_at: string
+  updated_at: string
+}
+
+// ─── Control Mapping ──────────────────────────────────────────────────────────
+
+export type MappingType = 'compliance_only' | 'risk_mitigation_only' | 'dual_purpose'
+export type MappingApprovalStatus = 'pending' | 'approved' | 'rejected'
+export type MappingEntityType = 'risk' | 'requirement' | 'grc_intake_item' | 'audit_finding' | 'incident'
+
+export interface ControlMapping {
+  id: string
+  org_id: string
+  control_id: string
+  entity_type: MappingEntityType
+  entity_id: string
+  mapping_type: MappingType
+  mapped_by?: string
+  mapped_at: string
+  notes?: string
+  approval_status: MappingApprovalStatus
+  approved_by?: string
+  approved_at?: string
+  created_at: string
+}
+
+// ─── Control Test Runs ────────────────────────────────────────────────────────
+
+export type TestType = 'design' | 'operating' | 'combined'
+export type TestResult = 'pass' | 'fail' | 'partial'
+
+export interface ControlTestRun {
+  id: string
+  org_id: string
+  control_id: string
+  run_date: string
+  tested_by?: string
+  test_type: TestType
+  result: TestResult
+  sample_size?: number
+  exceptions_found: number
+  evidence_urls: string[]
+  notes?: string
+  created_at: string
+}
+
+// ─── Control Issues ───────────────────────────────────────────────────────────
+
+export type ControlIssueSource = 'control_test' | 'audit' | 'self_assessment' | 'incident' | 'monitoring'
+export type ControlIssueStatus = 'open' | 'in_progress' | 'remediated' | 're_testing' | 'closed' | 'accepted'
+
+export interface ControlIssue {
+  id: string
+  org_id: string
+  issue_id: string
+  control_id: string
+  title: string
+  description: string
+  source: ControlIssueSource
+  severity: FindingSeverity
+  identified_at: string
+  identified_by?: string
+  root_cause?: string
+  corrective_action?: string
+  owner_id?: string
+  due_date?: string
+  status: ControlIssueStatus
+  retest_date?: string
+  retest_result?: TestResult
+  closed_at?: string
+  linked_risk_ids: string[]
+  test_run_id?: string
+  created_at: string
+  updated_at: string
+}
+
+// ─── Risk Appetite Statement ──────────────────────────────────────────────────
+
+export type AppetiteLevel = 'zero' | 'low' | 'moderate' | 'elevated' | 'high'
+export type AppetiteStatus = 'draft' | 'pending_approval' | 'approved' | 'active' | 'superseded'
+export type AppetiteCategory = RiskCategory | 'overall'
+
+export interface RiskAppetiteStatement {
+  id: string
+  org_id: string
+  title: string
+  risk_category: AppetiteCategory
+  description?: string
+  appetite_level: AppetiteLevel
+  tolerance_level: AppetiteLevel
+  threshold_green?: string
+  threshold_amber?: string
+  threshold_red?: string
+  max_residual_score?: number
+  status: AppetiteStatus
+  effective_date?: string
+  review_date?: string
+  approved_by?: string
+  approved_at?: string
+  linked_kri_ids: string[]
+  business_unit?: string
+  version: number
+  created_at: string
+  updated_at: string
 }
 
