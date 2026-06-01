@@ -1233,7 +1233,7 @@ export default function WorkflowsPage() {
                         ) : (
                           <div className="space-y-4">
                             <div className="p-3 bg-rose-500/10 border border-rose-500/20 text-xs text-rose-400 rounded-lg">
-                              Uyğunsuzluq (Gap) aşkar edilmişdir! Tənzimləyici addım tələb olunur.
+                              Qeyri-uyğunluq (Non Compliance) aşkar edilmişdir! Tənzimləyici addım tələb olunur.
                             </div>
                             <div className="space-y-2">
                               <p className="text-xs font-bold text-slate-400">Risk reyestrində yeni Risk təbəqəsi yaradılsın?</p>
