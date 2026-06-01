@@ -450,67 +450,67 @@ export default function WorkflowsPage() {
                         <path d="M 0 1.5 L 9 5 L 0 8.5 z" fill="#334155" />
                       </marker>
                       <marker id="arrow-active" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-                        <path d="M 0 1.5 L 9 5 L 0 8.5 z" fill="#6366f1" />
+                        <path d="M 0 1.5 L 9 5 L 0 8.5 z" fill="#0ea5e9" />
                       </marker>
                     </defs>
 
                     {/* PATHS DRAWING */}
                     {/* identified -> registered */}
-                    <path d="M 90 125 L 90 180" stroke={isStepCompleted('registered') || selectedRisk?.workflow_step === 'registered' ? '#6366f1' : '#334155'} strokeWidth="2.5" markerEnd={isStepCompleted('registered') || selectedRisk?.workflow_step === 'registered' ? 'url(#arrow-active)' : 'url(#arrow)'} />
+                    <path d="M 90 125 L 90 180" stroke={isStepCompleted('registered') || selectedRisk?.workflow_step === 'registered' ? '#0ea5e9' : '#334155'} strokeWidth="2.5" markerEnd={isStepCompleted('registered') || selectedRisk?.workflow_step === 'registered' ? 'url(#arrow-active)' : 'url(#arrow)'} />
                     
                     {/* registered -> assessed_inherent */}
-                    <path d="M 150 202.5 L 175 202.5 L 175 102.5 L 200 102.5" stroke={isStepCompleted('assessed_inherent') || selectedRisk?.workflow_step === 'assessed_inherent' ? '#6366f1' : '#334155'} strokeWidth="2.5" markerEnd={isStepCompleted('assessed_inherent') || selectedRisk?.workflow_step === 'assessed_inherent' ? 'url(#arrow-active)' : 'url(#arrow)'} />
+                    <path d="M 150 202.5 L 175 202.5 L 175 102.5 L 200 102.5" stroke={isStepCompleted('assessed_inherent') || selectedRisk?.workflow_step === 'assessed_inherent' ? '#0ea5e9' : '#334155'} strokeWidth="2.5" markerEnd={isStepCompleted('assessed_inherent') || selectedRisk?.workflow_step === 'assessed_inherent' ? 'url(#arrow-active)' : 'url(#arrow)'} />
                     
                     {/* assessed_inherent -> control_mapped */}
-                    <path d="M 260 125 L 260 170" stroke={isStepCompleted('control_mapped') || selectedRisk?.workflow_step === 'control_mapped' ? '#6366f1' : '#334155'} strokeWidth="2.5" markerEnd={isStepCompleted('control_mapped') || selectedRisk?.workflow_step === 'control_mapped' ? 'url(#arrow-active)' : 'url(#arrow)'} />
+                    <path d="M 260 125 L 260 170" stroke={isStepCompleted('control_mapped') || selectedRisk?.workflow_step === 'control_mapped' ? '#0ea5e9' : '#334155'} strokeWidth="2.5" markerEnd={isStepCompleted('control_mapped') || selectedRisk?.workflow_step === 'control_mapped' ? 'url(#arrow-active)' : 'url(#arrow)'} />
                     
                     {/* control_mapped -> control_assessed */}
-                    <path d="M 260 215 L 260 260" stroke={isStepCompleted('control_assessed') || selectedRisk?.workflow_step === 'control_assessed' ? '#6366f1' : '#334155'} strokeWidth="2.5" markerEnd={isStepCompleted('control_assessed') || selectedRisk?.workflow_step === 'control_assessed' ? 'url(#arrow-active)' : 'url(#arrow)'} />
+                    <path d="M 260 215 L 260 260" stroke={isStepCompleted('control_assessed') || selectedRisk?.workflow_step === 'control_assessed' ? '#0ea5e9' : '#334155'} strokeWidth="2.5" markerEnd={isStepCompleted('control_assessed') || selectedRisk?.workflow_step === 'control_assessed' ? 'url(#arrow-active)' : 'url(#arrow)'} />
                     
                     {/* control_assessed -> assessed_residual */}
-                    <path d="M 260 305 L 260 350" stroke={isStepCompleted('assessed_residual') || selectedRisk?.workflow_step === 'assessed_residual' ? '#6366f1' : '#334155'} strokeWidth="2.5" markerEnd={isStepCompleted('assessed_residual') || selectedRisk?.workflow_step === 'assessed_residual' ? 'url(#arrow-active)' : 'url(#arrow)'} />
+                    <path d="M 260 305 L 260 350" stroke={isStepCompleted('assessed_residual') || selectedRisk?.workflow_step === 'assessed_residual' ? '#0ea5e9' : '#334155'} strokeWidth="2.5" markerEnd={isStepCompleted('assessed_residual') || selectedRisk?.workflow_step === 'assessed_residual' ? 'url(#arrow-active)' : 'url(#arrow)'} />
                     
                     {/* assessed_residual -> owner_review */}
-                    <path d="M 320 372.5 L 345 372.5 L 345 102.5 L 370 102.5" stroke={isStepCompleted('owner_review') || selectedRisk?.workflow_step === 'owner_review' ? '#6366f1' : '#334155'} strokeWidth="2.5" markerEnd={isStepCompleted('owner_review') || selectedRisk?.workflow_step === 'owner_review' ? 'url(#arrow-active)' : 'url(#arrow)'} />
+                    <path d="M 320 372.5 L 345 372.5 L 345 102.5 L 370 102.5" stroke={isStepCompleted('owner_review') || selectedRisk?.workflow_step === 'owner_review' ? '#0ea5e9' : '#334155'} strokeWidth="2.5" markerEnd={isStepCompleted('owner_review') || selectedRisk?.workflow_step === 'owner_review' ? 'url(#arrow-active)' : 'url(#arrow)'} />
                     
                     {/* owner_review -> mgt_review */}
-                    <path d="M 430 125 L 430 170" stroke={isStepCompleted('mgt_review') || selectedRisk?.workflow_step === 'mgt_review' ? '#6366f1' : '#334155'} strokeWidth="2.5" markerEnd={isStepCompleted('mgt_review') || selectedRisk?.workflow_step === 'mgt_review' ? 'url(#arrow-active)' : 'url(#arrow)'} />
+                    <path d="M 430 125 L 430 170" stroke={isStepCompleted('mgt_review') || selectedRisk?.workflow_step === 'mgt_review' ? '#0ea5e9' : '#334155'} strokeWidth="2.5" markerEnd={isStepCompleted('mgt_review') || selectedRisk?.workflow_step === 'mgt_review' ? 'url(#arrow-active)' : 'url(#arrow)'} />
                     
                     {/* mgt_review -> Appetite Gate (Decision) */}
-                    <path d="M 430 215 L 430 250" stroke={isStepCompleted('appetite_check') || selectedRisk?.workflow_step === 'treatment_plan' || selectedRisk?.workflow_step === 'accepted' ? '#6366f1' : '#334155'} strokeWidth="2.5" markerEnd={isStepCompleted('appetite_check') || selectedRisk?.workflow_step === 'treatment_plan' || selectedRisk?.workflow_step === 'accepted' ? 'url(#arrow-active)' : 'url(#arrow)'} />
+                    <path d="M 430 215 L 430 250" stroke={isStepCompleted('appetite_check') || selectedRisk?.workflow_step === 'treatment_plan' || selectedRisk?.workflow_step === 'accepted' ? '#0ea5e9' : '#334155'} strokeWidth="2.5" markerEnd={isStepCompleted('appetite_check') || selectedRisk?.workflow_step === 'treatment_plan' || selectedRisk?.workflow_step === 'accepted' ? 'url(#arrow-active)' : 'url(#arrow)'} />
                     
                     {/* Appetite Check -> accepted (Yes) */}
-                    <path d="M 430 320 L 430 395 L 670 395 L 670 192.5 L 700 192.5" stroke={selectedRisk?.workflow_step === 'accepted' && selectedRisk?.status === 'accepted' ? '#6366f1' : '#334155'} strokeWidth="2.5" markerEnd={selectedRisk?.workflow_step === 'accepted' && selectedRisk?.status === 'accepted' ? 'url(#arrow-active)' : 'url(#arrow)'} />
+                    <path d="M 430 320 L 430 395 L 670 395 L 670 192.5 L 700 192.5" stroke={selectedRisk?.workflow_step === 'accepted' && selectedRisk?.status === 'accepted' ? '#0ea5e9' : '#334155'} strokeWidth="2.5" markerEnd={selectedRisk?.workflow_step === 'accepted' && selectedRisk?.status === 'accepted' ? 'url(#arrow-active)' : 'url(#arrow)'} />
                     
                     {/* Appetite Check -> treatment_plan (No) */}
-                    <path d="M 465 285 L 502.5 285 L 502.5 102.5 L 540 102.5" stroke={isStepCompleted('treatment_plan') || selectedRisk?.workflow_step === 'treatment_plan' ? '#6366f1' : '#334155'} strokeWidth="2.5" markerEnd={isStepCompleted('treatment_plan') || selectedRisk?.workflow_step === 'treatment_plan' ? 'url(#arrow-active)' : 'url(#arrow)'} />
+                    <path d="M 465 285 L 502.5 285 L 502.5 102.5 L 540 102.5" stroke={isStepCompleted('treatment_plan') || selectedRisk?.workflow_step === 'treatment_plan' ? '#0ea5e9' : '#334155'} strokeWidth="2.5" markerEnd={isStepCompleted('treatment_plan') || selectedRisk?.workflow_step === 'treatment_plan' ? 'url(#arrow-active)' : 'url(#arrow)'} />
                     
                     {/* treatment_plan -> action_plan */}
-                    <path d="M 600 125 L 600 170" stroke={isStepCompleted('action_plan') || selectedRisk?.workflow_step === 'action_plan' ? '#6366f1' : '#334155'} strokeWidth="2.5" markerEnd={isStepCompleted('action_plan') || selectedRisk?.workflow_step === 'action_plan' ? 'url(#arrow-active)' : 'url(#arrow)'} />
+                    <path d="M 600 125 L 600 170" stroke={isStepCompleted('action_plan') || selectedRisk?.workflow_step === 'action_plan' ? '#0ea5e9' : '#334155'} strokeWidth="2.5" markerEnd={isStepCompleted('action_plan') || selectedRisk?.workflow_step === 'action_plan' ? 'url(#arrow-active)' : 'url(#arrow)'} />
                     
                     {/* action_plan -> implementation */}
-                    <path d="M 600 215 L 600 260" stroke={isStepCompleted('implementation') || selectedRisk?.workflow_step === 'implementation' ? '#6366f1' : '#334155'} strokeWidth="2.5" markerEnd={isStepCompleted('implementation') || selectedRisk?.workflow_step === 'implementation' ? 'url(#arrow-active)' : 'url(#arrow)'} />
+                    <path d="M 600 215 L 600 260" stroke={isStepCompleted('implementation') || selectedRisk?.workflow_step === 'implementation' ? '#0ea5e9' : '#334155'} strokeWidth="2.5" markerEnd={isStepCompleted('implementation') || selectedRisk?.workflow_step === 'implementation' ? 'url(#arrow-active)' : 'url(#arrow)'} />
                     
                     {/* implementation -> validation */}
-                    <path d="M 600 305 L 600 350" stroke={isStepCompleted('validation') || selectedRisk?.workflow_step === 'validation' ? '#6366f1' : '#334155'} strokeWidth="2.5" markerEnd={isStepCompleted('validation') || selectedRisk?.workflow_step === 'validation' ? 'url(#arrow-active)' : 'url(#arrow)'} />
+                    <path d="M 600 305 L 600 350" stroke={isStepCompleted('validation') || selectedRisk?.workflow_step === 'validation' ? '#0ea5e9' : '#334155'} strokeWidth="2.5" markerEnd={isStepCompleted('validation') || selectedRisk?.workflow_step === 'validation' ? 'url(#arrow-active)' : 'url(#arrow)'} />
                     
                     {/* validation -> residual_reassessment */}
-                    <path d="M 600 395 L 600 440" stroke={isStepCompleted('residual_reassessment') || selectedRisk?.workflow_step === 'residual_reassessment' ? '#6366f1' : '#334155'} strokeWidth="2.5" markerEnd={isStepCompleted('residual_reassessment') || selectedRisk?.workflow_step === 'residual_reassessment' ? 'url(#arrow-active)' : 'url(#arrow)'} />
+                    <path d="M 600 395 L 600 440" stroke={isStepCompleted('residual_reassessment') || selectedRisk?.workflow_step === 'residual_reassessment' ? '#0ea5e9' : '#334155'} strokeWidth="2.5" markerEnd={isStepCompleted('residual_reassessment') || selectedRisk?.workflow_step === 'residual_reassessment' ? 'url(#arrow-active)' : 'url(#arrow)'} />
                     
                     {/* residual_reassessment -> Reassessment Check */}
-                    <path d="M 600 485 L 600 510" stroke={isStepCompleted('verify_reassessment') || selectedRisk?.workflow_step === 'verify_reassessment' ? '#6366f1' : '#334155'} strokeWidth="2.5" markerEnd={isStepCompleted('verify_reassessment') || selectedRisk?.workflow_step === 'verify_reassessment' ? 'url(#arrow-active)' : 'url(#arrow)'} />
+                    <path d="M 600 485 L 600 510" stroke={isStepCompleted('verify_reassessment') || selectedRisk?.workflow_step === 'verify_reassessment' ? '#0ea5e9' : '#334155'} strokeWidth="2.5" markerEnd={isStepCompleted('verify_reassessment') || selectedRisk?.workflow_step === 'verify_reassessment' ? 'url(#arrow-active)' : 'url(#arrow)'} />
                     
                     {/* Reassessment Check -> accepted (Yes) */}
-                    <path d="M 635 545 L 685 545 L 685 192.5 L 700 192.5" stroke={selectedRisk?.workflow_step === 'accepted' && selectedRisk?.status === 'mitigated' ? '#6366f1' : '#334155'} strokeWidth="2.5" markerEnd={selectedRisk?.workflow_step === 'accepted' && selectedRisk?.status === 'mitigated' ? 'url(#arrow-active)' : 'url(#arrow)'} />
+                    <path d="M 635 545 L 685 545 L 685 192.5 L 700 192.5" stroke={selectedRisk?.workflow_step === 'accepted' && selectedRisk?.status === 'mitigated' ? '#0ea5e9' : '#334155'} strokeWidth="2.5" markerEnd={selectedRisk?.workflow_step === 'accepted' && selectedRisk?.status === 'mitigated' ? 'url(#arrow-active)' : 'url(#arrow)'} />
                     
                     {/* Reassessment Check -> escalated (No) */}
-                    <path d="M 635 545 L 685 545 L 685 302.5 L 700 302.5" stroke={isStepCompleted('escalated') || selectedRisk?.workflow_step === 'escalated' ? '#6366f1' : '#334155'} strokeWidth="2.5" markerEnd={isStepCompleted('escalated') || selectedRisk?.workflow_step === 'escalated' ? 'url(#arrow-active)' : 'url(#arrow)'} />
+                    <path d="M 635 545 L 685 545 L 685 302.5 L 700 302.5" stroke={isStepCompleted('escalated') || selectedRisk?.workflow_step === 'escalated' ? '#0ea5e9' : '#334155'} strokeWidth="2.5" markerEnd={isStepCompleted('escalated') || selectedRisk?.workflow_step === 'escalated' ? 'url(#arrow-active)' : 'url(#arrow)'} />
                     
                     {/* accepted -> closed */}
-                    <path d="M 760 170 L 760 125" stroke={selectedRisk?.workflow_step === 'closed' ? '#6366f1' : '#334155'} strokeWidth="2.5" markerEnd={selectedRisk?.workflow_step === 'closed' ? 'url(#arrow-active)' : 'url(#arrow)'} />
+                    <path d="M 760 170 L 760 125" stroke={selectedRisk?.workflow_step === 'closed' ? '#0ea5e9' : '#334155'} strokeWidth="2.5" markerEnd={selectedRisk?.workflow_step === 'closed' ? 'url(#arrow-active)' : 'url(#arrow)'} />
                     
                     {/* escalated -> closed */}
-                    <path d="M 820 302.5 L 850 302.5 L 850 102.5 L 820 102.5" stroke={selectedRisk?.workflow_step === 'closed' && selectedRisk?.escalation_level !== 'none' ? '#6366f1' : '#334155'} strokeWidth="2.5" markerEnd={selectedRisk?.workflow_step === 'closed' && selectedRisk?.escalation_level !== 'none' ? 'url(#arrow-active)' : 'url(#arrow)'} />
+                    <path d="M 820 302.5 L 850 302.5 L 850 102.5 L 820 102.5" stroke={selectedRisk?.workflow_step === 'closed' && selectedRisk?.escalation_level !== 'none' ? '#0ea5e9' : '#334155'} strokeWidth="2.5" markerEnd={selectedRisk?.workflow_step === 'closed' && selectedRisk?.escalation_level !== 'none' ? 'url(#arrow-active)' : 'url(#arrow)'} />
 
                     {/* Decision Branch Labels */}
                     <text x="440" y="340" fill="#22c55e" fontSize="9" fontWeight="bold" fontFamily="sans-serif">Yes (Within Appetite)</text>
@@ -1388,34 +1388,34 @@ export default function WorkflowsPage() {
                             <path d="M 0 1.5 L 9 5 L 0 8.5 z" fill="#334155" />
                           </marker>
                           <marker id="arr-act" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-                            <path d="M 0 1.5 L 9 5 L 0 8.5 z" fill="#6366f1" />
+                            <path d="M 0 1.5 L 9 5 L 0 8.5 z" fill="#0ea5e9" />
                           </marker>
                         </defs>
 
                         {/* Pipeline Connections */}
                         {/* registration -> classification */}
-                        <path d="M 90 125 L 90 200" stroke={selectedIntake.step !== 'registration' ? '#6366f1' : '#334155'} strokeWidth="2.5" markerEnd={selectedIntake.step !== 'registration' ? 'url(#arr-act)' : 'url(#arr)'} />
+                        <path d="M 90 125 L 90 200" stroke={selectedIntake.step !== 'registration' ? '#0ea5e9' : '#334155'} strokeWidth="2.5" markerEnd={selectedIntake.step !== 'registration' ? 'url(#arr-act)' : 'url(#arr)'} />
                         {/* classification -> control_mapping */}
-                        <path d="M 150 222.5 L 200 222.5" stroke={['control_mapping','evidence_collection','compliance_assessment','gap_assessment','compliant_closed','non_compliance','risk_routing','action_plan'].includes(selectedIntake.step) ? '#6366f1' : '#334155'} strokeWidth="2.5" markerEnd={['control_mapping','evidence_collection','compliance_assessment','gap_assessment','compliant_closed','non_compliance','risk_routing','action_plan'].includes(selectedIntake.step) ? 'url(#arr-act)' : 'url(#arr)'} />
+                        <path d="M 150 222.5 L 200 222.5" stroke={['control_mapping','evidence_collection','compliance_assessment','gap_assessment','compliant_closed','non_compliance','risk_routing','action_plan'].includes(selectedIntake.step) ? '#0ea5e9' : '#334155'} strokeWidth="2.5" markerEnd={['control_mapping','evidence_collection','compliance_assessment','gap_assessment','compliant_closed','non_compliance','risk_routing','action_plan'].includes(selectedIntake.step) ? 'url(#arr-act)' : 'url(#arr)'} />
                         {/* control_mapping -> evidence_collection */}
-                        <path d="M 260 200 L 260 125" stroke={['evidence_collection','compliance_assessment','gap_assessment','compliant_closed','non_compliance','risk_routing','action_plan'].includes(selectedIntake.step) ? '#6366f1' : '#334155'} strokeWidth="2.5" markerEnd={['evidence_collection','compliance_assessment','gap_assessment','compliant_closed','non_compliance','risk_routing','action_plan'].includes(selectedIntake.step) ? 'url(#arr-act)' : 'url(#arr)'} />
+                        <path d="M 260 200 L 260 125" stroke={['evidence_collection','compliance_assessment','gap_assessment','compliant_closed','non_compliance','risk_routing','action_plan'].includes(selectedIntake.step) ? '#0ea5e9' : '#334155'} strokeWidth="2.5" markerEnd={['evidence_collection','compliance_assessment','gap_assessment','compliant_closed','non_compliance','risk_routing','action_plan'].includes(selectedIntake.step) ? 'url(#arr-act)' : 'url(#arr)'} />
                         {/* evidence_collection -> compliance_assessment */}
-                        <path d="M 320 102.5 L 370 102.5" stroke={['compliance_assessment','gap_assessment','compliant_closed','non_compliance','risk_routing','action_plan'].includes(selectedIntake.step) ? '#6366f1' : '#334155'} strokeWidth="2.5" markerEnd={['compliance_assessment','gap_assessment','compliant_closed','non_compliance','risk_routing','action_plan'].includes(selectedIntake.step) ? 'url(#arr-act)' : 'url(#arr)'} />
+                        <path d="M 320 102.5 L 370 102.5" stroke={['compliance_assessment','gap_assessment','compliant_closed','non_compliance','risk_routing','action_plan'].includes(selectedIntake.step) ? '#0ea5e9' : '#334155'} strokeWidth="2.5" markerEnd={['compliance_assessment','gap_assessment','compliant_closed','non_compliance','risk_routing','action_plan'].includes(selectedIntake.step) ? 'url(#arr-act)' : 'url(#arr)'} />
                         {/* compliance_assessment -> Gap Identified (Decision) */}
-                        <path d="M 430 125 L 430 200" stroke={['gap_assessment','compliant_closed','non_compliance','risk_routing','action_plan'].includes(selectedIntake.step) ? '#6366f1' : '#334155'} strokeWidth="2.5" markerEnd={['gap_assessment','compliant_closed','non_compliance','risk_routing','action_plan'].includes(selectedIntake.step) ? 'url(#arr-act)' : 'url(#arr)'} />
+                        <path d="M 430 125 L 430 200" stroke={['gap_assessment','compliant_closed','non_compliance','risk_routing','action_plan'].includes(selectedIntake.step) ? '#0ea5e9' : '#334155'} strokeWidth="2.5" markerEnd={['gap_assessment','compliant_closed','non_compliance','risk_routing','action_plan'].includes(selectedIntake.step) ? 'url(#arr-act)' : 'url(#arr)'} />
                         
                         {/* Gap Identified -> Compliant & Closed (No gap) */}
-                        <path d="M 430 270 L 430 320" stroke={selectedIntake.status === 'compliant' ? '#6366f1' : '#334155'} strokeWidth="2.5" markerEnd={selectedIntake.status === 'compliant' ? 'url(#arr-act)' : 'url(#arr)'} />
+                        <path d="M 430 270 L 430 320" stroke={selectedIntake.status === 'compliant' ? '#0ea5e9' : '#334155'} strokeWidth="2.5" markerEnd={selectedIntake.status === 'compliant' ? 'url(#arr-act)' : 'url(#arr)'} />
                         {/* Gap Identified -> Non Compliance (Yes gap) */}
-                        <path d="M 465 235 L 540 235" stroke={['non_compliance','risk_routing','action_plan'].includes(selectedIntake.step) || selectedIntake.status === 'non_compliant' ? '#6366f1' : '#334155'} strokeWidth="2.5" markerEnd={['non_compliance','risk_routing','action_plan'].includes(selectedIntake.step) || selectedIntake.status === 'non_compliant' ? 'url(#arr-act)' : 'url(#arr)'} />
+                        <path d="M 465 235 L 540 235" stroke={['non_compliance','risk_routing','action_plan'].includes(selectedIntake.step) || selectedIntake.status === 'non_compliant' ? '#0ea5e9' : '#334155'} strokeWidth="2.5" markerEnd={['non_compliance','risk_routing','action_plan'].includes(selectedIntake.step) || selectedIntake.status === 'non_compliant' ? 'url(#arr-act)' : 'url(#arr)'} />
                         
                         {/* Non Compliance -> Risk Creation Required (Decision) */}
-                        <path d="M 600 245 L 600 320" stroke={['risk_routing','action_plan'].includes(selectedIntake.step) ? '#6366f1' : '#334155'} strokeWidth="2.5" markerEnd={['risk_routing','action_plan'].includes(selectedIntake.step) ? 'url(#arr-act)' : 'url(#arr)'} />
+                        <path d="M 600 245 L 600 320" stroke={['risk_routing','action_plan'].includes(selectedIntake.step) ? '#0ea5e9' : '#334155'} strokeWidth="2.5" markerEnd={['risk_routing','action_plan'].includes(selectedIntake.step) ? 'url(#arr-act)' : 'url(#arr)'} />
                         
                         {/* Risk Creation Required -> Create Risk (Yes) */}
-                        <path d="M 635 355 L 720 355" stroke={selectedIntake.step === 'risk_routing' ? '#6366f1' : '#334155'} strokeWidth="2.5" markerEnd={selectedIntake.step === 'risk_routing' ? 'url(#arr-act)' : 'url(#arr)'} />
+                        <path d="M 635 355 L 720 355" stroke={selectedIntake.step === 'risk_routing' ? '#0ea5e9' : '#334155'} strokeWidth="2.5" markerEnd={selectedIntake.step === 'risk_routing' ? 'url(#arr-act)' : 'url(#arr)'} />
                         {/* Risk Creation Required -> Issue Action Plan (No) */}
-                        <path d="M 600 320 L 600 290 L 720 235" stroke={selectedIntake.step === 'action_plan' ? '#6366f1' : '#334155'} strokeWidth="2.5" markerEnd={selectedIntake.step === 'action_plan' ? 'url(#arr-act)' : 'url(#arr)'} />
+                        <path d="M 600 320 L 600 290 L 720 235" stroke={selectedIntake.step === 'action_plan' ? '#0ea5e9' : '#334155'} strokeWidth="2.5" markerEnd={selectedIntake.step === 'action_plan' ? 'url(#arr-act)' : 'url(#arr)'} />
 
                       </svg>
 

@@ -25,8 +25,8 @@ export function RiskTrendChart({ stats }: Props) {
         <AreaChart data={combined} margin={{ top: 4, right: 4, left: -24, bottom: 0 }}>
           <defs>
             <linearGradient id="gradRisk" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#6366f1" stopOpacity={0.3} />
-              <stop offset="100%" stopColor="#6366f1" stopOpacity={0} />
+              <stop offset="0%" stopColor="#0ea5e9" stopOpacity={0.3} />
+              <stop offset="100%" stopColor="#0ea5e9" stopOpacity={0} />
             </linearGradient>
             <linearGradient id="gradInc" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor="#f97316" stopOpacity={0.3} />
@@ -38,7 +38,7 @@ export function RiskTrendChart({ stats }: Props) {
           <YAxis tick={{ fontSize: 11, fill: 'var(--muted-fg)' }} axisLine={false} tickLine={false} />
           <Tooltip contentStyle={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 8 }} />
           <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 12 }} />
-          <Area type="monotone" dataKey="Risks" stroke="#6366f1" strokeWidth={2} fill="url(#gradRisk)" dot={{ r: 3, fill: '#6366f1' }} />
+          <Area type="monotone" dataKey="Risks" stroke="#0ea5e9" strokeWidth={2} fill="url(#gradRisk)" dot={{ r: 3, fill: '#0ea5e9' }} />
           <Area type="monotone" dataKey="Incidents" stroke="#f97316" strokeWidth={2} fill="url(#gradInc)" dot={{ r: 3, fill: '#f97316' }} />
         </AreaChart>
       </ResponsiveContainer>
@@ -51,7 +51,7 @@ export function RiskCategoryChart({ stats }: Props) {
     .filter(([, v]) => v > 0)
     .map(([k, v]) => ({ category: k.charAt(0).toUpperCase() + k.slice(1), count: v }))
 
-  const colors = ['#6366f1', '#f97316', '#eab308', '#22c55e', '#ec4899', '#14b8a6', '#8b5cf6']
+  const colors = ['#0ea5e9', '#f97316', '#eab308', '#22c55e', '#ec4899', '#14b8a6', '#0ea5e9']
 
   return (
     <div className="card p-5">
@@ -68,7 +68,7 @@ export function RiskCategoryChart({ stats }: Props) {
           {data.map((d, i) => (
             <Bar key={d.category} dataKey="count" fill={colors[i % colors.length]} radius={[4, 4, 0, 0]} />
           ))}
-          <Bar dataKey="count" fill="#6366f1" radius={[4, 4, 0, 0]} />
+          <Bar dataKey="count" fill="#0ea5e9" radius={[4, 4, 0, 0]} />
         </BarChart>
       </ResponsiveContainer>
     </div>

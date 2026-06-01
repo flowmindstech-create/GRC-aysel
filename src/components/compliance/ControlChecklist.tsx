@@ -24,7 +24,7 @@ function calcScore(controls: Control[]) {
   return Math.round(((pass + partial * 0.5) / total) * 100)
 }
 
-function ProgressBar({ value, color = '#6366f1' }: { value: number; color?: string }) {
+function ProgressBar({ value, color = '#0ea5e9' }: { value: number; color?: string }) {
   return (
     <div className="w-full h-2 rounded-full overflow-hidden" style={{ background: 'var(--border)' }}>
       <motion.div

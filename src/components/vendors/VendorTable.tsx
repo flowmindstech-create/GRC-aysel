@@ -208,7 +208,7 @@ export function VendorTable() {
                     {/* AI Summary */}
                     {vendor.ai_summary && (
                       <div className="p-4 rounded-xl border"
-                        style={{ background: 'linear-gradient(135deg, #312e8110, #1e1b4b10)', borderColor: '#6366f130' }}>
+                        style={{ background: 'linear-gradient(135deg, #0c2d4e10, #0a192910)', borderColor: '#0ea5e930' }}>
                         <div className="flex items-center gap-2 mb-2">
                           <Zap className="w-3.5 h-3.5 text-sky-400" />
                           <p className="text-xs font-semibold text-sky-400">AI Vendor Analysis</p>

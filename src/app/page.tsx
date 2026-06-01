@@ -91,10 +91,10 @@ export default function LandingPage() {
           </div>
           <div className="p-6 grid grid-cols-4 gap-4">
             {[
-              { label: 'Total Risks', value: '7', color: '#6366f1' },
+              { label: 'Total Risks', value: '7', color: '#0ea5e9' },
               { label: 'Open Incidents', value: '2', color: '#f97316' },
               { label: 'Compliance', value: '68%', color: '#22c55e' },
-              { label: 'Vendors', value: '4', color: '#8b5cf6' },
+              { label: 'Vendors', value: '4', color: '#0ea5e9' },
             ].map(s => (
               <div key={s.label} className="p-4 rounded-xl text-left" style={{ background: 'var(--muted)' }}>
                 <p className="text-2xl font-black" style={{ color: s.color }}>{s.value}</p>

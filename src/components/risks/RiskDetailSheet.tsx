@@ -853,7 +853,7 @@ export function RiskDetailSheet({ risk, onClose, onUpdate }: Props) {
 
             {/* AI Summary */}
             <div className="p-4 rounded-xl border"
-              style={{ background: 'linear-gradient(135deg, #312e8120, #1e1b4b20)', borderColor: '#6366f130' }}>
+              style={{ background: 'linear-gradient(135deg, #0c2d4e20, #0a192920)', borderColor: '#0ea5e930' }}>
               <div className="flex items-center gap-2 mb-2">
                 <Zap className="w-3.5 h-3.5 text-sky-400" />
                 <p className="text-xs font-semibold text-sky-400">AI Risk Summary</p>
