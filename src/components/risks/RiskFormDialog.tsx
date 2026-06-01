@@ -326,6 +326,31 @@ export function RiskFormDialog({ risk, onClose, onSave }: Props) {
                     </div>
                   </div>
 
+                  {/* ── Təsir Reytinqi (Impact Rating Scale) Legend ── */}
+                  <div className="rounded-xl overflow-hidden border" style={{ borderColor: 'var(--border)' }}>
+                    <div className="flex">
+                      {/* Header cell */}
+                      <div className="flex items-center justify-center px-3 py-2 text-[10px] font-bold shrink-0 w-28"
+                        style={{ background: 'var(--card)', color: 'var(--foreground)', borderRight: '1px solid var(--border)' }}>
+                        Təsir reytinqi
+                      </div>
+                      {/* Scale cells */}
+                      {[
+                        { label: 'Minimal',   bg: '#16a34a', score: '1' },
+                        { label: 'Aşağı',     bg: '#ca8a04', score: '2' },
+                        { label: 'Orta',      bg: '#d97706', score: '3' },
+                        { label: 'Yüksək',    bg: '#ea580c', score: '4' },
+                        { label: 'Maksimum',  bg: '#dc2626', score: '5' },
+                        { label: 'Kritik riskler / fors-major hallar', bg: '#0ea5e9', score: '6+' },
+                      ].map((item, i) => (
+                        <div key={i} className="flex-1 flex flex-col items-center justify-center py-2 px-1 text-center"
+                          style={{ background: item.bg, borderLeft: i > 0 ? '1px solid rgba(255,255,255,0.15)' : undefined }}>
+                          <span className="text-[9px] font-black text-white leading-tight">{item.label}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
                   {/* Impact categories */}
                   <div className="space-y-3">
                     <h4 className="text-[11px] font-bold text-sky-400 uppercase tracking-wide border-b pb-1" style={{ borderColor: 'var(--border)' }}>1. Security Confidentiality, Integrity & Availability (CIA) Impacts</h4>
