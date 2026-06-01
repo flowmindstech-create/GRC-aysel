@@ -2,54 +2,54 @@
 
 /* ── Design Tokens ─────────────────────────────────────────────────────────── */
 :root {
-  --radius: 0.625rem;
+  --radius: 0.75rem;
 
   /* Brand */
-  --brand-50:  #eef2ff;
-  --brand-100: #e0e7ff;
-  --brand-200: #c7d2fe;
+  --brand-50:  #f5f3ff;
+  --brand-100: #ede9fe;
+  --brand-200: #ddd6fe;
   --brand-500: #6366f1;
   --brand-600: #4f46e5;
   --brand-700: #4338ca;
 
-  /* Semantic (Premium Dark Obsidian Theme by Default) */
-  --background:   #070a13;
-  --foreground:   #f3f4f6;
-  --card:         rgba(16, 22, 37, 0.65);
-  --card-border:  rgba(255, 255, 255, 0.06);
-  --muted:        rgba(255, 255, 255, 0.03);
-  --muted-fg:     #8a94a6;
-  --border:       rgba(255, 255, 255, 0.08);
-  --input:        rgba(255, 255, 255, 0.05);
-  --ring:          #6366f1;
-  --sidebar-bg:   #050810;
-  --sidebar-fg:   #8a94a6;
+  /* Semantic (Professional Enterprise Dark Theme - Stripe/Linear Style) */
+  --background:   #090d16;
+  --foreground:   #f8fafc; /* Crisp Slate 50 for primary text */
+  --card:         #111726; /* Deep Steel Slate for surfaces */
+  --card-border:  #1e293b; /* Clean border */
+  --muted:        #182235; /* Highly legible background for items */
+  --muted-fg:     #94a3b8; /* Slate 400 for high readability of labels */
+  --border:       #1e293b;
+  --input:        #1e293b;
+  --ring:         #6366f1;
+  --sidebar-bg:   #060910;
+  --sidebar-fg:   #94a3b8;
   --sidebar-active:#6366f1;
 
-  /* Premium Neon Alert Levels */
-  --risk-critical: #ff2e55;
-  --risk-high:     #ff7a00;
-  --risk-medium:   #ffc800;
-  --risk-low:      #00f5a0;
+  /* Professional Alert Palette (Corporate, Non-Neon) */
+  --risk-critical: #e11d48; /* Soft Crimson Rose */
+  --risk-high:     #ea580c; /* Slate Orange */
+  --risk-medium:   #d97706; /* Flat Gold */
+  --risk-low:      #059669; /* Rich Emerald */
 
-  /* Status */
-  --status-open:        #ff2e55;
-  --status-in-progress: #ff7a00;
-  --status-resolved:    #00f5a0;
-  --status-closed:      #8a94a6;
+  /* Status Colors */
+  --status-open:        #e11d48;
+  --status-in-progress: #3b82f6; /* Professional Royal Blue */
+  --status-resolved:    #059669;
+  --status-closed:      #64748b;
 }
 
 .dark {
-  --background:   #070a13;
-  --foreground:   #f3f4f6;
-  --card:         rgba(16, 22, 37, 0.65);
-  --card-border:  rgba(255, 255, 255, 0.06);
-  --muted:        rgba(255, 255, 255, 0.03);
-  --muted-fg:     #8a94a6;
-  --border:       rgba(255, 255, 255, 0.08);
-  --input:        rgba(255, 255, 255, 0.05);
-  --sidebar-bg:   #050810;
-  --sidebar-fg:   #8a94a6;
+  --background:   #090d16;
+  --foreground:   #f8fafc;
+  --card:         #111726;
+  --card-border:  #1e293b;
+  --muted:        #182235;
+  --muted-fg:     #94a3b8;
+  --border:       #1e293b;
+  --input:        #1e293b;
+  --sidebar-bg:   #060910;
+  --sidebar-fg:   #94a3b8;
 }
 
 @theme inline {
@@ -129,10 +129,8 @@ body {
   background: var(--card);
   border: 1px solid var(--card-border);
   border-radius: var(--radius);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.25);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease-in-out;
 }
 
 /* ── Focus ring ────────────────────────────────────────────────────────────── */
@@ -148,8 +146,6 @@ body {
   color: var(--foreground) !important;
   border-radius: 8px !important;
   font-size: 13px !important;
-  backdrop-filter: blur(12px) !important;
-  -webkit-backdrop-filter: blur(12px) !important;
 }
 
 /* ── Custom Range Input Styling ────────────────────────────────────────────── */
@@ -164,7 +160,7 @@ input[type="range"] {
 /* Track styles */
 input[type="range"]::-webkit-slider-runnable-track {
   background: rgba(255, 255, 255, 0.08);
-  height: 6px;
+  height: 5px;
   border-radius: 9999px;
   transition: background 0.15s ease;
 }
@@ -174,37 +170,38 @@ input[type="range"]:hover::-webkit-slider-runnable-track {
 
 input[type="range"]::-moz-range-track {
   background: rgba(255, 255, 255, 0.08);
-  height: 6px;
+  height: 5px;
   border-radius: 9999px;
 }
 
-/* Thumb styles */
+/* Thumb styles (Solid circular design with micro-border, no glows) */
 input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
   margin-top: -5px; /* Centers thumb on the track */
   background-color: var(--brand-500);
-  height: 16px;
-  width: 16px;
+  height: 15px;
+  width: 15px;
   border-radius: 50%;
-  box-shadow: 0 0 10px rgba(99, 102, 241, 0.8), 0 0 20px rgba(99, 102, 241, 0.4);
-  transition: transform 0.15s ease, background-color 0.15s ease;
+  border: 2px solid var(--background);
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3);
+  transition: transform 0.1s ease, background-color 0.1s ease;
 }
 input[type="range"]::-webkit-slider-thumb:hover {
-  transform: scale(1.2);
+  transform: scale(1.15);
   background-color: #818cf8; /* lighter indigo */
 }
 
 input[type="range"]::-moz-range-thumb {
   background-color: var(--brand-500);
-  height: 16px;
-  width: 16px;
-  border: none;
+  height: 15px;
+  width: 15px;
+  border: 2px solid var(--background);
   border-radius: 50%;
-  box-shadow: 0 0 10px rgba(99, 102, 241, 0.8), 0 0 20px rgba(99, 102, 241, 0.4);
-  transition: transform 0.15s ease, background-color 0.15s ease;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3);
+  transition: transform 0.1s ease, background-color 0.1s ease;
 }
 input[type="range"]::-moz-range-thumb:hover {
-  transform: scale(1.2);
+  transform: scale(1.15);
   background-color: #818cf8;
 }
