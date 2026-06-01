@@ -1,5 +1,6 @@
 'use client'
 
+// GRC & Risk Registry Workflow Dashboard
 import { useState, useEffect } from 'react'
 import { TopNav } from '@/components/layout/TopNav'
 import { db } from '@/lib/db'
