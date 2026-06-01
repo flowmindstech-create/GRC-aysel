@@ -134,7 +134,8 @@ export function FindingWorkflowClient() {
   }), [workflows])
 
   async function handleLoadFindings(auditId: string) {
-    const f = await db.getAuditFindings(auditId)
+    const allFindings = await db.getFindings()
+    const f = allFindings.filter(x => x.audit_id === auditId)
     setFindings(f)
   }
 

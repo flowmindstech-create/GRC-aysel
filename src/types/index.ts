@@ -397,6 +397,64 @@ export interface GRCIntakeItem {
   closed_at?: string
 }
 
+// ─── Governance / Policies ────────────────────────────────────────────────────
+
+export type PolicyStatus   = 'draft' | 'in_review' | 'committee_review' | 'approved' | 'published' | 'retired' | 'superseded'
+export type PolicyCategory = 'information_security' | 'operational' | 'hr' | 'financial' | 'compliance' | 'risk' | 'other'
+export type PolicyApprovalStage  = 'internal_review' | 'committee_review' | 'final_approval'
+export type PolicyApprovalAction = 'submitted' | 'approved' | 'rejected' | 'returned_for_revision'
+
+export interface Policy {
+  id: string
+  org_id: string
+  policy_id: string
+  title: string
+  description?: string
+  category: PolicyCategory
+  version: string
+  status: PolicyStatus
+  owner_id?: string
+  owner_dept?: string
+  sponsor_id?: string
+  effective_date?: string
+  review_date?: string
+  expiry_date?: string
+  last_reviewed_at?: string
+  submitted_at?: string
+  committee_reviewed_at?: string
+  approved_by?: string
+  approved_at?: string
+  published_at?: string
+  body?: string
+  document_url?: string
+  linked_framework?: string
+  linked_control_ids: string[]
+  linked_requirement_ids: string[]
+  change_summary?: string
+  change_history: PolicyChangeEntry[]
+  created_at: string
+  updated_at: string
+}
+
+export interface PolicyChangeEntry {
+  version: string
+  changed_by: string
+  changed_at: string
+  summary: string
+}
+
+export interface PolicyApproval {
+  id: string
+  policy_id: string
+  org_id: string
+  stage: PolicyApprovalStage
+  action: PolicyApprovalAction
+  actor_id?: string
+  actor_name?: string
+  comments?: string
+  created_at: string
+}
+
 // ─── Audit Finding Workflow ───────────────────────────────────────────────────
 
 export type AuditFindingWorkflowStep =

@@ -1,6 +1,6 @@
 'use client'
 
-import type { AuditFindingWorkflow, NIRAPItem, KRIItem, KCIItem, KPIItem, MonitoringAlert } from '@/types'
+import type { AuditFindingWorkflow, NIRAPItem, KRIItem, KCIItem, KPIItem, MonitoringAlert, Policy, PolicyApproval } from '@/types'
 
 const isSupabase = () =>
   !!(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
@@ -225,5 +225,55 @@ export const dbExt = {
     const idx = all.findIndex(a => a.id === id)
     if (idx >= 0) { all[idx].acknowledged = true; all[idx].acknowledged_at = new Date().toISOString() }
     setLocal('monitoring_alerts', all)
+  },
+
+  // ── Policies ───────────────────────────────────────────────────────────────
+
+  async getPolicies(): Promise<Policy[]> {
+    if (isSupabase()) {
+      const { createClient } = await import('./supabase/client')
+      const { data } = await createClient().from('policies').select('*').order('created_at', { ascending: false })
+      return (data ?? []) as Policy[]
+    }
+    return getLocal<Policy[]>('policies', [])
+  },
+
+  async savePolicy(item: Policy): Promise<Policy> {
+    if (isSupabase()) {
+      const { createClient } = await import('./supabase/client')
+      const { data, error } = await createClient()
+        .from('policies')
+        .upsert({ ...item, updated_at: new Date().toISOString() })
+        .select().single()
+      if (!error && data) return data as Policy
+    }
+    const all  = getLocal<Policy[]>('policies', [])
+    const next = { ...item, updated_at: new Date().toISOString() }
+    const idx  = all.findIndex(p => p.id === next.id)
+    if (idx >= 0) all[idx] = next; else all.unshift(next)
+    setLocal('policies', all)
+    return next
+  },
+
+  async getPolicyApprovals(policyId: string): Promise<PolicyApproval[]> {
+    if (isSupabase()) {
+      const { createClient } = await import('./supabase/client')
+      const { data } = await createClient().from('policy_approvals').select('*').eq('policy_id', policyId).order('created_at', { ascending: true })
+      return (data ?? []) as PolicyApproval[]
+    }
+    return getLocal<PolicyApproval[]>(`policy_approvals_${policyId}`, [])
+  },
+
+  async addPolicyApproval(approval: PolicyApproval): Promise<PolicyApproval> {
+    if (isSupabase()) {
+      const { createClient } = await import('./supabase/client')
+      const { data, error } = await createClient().from('policy_approvals').insert(approval).select().single()
+      if (!error && data) return data as PolicyApproval
+    }
+    const key = `policy_approvals_${approval.policy_id}`
+    const all = getLocal<PolicyApproval[]>(key, [])
+    all.push(approval)
+    setLocal(key, all)
+    return approval
   },
 }
