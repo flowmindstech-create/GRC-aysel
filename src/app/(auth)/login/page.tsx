@@ -46,7 +46,9 @@ export default function LoginPage() {
         password: v.password,
       })
       if (error) {
-        alert(error.message)
+        // If login fails (or fake account), bypass to mock demo session
+        setMockSessionCookie()
+        router.push('/dashboard')
       } else {
         router.push('/dashboard')
       }
@@ -164,11 +166,19 @@ export default function LoginPage() {
           </p>
 
           {/* Demo hint */}
-          <div className="mt-6 p-3 rounded-xl text-center" style={{ background: 'var(--muted)', border: '1px solid var(--border)' }}>
-            <p className="text-xs" style={{ color: 'var(--muted-fg)' }}>
-              🚀 Demo: any email + password → dashboard
+          <button
+            type="button"
+            onClick={() => {
+              setMockSessionCookie()
+              router.push('/dashboard')
+            }}
+            className="w-full mt-6 p-3 rounded-xl text-center cursor-pointer hover:bg-white/5 transition-colors border"
+            style={{ background: 'var(--muted)', borderColor: 'var(--border)' }}
+          >
+            <p className="text-xs font-bold text-indigo-400">
+              🚀 Qeydiyyatsız Birbaşa Demoya Keçid →
             </p>
-          </div>
+          </button>
         </motion.div>
       </div>
     </div>
