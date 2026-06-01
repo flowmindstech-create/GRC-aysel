@@ -595,6 +595,109 @@ export interface ControlIssue {
   updated_at: string
 }
 
+// ─── Monitoring (KRI / KCI / KPI) ────────────────────────────────────────────
+
+export type MonitoringStatus  = 'green' | 'amber' | 'red'
+export type MonitoringFreq    = 'daily' | 'weekly' | 'monthly' | 'quarterly'
+export type Trend             = 'up' | 'down' | 'flat'
+export type KCIStatus         = 'effective' | 'partially_effective' | 'ineffective'
+
+export interface KRIItem {
+  id: string
+  org_id: string
+  kri_id: string
+  name: string
+  description?: string
+  related_risk_id?: string
+  risk_category?: RiskCategory
+  formula?: string
+  data_source?: string
+  frequency: MonitoringFreq
+  current_value?: number
+  previous_value?: number
+  trend: Trend
+  threshold_green?: string
+  threshold_amber?: string
+  threshold_red?: string
+  current_status: MonitoringStatus
+  appetite_limit?: string
+  appetite_breach: boolean
+  owner_id?: string
+  data_owner_id?: string
+  last_updated_at?: string
+  next_review_date?: string
+  ras_id?: string
+  created_at: string
+  updated_at: string
+}
+
+export interface KCIItem {
+  id: string
+  org_id: string
+  control_id?: string
+  name: string
+  description?: string
+  control_type?: 'preventive' | 'detective' | 'corrective'
+  control_owner_id?: string
+  objective?: string
+  test_method: 'manual' | 'automated' | 'hybrid'
+  frequency: MonitoringFreq | 'annual'
+  current_value?: number
+  success_rate?: number
+  failure_rate?: number
+  effectiveness_rating?: number
+  threshold_effective?: string
+  threshold_partial?: string
+  threshold_ineffective?: string
+  current_status: KCIStatus
+  evidence_source?: string
+  last_test_date?: string
+  next_test_date?: string
+  created_at: string
+  updated_at: string
+}
+
+export interface KPIItem {
+  id: string
+  org_id: string
+  name: string
+  related_process?: string
+  process_owner_id?: string
+  description?: string
+  formula?: string
+  target_value?: number
+  current_value?: number
+  previous_value?: number
+  trend: Trend
+  threshold_green?: string
+  threshold_amber?: string
+  threshold_red?: string
+  performance_status: MonitoringStatus
+  sla_target?: string
+  frequency: MonitoringFreq
+  owner_id?: string
+  last_updated_at?: string
+  next_review_date?: string
+  created_at: string
+  updated_at: string
+}
+
+export interface MonitoringAlert {
+  id: string
+  org_id: string
+  source_type: 'kri' | 'kci' | 'kpi'
+  source_id: string
+  source_name?: string
+  alert_level: 'amber' | 'red'
+  message: string
+  acknowledged: boolean
+  action_required: boolean
+  action_plan?: string
+  acknowledged_at?: string
+  acknowledged_by?: string
+  created_at: string
+}
+
 // ─── Risk Appetite Statement ──────────────────────────────────────────────────
 
 export type AppetiteLevel = 'zero' | 'low' | 'moderate' | 'elevated' | 'high'

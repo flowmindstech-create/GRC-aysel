@@ -1,6 +1,6 @@
 'use client'
 
-import type { AuditFindingWorkflow, AuditFindingWorkflowStep, NIRAPItem } from '@/types'
+import type { AuditFindingWorkflow, NIRAPItem, KRIItem, KCIItem, KPIItem, MonitoringAlert } from '@/types'
 
 const isSupabase = () =>
   !!(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
@@ -127,5 +127,103 @@ export const dbExt = {
     if (idx >= 0) all[idx] = next; else all.unshift(next)
     setLocal('nirap_items', all)
     return next
+  },
+
+  // ── KRI ────────────────────────────────────────────────────────────────────
+
+  async getKRIItems(): Promise<KRIItem[]> {
+    if (isSupabase()) {
+      const { createClient } = await import('./supabase/client')
+      const { data } = await createClient().from('kri_items').select('*').order('created_at', { ascending: false })
+      return (data ?? []) as KRIItem[]
+    }
+    return getLocal<KRIItem[]>('kri_items', [])
+  },
+
+  async saveKRIItem(item: KRIItem): Promise<KRIItem> {
+    if (isSupabase()) {
+      const { createClient } = await import('./supabase/client')
+      const { data, error } = await createClient().from('kri_items').upsert({ ...item, updated_at: new Date().toISOString() }).select().single()
+      if (!error && data) return data as KRIItem
+    }
+    const all = getLocal<KRIItem[]>('kri_items', [])
+    const next = { ...item, updated_at: new Date().toISOString() }
+    const idx = all.findIndex(k => k.id === next.id)
+    if (idx >= 0) all[idx] = next; else all.unshift(next)
+    setLocal('kri_items', all)
+    return next
+  },
+
+  // ── KCI ────────────────────────────────────────────────────────────────────
+
+  async getKCIItems(): Promise<KCIItem[]> {
+    if (isSupabase()) {
+      const { createClient } = await import('./supabase/client')
+      const { data } = await createClient().from('kci_items').select('*').order('created_at', { ascending: false })
+      return (data ?? []) as KCIItem[]
+    }
+    return getLocal<KCIItem[]>('kci_items', [])
+  },
+
+  async saveKCIItem(item: KCIItem): Promise<KCIItem> {
+    if (isSupabase()) {
+      const { createClient } = await import('./supabase/client')
+      const { data, error } = await createClient().from('kci_items').upsert({ ...item, updated_at: new Date().toISOString() }).select().single()
+      if (!error && data) return data as KCIItem
+    }
+    const all = getLocal<KCIItem[]>('kci_items', [])
+    const next = { ...item, updated_at: new Date().toISOString() }
+    const idx = all.findIndex(k => k.id === next.id)
+    if (idx >= 0) all[idx] = next; else all.unshift(next)
+    setLocal('kci_items', all)
+    return next
+  },
+
+  // ── KPI ────────────────────────────────────────────────────────────────────
+
+  async getKPIItems(): Promise<KPIItem[]> {
+    if (isSupabase()) {
+      const { createClient } = await import('./supabase/client')
+      const { data } = await createClient().from('kpi_items').select('*').order('created_at', { ascending: false })
+      return (data ?? []) as KPIItem[]
+    }
+    return getLocal<KPIItem[]>('kpi_items', [])
+  },
+
+  async saveKPIItem(item: KPIItem): Promise<KPIItem> {
+    if (isSupabase()) {
+      const { createClient } = await import('./supabase/client')
+      const { data, error } = await createClient().from('kpi_items').upsert({ ...item, updated_at: new Date().toISOString() }).select().single()
+      if (!error && data) return data as KPIItem
+    }
+    const all = getLocal<KPIItem[]>('kpi_items', [])
+    const next = { ...item, updated_at: new Date().toISOString() }
+    const idx = all.findIndex(k => k.id === next.id)
+    if (idx >= 0) all[idx] = next; else all.unshift(next)
+    setLocal('kpi_items', all)
+    return next
+  },
+
+  // ── Monitoring Alerts ──────────────────────────────────────────────────────
+
+  async getMonitoringAlerts(): Promise<MonitoringAlert[]> {
+    if (isSupabase()) {
+      const { createClient } = await import('./supabase/client')
+      const { data } = await createClient().from('monitoring_alerts').select('*').order('created_at', { ascending: false })
+      return (data ?? []) as MonitoringAlert[]
+    }
+    return getLocal<MonitoringAlert[]>('monitoring_alerts', [])
+  },
+
+  async acknowledgeAlert(id: string): Promise<void> {
+    if (isSupabase()) {
+      const { createClient } = await import('./supabase/client')
+      await createClient().from('monitoring_alerts').update({ acknowledged: true, acknowledged_at: new Date().toISOString() }).eq('id', id)
+      return
+    }
+    const all = getLocal<MonitoringAlert[]>('monitoring_alerts', [])
+    const idx = all.findIndex(a => a.id === id)
+    if (idx >= 0) { all[idx].acknowledged = true; all[idx].acknowledged_at = new Date().toISOString() }
+    setLocal('monitoring_alerts', all)
   },
 }
