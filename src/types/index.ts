@@ -397,6 +397,109 @@ export interface GRCIntakeItem {
   closed_at?: string
 }
 
+// ─── Audit Finding Workflow ───────────────────────────────────────────────────
+
+export type AuditFindingWorkflowStep =
+  | 'registration' | 'classification' | 'severity_assessment'
+  | 'immediate_correction' | 'verification'
+  | 'investigation' | 'evidence_review' | 'root_cause_analysis'
+  | 'compliance_impact_assessment' | 'corrective_action_gate'
+  | 'action_plan' | 'implementation' | 'validation'
+  | 'risk_creation_gate' | 'closure'
+
+export type AuditFindingWorkflowStatus = 'open' | 'in_progress' | 'pending_review' | 'closed' | 'risk_created'
+
+export interface AuditFindingWorkflow {
+  id: string
+  org_id: string
+  audit_finding_id: string
+  step: AuditFindingWorkflowStep
+  status: AuditFindingWorkflowStatus
+  classification?: string
+  priority?: FindingSeverity
+  immediate_correction_required: boolean
+  immediate_correction_note?: string
+  immediate_correction_by?: string
+  immediate_correction_at?: string
+  verification_note?: string
+  verified_by?: string
+  verified_at?: string
+  investigation_note?: string
+  evidence_review_note?: string
+  evidence_url?: string
+  root_cause?: string
+  root_cause_category?: 'process' | 'technology' | 'people' | 'external'
+  root_cause_analyst_id?: string
+  compliance_impact_note?: string
+  compliance_frameworks_affected?: ControlFramework[]
+  corrective_action_required: boolean
+  action_plan?: string
+  assigned_to?: string
+  due_date?: string
+  implementation_note?: string
+  implementation_evidence_url?: string
+  implemented_at?: string
+  validation_note?: string
+  validated_by?: string
+  validated_at?: string
+  risk_creation_required: boolean
+  risk_created_id?: string
+  closed_at?: string
+  created_at: string
+  updated_at: string
+  // joined fields (from audit_findings)
+  finding_title?: string
+  finding_severity?: FindingSeverity
+  finding_recommendation?: string
+}
+
+// ─── NIRAP ────────────────────────────────────────────────────────────────────
+
+export type NIRAPType = 'requirement' | 'change_request' | 'new_implementation' | 'policy_change'
+export type NIRAPStep =
+  | 'registration' | 'screening' | 'classification' | 'impact_assessment'
+  | 'control_gap_analysis' | 'risk_assessment' | 'compliance_assessment'
+  | 'approval_gate' | 'implementation_planning' | 'implementation'
+  | 'validation' | 'closure'
+export type NIRAPStatus = 'open' | 'in_progress' | 'approved' | 'rejected' | 'closed'
+
+export interface NIRAPItem {
+  id: string
+  org_id: string
+  nirap_id: string
+  title: string
+  description?: string
+  type: NIRAPType
+  step: NIRAPStep
+  status: NIRAPStatus
+  classification?: string
+  business_unit?: string
+  urgency?: FindingSeverity
+  initial_screening_note?: string
+  screening_outcome?: 'proceed' | 'reject' | 'defer'
+  impact_assessment?: string
+  affected_systems?: string[]
+  affected_processes?: string[]
+  control_gap_summary?: string
+  gaps_identified?: boolean
+  risk_assessment_note?: string
+  compliance_note?: string
+  linked_risk_id?: string
+  approval_required: boolean
+  approver_id?: string
+  approved_at?: string
+  committee_decision?: 'approve' | 'reject' | 'modify'
+  committee_notes?: string
+  implementation_plan?: string
+  implementation_owner?: string
+  implementation_due?: string
+  implementation_note?: string
+  validation_note?: string
+  closed_at?: string
+  created_at: string
+  updated_at: string
+}
+
 // ─── Requirements ─────────────────────────────────────────────────────────────
 
 export type RequirementSourceType = 'regulatory' | 'audit_finding' | 'risk_event' | 'internal_policy'
