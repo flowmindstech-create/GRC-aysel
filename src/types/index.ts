@@ -56,13 +56,37 @@ export interface Risk {
   inherent_likelihood?: number
   inherent_impact?: number
   control_mapped_ids?: string[]
-  control_effectiveness?: 'effective' | 'partially_effective' | 'ineffective'
+  control_effectiveness?: 'effective' | 'partially_effective' | 'ineffective' | 'strong' | 'relatively_strong' | 'adequate' | 'relatively_adequate' | 'weak'
   residual_likelihood?: number
   residual_impact?: number
   treatment_plan?: string
   action_plan?: string
   validation_evidence?: string
   escalation_level?: 'none' | 'committee' | 'board'
+  
+  // Expanded RCSA Fields (Excel Policy Integration)
+  sub_category?: string
+  owner_dept?: string
+  owner_role?: string
+  notes?: string
+  implementation_date?: string
+  revision_changes?: string
+  confidentiality?: number
+  integrity?: number
+  availability?: number
+  operational_impact?: number
+  financial_impact?: number
+  reputation_impact?: number
+  compliance_impact?: number
+  target_residual_risk?: string
+  control_design?: number
+  control_implementation?: number
+  control_design_compliance?: number
+  control_design_strength?: number
+  control_design_timeliness?: number
+  control_implementation_relevance?: number
+  control_implementation_sustainability?: number
+  control_implementation_traceability?: number
 }
 
 // ─── Incidents ───────────────────────────────────────────────────────────────

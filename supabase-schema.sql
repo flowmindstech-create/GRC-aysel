@@ -34,6 +34,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE PROCEDURE handle_new_user();
@@ -177,24 +178,31 @@ ALTER TABLE evidence_files  ENABLE ROW LEVEL SECURITY;
 ALTER TABLE activities      ENABLE ROW LEVEL SECURITY;
 
 -- Org-scoped policies (users see only their org's data)
+DROP POLICY IF EXISTS "org_risks" ON risks;
 CREATE POLICY "org_risks" ON risks
   FOR ALL USING (org_id = (SELECT org_id FROM profiles WHERE id = auth.uid()));
 
+DROP POLICY IF EXISTS "org_incidents" ON incidents;
 CREATE POLICY "org_incidents" ON incidents
   FOR ALL USING (org_id = (SELECT org_id FROM profiles WHERE id = auth.uid()));
 
+DROP POLICY IF EXISTS "org_controls" ON controls;
 CREATE POLICY "org_controls" ON controls
   FOR ALL USING (org_id = (SELECT org_id FROM profiles WHERE id = auth.uid()));
 
+DROP POLICY IF EXISTS "org_audits" ON audits;
 CREATE POLICY "org_audits" ON audits
   FOR ALL USING (org_id = (SELECT org_id FROM profiles WHERE id = auth.uid()));
 
+DROP POLICY IF EXISTS "org_vendors" ON vendors;
 CREATE POLICY "org_vendors" ON vendors
   FOR ALL USING (org_id = (SELECT org_id FROM profiles WHERE id = auth.uid()));
 
+DROP POLICY IF EXISTS "org_activities" ON activities;
 CREATE POLICY "org_activities" ON activities
   FOR ALL USING (org_id = (SELECT org_id FROM profiles WHERE id = auth.uid()));
 
+DROP POLICY IF EXISTS "own_profile" ON profiles;
 CREATE POLICY "own_profile" ON profiles
   FOR ALL USING (id = auth.uid());
 

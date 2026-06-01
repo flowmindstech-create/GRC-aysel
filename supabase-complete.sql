@@ -34,11 +34,12 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
-CREATE OR REPLACE TRIGGER on_auth_user_created
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE PROCEDURE handle_new_user();
 
--- ── Risks (with Workflow Fields) ──────────────────────────────
+-- ── Risks (with Workflow & RCSA Fields) ───────────────────────
 CREATE TABLE IF NOT EXISTS risks (
   id                      UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   org_id                  UUID REFERENCES organizations(id) ON DELETE CASCADE,
@@ -70,7 +71,31 @@ CREATE TABLE IF NOT EXISTS risks (
   treatment_plan          TEXT,
   action_plan             TEXT,
   validation_evidence     TEXT,
-  escalation_level        TEXT DEFAULT 'none'
+  escalation_level        TEXT DEFAULT 'none',
+
+  -- Expanded RCSA Fields (Excel Policy Integration)
+  sub_category                         TEXT,
+  owner_dept                           TEXT,
+  owner_role                           TEXT,
+  notes                                TEXT,
+  implementation_date                  TEXT,
+  revision_changes                     TEXT,
+  confidentiality                      INT,
+  integrity                            INT,
+  availability                         INT,
+  operational_impact                   INT,
+  financial_impact                     INT,
+  reputation_impact                    INT,
+  compliance_impact                    INT,
+  target_residual_risk                 TEXT,
+  control_design                       INT,
+  control_implementation               INT,
+  control_design_compliance            INT,
+  control_design_strength              INT,
+  control_design_timeliness            INT,
+  control_implementation_relevance     INT,
+  control_implementation_sustainability  INT,
+  control_implementation_traceability  INT
 );
 
 CREATE INDEX IF NOT EXISTS idx_risks_org_id ON risks(org_id);
@@ -220,31 +245,125 @@ ALTER TABLE evidence_files  ENABLE ROW LEVEL SECURITY;
 ALTER TABLE activities      ENABLE ROW LEVEL SECURITY;
 
 -- Org-scoped policies (users see only their org's data)
+DROP POLICY IF EXISTS "org_risks" ON risks;
 CREATE POLICY "org_risks" ON risks
   FOR ALL USING (org_id = (SELECT org_id FROM profiles WHERE id = auth.uid()));
 
+DROP POLICY IF EXISTS "org_incidents" ON incidents;
 CREATE POLICY "org_incidents" ON incidents
   FOR ALL USING (org_id = (SELECT org_id FROM profiles WHERE id = auth.uid()));
 
+DROP POLICY IF EXISTS "org_controls" ON controls;
 CREATE POLICY "org_controls" ON controls
   FOR ALL USING (org_id = (SELECT org_id FROM profiles WHERE id = auth.uid()));
 
+DROP POLICY IF EXISTS "org_audits" ON audits;
 CREATE POLICY "org_audits" ON audits
   FOR ALL USING (org_id = (SELECT org_id FROM profiles WHERE id = auth.uid()));
 
+DROP POLICY IF EXISTS "org_vendors" ON vendors;
 CREATE POLICY "org_vendors" ON vendors
   FOR ALL USING (org_id = (SELECT org_id FROM profiles WHERE id = auth.uid()));
 
+DROP POLICY IF EXISTS "org_grc_intake_items" ON grc_intake_items;
 CREATE POLICY "org_grc_intake_items" ON grc_intake_items
   FOR ALL USING (org_id = (SELECT org_id FROM profiles WHERE id = auth.uid()));
 
+DROP POLICY IF EXISTS "org_activities" ON activities;
 CREATE POLICY "org_activities" ON activities
   FOR ALL USING (org_id = (SELECT org_id FROM profiles WHERE id = auth.uid()));
 
+DROP POLICY IF EXISTS "own_profile" ON profiles;
 CREATE POLICY "own_profile" ON profiles
   FOR ALL USING (id = auth.uid());
 
 -- ── Seed Demo Data ────────────────────────────────────────────
+
+-- 1. Seed Organization
 INSERT INTO organizations (id, name, plan)
 VALUES ('00000000-0000-0000-0000-000000000001', 'Acme Corp', 'professional')
-ON CONFLICT DO NOTHING;
+ON CONFLICT (id) DO NOTHING;
+
+-- 2. Seed Controls
+INSERT INTO controls (id, org_id, framework, control_id, title, description, status, reviewed_at, created_at) VALUES
+('00000000-0000-0000-0000-000000000201', '00000000-0000-0000-0000-000000000001', 'iso27001', 'A.5.1', 'Information Security Policies', 'Policies for information security shall be defined, approved by management, published and communicated.', 'pass', NOW(), NOW()),
+('00000000-0000-0000-0000-000000000202', '00000000-0000-0000-0000-000000000001', 'iso27001', 'A.6.1', 'Roles and Responsibilities', 'All information security responsibilities shall be defined and allocated.', 'pass', NOW(), NOW()),
+('00000000-0000-0000-0000-000000000203', '00000000-0000-0000-0000-000000000001', 'iso27001', 'A.8.1', 'Inventory of Assets', 'Assets associated with information and information processing facilities shall be identified.', 'partial', NULL, NOW()),
+('00000000-0000-0000-0000-000000000204', '00000000-0000-0000-0000-000000000001', 'iso27001', 'A.9.1', 'Access Control Policy', 'An access control policy shall be established, documented and reviewed based on business requirements.', 'pass', NOW(), NOW()),
+('00000000-0000-0000-0000-000000000205', '00000000-0000-0000-0000-000000000001', 'iso27001', 'A.10.1', 'Cryptographic Policy', 'A policy on the use of cryptographic controls for protection of information shall be developed and implemented.', 'fail', NULL, NOW()),
+('00000000-0000-0000-0000-000000000206', '00000000-0000-0000-0000-000000000001', 'iso27001', 'A.12.1', 'Operational Procedures', 'Operating procedures shall be documented and made available to all users who need them.', 'pass', NOW(), NOW()),
+('00000000-0000-0000-0000-000000000207', '00000000-0000-0000-0000-000000000001', 'iso27001', 'A.14.2', 'Secure Development Policy', 'Rules for the development of software and systems shall be established and applied to developments.', 'partial', NULL, NOW()),
+('00000000-0000-0000-0000-000000000208', '00000000-0000-0000-0000-000000000001', 'iso27001', 'A.16.1', 'Management of Security Events', 'Responsibilities and procedures shall be established to ensure a quick, effective and orderly response to security incidents.', 'pass', NOW(), NOW()),
+('00000000-0000-0000-0000-000000000209', '00000000-0000-0000-0000-000000000001', 'soc2', 'CC1.1', 'Control Environment — COSO Principles', 'The entity demonstrates a commitment to integrity and ethical values.', 'pass', NOW(), NOW()),
+('00000000-0000-0000-0000-000000000210', '00000000-0000-0000-0000-000000000001', 'soc2', 'CC6.1', 'Logical Access Controls', 'The entity implements logical access security software, infrastructure, and architectures to protect against unauthorized access.', 'pass', NOW(), NOW()),
+('00000000-0000-0000-0000-000000000211', '00000000-0000-0000-0000-000000000001', 'soc2', 'CC7.1', 'Change Management', 'The entity uses detection and monitoring procedures to identify changes to configurations.', 'fail', NULL, NOW()),
+('00000000-0000-0000-0000-000000000212', '00000000-0000-0000-0000-000000000001', 'soc2', 'CC9.1', 'Risk Mitigation', 'The entity identifies, selects, and develops risk mitigation activities for risks arising from potential business disruptions.', 'partial', NULL, NOW())
+ON CONFLICT (id) DO NOTHING;
+
+-- 3. Seed Risks (with RCSA Details)
+INSERT INTO risks (
+  id, org_id, title, description, category, level, status, likelihood, impact, mitigation,
+  workflow_step, inherent_likelihood, inherent_impact, control_mapped_ids, control_effectiveness,
+  residual_likelihood, residual_impact, target_residual_risk,
+  sub_category, owner_dept, owner_role, notes, implementation_date,
+  confidentiality, integrity, availability, operational_impact, financial_impact, reputation_impact, compliance_impact,
+  control_design, control_implementation,
+  control_design_compliance, control_design_strength, control_design_timeliness,
+  control_implementation_relevance, control_implementation_sustainability, control_implementation_traceability,
+  created_at, updated_at
+) VALUES
+(
+  '00000000-0000-0000-0000-000000000011', '00000000-0000-0000-0000-000000000001',
+  'SQL Injection Vulnerability in Customer Portal', 'The customer-facing login portal has an unpatched SQL injection point that could expose all customer records.',
+  'cybersecurity', 'critical', 'open', 4, 5, 'Apply parameterized queries, conduct penetration test, deploy WAF rule.',
+  'identified', 4, 5, '{}', 'adequate', 3, 4, 'low',
+  'Web application database access', 'IT Security', 'Security Architect', 'High vulnerability scan finding', '2025-02-15',
+  1, 5, 2, 3, 4, 3, 4,
+  3, 3,
+  3, 3, 3,
+  3, 3, 3,
+  NOW(), NOW()
+),
+(
+  '00000000-0000-0000-0000-000000000012', '00000000-0000-0000-0000-000000000001',
+  'Third-Party Payroll Provider Insolvency Risk', 'Our payroll SaaS vendor is showing signs of financial instability which could disrupt monthly payroll operations.',
+  'financial', 'high', 'in_progress', 3, 4, 'Identify backup payroll provider, maintain 3-month payroll reserve fund.',
+  'identified', 3, 4, '{}', 'adequate', 2, 3, 'low',
+  'Vendor relationship management', 'Finance', 'Financial Analyst', 'Strategic vendor dependency', '2025-03-01',
+  1, 1, 3, 1, 5, 2, 2,
+  3, 3,
+  3, 3, 3,
+  3, 3, 3,
+  NOW(), NOW()
+),
+(
+  '00000000-0000-0000-0000-000000000013', '00000000-0000-0000-0000-000000000001',
+  'GDPR Non-Compliance in Marketing Emails', 'Marketing team is sending promotional emails without a valid opt-in consent mechanism, violating GDPR Article 7.',
+  'legal', 'high', 'in_progress', 4, 4, 'Implement double opt-in flow, audit existing contact list, update privacy policy.',
+  'identified', 4, 4, '{}', 'adequate', 3, 3, 'low',
+  'Data privacy and consent', 'Compliance', 'Compliance Officer', 'Internal process audit finding', '2025-02-01',
+  2, 2, 1, 2, 2, 2, 5,
+  3, 3,
+  3, 3, 3,
+  3, 3, 3,
+  NOW(), NOW()
+),
+(
+  '00000000-0000-0000-0000-000000000101', '00000000-0000-0000-0000-000000000001',
+  'Lack of First Aid Boxes', 'There are no standard first aid boxes or medical kits available on the company floors.',
+  'operational', 'low', 'closed', 2, 3, 'Purchase and placement of standard fully equipped first aid boxes for each floor.',
+  'closed', 2, 3, '{}', 'adequate', 1, 2, 'low',
+  'Medical security and first aid process', 'HSE', 'HSE Coordinator', 'Sample RCSA record from company policy', '2025-09-30',
+  3, 2, 1, 3, 2, 1, 2,
+  3, 3,
+  3, 3, 3,
+  3, 3, 3,
+  NOW(), NOW()
+)
+ON CONFLICT (id) DO NOTHING;
+
+-- 4. Seed Vendors
+INSERT INTO vendors (id, org_id, name, category, risk_score, contract_renewal, contact_email, contact_name, status, ai_summary, created_at) VALUES
+('00000000-0000-0000-0000-000000000301', '00000000-0000-0000-0000-000000000001', 'CloudSync Inc.', 'cloud_services', 72, '2025-06-30', 'enterprise@cloudsync.io', 'James Wright', 'active', 'CloudSync presents a moderate-high risk profile. SOC2 Type II certified but has 2 open findings from last security review.', NOW()),
+('00000000-0000-0000-0000-000000000302', '00000000-0000-0000-0000-000000000001', 'PayrollPro Systems', 'software', 85, '2025-03-01', 'sales@payrollpro.com', 'Sarah Chen', 'under_review', 'PayrollPro has an elevated risk score due to recent financial instability reports. No SOC2 certification.', NOW())
+ON CONFLICT (id) DO NOTHING;

@@ -1,19 +1,22 @@
 'use client'
 
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Zap, User, Calendar, Tag, BarChart2, Shield, Clock, Database, RefreshCw, Send, ExternalLink } from 'lucide-react'
-import type { Risk } from '@/types'
+import { X, Zap, User, Calendar, Tag, BarChart2, Shield, Clock, Database, RefreshCw, Send, ExternalLink, Play, ArrowRight, Check, CheckCircle, AlertTriangle } from 'lucide-react'
+import type { Risk, Control } from '@/types'
 import { RiskLevelBadge, RiskStatusBadge } from '@/components/shared/Badges'
 import { formatDistanceToNow, format } from 'date-fns'
 import { useState, useEffect } from 'react'
 import { db } from '@/lib/db'
 import { toast } from 'sonner'
-
-interface Props {
-  risk: Risk
-  onClose: () => void
-  onUpdate?: (updated: Risk) => void
-}
+import {
+  calculateInherentLevel,
+  evaluateControlEffectiveness,
+  calculateResidualLevel,
+  calculateRiskGap,
+  getRiskLevelNumber,
+  getAllowedTreatmentStrategies,
+  type TreatmentStrategy
+} from '@/lib/rcsa'
 
 export function RiskDetailSheet({ risk, onClose, onUpdate }: Props) {
   const [jiraConfig, setJiraConfig] = useState<any>(null)
@@ -22,6 +25,142 @@ export function RiskDetailSheet({ risk, onClose, onUpdate }: Props) {
   const [comments, setComments] = useState<any[]>([])
   const [newComment, setNewComment] = useState('')
   const [submittingComment, setSubmittingComment] = useState(false)
+
+  const [controls, setControls] = useState<Control[]>([])
+  
+  // Local form states
+  const [inhLikelihood, setInhLikelihood] = useState<number>(3)
+  const [inhImpact, setInhImpact] = useState<number>(3)
+  const [mappedControlIds, setMappedControlIds] = useState<string[]>([])
+  const [designCompliance, setDesignCompliance] = useState<number>(3)
+  const [designStrength, setDesignStrength] = useState<number>(3)
+  const [designTimeliness, setDesignTimeliness] = useState<number>(3)
+  const [implRelevance, setImplRelevance] = useState<number>(3)
+  const [implSustainability, setImplSustainability] = useState<number>(3)
+  const [implTraceability, setImplTraceability] = useState<number>(3)
+  const [treatmentPlan, setTreatmentPlan] = useState<string>('')
+  const [selectedStrategy, setSelectedStrategy] = useState<string>('mitigate')
+  const [actionPlan, setActionPlan] = useState<string>('')
+  const [validationEvidence, setValidationEvidence] = useState<string>('')
+  const [resLikelihood, setResLikelihood] = useState<number>(2)
+  const [resImpact, setResImpact] = useState<number>(2)
+  const [escalationAction, setEscalationAction] = useState<string>('mitigate')
+  const [targetRisk, setTargetRisk] = useState<string>('low')
+
+  useEffect(() => {
+    async function loadData() {
+      const allControls = await db.getControls()
+      setControls(allControls)
+    }
+    loadData()
+  }, [])
+
+  useEffect(() => {
+    if (risk) {
+      setInhLikelihood(risk.inherent_likelihood || risk.likelihood || 3)
+      setInhImpact(risk.inherent_impact || risk.impact || 3)
+      setMappedControlIds(risk.control_mapped_ids || [])
+      setDesignCompliance(risk.control_design_compliance || 3)
+      setDesignStrength(risk.control_design_strength || 3)
+      setDesignTimeliness(risk.control_design_timeliness || 3)
+      setImplRelevance(risk.control_implementation_relevance || 3)
+      setImplSustainability(risk.control_implementation_sustainability || 3)
+      setImplTraceability(risk.control_implementation_traceability || 3)
+      setTreatmentPlan(risk.treatment_plan || '')
+      setSelectedStrategy(risk.mitigation || 'mitigate')
+      setActionPlan(risk.action_plan || '')
+      setValidationEvidence(risk.validation_evidence || '')
+      setResLikelihood(risk.residual_likelihood || 2)
+      setResImpact(risk.residual_impact || 2)
+      setTargetRisk(risk.target_residual_risk || 'low')
+    }
+  }, [risk.id])
+
+  const handleProgressRisk = async (nextStep: string) => {
+    const updates: Partial<Risk> = { workflow_step: nextStep }
+
+    if (nextStep === 'registered') {
+      updates.status = 'open'
+    } else if (nextStep === 'assessed_inherent') {
+      updates.inherent_likelihood = inhLikelihood
+      updates.inherent_impact = inhImpact
+      updates.likelihood = inhLikelihood
+      updates.impact = inhImpact
+      updates.level = calculateInherentLevel(inhLikelihood, inhImpact)
+    } else if (nextStep === 'control_assessed') {
+      updates.control_mapped_ids = mappedControlIds
+    } else if (nextStep === 'assessed_residual') {
+      const evalResult = evaluateControlEffectiveness(
+        designCompliance,
+        designStrength,
+        designTimeliness,
+        implRelevance,
+        implSustainability,
+        implTraceability
+      )
+      updates.control_design_compliance = designCompliance
+      updates.control_design_strength = designStrength
+      updates.control_design_timeliness = designTimeliness
+      updates.control_implementation_relevance = implRelevance
+      updates.control_implementation_sustainability = implSustainability
+      updates.control_implementation_traceability = implTraceability
+      updates.control_design = Math.round(evalResult.designAvg)
+      updates.control_implementation = Math.round(evalResult.implementationAvg)
+      updates.control_effectiveness = evalResult.rating as any
+    } else if (nextStep === 'owner_review') {
+      const inherentLvl = calculateInherentLevel(risk.inherent_likelihood || risk.likelihood || 3, risk.inherent_impact || risk.impact || 3)
+      const controlRating = risk.control_effectiveness || 'adequate'
+      const residualLvl = calculateResidualLevel(inherentLvl, controlRating as any)
+      updates.level = residualLvl
+      updates.status = 'in_progress'
+    } else if (nextStep === 'appetite_check') {
+      const inherentLvl = calculateInherentLevel(risk.inherent_likelihood || risk.likelihood || 3, risk.inherent_impact || risk.impact || 3)
+      const controlRating = risk.control_effectiveness || 'adequate'
+      const residualLvl = calculateResidualLevel(inherentLvl, controlRating as any)
+      updates.target_residual_risk = targetRisk
+      
+      if (getRiskLevelNumber(residualLvl) <= getRiskLevelNumber(targetRisk as any)) {
+        updates.workflow_step = 'accepted'
+        updates.status = 'accepted'
+      } else {
+        updates.workflow_step = 'treatment_plan'
+      }
+    } else if (nextStep === 'action_plan') {
+      updates.treatment_plan = treatmentPlan
+      updates.mitigation = selectedStrategy
+    } else if (nextStep === 'implementation') {
+      updates.action_plan = actionPlan
+    } else if (nextStep === 'validation') {
+      // completed
+    } else if (nextStep === 'residual_reassessment') {
+      updates.validation_evidence = validationEvidence
+    } else if (nextStep === 'verify_reassessment') {
+      const reassessedLevel = calculateInherentLevel(resLikelihood, resImpact)
+      if (reassessedLevel === 'low') {
+        updates.workflow_step = 'accepted'
+        updates.status = 'mitigated'
+      } else {
+        updates.workflow_step = 'escalated'
+      }
+    } else if (nextStep === 'accepted') {
+      updates.status = 'mitigated'
+    } else if (nextStep === 'escalated_decision') {
+      updates.escalation_level = escalationAction === 'accept' ? 'board' : 'committee'
+      updates.status = escalationAction === 'accept' ? 'accepted' : 'closed'
+      updates.workflow_step = 'closed'
+    } else if (nextStep === 'closed') {
+      updates.status = 'closed'
+    }
+
+    const updatedRisk = {
+      ...risk,
+      ...updates,
+      updated_at: new Date().toISOString()
+    }
+    const saved = await db.saveRisk(updatedRisk)
+    if (onUpdate) onUpdate(saved)
+    toast.success(`Workflow progressed to: ${saved.workflow_step}`)
+  }
 
   const score = risk.likelihood * risk.impact
   const scoreColor =
@@ -150,11 +289,456 @@ export function RiskDetailSheet({ risk, onClose, onUpdate }: Props) {
                       'residual_reassessment', 'accepted', 'escalated', 'closed'
                     ].indexOf(risk.workflow_step || 'registered') + 1} / 16
                   </span>
-                  <span>End</span>
+                </div>
+              </div>
+
+              {/* Active Step Panel (Inline Progression) */}
+              <div className="mt-4 pt-4 border-t" style={{ borderColor: 'var(--border)' }}>
+                <div className="flex items-center gap-1.5 mb-2">
+                  <Play className="w-3.5 h-3.5 text-indigo-400" />
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest font-mono">Active Step Action</span>
+                </div>
+                
+                <div className="space-y-4">
+                  {(risk.workflow_step === 'identified' || !risk.workflow_step) && (
+                    <div className="space-y-3">
+                      <p className="text-xs text-slate-400">New risk identified. Progress to registration stage.</p>
+                      <button
+                        onClick={() => handleProgressRisk('registered')}
+                        className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-colors shadow-lg shadow-indigo-600/20"
+                      >
+                        <Play className="w-3.5 h-3.5" /> Start Registration
+                      </button>
+                    </div>
+                  )}
+
+                  {risk.workflow_step === 'registered' && (
+                    <div className="space-y-3">
+                      <p className="text-xs text-slate-400">The risk details are documented. Proceed to inherent risk assessment.</p>
+                      <button
+                        onClick={() => handleProgressRisk('assessed_inherent')}
+                        className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-colors shadow-lg"
+                      >
+                        Go to Inherent Assessment <ArrowRight className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  )}
+
+                  {risk.workflow_step === 'assessed_inherent' && (
+                    <div className="space-y-3">
+                      <div className="space-y-1">
+                        <label className="text-[11px] font-semibold text-slate-400 flex justify-between">
+                          <span>Likelihood: {inhLikelihood}</span>
+                        </label>
+                        <input
+                          type="range" min="1" max="5" value={inhLikelihood}
+                          onChange={(e) => setInhLikelihood(parseInt(e.target.value))}
+                          className="w-full h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[11px] font-semibold text-slate-400 flex justify-between">
+                          <span>Impact: {inhImpact}</span>
+                        </label>
+                        <input
+                          type="range" min="1" max="5" value={inhImpact}
+                          onChange={(e) => setInhImpact(parseInt(e.target.value))}
+                          className="w-full h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500"
+                        />
+                      </div>
+                      <div className="p-2.5 rounded bg-black/20 border border-white/5 flex justify-between items-center text-xs">
+                        <span className="text-slate-400">Inherent Level:</span>
+                        <span className="font-bold text-rose-450 uppercase">{calculateInherentLevel(inhLikelihood, inhImpact)} ({inhLikelihood * inhImpact})</span>
+                      </div>
+                      <button
+                        onClick={() => handleProgressRisk('control_mapped')}
+                        className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-colors shadow-lg"
+                      >
+                        Confirm & Map Controls <ArrowRight className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  )}
+
+                  {risk.workflow_step === 'control_mapped' && (
+                    <div className="space-y-3">
+                      <label className="text-xs font-semibold text-slate-400 block">Select Controls to Map</label>
+                      <div className="max-h-32 overflow-y-auto space-y-1.5 pr-1">
+                        {controls.map(c => {
+                          const checked = mappedControlIds.includes(c.id)
+                          return (
+                            <label key={c.id} className="flex items-center gap-2 p-1.5 rounded bg-black/10 text-xs cursor-pointer border border-white/5 hover:border-white/10">
+                              <input
+                                type="checkbox"
+                                checked={checked}
+                                onChange={() => {
+                                  if (checked) {
+                                    setMappedControlIds(prev => prev.filter(id => id !== c.id))
+                                  } else {
+                                    setMappedControlIds(prev => [...prev, c.id])
+                                  }
+                                }}
+                                className="rounded border-slate-700 text-indigo-600 focus:ring-indigo-500 h-3 w-3 bg-transparent cursor-pointer"
+                              />
+                              <span className="text-[9px] font-bold text-indigo-400 font-mono shrink-0">{c.control_id}</span>
+                              <span className="text-slate-350 truncate">{c.title}</span>
+                            </label>
+                          )
+                        })}
+                      </div>
+                      <button
+                        onClick={() => handleProgressRisk('control_assessed')}
+                        className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-colors shadow-lg"
+                      >
+                        Assess Control Effectiveness <ArrowRight className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  )}
+
+                  {risk.workflow_step === 'control_assessed' && (
+                    <div className="space-y-3">
+                      <p className="text-[11px] text-slate-400 font-medium">Rate control effectiveness (1 = Strong, 5 = Weak):</p>
+                      
+                      <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                        <div className="space-y-1">
+                          <label className="text-[11px] font-semibold text-slate-400 flex justify-between">
+                            <span>Design Compliance:</span>
+                            <span className="font-bold">{designCompliance}/5</span>
+                          </label>
+                          <input type="range" min="1" max="5" value={designCompliance} onChange={e => setDesignCompliance(parseInt(e.target.value))} className="w-full h-1 bg-slate-850 rounded-lg appearance-none cursor-pointer accent-indigo-500" />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[11px] font-semibold text-slate-400 flex justify-between">
+                            <span>Design Strength:</span>
+                            <span className="font-bold">{designStrength}/5</span>
+                          </label>
+                          <input type="range" min="1" max="5" value={designStrength} onChange={e => setDesignStrength(parseInt(e.target.value))} className="w-full h-1 bg-slate-850 rounded-lg appearance-none cursor-pointer accent-indigo-500" />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[11px] font-semibold text-slate-400 flex justify-between">
+                            <span>Design Timeliness:</span>
+                            <span className="font-bold">{designTimeliness}/5</span>
+                          </label>
+                          <input type="range" min="1" max="5" value={designTimeliness} onChange={e => setDesignTimeliness(parseInt(e.target.value))} className="w-full h-1 bg-slate-850 rounded-lg appearance-none cursor-pointer accent-indigo-500" />
+                        </div>
+                        <div className="space-y-1 border-t pt-2" style={{ borderColor: 'var(--border)' }}>
+                          <label className="text-[11px] font-semibold text-slate-400 flex justify-between">
+                            <span>Implementation Relevance:</span>
+                            <span className="font-bold">{implRelevance}/5</span>
+                          </label>
+                          <input type="range" min="1" max="5" value={implRelevance} onChange={e => setImplRelevance(parseInt(e.target.value))} className="w-full h-1 bg-slate-850 rounded-lg appearance-none cursor-pointer accent-indigo-500" />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[11px] font-semibold text-slate-400 flex justify-between">
+                            <span>Implementation Sustainability:</span>
+                            <span className="font-bold">{implSustainability}/5</span>
+                          </label>
+                          <input type="range" min="1" max="5" value={implSustainability} onChange={e => setImplSustainability(parseInt(e.target.value))} className="w-full h-1 bg-slate-850 rounded-lg appearance-none cursor-pointer accent-indigo-500" />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[11px] font-semibold text-slate-400 flex justify-between">
+                            <span>Implementation Traceability:</span>
+                            <span className="font-bold">{implTraceability}/5</span>
+                          </label>
+                          <input type="range" min="1" max="5" value={implTraceability} onChange={e => setImplTraceability(parseInt(e.target.value))} className="w-full h-1 bg-slate-850 rounded-lg appearance-none cursor-pointer accent-indigo-500" />
+                        </div>
+                      </div>
+
+                      <div className="p-2 rounded bg-black/20 border border-white/5 flex justify-between items-center text-xs">
+                        <span className="text-slate-400 font-semibold">Effectiveness:</span>
+                        <span className="font-bold text-indigo-400 capitalize">
+                          {evaluateControlEffectiveness(designCompliance, designStrength, designTimeliness, implRelevance, implSustainability, implTraceability).label}
+                        </span>
+                      </div>
+
+                      <button
+                        onClick={() => handleProgressRisk('assessed_residual')}
+                        className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-colors shadow-lg"
+                      >
+                        Calculate Residual Level <ArrowRight className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  )}
+
+                  {risk.workflow_step === 'assessed_residual' && (
+                    <div className="space-y-3">
+                      <div className="p-3 bg-indigo-500/5 rounded-xl border border-indigo-500/10 text-center">
+                        <p className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest font-mono">Computed Residual Risk</p>
+                        <p className="text-xl font-black text-white capitalize mt-1">
+                          {calculateResidualLevel(
+                            calculateInherentLevel(risk.inherent_likelihood || 3, risk.inherent_impact || 3),
+                            (risk.control_effectiveness || 'adequate') as any
+                          )}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => handleProgressRisk('owner_review')}
+                        className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-colors shadow-lg"
+                      >
+                        Submit to Owner Review <ArrowRight className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  )}
+
+                  {risk.workflow_step === 'owner_review' && (
+                    <div className="space-y-3">
+                      <p className="text-xs text-slate-400">Risk owner review in progress. Sign off on assessment.</p>
+                      <button
+                        onClick={() => handleProgressRisk('mgt_review')}
+                        className="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-colors shadow-lg"
+                      >
+                        <Check className="w-3.5 h-3.5" /> Approve & Sign Off
+                      </button>
+                    </div>
+                  )}
+
+                  {risk.workflow_step === 'mgt_review' && (() => {
+                    const inherentLvl = calculateInherentLevel(risk.inherent_likelihood || 3, risk.inherent_impact || 3)
+                    const controlRating = risk.control_effectiveness || 'adequate'
+                    const residualLvl = calculateResidualLevel(inherentLvl, controlRating as any)
+                    const gapVal = calculateRiskGap(residualLvl, targetRisk)
+
+                    return (
+                      <div className="space-y-3">
+                        <div className="flex justify-between items-center text-xs">
+                          <span className="text-slate-400">Target Appetite:</span>
+                          <select
+                            value={targetRisk}
+                            onChange={(e) => setTargetRisk(e.target.value as any)}
+                            className="px-2 py-1 rounded bg-slate-900 border border-white/10 text-xs font-semibold outline-none text-white cursor-pointer"
+                          >
+                            <option value="low">Low</option>
+                            <option value="medium">Medium</option>
+                            <option value="high">High</option>
+                            <option value="critical">Critical</option>
+                          </select>
+                        </div>
+                        
+                        <div className={`p-2.5 border rounded-lg flex items-center justify-between text-xs ${
+                          gapVal.gap > 0 ? 'bg-red-500/10 border-red-500/20 text-red-400' : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
+                        }`}>
+                          <div>
+                            <p className="font-bold">Appetite Check:</p>
+                            <p className="text-[9px] text-slate-400 mt-0.5">{gapVal.text}</p>
+                          </div>
+                          <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold uppercase ${
+                            gapVal.gap > 0 ? 'bg-red-500/20 border border-red-500/20' : 'bg-emerald-500/20 border border-emerald-500/20'
+                          }`}>
+                            {gapVal.gap > 0 ? 'Exceeds' : 'Within'}
+                          </span>
+                        </div>
+
+                        <button
+                          onClick={() => handleProgressRisk('appetite_check')}
+                          className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-colors shadow-lg"
+                        >
+                          Confirm & Run Appetite Check
+                        </button>
+                      </div>
+                    )
+                  })()}
+
+                  {risk.workflow_step === 'treatment_plan' && (
+                    <div className="space-y-3">
+                      <div className="p-2 bg-red-500/10 border border-red-500/20 text-[11px] text-red-400 rounded">
+                        <AlertTriangle className="w-3.5 h-3.5 inline mr-1.5 animate-pulse" />
+                        Residual risk exceeds appetite! Treatment required.
+                      </div>
+                      
+                      <div className="space-y-1">
+                        <label className="text-[11px] font-bold text-slate-400">Strategy</label>
+                        <div className="grid grid-cols-2 gap-1.5 text-[9px]">
+                          {getAllowedTreatmentStrategies(calculateInherentLevel(risk.inherent_likelihood || 3, risk.inherent_impact || 3)).map(opt => (
+                            <button
+                              key={opt}
+                              type="button"
+                              onClick={() => setSelectedStrategy(opt)}
+                              className={`py-1 px-2 rounded border cursor-pointer capitalize text-center ${
+                                selectedStrategy === opt
+                                  ? 'border-indigo-500 text-white bg-indigo-600/20'
+                                  : 'border-white/5 text-slate-400 hover:border-white/10'
+                              }`}
+                            >
+                              {opt}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="space-y-1">
+                        <textarea
+                          placeholder="Treatment strategy details…"
+                          value={treatmentPlan}
+                          onChange={(e) => setTreatmentPlan(e.target.value)}
+                          rows={2}
+                          className="w-full px-2.5 py-1.5 rounded-lg text-xs border border-white/10 bg-transparent outline-none text-white focus:border-indigo-500 resize-none"
+                        />
+                      </div>
+
+                      <button
+                        onClick={() => handleProgressRisk('action_plan')}
+                        disabled={!treatmentPlan.trim()}
+                        className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-colors disabled:opacity-50"
+                      >
+                        Save & Plan Actions <ArrowRight className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  )}
+
+                  {risk.workflow_step === 'action_plan' && (
+                    <div className="space-y-3">
+                      <div className="space-y-1">
+                        <label className="text-[11px] font-bold text-slate-400">Action Plan Milestones</label>
+                        <textarea
+                          placeholder="Detail specific tasks, deadlines, and owners..."
+                          value={actionPlan}
+                          onChange={(e) => setActionPlan(e.target.value)}
+                          rows={2}
+                          className="w-full px-2.5 py-1.5 rounded-lg text-xs border border-white/10 bg-transparent outline-none text-white focus:border-indigo-500 resize-none"
+                        />
+                      </div>
+                      <button
+                        onClick={() => handleProgressRisk('implementation')}
+                        disabled={!actionPlan.trim()}
+                        className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-colors disabled:opacity-50"
+                      >
+                        Send to Implementation <ArrowRight className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  )}
+
+                  {risk.workflow_step === 'implementation' && (
+                    <div className="space-y-3">
+                      <div className="p-2.5 bg-black/10 border border-white/5 rounded text-xs">
+                        <p className="font-semibold text-slate-350">Action Plan:</p>
+                        <p className="text-slate-400 italic mt-0.5">{risk.action_plan}</p>
+                      </div>
+                      <button
+                        onClick={() => handleProgressRisk('validation')}
+                        className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
+                      >
+                        Mark Actions Completed
+                      </button>
+                    </div>
+                  )}
+
+                  {risk.workflow_step === 'validation' && (
+                    <div className="space-y-3">
+                      <div className="space-y-1">
+                        <label className="text-[11px] font-bold text-slate-400">Evidence Notes</label>
+                        <textarea
+                          placeholder="Evidence links, verification notes, audit trails..."
+                          value={validationEvidence}
+                          onChange={(e) => setValidationEvidence(e.target.value)}
+                          rows={2}
+                          className="w-full px-2.5 py-1.5 rounded-lg text-xs border border-white/10 bg-transparent outline-none text-white focus:border-indigo-500 resize-none"
+                        />
+                      </div>
+                      <button
+                        onClick={() => handleProgressRisk('residual_reassessment')}
+                        disabled={!validationEvidence.trim()}
+                        className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-colors disabled:opacity-50"
+                      >
+                        Proceed to Reassessment
+                      </button>
+                    </div>
+                  )}
+
+                  {risk.workflow_step === 'residual_reassessment' && (
+                    <div className="space-y-3">
+                      <div className="space-y-1">
+                        <label className="text-[11px] font-semibold text-slate-400 flex justify-between">
+                          <span>Reassessed Likelihood: {resLikelihood}</span>
+                        </label>
+                        <input type="range" min="1" max="5" value={resLikelihood} onChange={e => setResLikelihood(parseInt(e.target.value))} className="w-full h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500" />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[11px] font-semibold text-slate-400 flex justify-between">
+                          <span>Reassessed Impact: {resImpact}</span>
+                        </label>
+                        <input type="range" min="1" max="5" value={resImpact} onChange={e => setResImpact(parseInt(e.target.value))} className="w-full h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500" />
+                      </div>
+                      <div className="p-2 rounded bg-black/20 border border-white/5 flex justify-between items-center text-xs">
+                        <span className="text-slate-400">Reassessed Level:</span>
+                        <span className="font-bold text-emerald-400 uppercase">{calculateInherentLevel(resLikelihood, resImpact)}</span>
+                      </div>
+                      <button
+                        onClick={() => handleProgressRisk('verify_reassessment')}
+                        className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
+                      >
+                        Run Appetite Verification
+                      </button>
+                    </div>
+                  )}
+
+                  {risk.workflow_step === 'accepted' && (
+                    <div className="space-y-3">
+                      <div className="p-2.5 bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-400 rounded-lg flex items-start gap-2">
+                        <CheckCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                        <span>Risk is accepted within appetite limits and placed under monitoring.</span>
+                      </div>
+                      <button
+                        onClick={() => handleProgressRisk('closed')}
+                        className="w-full py-2 bg-slate-800 hover:bg-slate-700 border border-white/5 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
+                      >
+                        Close Risk File
+                      </button>
+                    </div>
+                  )}
+
+                  {risk.workflow_step === 'escalated' && (
+                    <div className="space-y-3">
+                      <div className="p-2 bg-red-500/10 border border-red-500/20 text-[11px] text-red-400 rounded">
+                        Residual risk exceeds appetite! Board or Committee action required.
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[11px] font-bold text-slate-400">Board Decision</label>
+                        <div className="grid grid-cols-2 gap-1.5 text-[9px]">
+                          {[
+                            { value: 'accept', label: 'Accept' },
+                            { value: 'mitigate', label: 'Mitigate' },
+                            { value: 'transfer', label: 'Transfer' },
+                            { value: 'avoid', label: 'Avoid' }
+                          ].map(opt => (
+                            <button
+                              key={opt.value}
+                              type="button"
+                              onClick={() => setEscalationAction(opt.value as any)}
+                              className={`py-1 px-2 rounded border cursor-pointer text-center ${
+                                escalationAction === opt.value
+                                  ? 'border-indigo-500 text-white bg-indigo-600/20'
+                                  : 'border-white/5 text-slate-400 hover:border-white/10'
+                              }`}
+                            >
+                              {opt.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => handleProgressRisk('escalated_decision')}
+                        className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
+                      >
+                        Apply Decision & Close
+                      </button>
+                    </div>
+                  )}
+
+                  {risk.workflow_step === 'closed' && (
+                    <div className="space-y-3">
+                      <div className="p-2.5 bg-slate-500/10 border border-white/5 text-xs text-slate-450 rounded-lg text-center font-semibold">
+                        Workflow completed. Risk file closed.
+                      </div>
+                      <button
+                        onClick={() => handleProgressRisk('identified')}
+                        className="w-full py-2 bg-slate-800 hover:bg-slate-700 border border-white/5 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
+                      >
+                        Re-activate Risk
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
-
             {/* Meta grid */}
             <div className="grid grid-cols-2 gap-3">
               {[
@@ -172,6 +756,81 @@ export function RiskDetailSheet({ risk, onClose, onUpdate }: Props) {
                 </div>
               ))}
             </div>
+
+            {/* RCSA Profile */}
+            {(risk.sub_category || risk.owner_dept || risk.owner_role || (risk.confidentiality !== undefined && risk.confidentiality > 0)) && (
+              <div className="space-y-3 p-4 rounded-xl border text-xs bg-slate-900/40" style={{ borderColor: 'var(--border)', background: 'var(--card)' }}>
+                <p className="text-[10px] font-bold text-indigo-400 uppercase tracking-wide border-b pb-1" style={{ borderColor: 'var(--border)' }}>RCSA Assessment Details</p>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-[11px]">
+                  {risk.sub_category && <p style={{ color: 'var(--muted-fg)' }}>Sub-Category: <strong className="text-slate-200 capitalize">{risk.sub_category}</strong></p>}
+                  {risk.owner_dept && <p style={{ color: 'var(--muted-fg)' }}>Department: <strong className="text-slate-200 capitalize">{risk.owner_dept}</strong></p>}
+                  {risk.owner_role && <p style={{ color: 'var(--muted-fg)' }}>Job Role: <strong className="text-slate-200 capitalize">{risk.owner_role}</strong></p>}
+                  {risk.target_residual_risk && <p style={{ color: 'var(--muted-fg)' }}>Target Risk: <strong className="text-slate-200 uppercase">{risk.target_residual_risk}</strong></p>}
+                  {risk.implementation_date && <p style={{ color: 'var(--muted-fg)' }}>Impl. Date: <strong className="text-slate-200">{risk.implementation_date}</strong></p>}
+                </div>
+
+                {risk.confidentiality !== undefined && risk.confidentiality > 0 && (
+                  <div className="mt-2.5 pt-2.5 border-t grid grid-cols-3 gap-2" style={{ borderColor: 'var(--border)' }}>
+                    <div className="text-center p-1.5 rounded bg-black/20 border border-white/5">
+                      <p className="text-[8px] text-slate-400 uppercase">Confidentiality</p>
+                      <p className="font-bold text-slate-250 mt-0.5">{risk.confidentiality}/5</p>
+                    </div>
+                    <div className="text-center p-1.5 rounded bg-black/20 border border-white/5">
+                      <p className="text-[8px] text-slate-400 uppercase">Integrity</p>
+                      <p className="font-bold text-slate-250 mt-0.5">{risk.integrity}/5</p>
+                    </div>
+                    <div className="text-center p-1.5 rounded bg-black/20 border border-white/5">
+                      <p className="text-[8px] text-slate-400 uppercase">Availability</p>
+                      <p className="font-bold text-slate-250 mt-0.5">{risk.availability}/5</p>
+                    </div>
+                  </div>
+                )}
+
+                {risk.operational_impact !== undefined && risk.operational_impact > 0 && (
+                  <div className="grid grid-cols-2 gap-2 text-[10px] text-slate-400 pt-2 border-t" style={{ borderColor: 'var(--border)' }}>
+                    <p>Operational Impact: <strong className="text-slate-200">{risk.operational_impact}/5</strong></p>
+                    <p>Financial Loss Impact: <strong className="text-slate-200">{risk.financial_impact}/5</strong></p>
+                    <p>Reputation Damage: <strong className="text-slate-200">{risk.reputation_impact}/5</strong></p>
+                    <p>Compliance Impact: <strong className="text-slate-200">{risk.compliance_impact}/5</strong></p>
+                  </div>
+                )}
+
+                {/* Control Assessment Details */}
+                {(risk.control_design_compliance !== undefined || risk.control_effectiveness) && (
+                  <div className="mt-3 pt-3 border-t text-[11px] space-y-2.5" style={{ borderColor: 'var(--border)' }}>
+                    <p className="text-[10px] font-bold text-indigo-400 uppercase tracking-wide">Control Performance Scores</p>
+                    <div className="grid grid-cols-2 gap-3 bg-black/20 p-2.5 rounded-lg border border-white/5">
+                      <div>
+                        <p className="text-[9px] text-slate-350 font-bold uppercase">Control Design: {risk.control_design ? `${risk.control_design}/5` : '—'}</p>
+                        <ul className="list-disc list-inside text-[9px] text-slate-500 mt-1 space-y-0.5">
+                          <li>Compliance: {risk.control_design_compliance ?? '3'}/5</li>
+                          <li>Strength: {risk.control_design_strength ?? '3'}/5</li>
+                          <li>Timeliness: {risk.control_design_timeliness ?? '3'}/5</li>
+                        </ul>
+                      </div>
+                      <div>
+                        <p className="text-[9px] text-slate-355 font-bold uppercase">Control Implementation: {risk.control_implementation ? `${risk.control_implementation}/5` : '—'}</p>
+                        <ul className="list-disc list-inside text-[9px] text-slate-500 mt-1 space-y-0.5">
+                          <li>Relevance: {risk.control_implementation_relevance ?? '3'}/5</li>
+                          <li>Sustainability: {risk.control_implementation_sustainability ?? '3'}/5</li>
+                          <li>Traceability: {risk.control_implementation_traceability ?? '3'}/5</li>
+                        </ul>
+                      </div>
+                    </div>
+                    <div className="flex justify-between items-center text-[10px] text-slate-400">
+                      <span>Effectiveness: <strong className="text-indigo-400 capitalize">{risk.control_effectiveness ?? '—'}</strong></span>
+                      <span>Target Residual: <strong className="text-indigo-400 uppercase">{risk.target_residual_risk ?? 'low'}</strong></span>
+                    </div>
+                  </div>
+                )}
+
+                {risk.notes && (
+                  <div className="mt-2 pt-2 border-t text-[10px]" style={{ borderColor: 'var(--border)', color: 'var(--muted-fg)' }}>
+                    <strong>Audit Notes:</strong> {risk.notes}
+                  </div>
+                )}
+              </div>
+            )}    )}    )}
 
             {/* Mitigation */}
             {risk.mitigation && (
