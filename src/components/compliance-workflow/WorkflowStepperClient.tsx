@@ -133,8 +133,8 @@ function StepPanel({ item, onChange }: { item: GRCIntakeItem; onChange: (patch: 
       <div>
         <label className="block text-xs font-medium mb-1.5" style={{ color: 'var(--muted-fg)' }}>Notes</label>
         <textarea
-          value={item.notes ?? ''}
-          onChange={e => onChange({ notes: e.target.value })}
+          value={item.evidence_note ?? ''}
+          onChange={e => onChange({ evidence_note: e.target.value })}
           placeholder="Additional classification context…"
           rows={3}
           className="w-full px-3 py-2 rounded-lg text-sm outline-none resize-none"
