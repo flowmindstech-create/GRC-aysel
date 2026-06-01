@@ -12,18 +12,18 @@
   --brand-600: #4f46e5;
   --brand-700: #4338ca;
 
-  /* Semantic Light Mode Fallbacks */
-  --background:    #f8fafc;
-  --foreground:    #0f172a;
-  --card:          #ffffff;
-  --card-border:   #e2e8f0;
-  --muted:         #f1f5f9;
-  --muted-fg:      #64748b;
-  --border:        #e2e8f0;
-  --input:         #e2e8f0;
+  /* Semantic (Premium Dark Obsidian Theme by Default) */
+  --background:   #070a13;
+  --foreground:   #f3f4f6;
+  --card:         rgba(16, 22, 37, 0.65);
+  --card-border:  rgba(255, 255, 255, 0.06);
+  --muted:        rgba(255, 255, 255, 0.03);
+  --muted-fg:     #8a94a6;
+  --border:       rgba(255, 255, 255, 0.08);
+  --input:        rgba(255, 255, 255, 0.05);
   --ring:          #6366f1;
-  --sidebar-bg:    #0f172a;
-  --sidebar-fg:    #94a3b8;
+  --sidebar-bg:   #050810;
+  --sidebar-fg:   #8a94a6;
   --sidebar-active:#6366f1;
 
   /* Premium Neon Alert Levels */
@@ -37,21 +37,6 @@
   --status-in-progress: #ff7a00;
   --status-resolved:    #00f5a0;
   --status-closed:      #8a94a6;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background:   #070a13;
-    --foreground:   #f3f4f6;
-    --card:         rgba(16, 22, 37, 0.65);
-    --card-border:  rgba(255, 255, 255, 0.06);
-    --muted:        rgba(255, 255, 255, 0.03);
-    --muted-fg:     #8a94a6;
-    --border:       rgba(255, 255, 255, 0.08);
-    --input:        rgba(255, 255, 255, 0.05);
-    --sidebar-bg:   #050810;
-    --sidebar-fg:   #8a94a6;
-  }
 }
 
 .dark {
