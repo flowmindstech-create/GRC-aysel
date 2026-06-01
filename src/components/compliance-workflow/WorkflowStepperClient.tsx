@@ -277,7 +277,7 @@ function StepPanel({ item, onChange }: { item: GRCIntakeItem; onChange: (patch: 
       <p className="text-xs" style={{ color: 'var(--muted-fg)' }}>
         {step === 'owner_review' ? 'Risk Owner' : 'Risk Management Function (2nd Line)'} reviews the assessment and approves progression.
       </p>
-      {textarea('Review Notes', '', 'notes', 'Add review comments or observations…')}
+      {textarea('Review Notes', item.evidence_note ?? '', 'evidence_note', 'Add review comments or observations…')}
     </div>
   )
 
@@ -331,7 +331,7 @@ function StepPanel({ item, onChange }: { item: GRCIntakeItem; onChange: (patch: 
 
   if (step === 'implementation') return (
     <div className="space-y-4">
-      {textarea('Implementation Notes', '', 'notes', 'Describe actions taken…')}
+      {textarea('Implementation Notes', item.evidence_note ?? '', 'evidence_note', 'Describe actions taken…')}
       {field('Evidence URL', item.implementation_evidence_url ?? '', 'implementation_evidence_url', 'https://…')}
     </div>
   )
@@ -381,14 +381,14 @@ function StepPanel({ item, onChange }: { item: GRCIntakeItem; onChange: (patch: 
       <p className="text-xs px-3 py-2 rounded-lg" style={{ background: 'rgba(225,29,72,0.08)', color: '#e11d48' }}>
         Risk remains outside appetite after treatment. Escalation to Risk Committee required.
       </p>
-      {textarea('Escalation Reason', '', 'notes', 'Explain why risk could not be reduced within appetite…')}
+      {textarea('Escalation Reason', item.evidence_note ?? '', 'evidence_note', 'Explain why risk could not be reduced within appetite…')}
     </div>
   )
 
   if (step === 'committee_review') return (
     <div className="space-y-4">
       {field('Committee Decision', item.committee_decision ?? '', 'committee_decision', 'Accept / Mitigate / Transfer / Avoid')}
-      {textarea('Decision Notes', '', 'notes', 'Document the committee decision and rationale…')}
+      {textarea('Decision Notes', item.evidence_note ?? '', 'evidence_note', 'Document the committee decision and rationale…')}
     </div>
   )
 
