@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils'
 import {
   LayoutDashboard, ShieldAlert, AlertTriangle, ClipboardCheck,
   Search, Users, Settings, ChevronLeft, ChevronRight,
-  Shield, Zap, GitBranch,
+  Shield, Zap, GitBranch, Workflow,
 } from 'lucide-react'
 import { useState } from 'react'
 
@@ -20,11 +20,12 @@ const navGroups = [
   {
     label: 'GRC Suite',
     items: [
-      { href: '/risks',      label: 'Risk Register', icon: ShieldAlert },
-      { href: '/workflows',  label: 'Workflows',     icon: GitBranch },
-      { href: '/incidents',  label: 'Incidents',     icon: AlertTriangle },
-      { href: '/compliance', label: 'Compliance',    icon: ClipboardCheck },
-      { href: '/audits',     label: 'Audits',        icon: Search },
+      { href: '/risks',                label: 'Risk Register',       icon: ShieldAlert },
+      { href: '/workflows',            label: 'Workflows',           icon: GitBranch },
+      { href: '/compliance-workflow',  label: 'Compliance Pipeline', icon: Workflow },
+      { href: '/incidents',            label: 'Incidents',           icon: AlertTriangle },
+      { href: '/compliance',           label: 'Compliance',          icon: ClipboardCheck },
+      { href: '/audits',               label: 'Audits',              icon: Search },
     ],
   },
   {
