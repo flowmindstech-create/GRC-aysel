@@ -1,36 +1,137 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# RiskShield IRM — AI-Powered Integrated Risk Management
 
-## Getting Started
+> Lightweight, AI-powered alternative to Archer IRM for small and medium businesses.
 
-First, run the development server:
+## 🚀 Quick Start
+
+### 1. Clone & Install
+
+```bash
+git clone <repo-url>
+cd maliyye
+npm install
+```
+
+### 2. Configure Environment
+
+```bash
+cp .env.local.example .env.local
+```
+
+Fill in your credentials:
+- `NEXT_PUBLIC_SUPABASE_URL` — from Supabase project settings
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY` — from Supabase project settings
+- `OPENAI_API_KEY` — from platform.openai.com
+
+### 3. Set Up Supabase
+
+1. Create a new project at [supabase.com](https://supabase.com)
+2. Go to **SQL Editor**
+3. Paste and run `supabase-schema.sql`
+4. Enable Email auth in **Authentication → Providers**
+
+### 4. Run Development Server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 📁 Project Structure
 
-## Learn More
+```
+src/
+├── app/
+│   ├── (auth)/          # Login, Register, Forgot Password
+│   ├── (app)/           # Protected app routes
+│   │   ├── dashboard/   # Main dashboard
+│   │   ├── risks/       # Risk management
+│   │   ├── incidents/   # Incident management
+│   │   ├── compliance/  # Compliance controls
+│   │   ├── audits/      # Audit management
+│   │   ├── vendors/     # Vendor risk
+│   │   └── settings/    # User & org settings
+│   └── page.tsx         # Landing page
+├── components/
+│   ├── layout/          # Sidebar, TopNav, AppShell
+│   ├── dashboard/       # KPI cards, charts, heatmap
+│   ├── risks/           # Risk table, form, detail sheet
+│   ├── incidents/       # Incident cards, form, timeline
+│   ├── compliance/      # Control checklist
+│   ├── audits/          # Audit accordion, findings
+│   ├── vendors/         # Vendor table with AI summary
+│   └── shared/          # Badges, PageHeader, EmptyState
+├── lib/
+│   ├── supabase/        # Client, server, middleware
+│   ├── seed-data.ts     # Mock data
+│   └── utils.ts         # cn() helper
+└── types/index.ts       # All TypeScript types
+```
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## ✨ Features
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+| Module | Features |
+|--------|----------|
+| **Auth** | Login, Register, Role-based (Admin/Risk Manager/Auditor/Employee) |
+| **Dashboard** | KPI cards, Risk heatmap, Compliance gauge, AI insights, Charts, Activity feed |
+| **Risks** | CRUD, Level/Category/Status filters, Detail sheet, Risk score matrix |
+| **Incidents** | Report, Assign, Status timeline, Severity levels |
+| **Compliance** | ISO 27001, SOC2, GDPR control tracking, Pass/Fail/Partial status |
+| **Audits** | Create audits, Track findings, Recommendations |
+| **Vendors** | Risk score, AI summary, Contract renewals |
+| **Settings** | Profile, Notifications, API keys |
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 🗄️ Database Schema
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+9 tables in Supabase:
+- `organizations` · `profiles` · `risks` · `incidents`
+- `controls` · `audits` · `audit_findings` · `vendors`
+- `evidence_files` · `activities`
+
+All tables have Row Level Security (RLS) — users only see their organization's data.
+
+---
+
+## 🤖 AI Features (OpenAI Placeholders)
+
+- Risk summaries and mitigation suggestions
+- Incident analysis
+- Vendor security assessments
+- Compliance recommendations
+
+Configure `OPENAI_API_KEY` in `.env.local` to enable.
+
+---
+
+## 🎨 Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Framework | Next.js 16 (App Router) |
+| Language | TypeScript 5 |
+| Styling | TailwindCSS v4 |
+| UI | Radix UI + custom components |
+| Database | Supabase (PostgreSQL) |
+| Auth | Supabase Auth |
+| Charts | Recharts |
+| Forms | React Hook Form + Zod |
+| Animations | Framer Motion |
+| Icons | Lucide React |
+
+---
+
+## 📝 Scripts
+
+```bash
+npm run dev    # Development server (http://localhost:3000)
+npm run build  # Production build
+npm run start  # Start production server
+npm run lint   # ESLint
+```

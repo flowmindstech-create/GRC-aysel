@@ -1,8 +1,70 @@
 @import "tailwindcss";
 
+/* ── Design Tokens ─────────────────────────────────────────────────────────── */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --radius: 0.625rem;
+
+  /* Brand */
+  --brand-50:  #eef2ff;
+  --brand-100: #e0e7ff;
+  --brand-200: #c7d2fe;
+  --brand-500: #6366f1;
+  --brand-600: #4f46e5;
+  --brand-700: #4338ca;
+
+  /* Semantic */
+  --background:    #ffffff;
+  --foreground:    #0f172a;
+  --card:          #ffffff;
+  --card-border:   #e2e8f0;
+  --muted:         #f8fafc;
+  --muted-fg:      #64748b;
+  --border:        #e2e8f0;
+  --input:         #e2e8f0;
+  --ring:          #6366f1;
+  --sidebar-bg:    #0f172a;
+  --sidebar-fg:    #94a3b8;
+  --sidebar-active:#6366f1;
+
+  /* Risk colours */
+  --risk-critical: #ef4444;
+  --risk-high:     #f97316;
+  --risk-medium:   #eab308;
+  --risk-low:      #22c55e;
+
+  /* Status */
+  --status-open:        #ef4444;
+  --status-in-progress: #f97316;
+  --status-resolved:    #22c55e;
+  --status-closed:      #64748b;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background:   #0a0f1e;
+    --foreground:   #e2e8f0;
+    --card:         #111827;
+    --card-border:  #1e293b;
+    --muted:        #1e293b;
+    --muted-fg:     #94a3b8;
+    --border:       #1e293b;
+    --input:        #1e293b;
+    --sidebar-bg:   #060d1f;
+    --sidebar-fg:   #64748b;
+  }
+}
+
+.dark {
+  --background:   #0a0f1e;
+  --foreground:   #e2e8f0;
+  --card:         #111827;
+  --card-border:  #1e293b;
+  --muted:        #1e293b;
+  --muted-fg:     #94a3b8;
+  --border:       #1e293b;
+  --input:        #1e293b;
+  --sidebar-bg:   #060d1f;
+  --sidebar-fg:   #64748b;
 }
 
 @theme inline {
@@ -12,15 +74,65 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+/* ── Base ──────────────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+
+html { height: 100%; }
 
 body {
+  min-height: 100%;
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  line-height: 1.6;
+}
+
+/* ── Scrollbar ─────────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 9999px;
+}
+
+/* ── Animations ────────────────────────────────────────────────────────────── */
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes slide-in-right {
+  from { opacity: 0; transform: translateX(20px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes pulse-ring {
+  0%   { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4); }
+  70%  { box-shadow: 0 0 0 10px rgba(99, 102, 241, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); }
+}
+
+.animate-fade-in        { animation: fade-in 0.4s ease forwards; }
+.animate-slide-in-right { animation: slide-in-right 0.35s ease forwards; }
+.animate-pulse-ring     { animation: pulse-ring 2s infinite; }
+
+/* ── Card ──────────────────────────────────────────────────────────────────── */
+.card {
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius);
+}
+
+/* ── Focus ring ────────────────────────────────────────────────────────────── */
+[data-focus-visible] {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+/* ── Recharts override ─────────────────────────────────────────────────────── */
+.recharts-tooltip-wrapper .recharts-default-tooltip {
+  background: var(--card) !important;
+  border-color: var(--border) !important;
+  color: var(--foreground) !important;
+  border-radius: 8px !important;
+  font-size: 13px !important;
 }
