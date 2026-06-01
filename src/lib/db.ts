@@ -6,7 +6,7 @@ import {
 } from './seed-data'
 import type {
   Risk, Incident, Control, Audit, AuditFinding, Vendor, Activity, DashboardStats,
-  JiraConfig, JiraActivity, JiraComment
+  JiraConfig, JiraActivity, JiraComment, GRCIntakeItem
 } from '@/types'
 
 // Helper to get items from localStorage
@@ -44,7 +44,25 @@ export const db = {
       const { data, error } = await supabase.from('risks').select('*').order('created_at', { ascending: false })
       if (!error && data) return data as Risk[]
     }
-    return getLocalItem<Risk[]>('risks', MOCK_RISKS)
+    const risks = getLocalItem<Risk[]>('risks', MOCK_RISKS)
+    let modified = false
+    const mapped = risks.map(r => {
+      if (!r.workflow_step) {
+        r.workflow_step = r.status === 'closed' ? 'closed' : r.status === 'mitigated' ? 'accepted' : 'registered'
+        r.inherent_likelihood = r.likelihood
+        r.inherent_impact = r.impact
+        r.residual_likelihood = r.likelihood > 1 ? r.likelihood - 1 : 1
+        r.residual_impact = r.impact > 1 ? r.impact - 1 : 1
+        r.control_effectiveness = 'effective'
+        r.escalation_level = 'none'
+        modified = true
+      }
+      return r
+    })
+    if (modified) {
+      setLocalItem('risks', mapped)
+    }
+    return mapped
   },
 
   async saveRisk(risk: Risk): Promise<Risk> {
@@ -607,5 +625,58 @@ export const db = {
     }
 
     return false
+  },
+
+  // ─── GRC INTAKE ITEMS ──────────────────────────────────────────────────────
+  async getGRCIntakeItems(): Promise<GRCIntakeItem[]> {
+    if (isSupabaseConfigured()) {
+      const { createClient } = await import('./supabase/client')
+      const supabase = createClient()
+      const { data, error } = await supabase.from('grc_intake_items').select('*').order('created_at', { ascending: false })
+      if (!error && data) return data as GRCIntakeItem[]
+    }
+    return getLocalItem<GRCIntakeItem[]>('grc_intake_items', [])
+  },
+
+  async saveGRCIntakeItem(item: GRCIntakeItem): Promise<GRCIntakeItem> {
+    if (isSupabaseConfigured()) {
+      const { createClient } = await import('./supabase/client')
+      const supabase = createClient()
+      const { data, error } = await supabase.from('grc_intake_items').upsert(item).select().single()
+      if (!error && data) return data as GRCIntakeItem
+    }
+    const current = getLocalItem<GRCIntakeItem[]>('grc_intake_items', [])
+    const idx = current.findIndex(i => i.id === item.id)
+    if (idx >= 0) {
+      current[idx] = item
+    } else {
+      current.unshift(item)
+    }
+    setLocalItem('grc_intake_items', current)
+
+    await this.addActivity({
+      id: Math.random().toString(36).substr(2, 9),
+      org_id: item.org_id || 'org1',
+      action: idx >= 0 ? `updated intake: ${item.title}` : `registered new GRC intake: ${item.title}`,
+      entity_type: 'intake',
+      entity_id: item.id,
+      entity_title: item.title,
+      created_at: new Date().toISOString()
+    })
+
+    return item
+  },
+
+  async deleteGRCIntakeItem(id: string): Promise<boolean> {
+    if (isSupabaseConfigured()) {
+      const { createClient } = await import('./supabase/client')
+      const supabase = createClient()
+      const { error } = await supabase.from('grc_intake_items').delete().eq('id', id)
+      if (!error) return true
+    }
+    const current = getLocalItem<GRCIntakeItem[]>('grc_intake_items', [])
+    const filtered = current.filter(i => i.id !== id)
+    setLocalItem('grc_intake_items', filtered)
+    return true
   }
 }

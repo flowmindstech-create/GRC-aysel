@@ -52,6 +52,17 @@ export interface Risk {
   jira_issue_status?: string
   jira_last_sync?: string
   jira_project_key?: string
+  workflow_step?: string
+  inherent_likelihood?: number
+  inherent_impact?: number
+  control_mapped_ids?: string[]
+  control_effectiveness?: 'effective' | 'partially_effective' | 'ineffective'
+  residual_likelihood?: number
+  residual_impact?: number
+  treatment_plan?: string
+  action_plan?: string
+  validation_evidence?: string
+  escalation_level?: 'none' | 'committee' | 'board'
 }
 
 // ─── Incidents ───────────────────────────────────────────────────────────────
@@ -239,6 +250,36 @@ export interface JiraComment {
   id: string
   author: string
   content: string
+  created_at: string
+}
+
+// ─── GRC Intake Workflow ──────────────────────────────────────────────────────
+
+export type GRCIntakeType = 'requirement' | 'risk' | 'finding' | 'incident'
+export type GRCIntakeStep =
+  | 'registration'
+  | 'classification'
+  | 'control_mapping'
+  | 'evidence_collection'
+  | 'compliance_assessment'
+  | 'gap_assessment'
+  | 'closed'
+
+export interface GRCIntakeItem {
+  id: string
+  org_id: string
+  type: GRCIntakeType
+  title: string
+  description: string
+  classification: string
+  mapped_control_ids: string[]
+  evidence_url?: string
+  evidence_note?: string
+  status: 'draft' | 'under_review' | 'compliant' | 'non_compliant' | 'closed'
+  step: GRCIntakeStep
+  gap_identified?: boolean
+  risk_creation_required?: boolean
+  risk_created_id?: string
   created_at: string
 }
 

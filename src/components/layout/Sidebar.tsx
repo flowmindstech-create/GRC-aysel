@@ -6,13 +6,14 @@ import { cn } from '@/lib/utils'
 import {
   LayoutDashboard, ShieldAlert, AlertTriangle, ClipboardCheck,
   Search, Users, Settings, ChevronLeft, ChevronRight,
-  Shield, Zap
+  Shield, Zap, GitBranch
 } from 'lucide-react'
 import { useState } from 'react'
 
 const navItems = [
   { href: '/dashboard',   label: 'Dashboard',   icon: LayoutDashboard },
   { href: '/risks',       label: 'Risks',        icon: ShieldAlert },
+  { href: '/workflows',   label: 'Workflows',    icon: GitBranch },
   { href: '/incidents',   label: 'Incidents',    icon: AlertTriangle },
   { href: '/compliance',  label: 'Compliance',   icon: ClipboardCheck },
   { href: '/audits',      label: 'Audits',       icon: Search },
