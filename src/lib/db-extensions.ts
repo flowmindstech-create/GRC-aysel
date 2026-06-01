@@ -129,6 +129,30 @@ export const dbExt = {
     return next
   },
 
+  // ── Control Mappings ───────────────────────────────────────────────────────
+
+  async getControlMappings(): Promise<import('@/types').ControlMapping[]> {
+    if (isSupabase()) {
+      const { createClient } = await import('./supabase/client')
+      const { data } = await createClient().from('control_mappings').select('*').order('created_at', { ascending: false })
+      return (data ?? []) as import('@/types').ControlMapping[]
+    }
+    return getLocal<import('@/types').ControlMapping[]>('control_mappings', [])
+  },
+
+  async saveControlMapping(item: import('@/types').ControlMapping): Promise<import('@/types').ControlMapping> {
+    if (isSupabase()) {
+      const { createClient } = await import('./supabase/client')
+      const { data, error } = await createClient().from('control_mappings').upsert(item).select().single()
+      if (!error && data) return data as import('@/types').ControlMapping
+    }
+    const all = getLocal<import('@/types').ControlMapping[]>('control_mappings', [])
+    const idx = all.findIndex(m => m.id === item.id)
+    if (idx >= 0) all[idx] = item; else all.unshift(item)
+    setLocal('control_mappings', all)
+    return item
+  },
+
   // ── KRI ────────────────────────────────────────────────────────────────────
 
   async getKRIItems(): Promise<KRIItem[]> {
