@@ -16,10 +16,10 @@
   --background:   #080e1a; /* Midnight Blue / Dark Navy */
   --foreground:   #f0f5ff; /* Ice White / Light Blue tint */
   --card:         #121e36; /* Cobalt Navy Card Surface */
-  --card-border:  #1c2b42; /* Steel Blue border */
+  --card-border:  #1f3050; /* Steel Blue border */
   --muted:        #162237; /* Legible dark blue background for elements */
   --muted-fg:     #8da2c0; /* Slate Gray-Blue for tags and secondary text */
-  --border:       #1c2b42;
+  --border:       #1f3050;
   --input:        #1c2b42;
   --ring:         #0ea5e9;
   --sidebar-bg:   #060910;
@@ -43,11 +43,11 @@
   --background:   #080e1a;
   --foreground:   #f0f5ff;
   --card:         #121e36;
-  --card-border:  #1c2b42;
+  --card-border:  #1f3050;
   --muted:        #162237;
   --muted-fg:     #8da2c0;
-  --border:       #1c2b42;
-  --input:        #1c2b42;
+  --border:       #1f3050;
+  --input:        #1f3050;
   --sidebar-bg:   #060910;
   --sidebar-fg:   #8da2c0;
 }
@@ -129,8 +129,14 @@ body {
   background: var(--card);
   border: 1px solid var(--card-border);
   border-radius: var(--radius);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
-  transition: all 0.2s ease-in-out;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.22), 0 1px 3px rgba(0,0,0,0.16);
+  position: relative;
+  transition: box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+.card:hover {
+  box-shadow: 0 4px 24px rgba(0,0,0,0.30), 0 2px 8px rgba(0,0,0,0.20);
+  border-color: rgba(14,165,233,0.22);
 }
 
 /* ── Focus ring ────────────────────────────────────────────────────────────── */

@@ -6,19 +6,34 @@ import { cn } from '@/lib/utils'
 import {
   LayoutDashboard, ShieldAlert, AlertTriangle, ClipboardCheck,
   Search, Users, Settings, ChevronLeft, ChevronRight,
-  Shield, Zap, GitBranch
+  Shield, Zap, GitBranch,
 } from 'lucide-react'
 import { useState } from 'react'
 
-const navItems = [
-  { href: '/dashboard',   label: 'Dashboard',   icon: LayoutDashboard },
-  { href: '/risks',       label: 'Risks',        icon: ShieldAlert },
-  { href: '/workflows',   label: 'Workflows',    icon: GitBranch },
-  { href: '/incidents',   label: 'Incidents',    icon: AlertTriangle },
-  { href: '/compliance',  label: 'Compliance',   icon: ClipboardCheck },
-  { href: '/audits',      label: 'Audits',       icon: Search },
-  { href: '/vendors',     label: 'Vendors',      icon: Users },
-  { href: '/settings',    label: 'Settings',     icon: Settings },
+const navGroups = [
+  {
+    label: 'Overview',
+    items: [
+      { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    ],
+  },
+  {
+    label: 'GRC Suite',
+    items: [
+      { href: '/risks',      label: 'Risk Register', icon: ShieldAlert },
+      { href: '/workflows',  label: 'Workflows',     icon: GitBranch },
+      { href: '/incidents',  label: 'Incidents',     icon: AlertTriangle },
+      { href: '/compliance', label: 'Compliance',    icon: ClipboardCheck },
+      { href: '/audits',     label: 'Audits',        icon: Search },
+    ],
+  },
+  {
+    label: 'Admin',
+    items: [
+      { href: '/vendors',  label: 'Vendors',  icon: Users },
+      { href: '/settings', label: 'Settings', icon: Settings },
+    ],
+  },
 ]
 
 interface SidebarProps {
@@ -31,7 +46,10 @@ export function Sidebar({ onMobileClose }: SidebarProps) {
 
   return (
     <aside
-      style={{ background: 'var(--sidebar-bg)', borderColor: 'var(--border)' }}
+      style={{
+        background: 'linear-gradient(180deg, #05090f 0%, var(--sidebar-bg) 40%, #060910 100%)',
+        borderColor: 'var(--border)',
+      }}
       className={cn(
         'relative flex flex-col h-full transition-all duration-300 border-r',
         collapsed ? 'w-16' : 'w-60'
@@ -43,67 +61,95 @@ export function Sidebar({ onMobileClose }: SidebarProps) {
         style={{ borderColor: 'var(--border)' }}
       >
         <div
-          className="flex items-center justify-center w-8 h-8 rounded-lg shrink-0"
-          style={{ background: 'var(--brand-500)' }}
+          className="flex items-center justify-center w-9 h-9 rounded-xl shrink-0"
+          style={{
+            background: 'linear-gradient(135deg, var(--brand-500) 0%, var(--brand-700) 100%)',
+            boxShadow: '0 0 18px rgba(14,165,233,0.38), 0 2px 6px rgba(0,0,0,0.35)',
+          }}
         >
           <Shield className="w-4 h-4 text-white" />
         </div>
         {!collapsed && (
           <div>
-            <p className="text-sm font-bold leading-none" style={{ color: 'var(--foreground)' }}>RiskShield</p>
-            <p className="text-[10px] mt-0.5" style={{ color: 'var(--brand-500)' }}>IRM Platform</p>
+            <p className="text-sm font-bold leading-none tracking-tight" style={{ color: 'var(--foreground)' }}>
+              RiskShield
+            </p>
+            <p
+              className="text-[10px] mt-0.5 font-semibold uppercase tracking-[0.14em]"
+              style={{ color: 'var(--brand-500)', opacity: 0.85 }}
+            >
+              IRM Platform
+            </p>
           </div>
         )}
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 px-2 py-4 space-y-0.5 overflow-y-auto">
-        {navItems.map(({ href, label, icon: Icon }) => {
-          const active = pathname.startsWith(href)
-          return (
-            <Link
-              key={href}
-              href={href}
-              onClick={onMobileClose}
-              className={cn(
-                'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 group',
-              )}
-              style={active ? {
-                background: 'var(--brand-500)',
-                color: '#ffffff',
-              } : {
-                color: 'var(--sidebar-fg)',
-              }}
-              onMouseEnter={e => {
-                if (!active) {
-                  (e.currentTarget as HTMLElement).style.background = 'rgba(14,165,233,0.10)'
-                  ;(e.currentTarget as HTMLElement).style.color = 'var(--foreground)'
-                }
-              }}
-              onMouseLeave={e => {
-                if (!active) {
-                  (e.currentTarget as HTMLElement).style.background = ''
-                  ;(e.currentTarget as HTMLElement).style.color = 'var(--sidebar-fg)'
-                }
-              }}
-            >
-              <Icon className={cn('shrink-0', collapsed ? 'w-5 h-5' : 'w-4 h-4')} />
-              {!collapsed && <span>{label}</span>}
-              {!collapsed && active && (
-                <span className="ml-auto w-1.5 h-1.5 rounded-full bg-white/80" />
-              )}
-            </Link>
-          )
-        })}
+      <nav className="flex-1 px-2 py-4 overflow-y-auto space-y-4">
+        {navGroups.map((group, gi) => (
+          <div key={group.label}>
+            {!collapsed && (
+              <p
+                className="px-3 mb-1.5 text-[10px] font-semibold uppercase tracking-[0.13em]"
+                style={{ color: 'var(--muted-fg)', opacity: 0.5 }}
+              >
+                {group.label}
+              </p>
+            )}
+            {collapsed && gi > 0 && (
+              <div className="mx-3 my-1 h-px" style={{ background: 'var(--border)', opacity: 0.5 }} />
+            )}
+            <div className="space-y-0.5">
+              {group.items.map(({ href, label, icon: Icon }) => {
+                const active = pathname.startsWith(href)
+                return (
+                  <Link
+                    key={href}
+                    href={href}
+                    onClick={onMobileClose}
+                    className={cn(
+                      'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 group',
+                    )}
+                    style={active ? {
+                      boxShadow: 'inset 2px 0 0 var(--brand-500)',
+                      background: 'rgba(14,165,233,0.09)',
+                      color: 'var(--foreground)',
+                    } : {
+                      color: 'var(--sidebar-fg)',
+                    }}
+                    onMouseEnter={e => {
+                      if (!active) {
+                        (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.04)'
+                        ;(e.currentTarget as HTMLElement).style.color = 'var(--foreground)'
+                      }
+                    }}
+                    onMouseLeave={e => {
+                      if (!active) {
+                        (e.currentTarget as HTMLElement).style.background = ''
+                        ;(e.currentTarget as HTMLElement).style.color = 'var(--sidebar-fg)'
+                      }
+                    }}
+                  >
+                    <Icon
+                      className={cn('shrink-0 transition-colors', collapsed ? 'w-5 h-5' : 'w-4 h-4')}
+                      style={{ color: active ? 'var(--brand-500)' : 'inherit' }}
+                    />
+                    {!collapsed && <span>{label}</span>}
+                  </Link>
+                )
+              })}
+            </div>
+          </div>
+        ))}
       </nav>
 
       {/* AI Badge */}
       {!collapsed && (
         <div
-          className="mx-3 mb-3 p-3 rounded-lg border"
+          className="mx-3 mb-3 p-3 rounded-xl border"
           style={{
-            background: 'rgba(14,165,233,0.07)',
-            borderColor: 'rgba(14,165,233,0.20)',
+            background: 'rgba(14,165,233,0.06)',
+            borderColor: 'rgba(14,165,233,0.15)',
           }}
         >
           <div className="flex items-center gap-2 mb-1">
@@ -116,17 +162,26 @@ export function Sidebar({ onMobileClose }: SidebarProps) {
         </div>
       )}
 
-      {/* Plan */}
+      {/* Org panel */}
       {!collapsed && (
         <div
-          className="mx-3 mb-3 p-3 rounded-lg border"
-          style={{ background: 'var(--muted)', borderColor: 'var(--border)' }}
+          className="mx-3 mb-3 p-3 rounded-xl border"
+          style={{ background: 'rgba(255,255,255,0.02)', borderColor: 'var(--border)' }}
         >
-          <p className="text-[10px] uppercase tracking-wide mb-1" style={{ color: 'var(--muted-fg)' }}>Organization</p>
+          <p
+            className="text-[10px] uppercase tracking-widest mb-1"
+            style={{ color: 'var(--muted-fg)', opacity: 0.5 }}
+          >
+            Organization
+          </p>
           <p className="text-xs font-semibold" style={{ color: 'var(--foreground)' }}>Acme Corp</p>
           <span
-            className="inline-flex items-center mt-1.5 px-2 py-0.5 rounded-full text-[10px] font-medium"
-            style={{ background: 'rgba(14,165,233,0.15)', color: 'var(--brand-500)' }}
+            className="inline-flex items-center mt-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold"
+            style={{
+              background: 'linear-gradient(90deg, rgba(14,165,233,0.18), rgba(3,105,161,0.18))',
+              color: 'var(--brand-500)',
+              border: '1px solid rgba(14,165,233,0.2)',
+            }}
           >
             Professional
           </span>
@@ -148,4 +203,3 @@ export function Sidebar({ onMobileClose }: SidebarProps) {
     </aside>
   )
 }
-
