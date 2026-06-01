@@ -287,6 +287,10 @@ export type GRCIntakeStep =
   | 'evidence_collection'
   | 'compliance_assessment'
   | 'gap_assessment'
+  | 'compliant_closed'
+  | 'non_compliance'
+  | 'risk_routing'
+  | 'action_plan'
   | 'closed'
 
 export interface GRCIntakeItem {
