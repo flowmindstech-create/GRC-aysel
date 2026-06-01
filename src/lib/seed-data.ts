@@ -7,11 +7,11 @@ import type {
 
 export const MOCK_USERS: UserProfile[] = [
   {
-    id: 'u1', org_id: 'org1', full_name: 'Əli Həsənov', email: 'ali@acmecorp.az',
+    id: 'u1', org_id: 'org1', full_name: 'Ali Hasanov', email: 'ali@acmecorp.az',
     role: 'admin', created_at: '2024-01-10T09:00:00Z',
   },
   {
-    id: 'u2', org_id: 'org1', full_name: 'Leyla Məmmədova', email: 'leyla@acmecorp.az',
+    id: 'u2', org_id: 'org1', full_name: 'Leyla Mammadova', email: 'leyla@acmecorp.az',
     role: 'risk_manager', created_at: '2024-01-12T09:00:00Z',
   },
   {
@@ -19,7 +19,7 @@ export const MOCK_USERS: UserProfile[] = [
     role: 'auditor', created_at: '2024-02-05T09:00:00Z',
   },
   {
-    id: 'u4', org_id: 'org1', full_name: 'Nigar Əliyeva', email: 'nigar@acmecorp.az',
+    id: 'u4', org_id: 'org1', full_name: 'Nigar Aliyeva', email: 'nigar@acmecorp.az',
     role: 'employee', created_at: '2024-03-01T09:00:00Z',
   },
 ]
@@ -31,7 +31,7 @@ export const MOCK_RISKS: Risk[] = [
     id: 'r1', org_id: 'org1', title: 'SQL Injection Vulnerability in Customer Portal',
     description: 'The customer-facing login portal has an unpatched SQL injection point that could expose all customer records.',
     category: 'cybersecurity', level: 'critical', status: 'open',
-    owner_id: 'u2', owner_name: 'Leyla Məmmədova',
+    owner_id: 'u2', owner_name: 'Leyla Mammadova',
     due_date: '2025-02-15', likelihood: 4, impact: 5,
     mitigation: 'Apply parameterized queries, conduct penetration test, deploy WAF rule.',
     created_at: '2025-01-05T10:00:00Z', updated_at: '2025-01-10T14:00:00Z',
@@ -40,7 +40,7 @@ export const MOCK_RISKS: Risk[] = [
     id: 'r2', org_id: 'org1', title: 'Third-Party Payroll Provider Insolvency Risk',
     description: 'Our payroll SaaS vendor is showing signs of financial instability which could disrupt monthly payroll operations.',
     category: 'financial', level: 'high', status: 'in_progress',
-    owner_id: 'u1', owner_name: 'Əli Həsənov',
+    owner_id: 'u1', owner_name: 'Ali Hasanov',
     due_date: '2025-03-01', likelihood: 3, impact: 4,
     mitigation: 'Identify backup payroll provider, maintain 3-month payroll reserve fund.',
     created_at: '2025-01-08T10:00:00Z', updated_at: '2025-01-15T10:00:00Z',
@@ -49,7 +49,7 @@ export const MOCK_RISKS: Risk[] = [
     id: 'r3', org_id: 'org1', title: 'GDPR Non-Compliance in Marketing Emails',
     description: 'Marketing team is sending promotional emails without a valid opt-in consent mechanism, violating GDPR Article 7.',
     category: 'legal', level: 'high', status: 'in_progress',
-    owner_id: 'u2', owner_name: 'Leyla Məmmədova',
+    owner_id: 'u2', owner_name: 'Leyla Mammadova',
     due_date: '2025-02-01', likelihood: 4, impact: 4,
     mitigation: 'Implement double opt-in flow, audit existing contact list, update privacy policy.',
     created_at: '2025-01-10T10:00:00Z', updated_at: '2025-01-18T10:00:00Z',
@@ -58,7 +58,7 @@ export const MOCK_RISKS: Risk[] = [
     id: 'r4', org_id: 'org1', title: 'Key Employee Dependency — CTO Single Point of Failure',
     description: 'Our CTO holds exclusive knowledge of critical system architecture. Their departure would create a major operational gap.',
     category: 'hr', level: 'medium', status: 'open',
-    owner_id: 'u1', owner_name: 'Əli Həsənov',
+    owner_id: 'u1', owner_name: 'Ali Hasanov',
     due_date: '2025-04-30', likelihood: 2, impact: 5,
     mitigation: 'Document all architecture decisions, implement knowledge transfer sessions, hire senior engineer.',
     created_at: '2025-01-12T10:00:00Z', updated_at: '2025-01-12T10:00:00Z',
@@ -76,7 +76,7 @@ export const MOCK_RISKS: Risk[] = [
     id: 'r6', org_id: 'org1', title: 'Operational Disruption from Outdated BCP',
     description: 'Business Continuity Plan has not been tested or updated since 2022, leaving the organization unprepared for major outages.',
     category: 'operational', level: 'medium', status: 'open',
-    owner_id: 'u2', owner_name: 'Leyla Məmmədova',
+    owner_id: 'u2', owner_name: 'Leyla Mammadova',
     due_date: '2025-05-01', likelihood: 3, impact: 3,
     mitigation: 'Schedule BCP tabletop exercise, update plan, assign departmental BCP owners.',
     created_at: '2025-01-14T10:00:00Z', updated_at: '2025-01-14T10:00:00Z',
@@ -85,7 +85,7 @@ export const MOCK_RISKS: Risk[] = [
     id: 'r7', org_id: 'org1', title: 'Software License Compliance Risk',
     description: 'Audit revealed 12 unlicensed software installations across developer workstations, risking vendor audit and fines.',
     category: 'legal', level: 'low', status: 'closed',
-    owner_id: 'u4', owner_name: 'Nigar Əliyeva',
+    owner_id: 'u4', owner_name: 'Nigar Aliyeva',
     due_date: '2025-01-31', likelihood: 2, impact: 2,
     mitigation: 'Deployed SIEM-based software inventory scanner, purchased required licenses.',
     created_at: '2024-12-20T10:00:00Z', updated_at: '2025-01-25T10:00:00Z',
@@ -99,8 +99,8 @@ export const MOCK_INCIDENTS: Incident[] = [
     id: 'i1', org_id: 'org1', title: 'Phishing Attack — Finance Team',
     description: '3 finance team members clicked a credential-harvesting phishing link. One credential was compromised before MFA blocked access.',
     severity: 'high', status: 'investigating',
-    assigned_to: 'u2', assigned_name: 'Leyla Məmmədova',
-    reported_by: 'u4', reporter_name: 'Nigar Əliyeva',
+    assigned_to: 'u2', assigned_name: 'Leyla Mammadova',
+    reported_by: 'u4', reporter_name: 'Nigar Aliyeva',
     created_at: '2025-01-18T08:30:00Z', updated_at: '2025-01-18T12:00:00Z',
   },
   {
@@ -108,7 +108,7 @@ export const MOCK_INCIDENTS: Incident[] = [
     description: 'Primary PostgreSQL database became unresponsive due to a runaway query from a recent deployment. Caused 2.5 hour service outage.',
     severity: 'critical', status: 'resolved',
     assigned_to: 'u3', assigned_name: 'Rauf Quliyev',
-    reported_by: 'u1', reporter_name: 'Əli Həsənov',
+    reported_by: 'u1', reporter_name: 'Ali Hasanov',
     created_at: '2025-01-10T02:15:00Z',
     resolved_at: '2025-01-10T04:45:00Z',
     updated_at: '2025-01-10T05:00:00Z',
@@ -117,7 +117,7 @@ export const MOCK_INCIDENTS: Incident[] = [
     id: 'i3', org_id: 'org1', title: 'Unauthorized Data Access by Former Employee',
     description: 'IT audit revealed a terminated employee retained active VPN credentials and accessed the customer database 11 days post-termination.',
     severity: 'critical', status: 'investigating',
-    assigned_to: 'u2', assigned_name: 'Leyla Məmmədova',
+    assigned_to: 'u2', assigned_name: 'Leyla Mammadova',
     reported_by: 'u3', reporter_name: 'Rauf Quliyev',
     created_at: '2025-01-15T11:00:00Z', updated_at: '2025-01-16T09:00:00Z',
   },
@@ -125,8 +125,8 @@ export const MOCK_INCIDENTS: Incident[] = [
     id: 'i4', org_id: 'org1', title: 'DDoS Attack on Web Application',
     description: 'Volumetric DDoS attack at 28 Gbps targeting public API. Cloudflare WAF mitigated in 18 minutes. No data exfiltration detected.',
     severity: 'medium', status: 'resolved',
-    assigned_to: 'u1', assigned_name: 'Əli Həsənov',
-    reported_by: 'u2', reporter_name: 'Leyla Məmmədova',
+    assigned_to: 'u1', assigned_name: 'Ali Hasanov',
+    reported_by: 'u2', reporter_name: 'Leyla Mammadova',
     created_at: '2025-01-07T19:00:00Z',
     resolved_at: '2025-01-07T19:18:00Z',
     updated_at: '2025-01-07T20:00:00Z',
@@ -140,14 +140,14 @@ export const MOCK_CONTROLS: Control[] = [
   { id: 'c1', org_id: 'org1', framework: 'iso27001', control_id: 'A.5.1', title: 'Information Security Policies', description: 'Policies for information security shall be defined, approved by management, published and communicated.', status: 'pass', reviewed_at: '2025-01-10T00:00:00Z', reviewed_by: 'Rauf Quliyev', created_at: '2024-12-01T00:00:00Z' },
   { id: 'c2', org_id: 'org1', framework: 'iso27001', control_id: 'A.6.1', title: 'Roles and Responsibilities', description: 'All information security responsibilities shall be defined and allocated.', status: 'pass', reviewed_at: '2025-01-10T00:00:00Z', reviewed_by: 'Rauf Quliyev', created_at: '2024-12-01T00:00:00Z' },
   { id: 'c3', org_id: 'org1', framework: 'iso27001', control_id: 'A.8.1', title: 'Inventory of Assets', description: 'Assets associated with information and information processing facilities shall be identified.', status: 'partial', created_at: '2024-12-01T00:00:00Z' },
-  { id: 'c4', org_id: 'org1', framework: 'iso27001', control_id: 'A.9.1', title: 'Access Control Policy', description: 'An access control policy shall be established, documented and reviewed based on business requirements.', status: 'pass', reviewed_at: '2025-01-08T00:00:00Z', reviewed_by: 'Əli Həsənov', created_at: '2024-12-01T00:00:00Z' },
+  { id: 'c4', org_id: 'org1', framework: 'iso27001', control_id: 'A.9.1', title: 'Access Control Policy', description: 'An access control policy shall be established, documented and reviewed based on business requirements.', status: 'pass', reviewed_at: '2025-01-08T00:00:00Z', reviewed_by: 'Ali Hasanov', created_at: '2024-12-01T00:00:00Z' },
   { id: 'c5', org_id: 'org1', framework: 'iso27001', control_id: 'A.10.1', title: 'Cryptographic Policy', description: 'A policy on the use of cryptographic controls for protection of information shall be developed and implemented.', status: 'fail', created_at: '2024-12-01T00:00:00Z' },
-  { id: 'c6', org_id: 'org1', framework: 'iso27001', control_id: 'A.12.1', title: 'Operational Procedures', description: 'Operating procedures shall be documented and made available to all users who need them.', status: 'pass', reviewed_at: '2025-01-05T00:00:00Z', reviewed_by: 'Leyla Məmmədova', created_at: '2024-12-01T00:00:00Z' },
+  { id: 'c6', org_id: 'org1', framework: 'iso27001', control_id: 'A.12.1', title: 'Operational Procedures', description: 'Operating procedures shall be documented and made available to all users who need them.', status: 'pass', reviewed_at: '2025-01-05T00:00:00Z', reviewed_by: 'Leyla Mammadova', created_at: '2024-12-01T00:00:00Z' },
   { id: 'c7', org_id: 'org1', framework: 'iso27001', control_id: 'A.14.2', title: 'Secure Development Policy', description: 'Rules for the development of software and systems shall be established and applied to developments.', status: 'partial', created_at: '2024-12-01T00:00:00Z' },
   { id: 'c8', org_id: 'org1', framework: 'iso27001', control_id: 'A.16.1', title: 'Management of Security Events', description: 'Responsibilities and procedures shall be established to ensure a quick, effective and orderly response to security incidents.', status: 'pass', reviewed_at: '2025-01-12T00:00:00Z', reviewed_by: 'Rauf Quliyev', created_at: '2024-12-01T00:00:00Z' },
   // SOC2
-  { id: 'c9', org_id: 'org1', framework: 'soc2', control_id: 'CC1.1', title: 'Control Environment — COSO Principles', description: 'The entity demonstrates a commitment to integrity and ethical values.', status: 'pass', reviewed_at: '2025-01-15T00:00:00Z', reviewed_by: 'Əli Həsənov', created_at: '2024-12-01T00:00:00Z' },
-  { id: 'c10', org_id: 'org1', framework: 'soc2', control_id: 'CC6.1', title: 'Logical Access Controls', description: 'The entity implements logical access security software, infrastructure, and architectures to protect against unauthorized access.', status: 'pass', reviewed_at: '2025-01-15T00:00:00Z', reviewed_by: 'Leyla Məmmədova', created_at: '2024-12-01T00:00:00Z' },
+  { id: 'c9', org_id: 'org1', framework: 'soc2', control_id: 'CC1.1', title: 'Control Environment — COSO Principles', description: 'The entity demonstrates a commitment to integrity and ethical values.', status: 'pass', reviewed_at: '2025-01-15T00:00:00Z', reviewed_by: 'Ali Hasanov', created_at: '2024-12-01T00:00:00Z' },
+  { id: 'c10', org_id: 'org1', framework: 'soc2', control_id: 'CC6.1', title: 'Logical Access Controls', description: 'The entity implements logical access security software, infrastructure, and architectures to protect against unauthorized access.', status: 'pass', reviewed_at: '2025-01-15T00:00:00Z', reviewed_by: 'Leyla Mammadova', created_at: '2024-12-01T00:00:00Z' },
   { id: 'c11', org_id: 'org1', framework: 'soc2', control_id: 'CC7.1', title: 'Change Management', description: 'The entity uses detection and monitoring procedures to identify changes to configurations.', status: 'fail', created_at: '2024-12-01T00:00:00Z' },
   { id: 'c12', org_id: 'org1', framework: 'soc2', control_id: 'CC9.1', title: 'Risk Mitigation', description: 'The entity identifies, selects, and develops risk mitigation activities for risks arising from potential business disruptions.', status: 'partial', created_at: '2024-12-01T00:00:00Z' },
 ]
@@ -172,7 +172,7 @@ export const MOCK_AUDITS: Audit[] = [
   {
     id: 'a3', org_id: 'org1', title: 'Vendor Onboarding Security Review — CloudSync Inc.',
     scope: 'Technical and contractual security assessment of new cloud storage vendor.',
-    status: 'completed', auditor_id: 'u2', auditor_name: 'Leyla Məmmədova',
+    status: 'completed', auditor_id: 'u2', auditor_name: 'Leyla Mammadova',
     start_date: '2024-12-01', end_date: '2024-12-20',
     created_at: '2024-11-25T00:00:00Z',
   },
@@ -235,13 +235,13 @@ export const MOCK_VENDORS: Vendor[] = [
 // ─── Activities ───────────────────────────────────────────────────────────────
 
 export const MOCK_ACTIVITIES: Activity[] = [
-  { id: 'ac1', org_id: 'org1', user_id: 'u2', user_name: 'Leyla Məmmədova', action: 'created risk', entity_type: 'risk', entity_id: 'r1', entity_title: 'SQL Injection Vulnerability in Customer Portal', created_at: '2025-01-05T10:00:00Z' },
-  { id: 'ac2', org_id: 'org1', user_id: 'u4', user_name: 'Nigar Əliyeva', action: 'reported incident', entity_type: 'incident', entity_id: 'i1', entity_title: 'Phishing Attack — Finance Team', created_at: '2025-01-18T08:30:00Z' },
+  { id: 'ac1', org_id: 'org1', user_id: 'u2', user_name: 'Leyla Mammadova', action: 'created risk', entity_type: 'risk', entity_id: 'r1', entity_title: 'SQL Injection Vulnerability in Customer Portal', created_at: '2025-01-05T10:00:00Z' },
+  { id: 'ac2', org_id: 'org1', user_id: 'u4', user_name: 'Nigar Aliyeva', action: 'reported incident', entity_type: 'incident', entity_id: 'i1', entity_title: 'Phishing Attack — Finance Team', created_at: '2025-01-18T08:30:00Z' },
   { id: 'ac3', org_id: 'org1', user_id: 'u3', user_name: 'Rauf Quliyev', action: 'completed control review', entity_type: 'control', entity_id: 'c8', entity_title: 'Management of Security Events', created_at: '2025-01-12T14:00:00Z' },
-  { id: 'ac4', org_id: 'org1', user_id: 'u1', user_name: 'Əli Həsənov', action: 'resolved incident', entity_type: 'incident', entity_id: 'i2', entity_title: 'Production Database Outage — 2.5 Hours', created_at: '2025-01-10T04:45:00Z' },
+  { id: 'ac4', org_id: 'org1', user_id: 'u1', user_name: 'Ali Hasanov', action: 'resolved incident', entity_type: 'incident', entity_id: 'i2', entity_title: 'Production Database Outage — 2.5 Hours', created_at: '2025-01-10T04:45:00Z' },
   { id: 'ac5', org_id: 'org1', user_id: 'u3', user_name: 'Rauf Quliyev', action: 'created audit', entity_type: 'audit', entity_id: 'a1', entity_title: 'Q1 2025 — IT Security Audit', created_at: '2025-01-10T09:00:00Z' },
-  { id: 'ac6', org_id: 'org1', user_id: 'u2', user_name: 'Leyla Məmmədova', action: 'added vendor', entity_type: 'vendor', entity_id: 'v2', entity_title: 'PayrollPro Systems', created_at: '2025-01-08T11:00:00Z' },
-  { id: 'ac7', org_id: 'org1', user_id: 'u1', user_name: 'Əli Həsənov', action: 'mitigated risk', entity_type: 'risk', entity_id: 'r5', entity_title: 'Cloud Storage Misconfiguration', created_at: '2025-01-17T16:00:00Z' },
+  { id: 'ac6', org_id: 'org1', user_id: 'u2', user_name: 'Leyla Mammadova', action: 'added vendor', entity_type: 'vendor', entity_id: 'v2', entity_title: 'PayrollPro Systems', created_at: '2025-01-08T11:00:00Z' },
+  { id: 'ac7', org_id: 'org1', user_id: 'u1', user_name: 'Ali Hasanov', action: 'mitigated risk', entity_type: 'risk', entity_id: 'r5', entity_title: 'Cloud Storage Misconfiguration', created_at: '2025-01-17T16:00:00Z' },
 ]
 
 // ─── Dashboard Stats ──────────────────────────────────────────────────────────

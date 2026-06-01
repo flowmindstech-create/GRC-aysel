@@ -91,10 +91,10 @@ export function TopNav({ title, subtitle }: TopNavProps) {
           )}
         >
           <div className="w-6 h-6 rounded-full bg-indigo-600 flex items-center justify-center text-white text-xs font-bold">
-            Ə
+            A
           </div>
           <span className="text-sm font-medium hidden sm:block" style={{ color: 'var(--foreground)' }}>
-            Əli Həsənov
+            Ali Hasanov
           </span>
           <ChevronDown className="w-3 h-3" style={{ color: 'var(--muted-fg)' }} />
         </button>
@@ -105,7 +105,7 @@ export function TopNav({ title, subtitle }: TopNavProps) {
             style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
           >
             <div className="px-3 py-2 border-b" style={{ borderColor: 'var(--border)' }}>
-              <p className="text-xs font-semibold" style={{ color: 'var(--foreground)' }}>Əli Həsənov</p>
+              <p className="text-xs font-semibold" style={{ color: 'var(--foreground)' }}>Ali Hasanov</p>
               <p className="text-[11px]" style={{ color: 'var(--muted-fg)' }}>Admin</p>
             </div>
             <button className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-black/5 dark:hover:bg-white/5"

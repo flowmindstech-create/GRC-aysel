@@ -40,7 +40,7 @@ export function IncidentFormDialog({ incident, onClose, onSave }: Props) {
       org_id: 'org1',
       ...v,
       assigned_name: user?.full_name,
-      reporter_name: 'Əli Həsənov',
+      reporter_name: 'Ali Hasanov',
       created_at: incident?.created_at ?? new Date().toISOString(),
       updated_at: new Date().toISOString(),
     }

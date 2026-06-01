@@ -61,7 +61,7 @@ export function ControlChecklist() {
       if (c.id !== id) return c
       const idx = order.indexOf(c.status)
       const nextStatus = order[(idx + 1) % order.length]
-      const updated = { ...c, status: nextStatus, reviewed_by: 'Əli Həsənov', reviewed_at: new Date().toISOString() }
+      const updated = { ...c, status: nextStatus, reviewed_by: 'Ali Hasanov', reviewed_at: new Date().toISOString() }
       await db.saveControl(updated)
       return updated
     }))

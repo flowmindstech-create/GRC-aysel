@@ -18,7 +18,7 @@ const FEATURES = [
 const TESTIMONIALS = [
   { name: 'Sarah Chen', role: 'CISO, TechCorp', text: 'RiskShield cut our risk review time by 60%. The AI summaries are incredibly accurate.', stars: 5 },
   { name: 'Marcus López', role: 'Risk Manager, FinGroup', text: 'Finally a tool that doesn\'t require a 6-month implementation. We were live in a week.', stars: 5 },
-  { name: 'Ayşe Kılıç', role: 'Compliance Lead, MedTech', text: 'The ISO 27001 control tracking is exactly what we needed for our certification audit.', stars: 5 },
+  { name: 'Ayse Kilic', role: 'Compliance Lead, MedTech', text: 'The ISO 27001 control tracking is exactly what we needed for our certification audit.', stars: 5 },
 ]
 
 export default function LandingPage() {

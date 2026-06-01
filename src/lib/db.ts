@@ -446,7 +446,7 @@ export const db = {
       {
         id: 'ja2',
         key: issueKey,
-        action: 'Assigned to Leyla Məmmədova (Risk Owner)',
+        action: 'Assigned to Leyla Mammadova (Risk Owner)',
         actor: 'Jira Automator',
         created_at: new Date(Date.now() - 3600000 * 1.8).toISOString()
       },
@@ -454,7 +454,7 @@ export const db = {
         id: 'ja3',
         key: issueKey,
         action: 'Transitioned status to IN PROGRESS',
-        actor: 'Leyla Məmmədova',
+        actor: 'Leyla Mammadova',
         created_at: new Date(Date.now() - 3600000 * 0.5).toISOString()
       }
     ]
@@ -470,7 +470,7 @@ export const db = {
         created_at: new Date(Date.now() - 3600000 * 2).toISOString()
       },
       {
-        author: 'Leyla Məmmədova',
+        author: 'Leyla Mammadova',
         content: 'I have started documenting the mitigation steps in the wiki page. WAF rule deployment in progress.',
         created_at: new Date(Date.now() - 3600000 * 0.5).toISOString(),
         id: 'jc2'

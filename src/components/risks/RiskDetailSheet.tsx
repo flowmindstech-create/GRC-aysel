@@ -105,12 +105,12 @@ export function RiskDetailSheet({ risk, onClose, onUpdate }: Props) {
             {/* Workflow Step Progress */}
             <div className="p-4 rounded-xl border" style={{ borderColor: 'var(--border)', background: 'var(--card)' }}>
               <div className="flex items-center justify-between mb-3">
-                <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--muted-fg)' }}>İş Axını (Workflow)</p>
+                <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--muted-fg)' }}>Workflow Progress</p>
                 <a
                   href="/workflows"
                   className="text-[10px] text-indigo-500 hover:text-indigo-600 font-bold flex items-center gap-1 cursor-pointer"
                 >
-                  Paneldə Aç <ExternalLink className="w-3 h-3" />
+                  Open in Dashboard <ExternalLink className="w-3 h-3" />
                 </a>
               </div>
               <div className="flex items-center justify-between text-xs p-2.5 rounded-lg" style={{ background: 'var(--muted)' }}>
@@ -119,7 +119,7 @@ export function RiskDetailSheet({ risk, onClose, onUpdate }: Props) {
                     {risk.workflow_step ? risk.workflow_step.replace(/_/g, ' ') : 'Registered'}
                   </p>
                   <p className="text-[10px] mt-0.5" style={{ color: 'var(--muted-fg)' }}>
-                    {risk.status === 'closed' ? 'Risk tamamlanıb' : 'Risk aktiv mərhələdədir'}
+                    {risk.status === 'closed' ? 'Risk completed' : 'Risk is active'}
                   </p>
                 </div>
                 <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-indigo-900/10 text-indigo-400 border border-indigo-500/10">
@@ -141,16 +141,16 @@ export function RiskDetailSheet({ risk, onClose, onUpdate }: Props) {
                   />
                 </div>
                 <div className="flex justify-between items-center text-[10px] text-slate-500 mt-1">
-                  <span>Başlanğıc</span>
+                  <span>Start</span>
                   <span>
-                    Mərhələ {[
+                    Step {[
                       'identified', 'registered', 'assessed_inherent', 'control_mapped', 
                       'control_assessed', 'assessed_residual', 'owner_review', 'mgt_review', 
                       'treatment_plan', 'action_plan', 'implementation', 'validation', 
                       'residual_reassessment', 'accepted', 'escalated', 'closed'
                     ].indexOf(risk.workflow_step || 'registered') + 1} / 16
                   </span>
-                  <span>Son</span>
+                  <span>End</span>
                 </div>
               </div>
             </div>
@@ -306,7 +306,7 @@ export function RiskDetailSheet({ risk, onClose, onUpdate }: Props) {
                           if (!newComment.trim()) return
                           setSubmittingComment(true)
                           try {
-                            const user = 'Əli Həsənov'
+                            const user = 'Ali Hasanov'
                             const savedComment = await db.addJiraComment(risk.jira_issue_key!, newComment, user)
                             setComments(prev => [...prev, savedComment])
                             setNewComment('')

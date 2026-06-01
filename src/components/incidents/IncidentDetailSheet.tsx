@@ -264,7 +264,7 @@ export function IncidentDetailSheet({ incident, onClose, onUpdate }: Props) {
                           if (!newComment.trim()) return
                           setSubmittingComment(true)
                           try {
-                            const user = 'Əli Həsənov'
+                            const user = 'Ali Hasanov'
                             const savedComment = await db.addJiraComment(incident.jira_issue_key!, newComment, user)
                             setComments(prev => [...prev, savedComment])
                             setNewComment('')

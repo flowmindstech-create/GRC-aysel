@@ -176,7 +176,7 @@ export default function LoginPage() {
             style={{ background: 'var(--muted)', borderColor: 'var(--border)' }}
           >
             <p className="text-xs font-bold text-indigo-400">
-              🚀 Qeydiyyatsız Birbaşa Demoya Keçid →
+              🚀 Access Demo Directly Without Registration →
             </p>
           </button>
         </motion.div>

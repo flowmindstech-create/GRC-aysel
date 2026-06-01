@@ -15,7 +15,7 @@ export default function DashboardPage() {
 
   return (
     <>
-      <TopNav title="Dashboard" subtitle="Welcome back, Əli — here is your risk overview" />
+      <TopNav title="Dashboard" subtitle="Welcome back, Ali — here is your risk overview" />
       <DashboardClient
         stats={stats}
         activities={MOCK_ACTIVITIES}

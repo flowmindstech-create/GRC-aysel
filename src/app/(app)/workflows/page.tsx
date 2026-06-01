@@ -27,7 +27,7 @@ import {
   Info
 } from 'lucide-react'
 
-// Define English & Azerbaijani labels for Risk Workflow steps
+// Define English labels and descriptions for GRC steps
 interface StepInfo {
   id: string
   label: string
@@ -36,22 +36,22 @@ interface StepInfo {
 }
 
 const RISK_STEPS: StepInfo[] = [
-  { id: 'identified', label: 'Risk Identified (Müəyyən Edildi)', desc: 'Yeni risk müəyyən edildi və qeydiyyat gözləyir.', phase: 'init' },
-  { id: 'registered', label: 'Registration (Qeydiyyat)', desc: 'Risk təsvir edilib, sahibi və kateqoriyası təyin olunub.', phase: 'init' },
-  { id: 'assessed_inherent', label: 'Inherent Assessment (Təbii Risk Qiymətləndirilməsi)', desc: 'Riskin hər hansı nəzarət tədbiri olmadan ehtimal və təsiri hesablanır.', phase: 'assess' },
-  { id: 'control_mapped', label: 'Control Mapping (Nəzarət Eşlənməsi)', desc: 'Riski azaltmaq üçün müvafiq compliance nəzarətləri təyin olunur.', phase: 'assess' },
-  { id: 'control_assessed', label: 'Control Effectiveness (Nəzarət Effektivliyi)', desc: 'Eşləşdirilmiş nəzarət mexanizmlərinin effektivliyi qiymətləndirilir.', phase: 'assess' },
-  { id: 'assessed_residual', label: 'Residual Assessment (Qalıq Risk Qiymətləndirilməsi)', desc: 'Nəzarət mexanizmləri nəzərə alınmaqla qalıq risk hesablanır.', phase: 'assess' },
-  { id: 'owner_review', label: 'Risk Owner Review (Risk Sahibinin Rəyi)', desc: 'Risk sahibi qiymətləndirmə nəticələrini və nəzarət tədbirlərini nəzərdən keçirir.', phase: 'review' },
-  { id: 'mgt_review', label: '2nd Line Review (Risk Menecment Rəyi)', desc: 'Risk Menecment funksiyası (2-ci xətt) qiymətləndirməni təsdiqləyir.', phase: 'review' },
-  { id: 'treatment_plan', label: 'Treatment Required (Tədbir Planı Tələbi)', desc: 'Qalıq risk iştah limitini keçdikdə müalicə planı tələb olunur.', phase: 'mitigate' },
-  { id: 'action_plan', label: 'Action Plan Creation (Fəaliyyət Planının Qurulması)', desc: 'Riskin azaldılması üçün addım-addım fəaliyyət planı hazırlanır.', phase: 'mitigate' },
-  { id: 'implementation', label: 'Implementation (İcra Mərhələsi)', desc: 'Müalicə planına uyğun tədbirlər həyata keçirilir.', phase: 'mitigate' },
-  { id: 'validation', label: 'Validation (Sübut Yoxlanması)', desc: 'Tədbirlərin icra edildiyinə dair sübutlar yüklənir və təsdiq olunur.', phase: 'mitigate' },
-  { id: 'residual_reassessment', label: 'Residual Reassessment (Qalıq Riskin Yenidən Hesablanması)', desc: 'Mitiqasiya addımlarından sonra qalıq risk səviyyəsi yenidən qiymətləndirilir.', phase: 'mitigate' },
-  { id: 'accepted', label: 'Accept Risk & Monitor (Riskin Qəbulu və Monitorinq)', desc: 'Risk iştaha uyğundur, qəbul edilir və dövri monitorinqə yönləndirilir.', phase: 'resolve' },
-  { id: 'escalated', label: 'Escalation (Eskalasiya və Komitə)', desc: 'Risk idarə edilə bilən səviyyədə deyil. Komitə və ya İdarə Heyətinə eskalasiya edilir.', phase: 'resolve' },
-  { id: 'closed', label: 'Closed (Bağlı)', desc: 'Risk tamamilə aradan qaldırılıb və ya bağlanıb.', phase: 'resolve' }
+  { id: 'identified', label: 'Risk Identified', desc: 'A new risk has been identified and is awaiting registration.', phase: 'init' },
+  { id: 'registered', label: 'Registration', desc: 'The risk is described, owner and category are assigned.', phase: 'init' },
+  { id: 'assessed_inherent', label: 'Inherent Assessment', desc: 'Likelihood and impact are assessed without any control measures.', phase: 'assess' },
+  { id: 'control_mapped', label: 'Control Mapping', desc: 'Applicable compliance controls are mapped to mitigate the risk.', phase: 'assess' },
+  { id: 'control_assessed', label: 'Control Effectiveness', desc: 'The effectiveness of mapped controls is evaluated.', phase: 'assess' },
+  { id: 'assessed_residual', label: 'Residual Assessment', desc: 'Residual risk level is calculated taking controls into account.', phase: 'assess' },
+  { id: 'owner_review', label: 'Risk Owner Review', desc: 'Risk owner reviews the assessment results and control measures.', phase: 'review' },
+  { id: 'mgt_review', label: '2nd Line Review', desc: 'Risk management function (2nd Line) approves the assessment.', phase: 'review' },
+  { id: 'treatment_plan', label: 'Treatment Required', desc: 'A treatment plan is required when residual risk exceeds appetite.', phase: 'mitigate' },
+  { id: 'action_plan', label: 'Action Plan Creation', desc: 'A step-by-step action plan is created to mitigate the risk.', phase: 'mitigate' },
+  { id: 'implementation', label: 'Implementation', desc: 'Mitigation measures are implemented according to the treatment plan.', phase: 'mitigate' },
+  { id: 'validation', label: 'Validation', desc: 'Evidence of implementation is uploaded and validated.', phase: 'mitigate' },
+  { id: 'residual_reassessment', label: 'Residual Reassessment', desc: 'Residual risk level is reassessed after mitigation steps.', phase: 'mitigate' },
+  { id: 'accepted', label: 'Accept Risk & Monitor', desc: 'Risk is within appetite, accepted, and routed for periodic monitoring.', phase: 'resolve' },
+  { id: 'escalated', label: 'Escalation', desc: 'Risk level is not acceptable. Escalated to Risk Committee or Board.', phase: 'resolve' },
+  { id: 'closed', label: 'Closed', desc: 'The risk is fully resolved or closed.', phase: 'resolve' }
 ]
 
 export default function WorkflowsPage() {
@@ -139,7 +139,7 @@ export default function WorkflowsPage() {
     }
     const saved = await db.saveRisk(updatedRisk)
     setRisks(prev => prev.map(r => r.id === saved.id ? saved : r))
-    toast.success(`Risk statusu yeniləndi: ${RISK_STEPS.find(s => s.id === saved.workflow_step)?.label}`)
+    toast.success(`Risk workflow updated: ${RISK_STEPS.find(s => s.id === saved.workflow_step)?.label}`)
   }
 
   // Handle step transitions for Risk Workflow
@@ -228,7 +228,7 @@ export default function WorkflowsPage() {
     setShowCreateIntake(false)
     setIntakeTitle('')
     setIntakeDesc('')
-    toast.success('Yeni GRC Intake qeydiyyata alındı!')
+    toast.success('New GRC Intake registered!')
   }
 
   // Handle Intake Progress Step
@@ -261,7 +261,7 @@ export default function WorkflowsPage() {
             id: 'r-' + Math.random().toString(36).substr(2, 9),
             org_id: selectedIntake.org_id,
             title: `[INTAKE GAP] ${selectedIntake.title}`,
-            description: `Vahid GRC Intake (${selectedIntake.id}) üzərində təsbit edilmiş uyğunsuzluq boşluğu. Açıqlama: ${selectedIntake.description}`,
+            description: `Compliance gap identified on GRC Intake (${selectedIntake.id}). Description: ${selectedIntake.description}`,
             category: selectedIntake.classification as any,
             level: 'medium',
             status: 'open',
@@ -275,7 +275,7 @@ export default function WorkflowsPage() {
           setRisks(prev => [savedRisk, ...prev])
           setSelectedRiskId(savedRisk.id)
           updates.risk_created_id = savedRisk.id
-          toast.success('Sistemdə yeni Risk qeydiyyatdan keçirildi və Risk Reyestrinə əlavə olundu!')
+          toast.success('New Risk created and routed to the Risk Register workflow!')
         } else {
           // Create a mock Issue Action Plan in activity
           await db.addActivity({
@@ -287,19 +287,19 @@ export default function WorkflowsPage() {
             entity_title: selectedIntake.title,
             created_at: new Date().toISOString()
           })
-          toast.success('Məsələ həlli planı (Issue Action Plan) qeydə alındı!')
+          toast.success('Issue action plan registered successfully!')
         }
       }
     }
 
     const saved = await db.saveGRCIntakeItem({ ...selectedIntake, ...updates })
     setIntakeItems(prev => prev.map(i => i.id === saved.id ? saved : i))
-    toast.success(`İntake mərhələsi yeniləndi: ${saved.step}`)
+    toast.success(`Intake stage updated to: ${saved.step}`)
   }
 
   return (
     <>
-      <TopNav title="İş Axınları (GRC Workflows)" subtitle="Risk Reyestri və Vahid GRC Giriş iş axınlarının vizual idarəedilməsi" />
+      <TopNav title="GRC Workflows" subtitle="Visual management of Risk Register and Unified GRC Intake lifecycles" />
       <main className="flex-1 overflow-y-auto p-6 space-y-6">
         
         {/* Navigation Tabs */}
@@ -314,7 +314,7 @@ export default function WorkflowsPage() {
           >
             <div className="flex items-center gap-2">
               <Sliders className="w-4 h-4" />
-              <span>Risk Reyestri İş Axını</span>
+              <span>Risk Registry Workflow</span>
             </div>
           </button>
           <button
@@ -327,7 +327,7 @@ export default function WorkflowsPage() {
           >
             <div className="flex items-center gap-2">
               <Layers className="w-4 h-4" />
-              <span>Vahid GRC Giriş İş Axını</span>
+              <span>Unified GRC Intake</span>
             </div>
           </button>
         </div>
@@ -340,8 +340,8 @@ export default function WorkflowsPage() {
             <div className="lg:col-span-2 card p-6 space-y-6">
               <div className="flex justify-between items-center">
                 <div>
-                  <h3 className="text-sm font-bold text-white uppercase tracking-wider">İş Axını Sxemi (Flowchart)</h3>
-                  <p className="text-xs text-slate-400 mt-1">Seçilmiş riskin iş axınındakı mərhələsi və gedişat sxemi.</p>
+                  <h3 className="text-sm font-bold text-white uppercase tracking-wider">Workflow Flowchart</h3>
+                  <p className="text-xs text-slate-400 mt-1">Current phase and routing of the selected risk in the registry.</p>
                 </div>
                 
                 {/* Risk Selector */}
@@ -364,7 +364,7 @@ export default function WorkflowsPage() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                     {/* Phase 1 */}
                     <div className="space-y-3 p-3 rounded-xl bg-slate-900/40 border border-white/5">
-                      <p className="text-[10px] font-bold text-indigo-400 uppercase tracking-wide border-b border-white/5 pb-1">Mərhələ 1: Giriş</p>
+                      <p className="text-[10px] font-bold text-indigo-400 uppercase tracking-wide border-b border-white/5 pb-1">Phase 1: Intake</p>
                       {['identified', 'registered'].map(stepId => {
                         const step = RISK_STEPS.find(s => s.id === stepId)!
                         const active = selectedRisk.workflow_step === stepId
@@ -379,7 +379,7 @@ export default function WorkflowsPage() {
                           >
                             <p className="font-bold flex items-center gap-1">
                               {active && <Sparkles className="w-3.5 h-3.5 text-indigo-400 shrink-0" />}
-                              {step.label.split(' (')[0]}
+                              {step.label}
                             </p>
                           </div>
                         )
@@ -388,7 +388,7 @@ export default function WorkflowsPage() {
 
                     {/* Phase 2 */}
                     <div className="space-y-3 p-3 rounded-xl bg-slate-900/40 border border-white/5">
-                      <p className="text-[10px] font-bold text-indigo-400 uppercase tracking-wide border-b border-white/5 pb-1">Mərhələ 2: Qiymətləndirmə</p>
+                      <p className="text-[10px] font-bold text-indigo-400 uppercase tracking-wide border-b border-white/5 pb-1">Phase 2: Assessment</p>
                       {['assessed_inherent', 'control_mapped', 'control_assessed', 'assessed_residual'].map(stepId => {
                         const step = RISK_STEPS.find(s => s.id === stepId)!
                         const active = selectedRisk.workflow_step === stepId
@@ -403,7 +403,7 @@ export default function WorkflowsPage() {
                           >
                             <p className="font-bold flex items-center gap-1">
                               {active && <Sparkles className="w-3.5 h-3.5 text-indigo-400 shrink-0" />}
-                              {step.label.split(' (')[0]}
+                              {step.label}
                             </p>
                           </div>
                         )
@@ -412,7 +412,7 @@ export default function WorkflowsPage() {
 
                     {/* Phase 3 */}
                     <div className="space-y-3 p-3 rounded-xl bg-slate-900/40 border border-white/5">
-                      <p className="text-[10px] font-bold text-indigo-400 uppercase tracking-wide border-b border-white/5 pb-1">Mərhələ 3: Razılaşma</p>
+                      <p className="text-[10px] font-bold text-indigo-400 uppercase tracking-wide border-b border-white/5 pb-1">Phase 3: Approval</p>
                       {['owner_review', 'mgt_review'].map(stepId => {
                         const step = RISK_STEPS.find(s => s.id === stepId)!
                         const active = selectedRisk.workflow_step === stepId
@@ -427,7 +427,7 @@ export default function WorkflowsPage() {
                           >
                             <p className="font-bold flex items-center gap-1">
                               {active && <Sparkles className="w-3.5 h-3.5 text-indigo-400 shrink-0" />}
-                              {step.label.split(' (')[0]}
+                              {step.label}
                             </p>
                           </div>
                         )
@@ -435,13 +435,13 @@ export default function WorkflowsPage() {
                       {/* Sub Appetite check representation */}
                       <div className="p-2.5 rounded-lg border border-dashed border-white/5 text-[10px] text-slate-500 bg-black/10">
                         <Info className="w-3.5 h-3.5 text-slate-400 inline mr-1" />
-                        Qalıq risk limit yoxlanışı (Limit: 8)
+                        Residual risk appetite check (Limit: 8)
                       </div>
                     </div>
 
                     {/* Phase 4 & 5 */}
                     <div className="space-y-3 p-3 rounded-xl bg-slate-900/40 border border-white/5">
-                      <p className="text-[10px] font-bold text-indigo-400 uppercase tracking-wide border-b border-white/5 pb-1">Mərhələ 4: Yekun</p>
+                      <p className="text-[10px] font-bold text-indigo-400 uppercase tracking-wide border-b border-white/5 pb-1">Phase 4: Resolution</p>
                       {['treatment_plan', 'action_plan', 'implementation', 'validation', 'residual_reassessment', 'accepted', 'escalated', 'closed'].map(stepId => {
                         const step = RISK_STEPS.find(s => s.id === stepId)!
                         const active = selectedRisk.workflow_step === stepId
@@ -459,7 +459,7 @@ export default function WorkflowsPage() {
                           >
                             <p className="font-bold flex items-center gap-1">
                               {active && <Sparkles className="w-3 h-3 text-indigo-400 shrink-0" />}
-                              {step.label.split(' (')[0]}
+                              {step.label}
                             </p>
                           </div>
                         )
@@ -471,13 +471,13 @@ export default function WorkflowsPage() {
                   <div className="p-4 rounded-xl bg-indigo-500/5 border border-indigo-500/10 text-xs flex gap-3 items-start">
                     <TrendingUp className="w-4 h-4 text-indigo-400 shrink-0 mt-0.5" />
                     <div>
-                      <p className="font-bold text-slate-300">Riskin Cari Statusu: {RISK_STEPS.find(s => s.id === selectedRisk.workflow_step)?.label}</p>
+                      <p className="font-bold text-slate-300">Current Risk Status: {RISK_STEPS.find(s => s.id === selectedRisk.workflow_step)?.label}</p>
                       <p className="text-slate-400 mt-1">{RISK_STEPS.find(s => s.id === selectedRisk.workflow_step)?.desc}</p>
                     </div>
                   </div>
                 </div>
               ) : (
-                <div className="text-center py-12 text-slate-400">Heç bir risk tapılmadı.</div>
+                <div className="text-center py-12 text-slate-400">No risks found.</div>
               )}
             </div>
 
@@ -486,11 +486,11 @@ export default function WorkflowsPage() {
               {selectedRisk ? (
                 <div className="space-y-6">
                   <div>
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-400 border border-indigo-500/10 uppercase">Aktiv Mərhələ</span>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-400 border border-indigo-500/10 uppercase">Active Step</span>
                     <h4 className="text-base font-bold text-white mt-2">
-                      {RISK_STEPS.find(s => s.id === selectedRisk.workflow_step)?.label.split(' (')[1]?.replace(')', '') || 'Qeydiyyat'}
+                      {RISK_STEPS.find(s => s.id === selectedRisk.workflow_step)?.label || 'Registration'}
                     </h4>
-                    <p className="text-xs text-slate-400 mt-1">İş axınında növbəti addıma keçmək üçün tələb olunan məlumatları doldurun.</p>
+                    <p className="text-xs text-slate-400 mt-1">Fill in required details to progress to the next step.</p>
                   </div>
 
                   {/* STEP ACTIONS */}
@@ -499,13 +499,13 @@ export default function WorkflowsPage() {
                     {/* Step: identified */}
                     {selectedRisk.workflow_step === 'identified' && (
                       <div className="space-y-3">
-                        <p className="text-xs text-slate-300 font-medium">Risk ilkin olaraq müəyyən olunub. Qeydiyyat mərhələsinə keçin.</p>
+                        <p className="text-xs text-slate-300 font-medium">Risk initially identified. Move to the registration phase.</p>
                         <button
                           onClick={() => handleProgressRisk('registered')}
                           className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
                         >
                           <Play className="w-3.5 h-3.5" />
-                          Qeydiyyatı Başlat
+                          Start Registration
                         </button>
                       </div>
                     )}
@@ -514,15 +514,15 @@ export default function WorkflowsPage() {
                     {selectedRisk.workflow_step === 'registered' && (
                       <div className="space-y-3">
                         <div className="text-xs space-y-1 text-slate-400">
-                          <p><strong>Başlıq:</strong> {selectedRisk.title}</p>
-                          <p><strong>Kateqoriya:</strong> {selectedRisk.category}</p>
-                          <p><strong>Sahibi:</strong> {selectedRisk.owner_name || 'Təyin olunmayıb'}</p>
+                          <p><strong>Title:</strong> {selectedRisk.title}</p>
+                          <p><strong>Category:</strong> {selectedRisk.category}</p>
+                          <p><strong>Owner:</strong> {selectedRisk.owner_name || 'Not assigned'}</p>
                         </div>
                         <button
                           onClick={() => handleProgressRisk('assessed_inherent')}
                           className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
                         >
-                          İlkin Qiymətləndirməyə Keç
+                          Go to Inherent Assessment
                           <ArrowRight className="w-3.5 h-3.5" />
                         </button>
                       </div>
@@ -533,8 +533,8 @@ export default function WorkflowsPage() {
                       <div className="space-y-4">
                         <div className="space-y-2">
                           <label className="text-xs font-bold text-slate-400 flex justify-between">
-                            <span>Likelihood (Ehtimal): {inhLikelihood}</span>
-                            <span className="text-[10px] text-slate-500">1 - Çox Aşağı, 5 - Çox Yüksək</span>
+                            <span>Likelihood: {inhLikelihood}</span>
+                            <span className="text-[10px] text-slate-500">1 - Very Low, 5 - Very High</span>
                           </label>
                           <input
                             type="range" min="1" max="5" value={inhLikelihood}
@@ -544,8 +544,8 @@ export default function WorkflowsPage() {
                         </div>
                         <div className="space-y-2">
                           <label className="text-xs font-bold text-slate-400 flex justify-between">
-                            <span>Impact (Təsir): {inhImpact}</span>
-                            <span className="text-[10px] text-slate-500">1 - Cüzi, 5 - Fəlakətli</span>
+                            <span>Impact: {inhImpact}</span>
+                            <span className="text-[10px] text-slate-500">1 - Negligible, 5 - Catastrophic</span>
                           </label>
                           <input
                             type="range" min="1" max="5" value={inhImpact}
@@ -554,14 +554,14 @@ export default function WorkflowsPage() {
                           />
                         </div>
                         <div className="p-3 bg-black/10 rounded-xl border border-white/5 flex justify-between items-center text-xs">
-                          <span className="font-bold text-slate-400">İlkin Risk Skoru:</span>
+                          <span className="font-bold text-slate-400">Inherent Risk Score:</span>
                           <span className="font-black text-lg text-rose-500">{inhLikelihood * inhImpact} / 25</span>
                         </div>
                         <button
                           onClick={() => handleProgressRisk('control_mapped')}
                           className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
                         >
-                          Nəzarət Eşləşməsinə Keç
+                          Go to Control Mapping
                           <ArrowRight className="w-3.5 h-3.5" />
                         </button>
                       </div>
@@ -570,7 +570,7 @@ export default function WorkflowsPage() {
                     {/* Step: control_mapped */}
                     {selectedRisk.workflow_step === 'control_mapped' && (
                       <div className="space-y-3">
-                        <label className="text-xs font-bold text-slate-400">Mövcud Compliance Nəzarət Mexanizmləri</label>
+                        <label className="text-xs font-bold text-slate-400">Available Compliance Controls</label>
                         <div className="max-h-40 overflow-y-auto space-y-1.5 pr-1">
                           {controls.map(c => {
                             const checked = mappedControlIds.includes(c.id)
@@ -598,7 +598,7 @@ export default function WorkflowsPage() {
                           onClick={() => handleProgressRisk('control_assessed')}
                           className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
                         >
-                          Effektivliyin Qiymətləndirilməsinə Keç
+                          Go to Effectiveness Assessment
                           <ArrowRight className="w-3.5 h-3.5" />
                         </button>
                       </div>
@@ -607,12 +607,12 @@ export default function WorkflowsPage() {
                     {/* Step: control_assessed */}
                     {selectedRisk.workflow_step === 'control_assessed' && (
                       <div className="space-y-3">
-                        <label className="text-xs font-bold text-slate-400">Nəzarət Mexanizmlərinin Effektivliyi</label>
+                        <label className="text-xs font-bold text-slate-400">Control Effectiveness</label>
                         <div className="grid grid-cols-3 gap-2">
                           {[
-                            { value: 'effective', label: 'Effektiv', color: 'border-emerald-500/20 text-emerald-400 bg-emerald-500/5' },
-                            { value: 'partially_effective', label: 'Qismən', color: 'border-amber-500/20 text-amber-400 bg-amber-500/5' },
-                            { value: 'ineffective', label: 'Effektiv deyil', color: 'border-rose-500/20 text-rose-400 bg-rose-500/5' }
+                            { value: 'effective', label: 'Effective' },
+                            { value: 'partially_effective', label: 'Partially' },
+                            { value: 'ineffective', label: 'Ineffective' }
                           ].map(opt => (
                             <button
                               key={opt.value}
@@ -631,7 +631,7 @@ export default function WorkflowsPage() {
                           onClick={() => handleProgressRisk('assessed_residual')}
                           className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
                         >
-                          Qalıq Riskin Qiymətləndirilməsinə Keç
+                          Go to Residual Assessment
                           <ArrowRight className="w-3.5 h-3.5" />
                         </button>
                       </div>
@@ -640,10 +640,10 @@ export default function WorkflowsPage() {
                     {/* Step: assessed_residual */}
                     {selectedRisk.workflow_step === 'assessed_residual' && (
                       <div className="space-y-4">
-                        <p className="text-[10px] text-indigo-400">İlkin Risk Skoru: {selectedRisk.inherent_likelihood! * selectedRisk.inherent_impact!} (Likelihood {selectedRisk.inherent_likelihood} × Impact {selectedRisk.inherent_impact})</p>
+                        <p className="text-[10px] text-indigo-400">Inherent Risk Score: {selectedRisk.inherent_likelihood! * selectedRisk.inherent_impact!} (Likelihood {selectedRisk.inherent_likelihood} × Impact {selectedRisk.inherent_impact})</p>
                         <div className="space-y-2">
                           <label className="text-xs font-bold text-slate-400 flex justify-between">
-                            <span>Qalıq Likelihood: {resLikelihood}</span>
+                            <span>Residual Likelihood: {resLikelihood}</span>
                           </label>
                           <input
                             type="range" min="1" max="5" value={resLikelihood}
@@ -653,7 +653,7 @@ export default function WorkflowsPage() {
                         </div>
                         <div className="space-y-2">
                           <label className="text-xs font-bold text-slate-400 flex justify-between">
-                            <span>Qalıq Impact: {resImpact}</span>
+                            <span>Residual Impact: {resImpact}</span>
                           </label>
                           <input
                             type="range" min="1" max="5" value={resImpact}
@@ -662,14 +662,14 @@ export default function WorkflowsPage() {
                           />
                         </div>
                         <div className="p-3 bg-black/10 rounded-xl border border-white/5 flex justify-between items-center text-xs">
-                          <span className="font-bold text-slate-400">Qalıq Risk Skoru:</span>
+                          <span className="font-bold text-slate-400">Residual Risk Score:</span>
                           <span className="font-black text-lg text-amber-500">{resLikelihood * resImpact} / 25</span>
                         </div>
                         <button
                           onClick={() => handleProgressRisk('owner_review')}
                           className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
                         >
-                          Risk Sahibinin Rəyinə Göndər
+                          Send to Owner Review
                           <ArrowRight className="w-3.5 h-3.5" />
                         </button>
                       </div>
@@ -678,14 +678,14 @@ export default function WorkflowsPage() {
                     {/* Step: owner_review */}
                     {selectedRisk.workflow_step === 'owner_review' && (
                       <div className="space-y-3">
-                        <p className="text-xs text-slate-300"><strong>Risk Sahibi:</strong> {selectedRisk.owner_name || 'Rəhbərlik'}</p>
-                        <p className="text-xs text-slate-400 italic">"Bu qiymətləndirmə real vəziyyəti əks etdirir və təklif edilən nəzarət mexanizmləri uyğundur."</p>
+                        <p className="text-xs text-slate-300"><strong>Risk Owner:</strong> {selectedRisk.owner_name || 'Management'}</p>
+                        <p className="text-xs text-slate-400 italic">"This assessment reflects the real situation and the proposed controls are appropriate."</p>
                         <button
                           onClick={() => handleProgressRisk('mgt_review')}
                           className="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
                         >
                           <Check className="w-3.5 h-3.5" />
-                          Təsdiqlə (Approve)
+                          Approve
                         </button>
                       </div>
                     )}
@@ -693,12 +693,12 @@ export default function WorkflowsPage() {
                     {/* Step: mgt_review */}
                     {selectedRisk.workflow_step === 'mgt_review' && (
                       <div className="space-y-3">
-                        <p className="text-xs text-slate-300"><strong>2-ci Xətt Review:</strong> Risk Menecment şöbəsinin təsdiqi.</p>
+                        <p className="text-xs text-slate-300"><strong>2nd Line Review:</strong> Approval by Risk Management.</p>
                         <button
                           onClick={() => handleProgressRisk('appetite_check')}
                           className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
                         >
-                          2-ci Xətt Təsdiqi və Limit Yoxlanışı
+                          2nd Line Approval & Appetite Check
                         </button>
                       </div>
                     )}
@@ -708,12 +708,12 @@ export default function WorkflowsPage() {
                       <div className="space-y-3">
                         <div className="p-3 bg-rose-500/10 border border-rose-500/20 text-xs text-rose-400 rounded-lg">
                           <AlertTriangle className="w-4 h-4 inline mr-1.5" />
-                          Qalıq Risk ({selectedRisk.residual_likelihood! * selectedRisk.residual_impact!}) Risk İştahası Limitindən (8) yüksəkdir! Müalicə planı mütləqdir.
+                          Residual Risk ({selectedRisk.residual_likelihood! * selectedRisk.residual_impact!}) exceeds Appetite Limit (8)! Treatment plan is required.
                         </div>
                         <div className="space-y-1.5">
-                          <label className="text-xs font-bold text-slate-400">Müalicə Strategiyası (Treatment Plan)</label>
+                          <label className="text-xs font-bold text-slate-400">Treatment Strategy (Treatment Plan)</label>
                           <textarea
-                            placeholder="Riskin azaldılması üzrə müalicə strategiyasını təsvir edin..."
+                            placeholder="Describe the treatment strategy to mitigate the risk..."
                             value={treatmentPlan}
                             onChange={(e) => setTreatmentPlan(e.target.value)}
                             rows={3}
@@ -725,7 +725,7 @@ export default function WorkflowsPage() {
                           disabled={!treatmentPlan.trim()}
                           className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-colors disabled:opacity-50"
                         >
-                          Fəaliyyət Planına Keç
+                          Go to Action Plan
                           <ArrowRight className="w-3.5 h-3.5" />
                         </button>
                       </div>
@@ -735,9 +735,9 @@ export default function WorkflowsPage() {
                     {selectedRisk.workflow_step === 'action_plan' && (
                       <div className="space-y-3">
                         <div className="space-y-1.5">
-                          <label className="text-xs font-bold text-slate-400">Konkret Fəaliyyət Planı və Tapşırıqlar</label>
+                          <label className="text-xs font-bold text-slate-400">Action Plan Details & Tasks</label>
                           <textarea
-                            placeholder="Görüləcək tədbirlər, məsul şəxslər və son icra tarixləri..."
+                            placeholder="Mitigation steps, owners, and target deadlines..."
                             value={actionPlan}
                             onChange={(e) => setActionPlan(e.target.value)}
                             rows={3}
@@ -749,7 +749,7 @@ export default function WorkflowsPage() {
                           disabled={!actionPlan.trim()}
                           className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-colors disabled:opacity-50"
                         >
-                          İcra Mərhələsinə Göndər
+                          Send to Implementation
                           <ArrowRight className="w-3.5 h-3.5" />
                         </button>
                       </div>
@@ -758,13 +758,13 @@ export default function WorkflowsPage() {
                     {/* Step: implementation */}
                     {selectedRisk.workflow_step === 'implementation' && (
                       <div className="space-y-3">
-                        <p className="text-xs text-slate-300"><strong>Fəaliyyət Planı İcra Olunur:</strong></p>
+                        <p className="text-xs text-slate-300"><strong>Action Plan in Progress:</strong></p>
                         <p className="text-xs text-slate-400 p-2.5 bg-black/10 rounded-lg">{selectedRisk.action_plan}</p>
                         <button
                           onClick={() => handleProgressRisk('validation')}
                           className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
                         >
-                          Tədbirlərin İcrasını Tamamla & Sübut Yüklə
+                          Complete Actions & Upload Evidence
                         </button>
                       </div>
                     )}
@@ -773,9 +773,9 @@ export default function WorkflowsPage() {
                     {selectedRisk.workflow_step === 'validation' && (
                       <div className="space-y-3">
                         <div className="space-y-1.5">
-                          <label className="text-xs font-bold text-slate-400">İcra Sübutu (Evidence Note / File link)</label>
+                          <label className="text-xs font-bold text-slate-400">Evidence of Implementation (Note/Link)</label>
                           <textarea
-                            placeholder="Məsələn, konfiqurasiya dəyişikliyinin skrinşotu, hesabat linki..."
+                            placeholder="e.g., config change screenshot, report link..."
                             value={validationEvidence}
                             onChange={(e) => setValidationEvidence(e.target.value)}
                             rows={3}
@@ -787,7 +787,7 @@ export default function WorkflowsPage() {
                           disabled={!validationEvidence.trim()}
                           className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-colors disabled:opacity-50"
                         >
-                          Riskin Yenidən Qiymətləndirilməsi
+                          Reassess Risk
                         </button>
                       </div>
                     )}
@@ -795,10 +795,10 @@ export default function WorkflowsPage() {
                     {/* Step: residual_reassessment */}
                     {selectedRisk.workflow_step === 'residual_reassessment' && (
                       <div className="space-y-4">
-                        <p className="text-xs text-slate-300 font-semibold">Tədbirlərdən sonra yeni Qalıq Risk dəyərlərini daxil edin:</p>
+                        <p className="text-xs text-slate-300 font-semibold">Enter new Residual Risk values after implementation:</p>
                         <div className="space-y-2">
                           <label className="text-xs font-bold text-slate-400 flex justify-between">
-                            <span>Yeni Qalıq Likelihood: {resLikelihood}</span>
+                            <span>New Residual Likelihood: {resLikelihood}</span>
                           </label>
                           <input
                             type="range" min="1" max="5" value={resLikelihood}
@@ -808,7 +808,7 @@ export default function WorkflowsPage() {
                         </div>
                         <div className="space-y-2">
                           <label className="text-xs font-bold text-slate-400 flex justify-between">
-                            <span>Yeni Qalıq Impact: {resImpact}</span>
+                            <span>New Residual Impact: {resImpact}</span>
                           </label>
                           <input
                             type="range" min="1" max="5" value={resImpact}
@@ -817,14 +817,14 @@ export default function WorkflowsPage() {
                           />
                         </div>
                         <div className="p-3 bg-black/10 rounded-xl border border-white/5 flex justify-between items-center text-xs">
-                          <span className="font-bold text-slate-400">Yeni Qalıq Risk Skoru:</span>
+                          <span className="font-bold text-slate-400">New Residual Risk Score:</span>
                           <span className="font-black text-lg text-emerald-500">{resLikelihood * resImpact} / 25</span>
                         </div>
                         <button
                           onClick={() => handleProgressRisk('verify_reassessment')}
                           className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
                         >
-                          Limit Uyğunluğunu Yoxla
+                          Verify Appetite Check
                         </button>
                       </div>
                     )}
@@ -834,13 +834,13 @@ export default function WorkflowsPage() {
                       <div className="space-y-3">
                         <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-400 rounded-lg">
                           <CheckCircle className="w-4 h-4 inline mr-1.5" />
-                          Risk məqbul səviyyədədir və monitorinqdədir.
+                          Risk is at an acceptable level and under monitoring.
                         </div>
                         <button
                           onClick={() => handleProgressRisk('closed')}
                           className="w-full py-2 bg-slate-800 hover:bg-slate-700 border border-white/5 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
                         >
-                          Riski Bağla (Close)
+                          Close Risk
                         </button>
                       </div>
                     )}
@@ -850,16 +850,16 @@ export default function WorkflowsPage() {
                       <div className="space-y-4">
                         <div className="p-3 bg-red-500/10 border border-red-500/20 text-xs text-red-400 rounded-lg">
                           <AlertTriangle className="w-4 h-4 inline mr-1.5" />
-                          Risk səviyyəsi yenə də limitdən yüksəkdir! Komitə və İdarə Heyəti (Board) səviyyəsində qərar tələb olunur.
+                          Risk level remains above limit! Board or Committee decision required.
                         </div>
                         <div className="space-y-1.5">
-                          <label className="text-xs font-bold text-slate-400">İdarə Heyətinin Qərarı (Executive Decision)</label>
+                          <label className="text-xs font-bold text-slate-400">Board Decision (Executive Decision)</label>
                           <div className="grid grid-cols-2 gap-2 text-[10px]">
                             {[
-                              { value: 'accept', label: 'Riski Qəbul Et' },
-                              { value: 'mitigate', label: 'Əlavə Tədbir Gör' },
-                              { value: 'transfer', label: 'Riski Ötür (Sığorta)' },
-                              { value: 'avoid', label: 'Riskdən Qaçın (Dayandır)' }
+                              { value: 'accept', label: 'Accept Risk' },
+                              { value: 'mitigate', label: 'Mitigate Risk' },
+                              { value: 'transfer', label: 'Transfer Risk (Insurance)' },
+                              { value: 'avoid', label: 'Avoid Risk (Terminate)' }
                             ].map(opt => (
                               <button
                                 key={opt.value}
@@ -879,7 +879,7 @@ export default function WorkflowsPage() {
                           onClick={() => handleProgressRisk('escalated_decision')}
                           className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
                         >
-                          Qərarı Tətbiq Et və Bağla
+                          Apply Decision & Close
                         </button>
                       </div>
                     )}
@@ -888,13 +888,13 @@ export default function WorkflowsPage() {
                     {selectedRisk.workflow_step === 'closed' && (
                       <div className="space-y-3">
                         <div className="p-3 bg-slate-500/10 border border-white/5 text-xs text-slate-400 rounded-lg text-center font-semibold">
-                          Fayl Bağlanıb. Risk fəaliyyəti tamamlanmışdır.
+                          File Closed. Risk mitigation completed.
                         </div>
                         <button
                           onClick={() => handleProgressRisk('identified')}
                           className="w-full py-2 bg-slate-800 hover:bg-slate-700 border border-white/5 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
                         >
-                          Yenidən Aktiv Et
+                          Re-activate
                         </button>
                       </div>
                     )}
@@ -902,7 +902,7 @@ export default function WorkflowsPage() {
                   </div>
                 </div>
               ) : (
-                <div className="text-center text-slate-400 py-12">Detalları görmək üçün risk seçin.</div>
+                <div className="text-center text-slate-400 py-12">Select a risk to view details.</div>
               )}
 
               {/* Reset State Button */}
@@ -911,7 +911,7 @@ export default function WorkflowsPage() {
                   onClick={() => handleProgressRisk('identified')}
                   className="mt-6 text-[10px] text-slate-500 hover:text-slate-300 font-semibold uppercase tracking-wider text-center cursor-pointer"
                 >
-                  İş axınını sıfırla (Reset)
+                  Reset Workflow
                 </button>
               )}
             </div>
@@ -927,8 +927,8 @@ export default function WorkflowsPage() {
             <div className="card p-6 space-y-6">
               <div className="flex justify-between items-center">
                 <div>
-                  <h3 className="text-sm font-bold text-white uppercase tracking-wider">GRC Giriş Qeydləri</h3>
-                  <p className="text-xs text-slate-400 mt-1">İlkin daxil olmuş tələb, audit tapıntıları və insidentlər.</p>
+                  <h3 className="text-sm font-bold text-white uppercase tracking-wider">GRC Intake Records</h3>
+                  <p className="text-xs text-slate-400 mt-1">Initial requirements, audit findings, and incidents.</p>
                 </div>
                 <button
                   onClick={() => setShowCreateIntake(true)}
@@ -942,21 +942,21 @@ export default function WorkflowsPage() {
               {showCreateIntake && (
                 <form onSubmit={handleCreateIntake} className="p-4 rounded-xl bg-slate-900 border border-indigo-500/20 space-y-3 animate-fade-in">
                   <div className="flex justify-between items-center border-b border-white/5 pb-2">
-                    <p className="text-xs font-bold text-indigo-400">Yeni GRC Qeydi</p>
-                    <button type="button" onClick={() => setShowCreateIntake(false)} className="text-[10px] text-slate-500 hover:text-slate-400">Ləğv et</button>
+                    <p className="text-xs font-bold text-indigo-400">New GRC Record</p>
+                    <button type="button" onClick={() => setShowCreateIntake(false)} className="text-[10px] text-slate-500 hover:text-slate-400">Cancel</button>
                   </div>
                   <div className="space-y-1">
-                    <label className="text-[10px] font-semibold text-slate-400">Başlıq</label>
+                    <label className="text-[10px] font-semibold text-slate-400">Title</label>
                     <input
-                      type="text" required placeholder="Məsələn: Zəif şifrə siyasəti..."
+                      type="text" required placeholder="e.g., Weak password policy..."
                       value={intakeTitle} onChange={e => setIntakeTitle(e.target.value)}
                       className="w-full px-2.5 py-1.5 rounded-lg text-xs bg-black/20 border border-white/10 text-white outline-none focus:border-indigo-500"
                     />
                   </div>
                   <div className="space-y-1">
-                    <label className="text-[10px] font-semibold text-slate-400">Təsvir</label>
+                    <label className="text-[10px] font-semibold text-slate-400">Description</label>
                     <textarea
-                      placeholder="Ətraflı məlumat daxil edin..."
+                      placeholder="Enter detailed description..."
                       value={intakeDesc} onChange={e => setIntakeDesc(e.target.value)}
                       className="w-full px-2.5 py-1.5 rounded-lg text-xs bg-black/20 border border-white/10 text-white outline-none focus:border-indigo-500"
                       rows={2}
@@ -964,7 +964,7 @@ export default function WorkflowsPage() {
                   </div>
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <label className="text-[10px] font-semibold text-slate-400">Növü</label>
+                      <label className="text-[10px] font-semibold text-slate-400">Type</label>
                       <select
                         value={intakeType} onChange={e => setIntakeType(e.target.value as any)}
                         className="w-full px-2 py-1 rounded bg-slate-800 border border-white/10 text-[11px] text-white"
@@ -976,7 +976,7 @@ export default function WorkflowsPage() {
                       </select>
                     </div>
                     <div>
-                      <label className="text-[10px] font-semibold text-slate-400">Təsnifat</label>
+                      <label className="text-[10px] font-semibold text-slate-400">Classification</label>
                       <select
                         value={intakeClass} onChange={e => setIntakeClass(e.target.value)}
                         className="w-full px-2 py-1 rounded bg-slate-800 border border-white/10 text-[11px] text-white"
@@ -992,7 +992,7 @@ export default function WorkflowsPage() {
                     type="submit"
                     className="w-full py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg cursor-pointer"
                   >
-                    Qeyd et
+                    Submit
                   </button>
                 </form>
               )}
@@ -1025,13 +1025,13 @@ export default function WorkflowsPage() {
                         <p className="text-[10px] text-slate-400 mt-1 truncate">{item.description}</p>
                         <div className="flex justify-between items-center mt-2.5 text-[9px] text-slate-500">
                           <span>Status: <strong>{item.status}</strong></span>
-                          <span>Mərhələ: <strong>{item.step}</strong></span>
+                          <span>Step: <strong>{item.step}</strong></span>
                         </div>
                       </div>
                     )
                   })
                 ) : (
-                  <div className="text-center text-slate-500 py-12 text-xs">GRC girişi üçün hələ qeyd yaradılmayıb. Sağ üst küncdəki düymədən əlavə edin.</div>
+                  <div className="text-center text-slate-500 py-12 text-xs">No GRC records created yet. Add one using the top-right button.</div>
                 )}
               </div>
             </div>
@@ -1043,18 +1043,18 @@ export default function WorkflowsPage() {
                   
                   {/* Visual Intake Stepper Progress */}
                   <div>
-                    <h3 className="text-sm font-bold text-white uppercase tracking-wider">Giriş və Uyğunluq Mərhələləri</h3>
+                    <h3 className="text-sm font-bold text-white uppercase tracking-wider">GRC Intake & Compliance Steps</h3>
                     
                     {/* Desktop view stepper */}
                     <div className="hidden md:flex items-center gap-1 mt-4">
                       {[
-                        { step: 'registration', label: '1. Giriş' },
-                        { step: 'classification', label: '2. Təsnifat' },
-                        { step: 'control_mapping', label: '3. Nəzarət Eşlənməsi' },
-                        { step: 'evidence_collection', label: '4. Sübut' },
-                        { step: 'compliance_assessment', label: '5. Qiymətləndirmə' },
-                        { step: 'gap_assessment', label: '6. Boşluq/Nəticə' },
-                        { step: 'closed', label: '7. Bağlı' }
+                        { step: 'registration', label: '1. Intake' },
+                        { step: 'classification', label: '2. Classification' },
+                        { step: 'control_mapping', label: '3. Control Mapping' },
+                        { step: 'evidence_collection', label: '4. Evidence' },
+                        { step: 'compliance_assessment', label: '5. Assessment' },
+                        { step: 'gap_assessment', label: '6. Gap/Result' },
+                        { step: 'closed', label: '7. Closed' }
                       ].map((s, idx, arr) => {
                         const active = selectedIntake.step === s.step
                         const stepsOrder = arr.map(x => x.step)
@@ -1081,20 +1081,20 @@ export default function WorkflowsPage() {
                     <div className="flex md:hidden items-center justify-between p-3 rounded-xl bg-slate-900 border border-white/5 mt-4">
                       <div>
                         <p className="text-[10px] text-indigo-400 uppercase font-bold">
-                          Mərhələ {[
+                          Step {[
                             'registration', 'classification', 'control_mapping', 
                             'evidence_collection', 'compliance_assessment', 'gap_assessment', 'closed'
                           ].indexOf(selectedIntake.step) + 1} / 7
                         </p>
                         <p className="text-xs font-bold text-white mt-0.5">
                           {[
-                            { step: 'registration', label: 'Giriş' },
-                            { step: 'classification', label: 'Təsnifat' },
-                            { step: 'control_mapping', label: 'Nəzarət Eşlənməsi' },
-                            { step: 'evidence_collection', label: 'Sübut Toplanması' },
-                            { step: 'compliance_assessment', label: 'Uyğunluq Qiymətləndirilməsi' },
-                            { step: 'gap_assessment', label: 'Boşluq Təsbiti' },
-                            { step: 'closed', label: 'Mərhələ Bağlı' }
+                            { step: 'registration', label: 'Intake' },
+                            { step: 'classification', label: 'Classification' },
+                            { step: 'control_mapping', label: 'Control Mapping' },
+                            { step: 'evidence_collection', label: 'Evidence Collection' },
+                            { step: 'compliance_assessment', label: 'Compliance Assessment' },
+                            { step: 'gap_assessment', label: 'Gap Assessment' },
+                            { step: 'closed', label: 'Closed' }
                           ].find(x => x.step === selectedIntake.step)?.label}
                         </p>
                       </div>
@@ -1110,24 +1110,24 @@ export default function WorkflowsPage() {
                   {/* ACTIVE STEP CARD */}
                   <div className="p-5 rounded-xl bg-slate-900/60 border border-white/5 space-y-4">
                     <div className="flex justify-between items-center border-b border-white/5 pb-2">
-                      <span className="text-[10px] font-bold text-indigo-400 uppercase">Cari Addım Fəaliyyəti</span>
-                      <span className="text-[10px] text-slate-500">Mənbə ID: {selectedIntake.id}</span>
+                      <span className="text-[10px] font-bold text-indigo-400 uppercase">Active Step Action</span>
+                      <span className="text-[10px] text-slate-500">Source ID: {selectedIntake.id}</span>
                     </div>
 
                     {/* Step Content: registration */}
                     {selectedIntake.step === 'registration' && (
                       <div className="space-y-3">
-                        <p className="text-xs text-slate-300"><strong>Daxil olan qeydiyyat təsdiqi:</strong></p>
+                        <p className="text-xs text-slate-300"><strong>Incoming registration confirmation:</strong></p>
                         <div className="p-3 bg-black/10 rounded-lg text-xs space-y-1 text-slate-400">
-                          <p><strong>Növ:</strong> {selectedIntake.type.toUpperCase()}</p>
-                          <p><strong>Başlıq:</strong> {selectedIntake.title}</p>
-                          <p><strong>Təsvir:</strong> {selectedIntake.description}</p>
+                          <p><strong>Type:</strong> {selectedIntake.type.toUpperCase()}</p>
+                          <p><strong>Title:</strong> {selectedIntake.title}</p>
+                          <p><strong>Description:</strong> {selectedIntake.description}</p>
                         </div>
                         <button
                           onClick={() => handleProgressIntake('classification')}
                           className="py-2 px-4 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl cursor-pointer"
                         >
-                          Təsnifat Mərhələsinə Keç
+                          Go to Classification
                         </button>
                       </div>
                     )}
@@ -1135,16 +1135,16 @@ export default function WorkflowsPage() {
                     {/* Step: classification */}
                     {selectedIntake.step === 'classification' && (
                       <div className="space-y-3">
-                        <p className="text-xs text-slate-300"><strong>Klassifikasiya və Audit strukturu müəyyən edilir:</strong></p>
+                        <p className="text-xs text-slate-300"><strong>Determining classification and audit structure:</strong></p>
                         <div className="p-3 bg-black/10 rounded-lg text-xs space-y-1 text-slate-400">
-                          <p><strong>Sistem Təsnifatı:</strong> {selectedIntake.classification.toUpperCase()}</p>
+                          <p><strong>System Classification:</strong> {selectedIntake.classification.toUpperCase()}</p>
                           <p><strong>Org ID:</strong> {selectedIntake.org_id}</p>
                         </div>
                         <button
                           onClick={() => handleProgressIntake('control_mapping')}
                           className="py-2 px-4 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl cursor-pointer"
                         >
-                          Nəzarət Mexanizmi Eşlənməsinə Keç
+                          Go to Control Mapping
                         </button>
                       </div>
                     )}
@@ -1152,7 +1152,7 @@ export default function WorkflowsPage() {
                     {/* Step: control_mapping */}
                     {selectedIntake.step === 'control_mapping' && (
                       <div className="space-y-3">
-                        <p className="text-xs text-slate-300"><strong>Uyğunluq nəzarət bəndlərini seçin:</strong></p>
+                        <p className="text-xs text-slate-300"><strong>Select compliance controls to map:</strong></p>
                         <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto">
                           {controls.map(c => {
                             const checked = intakeControlIds.includes(c.id)
@@ -1179,7 +1179,7 @@ export default function WorkflowsPage() {
                           onClick={() => handleProgressIntake('evidence_collection')}
                           className="py-2 px-4 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl cursor-pointer"
                         >
-                          Sübutların Toplanmasına Keç
+                          Go to Evidence Collection
                         </button>
                       </div>
                     )}
@@ -1187,15 +1187,15 @@ export default function WorkflowsPage() {
                     {/* Step: evidence_collection */}
                     {selectedIntake.step === 'evidence_collection' && (
                       <div className="space-y-3">
-                        <p className="text-xs text-slate-300"><strong>Uyğunluq üçün sübut təsvirini daxil edin:</strong></p>
+                        <p className="text-xs text-slate-300"><strong>Enter evidence description for compliance:</strong></p>
                         <div className="space-y-2">
                           <input
-                            type="text" placeholder="Sübut sənəd URL-i (məs: https://drive.google.com/...)"
+                            type="text" placeholder="Evidence document URL (e.g., https://drive.google.com/...)"
                             value={intakeEvidenceUrl} onChange={e => setIntakeEvidenceUrl(e.target.value)}
                             className="w-full px-3 py-2 rounded-xl text-xs bg-black/20 border border-white/10 text-white outline-none focus:border-indigo-500"
                           />
                           <textarea
-                            placeholder="Sübut haqqında qeyd..."
+                            placeholder="Evidence note..."
                             value={intakeEvidenceNote} onChange={e => setIntakeEvidenceNote(e.target.value)}
                             className="w-full px-3 py-2 rounded-xl text-xs bg-black/20 border border-white/10 text-white outline-none focus:border-indigo-500"
                             rows={2}
@@ -1205,7 +1205,7 @@ export default function WorkflowsPage() {
                           onClick={() => handleProgressIntake('compliance_assessment')}
                           className="py-2 px-4 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl cursor-pointer"
                         >
-                          Uyğunluq Qiymətləndirilməsinə Başla
+                          Start Compliance Assessment
                         </button>
                       </div>
                     )}
@@ -1213,7 +1213,7 @@ export default function WorkflowsPage() {
                     {/* Step: compliance_assessment */}
                     {selectedIntake.step === 'compliance_assessment' && (
                       <div className="space-y-4">
-                        <p className="text-xs text-slate-300 font-semibold">Təqdim olunmuş sübutlar və nəzarət eşlənməsi əsasında uyğunluq rəyi verin:</p>
+                        <p className="text-xs text-slate-300 font-semibold">Assess compliance based on provided evidence and control mapping:</p>
                         <div className="flex gap-4">
                           <button
                             onClick={() => setIntakeIsCompliant(true)}
@@ -1224,7 +1224,7 @@ export default function WorkflowsPage() {
                             }`}
                           >
                             <CheckCircle className="w-5 h-5 mx-auto mb-1 text-emerald-400" />
-                            Tam Uyğundur (Compliant)
+                            Fully Compliant
                           </button>
                           <button
                             onClick={() => setIntakeIsCompliant(false)}
@@ -1235,14 +1235,14 @@ export default function WorkflowsPage() {
                             }`}
                           >
                             <AlertCircle className="w-5 h-5 mx-auto mb-1 text-rose-400" />
-                            Boşluq var (Gap Identified)
+                            Gap Identified
                           </button>
                         </div>
                         <button
                           onClick={() => handleProgressIntake('gap_assessment')}
                           className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl cursor-pointer"
                         >
-                          Boşluq Təsbit Mərhələsinə Keç
+                          Go to Gap Assessment
                         </button>
                       </div>
                     )}
@@ -1252,21 +1252,21 @@ export default function WorkflowsPage() {
                       <div className="space-y-4">
                         {!selectedIntake.gap_identified ? (
                           <div className="space-y-3">
-                            <p className="text-xs text-slate-300"><strong>Uyğunluq nəticəsi:</strong> Boşluq (Gap) təsbit edilmədi. Sistem tam uyğundur.</p>
+                            <p className="text-xs text-slate-300"><strong>Compliance outcome:</strong> No gap identified. The system is fully compliant.</p>
                             <button
                               onClick={() => handleProgressIntake('closed')}
                               className="py-2 px-4 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-xl cursor-pointer"
                             >
-                              İş axınını bağla (Compliant & Closed)
+                              Close Workflow (Compliant & Closed)
                             </button>
                           </div>
                         ) : (
                           <div className="space-y-4">
                             <div className="p-3 bg-rose-500/10 border border-rose-500/20 text-xs text-rose-400 rounded-lg">
-                              Qeyri-uyğunluq (Non Compliance) aşkar edilmişdir! Tənzimləyici addım tələb olunur.
+                              Non Compliance detected! Remediation action required.
                             </div>
                             <div className="space-y-2">
-                              <p className="text-xs font-bold text-slate-400">Risk reyestrində yeni Risk təbəqəsi yaradılsın?</p>
+                              <p className="text-xs font-bold text-slate-400">Should a new Risk be registered in the Risk Register?</p>
                               <div className="flex gap-2 text-xs">
                                 <button
                                   type="button" onClick={() => setIntakeGapRiskRequired(true)}
@@ -1274,7 +1274,7 @@ export default function WorkflowsPage() {
                                     intakeGapRiskRequired ? 'border-indigo-500 text-white bg-indigo-500/5' : 'border-white/5 text-slate-400'
                                   }`}
                                 >
-                                  Bəli (Risk Yaradılsın)
+                                  Yes (Create Risk)
                                 </button>
                                 <button
                                   type="button" onClick={() => setIntakeGapRiskRequired(false)}
@@ -1282,16 +1282,16 @@ export default function WorkflowsPage() {
                                     !intakeGapRiskRequired ? 'border-indigo-500 text-white bg-indigo-500/5' : 'border-white/5 text-slate-400'
                                   }`}
                                 >
-                                  Xeyr (Yalnız Məsələ Yaradılsın)
+                                  No (Create Issue Only)
                                 </button>
                               </div>
                             </div>
 
                             {!intakeGapRiskRequired && (
                               <div className="space-y-1">
-                                <label className="text-xs font-bold text-slate-400">Məsələ Üzrə Fəaliyyət Planı (Issue Management)</label>
+                                <label className="text-xs font-bold text-slate-400">Issue Action Plan (Issue Management)</label>
                                 <textarea
-                                  placeholder="Məsələni həll etmək üçün addımlar..."
+                                  placeholder="Steps to resolve the issue..."
                                   value={intakeIssuePlan} onChange={e => setIntakeIssuePlan(e.target.value)}
                                   className="w-full px-3 py-2 rounded-xl text-xs bg-black/20 border border-white/10 text-white outline-none focus:border-indigo-500"
                                   rows={2}
@@ -1303,7 +1303,7 @@ export default function WorkflowsPage() {
                               onClick={() => handleProgressIntake('closed')}
                               className="w-full py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold rounded-xl cursor-pointer"
                             >
-                              Tənzimləməni İcra Et və Bağla (Resolve & Close)
+                              Apply Actions & Close
                             </button>
                           </div>
                         )}
@@ -1315,12 +1315,12 @@ export default function WorkflowsPage() {
                       <div className="space-y-3">
                         <div className="p-3 bg-slate-500/10 border border-white/5 text-xs text-slate-400 rounded-lg text-center font-semibold">
                           {selectedIntake.gap_identified
-                            ? `Tənzimləmə tamamlanıb. ${
+                            ? `Remediation completed. ${
                                 selectedIntake.risk_created_id
-                                  ? 'Risk Reyestrində yeni risk yaradıldı.'
-                                  : 'Məsələ planı yaradıldı.'
+                                  ? 'New risk created in the Risk Register.'
+                                  : 'Issue action plan created.'
                               }`
-                            : 'Mərhələ tamamlanmışdır. Müəssisə bu bənd üzrə tam uyğundur.'}
+                            : 'Step completed. The organization is fully compliant for this control.'}
                         </div>
 
                         {selectedIntake.risk_created_id && (
@@ -1328,7 +1328,7 @@ export default function WorkflowsPage() {
                             <div className="flex items-center gap-2">
                               <Shield className="w-4 h-4 text-indigo-400 shrink-0" />
                               <div>
-                                <p className="font-bold text-white">Yaradılmış Risk Kartı</p>
+                                <p className="font-bold text-white">Created Risk Card</p>
                                 <p className="text-[10px] text-indigo-300 font-mono mt-0.5">ID: {selectedIntake.risk_created_id}</p>
                               </div>
                             </div>
@@ -1336,11 +1336,11 @@ export default function WorkflowsPage() {
                               onClick={() => {
                                 setSelectedRiskId(selectedIntake.risk_created_id!)
                                 setActiveTab('risk')
-                                toast.success('İş axınında yeni risk aktivləşdirildi!')
+                                toast.success('New risk activated in the workflow!')
                               }}
                               className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] font-bold rounded-lg cursor-pointer transition-colors"
                             >
-                              Riski Gör
+                              View Risk
                             </button>
                           </div>
                         )}
@@ -1349,7 +1349,7 @@ export default function WorkflowsPage() {
                           onClick={() => handleProgressIntake('registration')}
                           className="w-full py-2 bg-slate-800 hover:bg-slate-700 border border-white/5 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
                         >
-                          Sıfırla və Yenidən Başlat
+                          Reset & Start Over
                         </button>
                       </div>
                     )}
@@ -1360,8 +1360,8 @@ export default function WorkflowsPage() {
               ) : (
                 <div className="text-center text-slate-500 py-24">
                   <FileText className="w-12 h-12 text-slate-700 mx-auto mb-3" />
-                  <p className="text-sm font-semibold text-slate-400">Heç bir GRC Giriş qeydi seçilməyib</p>
-                  <p className="text-xs text-slate-500 mt-1">İş axınını başlatmaq və ya simulyasiya etmək üçün sol paneldən bir qeyd seçin.</p>
+                  <p className="text-sm font-semibold text-slate-400">No GRC Intake Record Selected</p>
+                  <p className="text-xs text-slate-500 mt-1">Select a record from the left panel to simulate or start the workflow.</p>
                 </div>
               )}
             </div>
