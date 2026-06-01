@@ -339,7 +339,7 @@ export function RiskFormDialog({ risk, onClose, onSave }: Props) {
                           <label className="text-[10px] font-semibold text-slate-400 block mb-1">
                             {f.label}: <strong className="text-white">{watch(f.name as any)}</strong>
                           </label>
-                          <input type="range" min={1} max={5} {...register(f.name as any, { valueAsNumber: true })} className="w-full accent-indigo-500 h-1 bg-slate-800 rounded" />
+                          <input type="range" min={1} max={5} {...register(f.name as any, { valueAsNumber: true })} className="w-full py-1 bg-transparent cursor-pointer" />
                         </div>
                       ))}
                     </div>
@@ -359,7 +359,7 @@ export function RiskFormDialog({ risk, onClose, onSave }: Props) {
                           <label className="text-[10px] font-semibold text-slate-400 block mb-1">
                             {f.label}: <strong className="text-white">{watch(f.name as any)}</strong>
                           </label>
-                          <input type="range" min={1} max={5} {...register(f.name as any, { valueAsNumber: true })} className="w-full accent-indigo-500 h-1 bg-slate-800 rounded" />
+                          <input type="range" min={1} max={5} {...register(f.name as any, { valueAsNumber: true })} className="w-full py-1 bg-transparent cursor-pointer" />
                         </div>
                       ))}
                     </div>
@@ -372,7 +372,7 @@ export function RiskFormDialog({ risk, onClose, onSave }: Props) {
                       <label className="text-[10px] font-semibold text-slate-400 block mb-1.5">
                         Likelihood: <strong className="text-indigo-400">{likelihood} / 5</strong>
                       </label>
-                      <input type="range" min={1} max={5} {...register('likelihood', { valueAsNumber: true })} className="w-full accent-indigo-500 h-1 bg-slate-800 rounded" />
+                      <input type="range" min={1} max={5} {...register('likelihood', { valueAsNumber: true })} className="w-full py-1 bg-transparent cursor-pointer" />
                       <div className="flex justify-between text-[8px] text-slate-500 mt-2 font-mono">
                         <span>1: Rare (&lt;5%)</span>
                         <span>2: Unlikely (5-10%)</span>
@@ -402,7 +402,7 @@ export function RiskFormDialog({ risk, onClose, onSave }: Props) {
                               <span>{f.label}:</span>
                               <strong className="text-white">{watch(f.name as any) || 3}</strong>
                             </label>
-                            <input type="range" min={1} max={5} {...register(f.name as any, { valueAsNumber: true })} className="w-full accent-indigo-500 h-1 bg-slate-800 rounded" />
+                            <input type="range" min={1} max={5} {...register(f.name as any, { valueAsNumber: true })} className="w-full py-1 bg-transparent cursor-pointer" />
                           </div>
                         ))}
                       </div>
@@ -421,7 +421,7 @@ export function RiskFormDialog({ risk, onClose, onSave }: Props) {
                               <span>{f.label}:</span>
                               <strong className="text-white">{watch(f.name as any) || 3}</strong>
                             </label>
-                            <input type="range" min={1} max={5} {...register(f.name as any, { valueAsNumber: true })} className="w-full accent-indigo-500 h-1 bg-slate-800 rounded" />
+                            <input type="range" min={1} max={5} {...register(f.name as any, { valueAsNumber: true })} className="w-full py-1 bg-transparent cursor-pointer" />
                           </div>
                         ))}
                       </div>

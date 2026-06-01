@@ -685,7 +685,7 @@ export default function WorkflowsPage() {
                             <input
                               type="range" min="1" max="5" value={inhLikelihood}
                               onChange={(e) => setInhLikelihood(parseInt(e.target.value))}
-                              className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500"
+                              className="w-full py-1 bg-transparent cursor-pointer"
                             />
                           </div>
                           <div className="space-y-2">
@@ -695,7 +695,7 @@ export default function WorkflowsPage() {
                             <input
                               type="range" min="1" max="5" value={inhImpact}
                               onChange={(e) => setInhImpact(parseInt(e.target.value))}
-                              className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500"
+                              className="w-full py-1 bg-transparent cursor-pointer"
                             />
                           </div>
 
@@ -775,7 +775,7 @@ export default function WorkflowsPage() {
                               <input
                                 type="range" min="1" max="5" value={designCompliance}
                                 onChange={(e) => setDesignCompliance(parseInt(e.target.value))}
-                                className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500"
+                                className="w-full py-1 bg-transparent cursor-pointer"
                               />
                               <p className="text-[10px] text-slate-500 leading-snug">
                                 {designCompliance === 1 && "Critical risks fully covered; design proportional to risk; standards met. Preventive/immediate."}
@@ -795,7 +795,7 @@ export default function WorkflowsPage() {
                               <input
                                 type="range" min="1" max="5" value={designStrength}
                                 onChange={(e) => setDesignStrength(parseInt(e.target.value))}
-                                className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500"
+                                className="w-full py-1 bg-transparent cursor-pointer"
                               />
                               <p className="text-[10px] text-slate-500 leading-snug">
                                 {designStrength === 1 && "Control design meets testing standards & best practices."}
@@ -815,7 +815,7 @@ export default function WorkflowsPage() {
                               <input
                                 type="range" min="1" max="5" value={designTimeliness}
                                 onChange={(e) => setDesignTimeliness(parseInt(e.target.value))}
-                                className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500"
+                                className="w-full py-1 bg-transparent cursor-pointer"
                               />
                               <p className="text-[10px] text-slate-500 leading-snug">
                                 {designTimeliness === 1 && "Executed in real-time or immediately. No delay. Preventive."}
@@ -840,7 +840,7 @@ export default function WorkflowsPage() {
                               <input
                                 type="range" min="1" max="5" value={implRelevance}
                                 onChange={(e) => setImplRelevance(parseInt(e.target.value))}
-                                className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500"
+                                className="w-full py-1 bg-transparent cursor-pointer"
                               />
                               <p className="text-[10px] text-slate-500 leading-snug">
                                 {implRelevance === 1 && "Fully relevant (91-100% aligned with risk/business changes)."}
@@ -860,7 +860,7 @@ export default function WorkflowsPage() {
                               <input
                                 type="range" min="1" max="5" value={implSustainability}
                                 onChange={(e) => setImplSustainability(parseInt(e.target.value))}
-                                className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500"
+                                className="w-full py-1 bg-transparent cursor-pointer"
                               />
                               <p className="text-[10px] text-slate-500 leading-snug">
                                 {implSustainability === 1 && "Fully automated and applied continuously."}
@@ -880,7 +880,7 @@ export default function WorkflowsPage() {
                               <input
                                 type="range" min="1" max="5" value={implTraceability}
                                 onChange={(e) => setImplTraceability(parseInt(e.target.value))}
-                                className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500"
+                                className="w-full py-1 bg-transparent cursor-pointer"
                               />
                               <p className="text-[10px] text-slate-500 leading-snug">
                                 {implTraceability === 1 && "Real-time monitoring, full audit trail, complete execution evidence."}
@@ -1130,7 +1130,7 @@ export default function WorkflowsPage() {
                             <input
                               type="range" min="1" max="5" value={resLikelihood}
                               onChange={(e) => setResLikelihood(parseInt(e.target.value))}
-                              className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500"
+                              className="w-full py-1 bg-transparent cursor-pointer"
                             />
                           </div>
                           <div className="space-y-2">
@@ -1140,7 +1140,7 @@ export default function WorkflowsPage() {
                             <input
                               type="range" min="1" max="5" value={resImpact}
                               onChange={(e) => setResImpact(parseInt(e.target.value))}
-                              className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500"
+                              className="w-full py-1 bg-transparent cursor-pointer"
                             />
                           </div>
 

@@ -339,7 +339,7 @@ export function RiskDetailSheet({ risk, onClose, onUpdate }: Props) {
                         <input
                           type="range" min="1" max="5" value={inhLikelihood}
                           onChange={(e) => setInhLikelihood(parseInt(e.target.value))}
-                          className="w-full h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500"
+                          className="w-full py-1 bg-transparent cursor-pointer"
                         />
                       </div>
                       <div className="space-y-1">
@@ -349,7 +349,7 @@ export function RiskDetailSheet({ risk, onClose, onUpdate }: Props) {
                         <input
                           type="range" min="1" max="5" value={inhImpact}
                           onChange={(e) => setInhImpact(parseInt(e.target.value))}
-                          className="w-full h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500"
+                          className="w-full py-1 bg-transparent cursor-pointer"
                         />
                       </div>
                       <div className="p-2.5 rounded bg-black/20 border border-white/5 flex justify-between items-center text-xs">
@@ -410,42 +410,42 @@ export function RiskDetailSheet({ risk, onClose, onUpdate }: Props) {
                             <span>Design Compliance:</span>
                             <span className="font-bold">{designCompliance}/5</span>
                           </label>
-                          <input type="range" min="1" max="5" value={designCompliance} onChange={e => setDesignCompliance(parseInt(e.target.value))} className="w-full h-1 bg-slate-850 rounded-lg appearance-none cursor-pointer accent-indigo-500" />
+                          <input type="range" min="1" max="5" value={designCompliance} onChange={e => setDesignCompliance(parseInt(e.target.value))} className="w-full py-1 bg-transparent cursor-pointer" />
                         </div>
                         <div className="space-y-1">
                           <label className="text-[11px] font-semibold text-slate-400 flex justify-between">
                             <span>Design Strength:</span>
                             <span className="font-bold">{designStrength}/5</span>
                           </label>
-                          <input type="range" min="1" max="5" value={designStrength} onChange={e => setDesignStrength(parseInt(e.target.value))} className="w-full h-1 bg-slate-850 rounded-lg appearance-none cursor-pointer accent-indigo-500" />
+                          <input type="range" min="1" max="5" value={designStrength} onChange={e => setDesignStrength(parseInt(e.target.value))} className="w-full py-1 bg-transparent cursor-pointer" />
                         </div>
                         <div className="space-y-1">
                           <label className="text-[11px] font-semibold text-slate-400 flex justify-between">
                             <span>Design Timeliness:</span>
                             <span className="font-bold">{designTimeliness}/5</span>
                           </label>
-                          <input type="range" min="1" max="5" value={designTimeliness} onChange={e => setDesignTimeliness(parseInt(e.target.value))} className="w-full h-1 bg-slate-850 rounded-lg appearance-none cursor-pointer accent-indigo-500" />
+                          <input type="range" min="1" max="5" value={designTimeliness} onChange={e => setDesignTimeliness(parseInt(e.target.value))} className="w-full py-1 bg-transparent cursor-pointer" />
                         </div>
                         <div className="space-y-1 border-t pt-2" style={{ borderColor: 'var(--border)' }}>
                           <label className="text-[11px] font-semibold text-slate-400 flex justify-between">
                             <span>Implementation Relevance:</span>
                             <span className="font-bold">{implRelevance}/5</span>
                           </label>
-                          <input type="range" min="1" max="5" value={implRelevance} onChange={e => setImplRelevance(parseInt(e.target.value))} className="w-full h-1 bg-slate-850 rounded-lg appearance-none cursor-pointer accent-indigo-500" />
+                          <input type="range" min="1" max="5" value={implRelevance} onChange={e => setImplRelevance(parseInt(e.target.value))} className="w-full py-1 bg-transparent cursor-pointer" />
                         </div>
                         <div className="space-y-1">
                           <label className="text-[11px] font-semibold text-slate-400 flex justify-between">
                             <span>Implementation Sustainability:</span>
                             <span className="font-bold">{implSustainability}/5</span>
                           </label>
-                          <input type="range" min="1" max="5" value={implSustainability} onChange={e => setImplSustainability(parseInt(e.target.value))} className="w-full h-1 bg-slate-850 rounded-lg appearance-none cursor-pointer accent-indigo-500" />
+                          <input type="range" min="1" max="5" value={implSustainability} onChange={e => setImplSustainability(parseInt(e.target.value))} className="w-full py-1 bg-transparent cursor-pointer" />
                         </div>
                         <div className="space-y-1">
                           <label className="text-[11px] font-semibold text-slate-400 flex justify-between">
                             <span>Implementation Traceability:</span>
                             <span className="font-bold">{implTraceability}/5</span>
                           </label>
-                          <input type="range" min="1" max="5" value={implTraceability} onChange={e => setImplTraceability(parseInt(e.target.value))} className="w-full h-1 bg-slate-850 rounded-lg appearance-none cursor-pointer accent-indigo-500" />
+                          <input type="range" min="1" max="5" value={implTraceability} onChange={e => setImplTraceability(parseInt(e.target.value))} className="w-full py-1 bg-transparent cursor-pointer" />
                         </div>
                       </div>
 
@@ -655,13 +655,13 @@ export function RiskDetailSheet({ risk, onClose, onUpdate }: Props) {
                         <label className="text-[11px] font-semibold text-slate-400 flex justify-between">
                           <span>Reassessed Likelihood: {resLikelihood}</span>
                         </label>
-                        <input type="range" min="1" max="5" value={resLikelihood} onChange={e => setResLikelihood(parseInt(e.target.value))} className="w-full h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500" />
+                        <input type="range" min="1" max="5" value={resLikelihood} onChange={e => setResLikelihood(parseInt(e.target.value))} className="w-full py-1 bg-transparent cursor-pointer" />
                       </div>
                       <div className="space-y-1">
                         <label className="text-[11px] font-semibold text-slate-400 flex justify-between">
                           <span>Reassessed Impact: {resImpact}</span>
                         </label>
-                        <input type="range" min="1" max="5" value={resImpact} onChange={e => setResImpact(parseInt(e.target.value))} className="w-full h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500" />
+                        <input type="range" min="1" max="5" value={resImpact} onChange={e => setResImpact(parseInt(e.target.value))} className="w-full py-1 bg-transparent cursor-pointer" />
                       </div>
                       <div className="p-2 rounded bg-black/20 border border-white/5 flex justify-between items-center text-xs">
                         <span className="text-slate-400">Reassessed Level:</span>

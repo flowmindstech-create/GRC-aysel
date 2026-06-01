@@ -12,12 +12,12 @@
   --brand-600: #4f46e5;
   --brand-700: #4338ca;
 
-  /* Semantic */
-  --background:    #ffffff;
+  /* Semantic Light Mode Fallbacks */
+  --background:    #f8fafc;
   --foreground:    #0f172a;
   --card:          #ffffff;
   --card-border:   #e2e8f0;
-  --muted:         #f8fafc;
+  --muted:         #f1f5f9;
   --muted-fg:      #64748b;
   --border:        #e2e8f0;
   --input:         #e2e8f0;
@@ -26,50 +26,74 @@
   --sidebar-fg:    #94a3b8;
   --sidebar-active:#6366f1;
 
-  /* Risk colours */
-  --risk-critical: #ef4444;
-  --risk-high:     #f97316;
-  --risk-medium:   #eab308;
-  --risk-low:      #22c55e;
+  /* Premium Neon Alert Levels */
+  --risk-critical: #ff2e55;
+  --risk-high:     #ff7a00;
+  --risk-medium:   #ffc800;
+  --risk-low:      #00f5a0;
 
   /* Status */
-  --status-open:        #ef4444;
-  --status-in-progress: #f97316;
-  --status-resolved:    #22c55e;
-  --status-closed:      #64748b;
+  --status-open:        #ff2e55;
+  --status-in-progress: #ff7a00;
+  --status-resolved:    #00f5a0;
+  --status-closed:      #8a94a6;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background:   #0a0f1e;
-    --foreground:   #e2e8f0;
-    --card:         #111827;
-    --card-border:  #1e293b;
-    --muted:        #1e293b;
-    --muted-fg:     #94a3b8;
-    --border:       #1e293b;
-    --input:        #1e293b;
-    --sidebar-bg:   #060d1f;
-    --sidebar-fg:   #64748b;
+    --background:   #070a13;
+    --foreground:   #f3f4f6;
+    --card:         rgba(16, 22, 37, 0.65);
+    --card-border:  rgba(255, 255, 255, 0.06);
+    --muted:        rgba(255, 255, 255, 0.03);
+    --muted-fg:     #8a94a6;
+    --border:       rgba(255, 255, 255, 0.08);
+    --input:        rgba(255, 255, 255, 0.05);
+    --sidebar-bg:   #050810;
+    --sidebar-fg:   #8a94a6;
   }
 }
 
 .dark {
-  --background:   #0a0f1e;
-  --foreground:   #e2e8f0;
-  --card:         #111827;
-  --card-border:  #1e293b;
-  --muted:        #1e293b;
-  --muted-fg:     #94a3b8;
-  --border:       #1e293b;
-  --input:        #1e293b;
-  --sidebar-bg:   #060d1f;
-  --sidebar-fg:   #64748b;
+  --background:   #070a13;
+  --foreground:   #f3f4f6;
+  --card:         rgba(16, 22, 37, 0.65);
+  --card-border:  rgba(255, 255, 255, 0.06);
+  --muted:        rgba(255, 255, 255, 0.03);
+  --muted-fg:     #8a94a6;
+  --border:       rgba(255, 255, 255, 0.08);
+  --input:        rgba(255, 255, 255, 0.05);
+  --sidebar-bg:   #050810;
+  --sidebar-fg:   #8a94a6;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-border: var(--card-border);
+  --color-muted: var(--muted);
+  --color-muted-fg: var(--muted-fg);
+  --color-border: var(--border);
+  
+  /* Brand Override */
+  --color-brand-500: var(--brand-500);
+
+  /* Alert colors overrides so utility classes (e.g. text-red-400, bg-emerald-500) map to custom variables */
+  --color-red-600: var(--risk-critical);
+  --color-red-500: var(--risk-critical);
+  --color-red-400: var(--risk-critical);
+  --color-orange-500: var(--risk-high);
+  --color-orange-400: var(--risk-high);
+  --color-yellow-550: var(--risk-medium);
+  --color-yellow-500: var(--risk-medium);
+  --color-yellow-400: var(--risk-medium);
+  --color-green-500: var(--risk-low);
+  --color-green-400: var(--risk-low);
+  --color-emerald-600: var(--risk-low);
+  --color-emerald-500: var(--risk-low);
+  --color-emerald-400: var(--risk-low);
+
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
@@ -120,6 +144,10 @@ body {
   background: var(--card);
   border: 1px solid var(--card-border);
   border-radius: var(--radius);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.25);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* ── Focus ring ────────────────────────────────────────────────────────────── */
@@ -135,4 +163,63 @@ body {
   color: var(--foreground) !important;
   border-radius: 8px !important;
   font-size: 13px !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+}
+
+/* ── Custom Range Input Styling ────────────────────────────────────────────── */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+  width: 100%;
+}
+
+/* Track styles */
+input[type="range"]::-webkit-slider-runnable-track {
+  background: rgba(255, 255, 255, 0.08);
+  height: 6px;
+  border-radius: 9999px;
+  transition: background 0.15s ease;
+}
+input[type="range"]:hover::-webkit-slider-runnable-track {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+input[type="range"]::-moz-range-track {
+  background: rgba(255, 255, 255, 0.08);
+  height: 6px;
+  border-radius: 9999px;
+}
+
+/* Thumb styles */
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  margin-top: -5px; /* Centers thumb on the track */
+  background-color: var(--brand-500);
+  height: 16px;
+  width: 16px;
+  border-radius: 50%;
+  box-shadow: 0 0 10px rgba(99, 102, 241, 0.8), 0 0 20px rgba(99, 102, 241, 0.4);
+  transition: transform 0.15s ease, background-color 0.15s ease;
+}
+input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+  background-color: #818cf8; /* lighter indigo */
+}
+
+input[type="range"]::-moz-range-thumb {
+  background-color: var(--brand-500);
+  height: 16px;
+  width: 16px;
+  border: none;
+  border-radius: 50%;
+  box-shadow: 0 0 10px rgba(99, 102, 241, 0.8), 0 0 20px rgba(99, 102, 241, 0.4);
+  transition: transform 0.15s ease, background-color 0.15s ease;
+}
+input[type="range"]::-moz-range-thumb:hover {
+  transform: scale(1.2);
+  background-color: #818cf8;
 }
