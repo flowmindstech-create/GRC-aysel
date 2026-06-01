@@ -90,7 +90,7 @@ export function TopNav({ title, subtitle }: TopNavProps) {
             'hover:bg-black/5 dark:hover:bg-white/5'
           )}
         >
-          <div className="w-6 h-6 rounded-full bg-indigo-600 flex items-center justify-center text-white text-xs font-bold">
+          <div className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold" style={{ background: 'var(--brand-500)' }}>
             A
           </div>
           <span className="text-sm font-medium hidden sm:block" style={{ color: 'var(--foreground)' }}>

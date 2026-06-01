@@ -11,8 +11,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     <div className="flex h-screen overflow-hidden" style={{ background: 'var(--background)' }}>
       {/* Mobile Sidebar overlay */}
       {mobileOpen && (
-        <div 
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 md:hidden"
+        <div
+          className="fixed inset-0 z-40 md:hidden"
+          style={{ background: 'rgba(0,0,0,0.65)' }}
           onClick={() => setMobileOpen(false)}
         />
       )}
@@ -28,14 +29,18 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       {/* Main Content Area */}
       <div className="flex flex-col flex-1 overflow-hidden relative">
         {/* Mobile floating menu toggle button */}
-        <div className="md:hidden flex items-center h-14 px-4 border-b shrink-0 bg-slate-900 border-white/5 gap-3">
+        <div
+          className="md:hidden flex items-center h-14 px-4 border-b shrink-0 gap-3"
+          style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
+        >
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
-            className="p-1.5 rounded-lg bg-indigo-600 text-white shadow-lg cursor-pointer"
+            className="p-1.5 rounded-lg text-white shadow-lg cursor-pointer"
+            style={{ background: 'var(--brand-500)' }}
           >
             {mobileOpen ? <X className="w-4 h-4" /> : <Menu className="w-4.5 h-4.5" />}
           </button>
-          <span className="font-bold text-white text-sm">RiskShield</span>
+          <span className="font-bold text-sm" style={{ color: 'var(--foreground)' }}>RiskShield</span>
         </div>
 
         {children}
