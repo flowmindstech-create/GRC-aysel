@@ -2,8 +2,12 @@
 
 import type { AuditFindingWorkflow, NIRAPItem, KRIItem, KCIItem, KPIItem, MonitoringAlert, Policy, PolicyApproval } from '@/types'
 
-const isSupabase = () =>
-  !!(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
+const isSupabase = () => {
+  if (typeof window !== 'undefined' && document.cookie.includes('mock-session=true')) {
+    return false
+  }
+  return !!(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
+}
 
 function getLocal<T>(key: string, def: T): T {
   if (typeof window === 'undefined') return def
