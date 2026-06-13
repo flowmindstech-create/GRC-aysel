@@ -5,6 +5,7 @@ import {
   ResponsiveContainer, BarChart, Bar, Legend,
 } from 'recharts'
 import type { DashboardStats } from '@/types'
+import { categoryLabel } from '@/lib/risk-categories'
 
 interface Props { stats: DashboardStats }
 
@@ -49,7 +50,7 @@ export function RiskTrendChart({ stats }: Props) {
 export function RiskCategoryChart({ stats }: Props) {
   const data = Object.entries(stats.risk_by_category)
     .filter(([, v]) => v > 0)
-    .map(([k, v]) => ({ category: k.charAt(0).toUpperCase() + k.slice(1), count: v }))
+    .map(([k, v]) => ({ category: categoryLabel(k), count: v }))
 
   const colors = ['#0ea5e9', '#f97316', '#eab308', '#22c55e', '#ec4899', '#14b8a6', '#0ea5e9']
 

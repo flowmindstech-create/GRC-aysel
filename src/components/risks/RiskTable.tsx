@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { MOCK_RISKS } from '@/lib/seed-data'
 import { db } from '@/lib/db'
-import type { Risk, RiskLevel, RiskCategory, RiskStatus, JiraConfig } from '@/types'
+import type { Risk, RiskLevel, RiskStatus, JiraConfig } from '@/types'
+import { RISK_CATEGORY_VALUES, CATEGORY_LABELS, categoryLabel, type RiskCategory } from '@/lib/risk-categories'
 import { RiskLevelBadge, RiskStatusBadge } from '@/components/shared/Badges'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { formatDistanceToNow } from 'date-fns'
@@ -18,9 +19,7 @@ import { RiskFormDialog } from './RiskFormDialog'
 import { RiskDetailSheet } from './RiskDetailSheet'
 
 const LEVELS: (RiskLevel | 'all')[] = ['all', 'critical', 'high', 'medium', 'low', 'minimal']
-const CATEGORIES: (RiskCategory | 'all')[] = [
-  'all', 'cybersecurity', 'financial', 'operational', 'legal', 'hr', 'strategic',
-]
+const CATEGORIES: (RiskCategory | 'all')[] = ['all', ...RISK_CATEGORY_VALUES]
 const STATUSES: (RiskStatus | 'all')[] = ['all', 'open', 'in_progress', 'mitigated', 'accepted', 'closed']
 
 export function RiskTable() {
@@ -137,7 +136,7 @@ export function RiskTable() {
           className="px-3 py-2 rounded-xl text-xs font-medium outline-none cursor-pointer"
           style={{ background: 'var(--card)', border: '1px solid var(--border)', color: 'var(--foreground)' }}
         >
-          {CATEGORIES.map(c => <option key={c} value={c}>{c === 'all' ? 'All Categories' : c}</option>)}
+          {CATEGORIES.map(c => <option key={c} value={c}>{c === 'all' ? 'All Categories' : CATEGORY_LABELS[c]}</option>)}
         </select>
       </div>
 
@@ -178,9 +177,9 @@ export function RiskTable() {
                       </p>
                     </td>
                     <td className="px-4 py-3.5">
-                      <span className="text-xs capitalize px-2.5 py-1 rounded-full"
+                      <span className="text-xs px-2.5 py-1 rounded-full"
                         style={{ background: 'var(--muted)', color: 'var(--muted-fg)' }}>
-                        {risk.category}
+                        {categoryLabel(risk.category)}
                       </span>
                     </td>
                     <td className="px-4 py-3.5">

@@ -5,9 +5,12 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Zap, Sliders, FileText } from 'lucide-react'
-import type { Risk, RiskLevel, RiskCategory, RiskStatus } from '@/types'
+import { X, Sliders, FileText } from 'lucide-react'
+import type { Risk, OrgUnit, UserProfile } from '@/types'
+import { RISK_CATEGORIES, type RiskCategory } from '@/lib/risk-categories'
 import { MOCK_USERS } from '@/lib/seed-data'
+import { db } from '@/lib/db'
+import { resolveOwnerFromUnit } from '@/lib/org'
 import { cn } from '@/lib/utils'
 import {
   calculateInherentLevel,
@@ -19,7 +22,7 @@ import {
 const schema = z.object({
   title: z.string().min(5, 'Title must be at least 5 characters'),
   description: z.string().min(10, 'Description required'),
-  category: z.enum(['cybersecurity', 'financial', 'operational', 'legal', 'hr', 'strategic', 'compliance']),
+  category: z.enum(RISK_CATEGORIES.map((c) => c.value) as [RiskCategory, ...RiskCategory[]]),
   level: z.enum(['minimal', 'low', 'medium', 'high', 'critical']),
   status: z.enum(['open', 'in_progress', 'mitigated', 'accepted', 'closed']),
   owner_id: z.string().optional(),
@@ -61,6 +64,8 @@ interface Props {
 export function RiskFormDialog({ risk, onClose, onSave }: Props) {
   const isEdit = !!risk
   const [activeTab, setActiveTab] = useState<'general' | 'rcsa'>('general')
+  const [departments, setDepartments] = useState<OrgUnit[]>([])
+  const [profiles, setProfiles] = useState<UserProfile[]>(MOCK_USERS)
 
   const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -148,8 +153,33 @@ export function RiskFormDialog({ risk, onClose, onSave }: Props) {
     setValue('level', computedLevel)
   }, [computedImpact, computedLevel, setValue])
 
+  // Load org structure (departments only) + profiles for owner auto-fill
+  useEffect(() => {
+    let active = true
+    async function load() {
+      const [units, people] = await Promise.all([db.getOrgUnits(), db.getProfiles()])
+      if (!active) return
+      setDepartments(units.filter(u => u.type === 'department'))
+      if (people.length > 0) setProfiles(people)
+    }
+    load()
+    return () => { active = false }
+  }, [])
+
+  // When a department is picked, auto-fill Risk Owner + role + department name
+  const handleDepartmentChange = (unitId: string) => {
+    const unit = departments.find(u => u.id === unitId)
+    const resolved = resolveOwnerFromUnit(unit, profiles)
+    setValue('owner_dept', resolved.owner_dept)
+    setValue('owner_role', resolved.owner_role)
+    setValue('owner_id', resolved.owner_id)
+  }
+
+  // Match the saved department name back to a unit id for the select value
+  const selectedDeptId = departments.find(u => u.name === watch('owner_dept'))?.id ?? ''
+
   const onSubmit = (values: FormValues) => {
-    const owner = MOCK_USERS.find(u => u.id === values.owner_id)
+    const owner = profiles.find(u => u.id === values.owner_id)
     
     const evalResult = evaluateControlEffectiveness(
       values.control_design_compliance || 3,
@@ -262,8 +292,8 @@ export function RiskFormDialog({ risk, onClose, onSave }: Props) {
                     <div>
                       <label className="block text-[11px] font-bold mb-1.5" style={{ color: 'var(--foreground)' }}>Category</label>
                       <select {...register('category')} className={inputClass} style={sty}>
-                        {['cybersecurity','financial','operational','legal','hr','strategic','compliance'].map(c => (
-                          <option key={c} value={c}>{c}</option>
+                        {RISK_CATEGORIES.map(c => (
+                          <option key={c.value} value={c.value}>{c.label}</option>
                         ))}
                       </select>
                     </div>
@@ -275,15 +305,23 @@ export function RiskFormDialog({ risk, onClose, onSave }: Props) {
 
                   <div className="grid grid-cols-3 gap-4">
                     <div>
-                      <label className="block text-[11px] font-bold mb-1.5" style={{ color: 'var(--foreground)' }}>Risk Owner</label>
-                      <select {...register('owner_id')} className={inputClass} style={sty}>
-                        <option value="">Unassigned</option>
-                        {MOCK_USERS.map(u => <option key={u.id} value={u.id}>{u.full_name}</option>)}
+                      <label className="block text-[11px] font-bold mb-1.5" style={{ color: 'var(--foreground)' }}>Owner Department</label>
+                      <select
+                        value={selectedDeptId}
+                        onChange={(e) => handleDepartmentChange(e.target.value)}
+                        className={inputClass}
+                        style={sty}
+                      >
+                        <option value="">Select department…</option>
+                        {departments.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
                       </select>
                     </div>
                     <div>
-                      <label className="block text-[11px] font-bold mb-1.5" style={{ color: 'var(--foreground)' }}>Owner Department</label>
-                      <input {...register('owner_dept')} placeholder="e.g. Cybersecurity, HSE" className={inputClass} style={sty} />
+                      <label className="block text-[11px] font-bold mb-1.5" style={{ color: 'var(--foreground)' }}>Risk Owner</label>
+                      <select {...register('owner_id')} className={inputClass} style={sty}>
+                        <option value="">Unassigned</option>
+                        {profiles.map(u => <option key={u.id} value={u.id}>{u.full_name}</option>)}
+                      </select>
                     </div>
                     <div>
                       <label className="block text-[11px] font-bold mb-1.5" style={{ color: 'var(--foreground)' }}>Owner Job Role</label>

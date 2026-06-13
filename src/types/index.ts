@@ -19,18 +19,30 @@ export interface Organization {
   created_at: string
 }
 
+// ─── Organizational Structure ──────────────────────────────────────────────────
+
+export type OrgUnitType = 'executive' | 'committee' | 'department' | 'division'
+
+export interface OrgUnit {
+  id: string
+  org_id: string
+  name: string
+  type: OrgUnitType
+  parent_id?: string | null
+  head_user_id?: string | null // resolves to Risk Owner
+  head_role?: string | null // resolves to owner_role
+  order_index?: number
+  created_at: string
+  updated_at: string
+}
+
 // ─── Risks ───────────────────────────────────────────────────────────────────
 
 export type RiskLevel = 'minimal' | 'low' | 'medium' | 'high' | 'critical'
 export type RiskStatus = 'open' | 'in_progress' | 'mitigated' | 'accepted' | 'closed'
-export type RiskCategory =
-  | 'cybersecurity'
-  | 'financial'
-  | 'operational'
-  | 'legal'
-  | 'hr'
-  | 'strategic'
-  | 'compliance'
+// RiskCategory is the single source of truth in lib/risk-categories.ts
+export type { RiskCategory } from '@/lib/risk-categories'
+import type { RiskCategory } from '@/lib/risk-categories'
 
 export interface Risk {
   id: string

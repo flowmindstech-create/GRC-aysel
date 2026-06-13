@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { TopNav } from '@/components/layout/TopNav'
 import { db } from '@/lib/db'
 import type { Risk, Control, GRCIntakeItem, GRCIntakeStep, GRCIntakeType } from '@/types'
+import { RISK_CATEGORIES } from '@/lib/risk-categories'
 import { toast } from 'sonner'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -1317,10 +1318,9 @@ export default function WorkflowsPage() {
                         value={intakeClass} onChange={e => setIntakeClass(e.target.value)}
                         className="w-full px-2 py-1 rounded bg-slate-800 border border-white/10 text-[11px] text-white"
                       >
-                        <option value="cybersecurity">Cybersecurity</option>
-                        <option value="financial">Financial</option>
-                        <option value="legal">Legal / Compliance</option>
-                        <option value="operational">Operational</option>
+                        {RISK_CATEGORIES.map(c => (
+                          <option key={c.value} value={c.value}>{c.label}</option>
+                        ))}
                       </select>
                     </div>
                   </div>
@@ -1507,10 +1507,10 @@ export default function WorkflowsPage() {
                       <div className="space-y-3">
                         <p className="text-xs text-slate-300">Classify the compliance asset scope:</p>
                         <div className="grid grid-cols-2 gap-2 text-xs">
-                          {['cybersecurity', 'financial', 'operational', 'legal'].map(c => (
-                            <div key={c} className={`p-2.5 rounded-lg border text-center capitalize ${
-                              selectedIntake.classification === c ? 'border-sky-500 text-white bg-sky-500/10' : 'border-white/5 text-slate-400'
-                            }`}>{c}</div>
+                          {RISK_CATEGORIES.map(c => (
+                            <div key={c.value} className={`p-2.5 rounded-lg border text-center ${
+                              selectedIntake.classification === c.value ? 'border-sky-500 text-white bg-sky-500/10' : 'border-white/5 text-slate-400'
+                            }`}>{c.label}</div>
                           ))}
                         </div>
                         <button

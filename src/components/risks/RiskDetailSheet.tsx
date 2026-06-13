@@ -3,6 +3,7 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Zap, User, Calendar, Tag, BarChart2, Shield, Clock, Database, RefreshCw, Send, ExternalLink, Play, ArrowRight, Check, CheckCircle, AlertTriangle } from 'lucide-react'
 import type { Risk, Control } from '@/types'
+import { categoryLabel } from '@/lib/risk-categories'
 import { RiskLevelBadge, RiskStatusBadge } from '@/components/shared/Badges'
 import { formatDistanceToNow, format } from 'date-fns'
 import { useState, useEffect } from 'react'
@@ -748,7 +749,7 @@ export function RiskDetailSheet({ risk, onClose, onUpdate }: Props) {
             {/* Meta grid */}
             <div className="grid grid-cols-2 gap-3">
               {[
-                { icon: Tag, label: 'Category', value: risk.category },
+                { icon: Tag, label: 'Category', value: categoryLabel(risk.category) },
                 { icon: User, label: 'Owner', value: risk.owner_name ?? '—' },
                 { icon: Calendar, label: 'Due Date', value: risk.due_date ? format(new Date(risk.due_date), 'dd MMM yyyy') : '—' },
                 { icon: Clock, label: 'Created', value: formatDistanceToNow(new Date(risk.created_at), { addSuffix: true }) },

@@ -2,12 +2,14 @@
 
 import {
   MOCK_RISKS, MOCK_INCIDENTS, MOCK_CONTROLS, MOCK_AUDITS,
-  MOCK_FINDINGS, MOCK_VENDORS, MOCK_ACTIVITIES, MOCK_DASHBOARD_STATS
+  MOCK_FINDINGS, MOCK_VENDORS, MOCK_ACTIVITIES, MOCK_DASHBOARD_STATS,
+  MOCK_USERS, SEED_ORG_UNITS
 } from './seed-data'
 import type {
   Risk, Incident, Control, Audit, AuditFinding, Vendor, Activity, DashboardStats,
-  JiraConfig, JiraActivity, JiraComment, GRCIntakeItem
+  JiraConfig, JiraActivity, JiraComment, GRCIntakeItem, OrgUnit, UserProfile
 } from '@/types'
+import { RISK_CATEGORIES, normalizeCategory } from './risk-categories'
 
 // Helper to get items from localStorage
 function getLocalItem<T>(key: string, defaultValue: T): T {
@@ -45,11 +47,17 @@ export const db = {
       const { createClient } = await import('./supabase/client')
       const supabase = createClient()
       const { data, error } = await supabase.from('risks').select('*').order('created_at', { ascending: false })
-      if (!error && data) return data as Risk[]
+      if (!error && data) return (data as Risk[]).map(r => ({ ...r, category: normalizeCategory(r.category) }))
     }
     const risks = getLocalItem<Risk[]>('risks', MOCK_RISKS)
     let modified = false
     const mapped = risks.map(r => {
+      // Remap any legacy/removed category value (hr/legal/compliance) on read
+      const normalized = normalizeCategory(r.category)
+      if (normalized !== r.category) {
+        r.category = normalized
+        modified = true
+      }
       if (!r.workflow_step) {
         r.workflow_step = r.status === 'closed' ? 'closed' : r.status === 'mitigated' ? 'accepted' : 'registered'
         r.inherent_likelihood = r.likelihood
@@ -398,15 +406,10 @@ export const db = {
       critical: risks.filter(r => r.level === 'critical').length
     }
 
-    const riskByCategory = {
-      cybersecurity: risks.filter(r => r.category === 'cybersecurity').length,
-      financial: risks.filter(r => r.category === 'financial').length,
-      operational: risks.filter(r => r.category === 'operational').length,
-      legal: risks.filter(r => r.category === 'legal').length,
-      hr: risks.filter(r => r.category === 'hr').length,
-      strategic: risks.filter(r => r.category === 'strategic').length,
-      compliance: risks.filter(r => r.category === 'compliance').length
-    }
+    const riskByCategory = RISK_CATEGORIES.reduce((acc, c) => {
+      acc[c.value] = risks.filter(r => normalizeCategory(r.category) === c.value).length
+      return acc
+    }, {} as DashboardStats['risk_by_category'])
 
     return {
       total_risks: risks.length,
@@ -681,6 +684,59 @@ export const db = {
     const current = getLocalItem<GRCIntakeItem[]>('grc_intake_items', [])
     const filtered = current.filter(i => i.id !== id)
     setLocalItem('grc_intake_items', filtered)
+    return true
+  },
+
+  // ─── PROFILES (users) ──────────────────────────────────────────────────────
+  async getProfiles(): Promise<UserProfile[]> {
+    if (isSupabaseConfigured()) {
+      const { createClient } = await import('./supabase/client')
+      const supabase = createClient()
+      const { data, error } = await supabase.from('profiles').select('*').order('full_name')
+      if (!error && data) return data as UserProfile[]
+    }
+    return MOCK_USERS
+  },
+
+  // ─── ORG STRUCTURE (org_units) ─────────────────────────────────────────────
+  async getOrgUnits(): Promise<OrgUnit[]> {
+    if (isSupabaseConfigured()) {
+      const { createClient } = await import('./supabase/client')
+      const supabase = createClient()
+      const { data, error } = await supabase.from('org_units').select('*').order('order_index', { ascending: true })
+      if (!error && data) return data as OrgUnit[]
+    }
+    return getLocalItem<OrgUnit[]>('org_units', SEED_ORG_UNITS)
+  },
+
+  async saveOrgUnit(unit: OrgUnit): Promise<OrgUnit> {
+    const record: OrgUnit = { ...unit, updated_at: new Date().toISOString() }
+    if (isSupabaseConfigured()) {
+      const { createClient } = await import('./supabase/client')
+      const supabase = createClient()
+      const { data, error } = await supabase.from('org_units').upsert(record).select().single()
+      if (!error && data) return data as OrgUnit
+    }
+    const current = getLocalItem<OrgUnit[]>('org_units', SEED_ORG_UNITS)
+    const idx = current.findIndex(u => u.id === record.id)
+    if (idx >= 0) {
+      current[idx] = record
+    } else {
+      current.push(record)
+    }
+    setLocalItem('org_units', current)
+    return record
+  },
+
+  async deleteOrgUnit(id: string): Promise<boolean> {
+    if (isSupabaseConfigured()) {
+      const { createClient } = await import('./supabase/client')
+      const supabase = createClient()
+      const { error } = await supabase.from('org_units').delete().eq('id', id)
+      if (!error) return true
+    }
+    const current = getLocalItem<OrgUnit[]>('org_units', SEED_ORG_UNITS)
+    setLocalItem('org_units', current.filter(u => u.id !== id))
     return true
   }
 }

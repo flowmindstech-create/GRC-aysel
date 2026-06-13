@@ -1,6 +1,6 @@
 import type {
   Risk, Incident, Control, Audit, AuditFinding,
-  Vendor, Activity, DashboardStats, UserProfile, AiInsight
+  Vendor, Activity, DashboardStats, UserProfile, AiInsight, OrgUnit, OrgUnitType
 } from '@/types'
 
 // ─── Users ───────────────────────────────────────────────────────────────────
@@ -22,6 +22,89 @@ export const MOCK_USERS: UserProfile[] = [
     id: 'u4', org_id: 'org1', full_name: 'Nigar Aliyeva', email: 'nigar@acmecorp.az',
     role: 'employee', created_at: '2024-03-01T09:00:00Z',
   },
+]
+
+// ─── Organizational Structure (demo: isb.az org chart) ─────────────────────────
+
+const ORG_T = '2024-01-01T00:00:00Z'
+const ou = (
+  id: string,
+  name: string,
+  type: OrgUnitType,
+  parent_id: string | null,
+  order_index: number,
+  head_user_id: string | null = null,
+  head_role: string | null = null
+): OrgUnit => ({
+  id, org_id: 'org1', name, type, parent_id, head_user_id, head_role, order_index,
+  created_at: ORG_T, updated_at: ORG_T,
+})
+
+export const SEED_ORG_UNITS: OrgUnit[] = [
+  // Top level
+  ou('ou-board', 'Himayəçilər Şurası', 'executive', null, 0),
+  ou('ou-exec', 'İcraçı direktor', 'executive', 'ou-board', 1),
+  ou('ou-audit-svc', 'Daxili audit xidməti', 'division', 'ou-board', 2),
+  ou('ou-audit-com', 'Audit komitəsi', 'committee', 'ou-board', 3),
+  ou('ou-strat-com', 'Strategiya komitəsi', 'committee', 'ou-board', 4),
+  ou('ou-risk-com', 'Risk komitəsi', 'committee', 'ou-board', 5),
+
+  // Executive line
+  ou('ou-dep1', 'İcraçı direktorun müavini (Korporativ)', 'executive', 'ou-exec', 10),
+  ou('ou-dep2', 'İcraçı direktorun müavini (Biznes)', 'executive', 'ou-exec', 11),
+  ou('ou-cio', 'Baş informasiya inzibatçısı', 'executive', 'ou-exec', 12),
+  ou('ou-ciso', 'İnformasiya təhlükəsizliyi üzrə baş inzibatçı', 'executive', 'ou-exec', 13),
+
+  // Departments (selectable as Owner Department)
+  ou('ou-corp', 'Korporativ xidmətlər departamenti', 'department', 'ou-dep1', 20, 'u1', 'Korporativ xidmətlər departamentinin rəhbəri'),
+  ou('ou-bizdev', 'Biznesin inkişafı departamenti', 'department', 'ou-dep2', 21, 'u2', 'Biznesin inkişafı departamentinin rəhbəri'),
+  ou('ou-digital', 'Rəqəmsal həllərin inkişafı departamenti', 'department', 'ou-cio', 22, 'u3', 'Rəqəmsal həllərin inkişafı departamentinin rəhbəri'),
+  ou('ou-itinfra', 'İT infrastruktur və əməliyyatların idarəedilməsi departamenti', 'department', 'ou-cio', 23, 'u4', 'İT infrastruktur departamentinin rəhbəri'),
+  ou('ou-ops', 'Əməliyyatlar departamenti', 'department', 'ou-exec', 24, 'u2', 'Əməliyyatlar departamentinin rəhbəri'),
+
+  // Korporativ xidmətlər → şöbələr
+  ou('ou-legal', 'Hüquq şöbəsi', 'division', 'ou-corp', 30),
+  ou('ou-hr', 'İnsan resurslarının idarəedilməsi şöbəsi', 'division', 'ou-corp', 31),
+  ou('ou-general', 'Ümumi şöbə', 'division', 'ou-corp', 32),
+  ou('ou-facilities', 'Təsərrüfat şöbəsi', 'division', 'ou-corp', 33),
+  ou('ou-pr', 'İctimaiyyətlə əlaqələr və kommunikasiya şöbəsi', 'division', 'ou-corp', 34),
+  ou('ou-finance', 'Maliyyə şöbəsi', 'division', 'ou-dep1', 35),
+
+  // Biznesin inkişafı → şöbələr
+  ou('ou-ba', 'Biznes analitika şöbəsi', 'division', 'ou-bizdev', 40),
+  ou('ou-method', 'Metodologiya şöbəsi', 'division', 'ou-bizdev', 41),
+  ou('ou-data', 'Data və hesabatlılıq şöbəsi', 'division', 'ou-dep2', 42),
+  ou('ou-greencard', 'Yaşıl Kart və beynəlxalq əlaqələr şöbəsi', 'division', 'ou-dep2', 43),
+  ou('ou-actuary', 'Aktuari', 'division', 'ou-dep2', 44),
+
+  // Rəqəmsal həllər → şöbələr
+  ou('ou-appdev', 'Tətbiqi proqramlaşdırma şöbəsi', 'division', 'ou-digital', 50),
+  ou('ou-diganalysis', 'Rəqəmsal həllərin analizi və tətbiqi şöbəsi', 'division', 'ou-digital', 51),
+
+  // İT infrastruktur → şöbələr
+  ou('ou-sysnet', 'Sistem və şəbəkə inzibatçılığı şöbəsi', 'division', 'ou-itinfra', 60),
+  ou('ou-dbops', 'Əməliyyatların avtomatlaşdırılması və məlumat bazaları şöbəsi', 'division', 'ou-itinfra', 61),
+
+  // CIO standalone roles
+  ou('ou-arch', 'Proqram təminatı üzrə arxitektor', 'division', 'ou-cio', 62),
+  ou('ou-uxui', 'UX/UI dizayner', 'division', 'ou-cio', 63),
+  ou('ou-ai', 'Süni intellekt üzrə mühəndis', 'division', 'ou-cio', 64),
+
+  // CISO
+  ou('ou-infosec', 'İnformasiya təhlükəsizliyi şöbəsi', 'division', 'ou-ciso', 70),
+
+  // Əməliyyatlar → şöbələr
+  ou('ou-requests', 'Tələblərin idarə edilməsi şöbəsi', 'division', 'ou-ops', 80),
+  ou('ou-callcenter', 'Çağrı mərkəzi şöbəsi', 'division', 'ou-ops', 81),
+  ou('ou-appeals', 'Müraciətlərin idarə edilməsi şöbəsi', 'division', 'ou-ops', 82),
+
+  // Reporting directly to executive director
+  ou('ou-riskmgmt', 'Risklərin idarəedilməsi şöbəsi', 'division', 'ou-exec', 90),
+  ou('ou-projects', 'Layihələrin idarə olunması şöbəsi', 'division', 'ou-exec', 91),
+  ou('ou-hse', 'Əməyin mühafizəsi üzrə mühəndis', 'division', 'ou-exec', 92),
+  ou('ou-procurement', 'Satınalma üzrə menecer', 'division', 'ou-exec', 93),
+  ou('ou-intsec', 'Daxili təhlükəsizlik üzrə menecer', 'division', 'ou-exec', 94),
+  ou('ou-strategy', 'Strategiya üzrə menecer', 'division', 'ou-exec', 95),
 ]
 
 // ─── Risks ───────────────────────────────────────────────────────────────────
@@ -48,7 +131,7 @@ export const MOCK_RISKS: Risk[] = [
   {
     id: 'r3', org_id: 'org1', title: 'GDPR Non-Compliance in Marketing Emails',
     description: 'Marketing team is sending promotional emails without a valid opt-in consent mechanism, violating GDPR Article 7.',
-    category: 'legal', level: 'high', status: 'in_progress',
+    category: 'legal_compliance', level: 'high', status: 'in_progress',
     owner_id: 'u2', owner_name: 'Leyla Mammadova',
     due_date: '2025-02-01', likelihood: 4, impact: 4,
     mitigation: 'Implement double opt-in flow, audit existing contact list, update privacy policy.',
@@ -57,7 +140,7 @@ export const MOCK_RISKS: Risk[] = [
   {
     id: 'r4', org_id: 'org1', title: 'Key Employee Dependency — CTO Single Point of Failure',
     description: 'Our CTO holds exclusive knowledge of critical system architecture. Their departure would create a major operational gap.',
-    category: 'hr', level: 'medium', status: 'open',
+    category: 'operational', level: 'medium', status: 'open',
     owner_id: 'u1', owner_name: 'Ali Hasanov',
     due_date: '2025-04-30', likelihood: 2, impact: 5,
     mitigation: 'Document all architecture decisions, implement knowledge transfer sessions, hire senior engineer.',
@@ -84,7 +167,7 @@ export const MOCK_RISKS: Risk[] = [
   {
     id: 'r7', org_id: 'org1', title: 'Software License Compliance Risk',
     description: 'Audit revealed 12 unlicensed software installations across developer workstations, risking vendor audit and fines.',
-    category: 'legal', level: 'low', status: 'closed',
+    category: 'legal_compliance', level: 'low', status: 'closed',
     owner_id: 'u4', owner_name: 'Nigar Aliyeva',
     due_date: '2025-01-31', likelihood: 2, impact: 2,
     mitigation: 'Deployed SIEM-based software inventory scanner, purchased required licenses.',
@@ -285,8 +368,8 @@ export const MOCK_DASHBOARD_STATS: DashboardStats = {
   compliance_score: 68,
   risk_by_level: { minimal: 0, low: 1, medium: 2, high: 2, critical: 2 },
   risk_by_category: {
-    cybersecurity: 3, financial: 1, operational: 1,
-    legal: 2, hr: 1, strategic: 0, compliance: 0,
+    cybersecurity: 3, financial: 1, operational: 2,
+    legal_compliance: 2, strategic: 0,
   },
   monthly_risks: [
     { month: 'Aug', count: 2 }, { month: 'Sep', count: 3 },

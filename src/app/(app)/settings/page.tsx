@@ -2,21 +2,23 @@
 import { TopNav } from '@/components/layout/TopNav'
 import type { Metadata } from 'next'
 import { MOCK_USERS } from '@/lib/seed-data'
-import { User, Bell, Shield, Database, Key, Globe, Palette, Check, Loader2, ArrowLeft, ExternalLink, Settings } from 'lucide-react'
+import { User, Bell, Shield, Database, Key, Globe, Palette, Check, Loader2, ArrowLeft, ExternalLink, Settings, Building2 } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import type { LucideIcon } from 'lucide-react'
 import { toast } from 'sonner'
 import { db } from '@/lib/db'
+import { OrgStructurePanel } from '@/components/settings/OrgStructurePanel'
 
 
 const SECTIONS: { id: string; icon: LucideIcon; label: string }[] = [
-  { id: 'profile',       icon: User,     label: 'Profile' },
-  { id: 'notifications', icon: Bell,     label: 'Notifications' },
-  { id: 'security',      icon: Shield,   label: 'Security' },
-  { id: 'integrations',  icon: Database, label: 'Integrations' },
-  { id: 'api',           icon: Key,      label: 'API Keys' },
-  { id: 'organization',  icon: Globe,    label: 'Organization' },
-  { id: 'appearance',    icon: Palette,  label: 'Appearance' },
+  { id: 'profile',       icon: User,      label: 'Profile' },
+  { id: 'notifications', icon: Bell,      label: 'Notifications' },
+  { id: 'security',      icon: Shield,    label: 'Security' },
+  { id: 'integrations',  icon: Database,  label: 'Integrations' },
+  { id: 'api',           icon: Key,       label: 'API Keys' },
+  { id: 'organization',  icon: Globe,     label: 'Organization' },
+  { id: 'org-structure', icon: Building2, label: 'Org Structure' },
+  { id: 'appearance',    icon: Palette,   label: 'Appearance' },
 ]
 
 export default function SettingsPage() {
@@ -204,6 +206,9 @@ export default function SettingsPage() {
                   </div>
                 </div>
               )}
+
+              {/* Org Structure */}
+              {activeSection === 'org-structure' && <OrgStructurePanel />}
 
               {/* Appearance */}
               {activeSection === 'appearance' && (
