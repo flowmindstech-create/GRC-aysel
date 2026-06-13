@@ -749,6 +749,7 @@ export function RiskDetailSheet({ risk, onClose, onUpdate }: Props) {
             {/* Meta grid */}
             <div className="grid grid-cols-2 gap-3">
               {[
+                { icon: Tag, label: 'Risk ID', value: risk.risk_code ?? '—' },
                 { icon: Tag, label: 'Category', value: categoryLabel(risk.category) },
                 { icon: User, label: 'Owner', value: risk.owner_name ?? '—' },
                 { icon: Calendar, label: 'Due Date', value: risk.due_date ? format(new Date(risk.due_date), 'dd MMM yyyy') : '—' },
@@ -763,6 +764,27 @@ export function RiskDetailSheet({ risk, onClose, onUpdate }: Props) {
                 </div>
               ))}
             </div>
+
+            {/* Triggers → Controls */}
+            {risk.triggers && risk.triggers.length > 0 && (
+              <div className="space-y-2 p-4 rounded-xl border text-xs" style={{ borderColor: 'var(--border)', background: 'var(--card)' }}>
+                <p className="text-[10px] font-bold text-sky-400 uppercase tracking-wide border-b pb-1" style={{ borderColor: 'var(--border)' }}>Triggers & Controls</p>
+                {risk.triggers.map((t, ti) => (
+                  <div key={t.id} className="pt-1.5">
+                    <p className="text-[11px] font-semibold text-slate-200">⚡ {ti + 1}. {t.description || '—'}</p>
+                    <div className="pl-4 mt-1 space-y-1">
+                      {t.controls.length === 0 && <p className="text-[10px] text-amber-400">control yoxdur</p>}
+                      {t.controls.map((c) => (
+                        <div key={c.id} className="flex items-center justify-between gap-2">
+                          <span className="text-[11px]" style={{ color: 'var(--muted-fg)' }}>• {c.description || '—'}</span>
+                          {c.rating && <span className="text-[10px] font-bold text-sky-400 uppercase shrink-0">{String(c.rating).replace(/_/g, ' ')}</span>}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
 
             {/* RCSA Profile */}
             {(risk.sub_category || risk.owner_dept || risk.owner_role || (risk.confidentiality !== undefined && risk.confidentiality > 0)) && (

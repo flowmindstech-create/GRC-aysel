@@ -1,4 +1,4 @@
-import type { RiskLevel, UserRole } from '@/types'
+import type { RiskLevel, UserRole, RiskControlActivity, RiskTrigger } from '@/types'
 
 // Inherent Risk 5x5 Matrix (Likelihood: 1-5, Impact: 1-5)
 // Rows: Likelihood (1-5), Columns: Impact (1-5)
@@ -69,6 +69,45 @@ export function evaluateControlEffectiveness(
   }
 
   return { score, rating, label, designAvg, implementationAvg }
+}
+
+// Per-control effectiveness — runs the 6-criteria evaluation for one control activity.
+export function evaluateControlActivity(a: RiskControlActivity): ControlEvaluation {
+  return evaluateControlEffectiveness(
+    a.design_compliance || 3,
+    a.design_strength || 3,
+    a.design_timeliness || 3,
+    a.impl_relevance || 3,
+    a.impl_sustainability || 3,
+    a.impl_traceability || 3
+  )
+}
+
+// Aggregate effectiveness across all control activities of all triggers.
+// Averages the per-control scores; no controls → weakest rating (no reduction).
+export function aggregateControlEffectiveness(triggers: RiskTrigger[] | undefined): ControlEvaluation {
+  const controls = (triggers ?? []).flatMap((t) => t.controls ?? [])
+  if (controls.length === 0) {
+    return { score: 5, rating: 'weak', label: 'Weak or None', designAvg: 5, implementationAvg: 5 }
+  }
+  let scoreSum = 0
+  let designSum = 0
+  let implSum = 0
+  for (const c of controls) {
+    const e = evaluateControlActivity(c)
+    scoreSum += e.score
+    designSum += e.designAvg
+    implSum += e.implementationAvg
+  }
+  const n = controls.length
+  const score = scoreSum / n
+  let rating: ControlRating = 'weak'
+  let label = 'Weak or None'
+  if (score <= 1.5) { rating = 'strong'; label = 'Strong' }
+  else if (score <= 2.5) { rating = 'relatively_strong'; label = 'Relatively Strong' }
+  else if (score <= 3.5) { rating = 'adequate'; label = 'Adequate' }
+  else if (score <= 4.5) { rating = 'relatively_adequate'; label = 'Relatively Adequate' }
+  return { score, rating, label, designAvg: designSum / n, implementationAvg: implSum / n }
 }
 
 export function getRiskLevelNumber(level: RiskLevel): number {

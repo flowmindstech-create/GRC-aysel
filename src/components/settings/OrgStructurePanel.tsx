@@ -22,6 +22,7 @@ function emptyUnit(orderIndex: number): OrgUnit {
     id: `ou-${Date.now()}`,
     org_id: 'org1',
     name: '',
+    code: '',
     type: 'department',
     parent_id: null,
     head_user_id: null,
@@ -118,6 +119,11 @@ export function OrgStructurePanel() {
               </select>
             </div>
             <div>
+              <label className="block text-[11px] font-semibold mb-1.5" style={{ color: 'var(--foreground)' }}>Code <span className="font-normal text-slate-500">(Risk ID prefiksi, məs. IT)</span></label>
+              <input value={editing.code ?? ''} onChange={e => setEditing({ ...editing, code: e.target.value.toUpperCase() })}
+                placeholder="IT" className={inputCls} style={{ ...inputSty, background: 'var(--card)' }} />
+            </div>
+            <div>
               <label className="block text-[11px] font-semibold mb-1.5" style={{ color: 'var(--foreground)' }}>Parent Unit</label>
               <select value={editing.parent_id ?? ''} onChange={e => setEditing({ ...editing, parent_id: e.target.value || null })}
                 className={inputCls} style={{ ...inputSty, background: 'var(--card)' }}>
@@ -157,7 +163,7 @@ export function OrgStructurePanel() {
         <table className="w-full">
           <thead>
             <tr style={{ borderBottom: '1px solid var(--border)' }}>
-              {['Name', 'Type', 'Parent', 'Head', 'Role', ''].map(h => (
+              {['Name', 'Code', 'Type', 'Parent', 'Head', 'Role', ''].map(h => (
                 <th key={h} className="text-left px-3 py-2 text-[11px] font-semibold uppercase tracking-wide" style={{ color: 'var(--muted-fg)' }}>{h}</th>
               ))}
             </tr>
@@ -166,6 +172,11 @@ export function OrgStructurePanel() {
             {units.map(u => (
               <tr key={u.id} style={{ borderBottom: '1px solid var(--border)' }}>
                 <td className="px-3 py-2.5 text-sm font-medium" style={{ color: 'var(--foreground)' }}>{u.name}</td>
+                <td className="px-3 py-2.5">
+                  {u.code
+                    ? <span className="text-[11px] font-mono font-bold px-2 py-0.5 rounded bg-sky-500/10 text-sky-400">{u.code}</span>
+                    : <span className="text-xs" style={{ color: 'var(--muted-fg)' }}>—</span>}
+                </td>
                 <td className="px-3 py-2.5">
                   <span className="text-[11px] px-2 py-0.5 rounded-full capitalize" style={{ background: 'var(--muted)', color: 'var(--muted-fg)' }}>{u.type}</span>
                 </td>

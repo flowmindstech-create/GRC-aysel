@@ -6,16 +6,20 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Sliders, FileText } from 'lucide-react'
-import type { Risk, OrgUnit, UserProfile, UserRole } from '@/types'
+import type { Risk, OrgUnit, UserProfile, UserRole, Control, RiskTrigger } from '@/types'
 import { RISK_CATEGORIES, type RiskCategory } from '@/lib/risk-categories'
 import { RISK_STATUSES, RISK_STATUS_VALUES, type RiskStatus } from '@/lib/risk-status'
 import { MOCK_USERS } from '@/lib/seed-data'
 import { db } from '@/lib/db'
 import { resolveOwnerFromUnit } from '@/lib/org'
+import { orgUnitCode, generateRiskCode } from '@/lib/risk-id'
+import { validateRiskConsistency } from '@/lib/risk-logic'
 import { cn } from '@/lib/utils'
 import {
   calculateInherentLevel,
   evaluateControlEffectiveness,
+  evaluateControlActivity,
+  aggregateControlEffectiveness,
   calculateResidualLevel,
   calculateRiskGap,
   getRoleAllowedStrategies,
@@ -25,12 +29,12 @@ import {
 import {
   IMPACT_OPTIONS,
   LIKELIHOOD_OPTIONS,
-  CONTROL_CRITERIA,
   CONTROL_RATING_INFO,
   residualLevelWord,
   computeDueDate
 } from '@/lib/rcsa-content'
 import { RcsaSelect } from './RcsaSelect'
+import { TriggersEditor } from './TriggersEditor'
 
 const schema = z.object({
   title: z.string().min(5, 'Title must be at least 5 characters'),
@@ -59,12 +63,6 @@ const schema = z.object({
   reputation_impact: z.number().min(1).max(5),
   compliance_impact: z.number().min(1).max(5),
   target_residual_risk: z.string().optional(),
-  control_design_compliance: z.number().min(1).max(5).optional(),
-  control_design_strength: z.number().min(1).max(5).optional(),
-  control_design_timeliness: z.number().min(1).max(5).optional(),
-  control_implementation_relevance: z.number().min(1).max(5).optional(),
-  control_implementation_sustainability: z.number().min(1).max(5).optional(),
-  control_implementation_traceability: z.number().min(1).max(5).optional(),
 })
 
 type FormValues = z.infer<typeof schema>
@@ -81,6 +79,8 @@ export function RiskFormDialog({ risk, onClose, onSave }: Props) {
   const [departments, setDepartments] = useState<OrgUnit[]>([])
   const [profiles, setProfiles] = useState<UserProfile[]>(MOCK_USERS)
   const [currentRole, setCurrentRole] = useState<UserRole>('admin')
+  const [triggers, setTriggers] = useState<RiskTrigger[]>(risk?.triggers ?? [])
+  const [controlsLib, setControlsLib] = useState<Control[]>([])
   const dueTouched = useRef(false)
 
   const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<FormValues>({
@@ -111,12 +111,6 @@ export function RiskFormDialog({ risk, onClose, onSave }: Props) {
           reputation_impact: risk.reputation_impact || 1,
           compliance_impact: risk.compliance_impact || 1,
           target_residual_risk: risk.target_residual_risk || 'low',
-          control_design_compliance: risk.control_design_compliance || 3,
-          control_design_strength: risk.control_design_strength || 3,
-          control_design_timeliness: risk.control_design_timeliness || 3,
-          control_implementation_relevance: risk.control_implementation_relevance || 3,
-          control_implementation_sustainability: risk.control_implementation_sustainability || 3,
-          control_implementation_traceability: risk.control_implementation_traceability || 3,
         }
       : {
           category: 'cybersecurity',
@@ -132,12 +126,6 @@ export function RiskFormDialog({ risk, onClose, onSave }: Props) {
           reputation_impact: 1,
           compliance_impact: 1,
           target_residual_risk: 'low',
-          control_design_compliance: 3,
-          control_design_strength: 3,
-          control_design_timeliness: 3,
-          control_implementation_relevance: 3,
-          control_implementation_sustainability: 3,
-          control_implementation_traceability: 3,
         },
   })
 
@@ -165,22 +153,10 @@ export function RiskFormDialog({ risk, onClose, onSave }: Props) {
   // Calculate Level based on the 5x5 Matrix
   const computedLevel = calculateInherentLevel(likelihood, computedImpact)
 
-  // Live control effectiveness + residual level (single computation, reused below)
-  const cDesignCompliance = watch('control_design_compliance')
-  const cDesignStrength = watch('control_design_strength')
-  const cDesignTimeliness = watch('control_design_timeliness')
-  const cImplRelevance = watch('control_implementation_relevance')
-  const cImplSustainability = watch('control_implementation_sustainability')
-  const cImplTraceability = watch('control_implementation_traceability')
-  const effEval = evaluateControlEffectiveness(
-    cDesignCompliance || 3,
-    cDesignStrength || 3,
-    cDesignTimeliness || 3,
-    cImplRelevance || 3,
-    cImplSustainability || 3,
-    cImplTraceability || 3
-  )
+  // Control effectiveness is now aggregated from per-control assessments under triggers
+  const effEval = aggregateControlEffectiveness(triggers)
   const residualLevel = calculateResidualLevel(computedLevel, effEval.rating)
+  const consistencyIssues = validateRiskConsistency(triggers, computedLevel)
 
   useEffect(() => {
     setValue('impact', computedImpact)
@@ -203,9 +179,10 @@ export function RiskFormDialog({ risk, onClose, onSave }: Props) {
   useEffect(() => {
     let active = true
     async function load() {
-      const [units, people] = await Promise.all([db.getOrgUnits(), db.getProfiles()])
+      const [units, people, controls] = await Promise.all([db.getOrgUnits(), db.getProfiles(), db.getControls()])
       if (!active) return
       setDepartments(units.filter(u => u.type === 'department'))
+      setControlsLib(controls)
       if (people.length > 0) {
         setProfiles(people)
         setCurrentRole(people[0].role)
@@ -227,30 +204,44 @@ export function RiskFormDialog({ risk, onClose, onSave }: Props) {
   // Match the saved department name back to a unit id for the select value
   const selectedDeptId = departments.find(u => u.name === watch('owner_dept'))?.id ?? ''
 
-  const onSubmit = (values: FormValues) => {
+  const onSubmit = async (values: FormValues) => {
     const owner = profiles.find(u => u.id === values.owner_id)
-    
-    const evalResult = evaluateControlEffectiveness(
-      values.control_design_compliance || 3,
-      values.control_design_strength || 3,
-      values.control_design_timeliness || 3,
-      values.control_implementation_relevance || 3,
-      values.control_implementation_sustainability || 3,
-      values.control_implementation_traceability || 3
-    )
+
+    // Aggregate effectiveness from per-control assessments under triggers
+    const evalResult = aggregateControlEffectiveness(triggers)
+    const inherent = calculateInherentLevel(values.likelihood, values.impact)
+
+    // Department-based unique Risk ID (only generated once, for new risks)
+    let riskCode = risk?.risk_code
+    if (!riskCode) {
+      const dept = departments.find(u => u.name === values.owner_dept)
+      const existing = await db.getRisks()
+      riskCode = generateRiskCode(orgUnitCode(dept), existing)
+    }
+
+    // Persist computed degree onto each control activity for display
+    const savedTriggers: RiskTrigger[] = triggers.map(t => ({
+      ...t,
+      controls: t.controls.map(c => {
+        const e = evaluateControlEffectiveness(
+          c.design_compliance || 3, c.design_strength || 3, c.design_timeliness || 3,
+          c.impl_relevance || 3, c.impl_sustainability || 3, c.impl_traceability || 3
+        )
+        return { ...c, score: e.score, rating: e.rating }
+      }),
+    }))
 
     const saved: Risk = {
       id: risk?.id ?? `r-${Date.now()}`,
+      risk_code: riskCode,
       org_id: 'org1',
       ...values,
+      triggers: savedTriggers,
       owner_name: owner?.full_name,
       control_design: Math.round(evalResult.designAvg),
       control_implementation: Math.round(evalResult.implementationAvg),
       control_effectiveness: evalResult.rating as any,
-      residual_level: calculateResidualLevel(
-        calculateInherentLevel(values.likelihood, values.impact),
-        evalResult.rating
-      ),
+      residual_level: calculateResidualLevel(inherent, evalResult.rating),
       created_at: risk?.created_at ?? new Date().toISOString(),
       updated_at: new Date().toISOString(),
     }
@@ -323,7 +314,7 @@ export function RiskFormDialog({ risk, onClose, onSave }: Props) {
 
           {/* Body */}
           <div className="overflow-y-auto flex-1 p-6">
-            <form id="risk-form" onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <form id="risk-form" onSubmit={handleSubmit(onSubmit, () => setActiveTab('general'))} className="space-y-4">
               
               {activeTab === 'general' ? (
                 <div className="space-y-4">
@@ -404,6 +395,11 @@ export function RiskFormDialog({ risk, onClose, onSave }: Props) {
                     <label className="block text-[11px] font-bold mb-1.5" style={{ color: 'var(--foreground)' }}>Notes</label>
                     <textarea {...register('notes')} rows={2} placeholder="Additional notes, review details, audit references…"
                       className={cn(inputClass, 'resize-none')} style={sty} />
+                  </div>
+
+                  {/* Triggers → Controls (feeds RCSA control effectiveness) */}
+                  <div className="pt-2 border-t" style={{ borderColor: 'var(--border)' }}>
+                    <TriggersEditor triggers={triggers} onChange={setTriggers} library={controlsLib} />
                   </div>
                 </div>
               ) : (
@@ -505,54 +501,51 @@ export function RiskFormDialog({ risk, onClose, onSave }: Props) {
                     />
                   </div>
 
-                  {/* Control Effectiveness sliders */}
+                  {/* Control Effectiveness — aggregated from per-control assessments under Triggers (General Details) */}
                   <div className="space-y-3">
-                    <h4 className="text-[11px] font-bold text-sky-400 uppercase tracking-wide border-b pb-1" style={{ borderColor: 'var(--border)' }}>4. Control Effectiveness Evaluation (6 sub-criteria)</h4>
-                    
-                    <div className="grid grid-cols-2 gap-4">
-                      {/* Design Column */}
-                      <div className="space-y-3 p-3 rounded-xl border bg-black/10" style={{ borderColor: 'var(--border)' }}>
-                        <span className="text-[10px] uppercase font-bold text-sky-400 tracking-wider">Control Design (1-5)</span>
-                        {CONTROL_CRITERIA.filter(c => c.group === 'design').map(c => (
-                          <RcsaSelect
-                            key={c.name}
-                            label={c.label}
-                            value={watch(c.name as any) || 3}
-                            options={c.options}
-                            onChange={(v) => setValue(c.name as any, v)}
-                          />
-                        ))}
-                      </div>
+                    <h4 className="text-[11px] font-bold text-sky-400 uppercase tracking-wide border-b pb-1" style={{ borderColor: 'var(--border)' }}>4. Control Effectiveness (per-control aqreqat)</h4>
 
-                      {/* Implementation Column */}
-                      <div className="space-y-3 p-3 rounded-xl border bg-black/10" style={{ borderColor: 'var(--border)' }}>
-                        <span className="text-[10px] uppercase font-bold text-emerald-400 tracking-wider">Control Implementation (1-5)</span>
-                        {CONTROL_CRITERIA.filter(c => c.group === 'implementation').map(c => (
-                          <RcsaSelect
-                            key={c.name}
-                            label={c.label}
-                            value={watch(c.name as any) || 3}
-                            options={c.options}
-                            accent="bg-emerald-500 text-white border-emerald-500"
-                            onChange={(v) => setValue(c.name as any, v)}
-                          />
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Calculated Effectiveness + explanation */}
-                    <div className="p-3 bg-black/20 rounded-xl border border-white/5 text-xs">
-                      <div className="flex justify-between items-center">
-                        <div>
-                          <p className="font-bold text-slate-400">Calculated Effectiveness Rating:</p>
-                          <p className="text-[9px] text-slate-500 mt-0.5">Average Score: {effEval.score.toFixed(2)}</p>
+                    {triggers.flatMap(t => t.controls).length === 0 ? (
+                      <p className="text-[11px] text-amber-400">Hələ control yoxdur. Effektivlik üçün General Details → Triggers bölməsində hər səbəbə control əlavə edib qiymətləndirin.</p>
+                    ) : (
+                      <div className="p-3 bg-black/20 rounded-xl border border-white/5 text-xs space-y-2">
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <p className="font-bold text-slate-400">Aqreqat Effectiveness Rating:</p>
+                            <p className="text-[9px] text-slate-500 mt-0.5">{triggers.flatMap(t => t.controls).length} control · Orta bal: {effEval.score.toFixed(2)}</p>
+                          </div>
+                          <span className="font-black text-sky-400 uppercase">{CONTROL_RATING_INFO[effEval.rating].label}</span>
                         </div>
-                        <span className="font-black text-sky-400 uppercase">{CONTROL_RATING_INFO[effEval.rating].label}</span>
+
+                        {/* Per-control breakdown — these are the controls chosen in General Details */}
+                        <div className="border-t pt-2 space-y-1" style={{ borderColor: 'var(--border)' }}>
+                          {triggers.flatMap(t => t.controls).map((c) => {
+                            const e = evaluateControlActivity(c)
+                            return (
+                              <div key={c.id} className="flex items-center justify-between gap-2">
+                                <span className="text-[10px] text-slate-400 truncate">• {c.description || 'Adsız control'}</span>
+                                <span className="text-[10px] font-bold text-sky-400 uppercase shrink-0">{CONTROL_RATING_INFO[e.rating].label}</span>
+                              </div>
+                            )
+                          })}
+                        </div>
+
+                        <p className="text-[10px] text-slate-500 leading-snug border-t pt-2" style={{ borderColor: 'var(--border)' }}>
+                          {CONTROL_RATING_INFO[effEval.rating].desc}
+                        </p>
                       </div>
-                      <p className="text-[10px] text-slate-500 leading-snug mt-2 border-t pt-2" style={{ borderColor: 'var(--border)' }}>
-                        {CONTROL_RATING_INFO[effEval.rating].desc}
-                      </p>
-                    </div>
+                    )}
+
+                    {/* Consistency warnings */}
+                    {consistencyIssues.length > 0 && (
+                      <div className="space-y-1">
+                        {consistencyIssues.map((iss, i) => (
+                          <p key={i} className={`text-[10px] ${iss.severity === 'warning' ? 'text-amber-400' : 'text-slate-400'}`}>
+                            • {iss.message}
+                          </p>
+                        ))}
+                      </div>
+                    )}
                   </div>
 
                   {/* Target Residual Risk & Appetite check */}

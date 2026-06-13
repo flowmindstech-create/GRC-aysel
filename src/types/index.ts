@@ -27,6 +27,7 @@ export interface OrgUnit {
   id: string
   org_id: string
   name: string
+  code?: string // short department code, used as the Risk ID prefix (e.g. IT, CORP)
   type: OrgUnitType
   parent_id?: string | null
   head_user_id?: string | null // resolves to Risk Owner
@@ -46,12 +47,38 @@ import type { RiskStatus } from '@/lib/risk-status'
 export type { RiskCategory } from '@/lib/risk-categories'
 import type { RiskCategory } from '@/lib/risk-categories'
 
+// A control activity that mitigates a specific risk trigger. Hybrid: it may
+// reference a library control (control_ref_id) or be free-text. Each control
+// carries its own RCSA 6 sub-criteria so effectiveness is assessed per control.
+export interface RiskControlActivity {
+  id: string
+  description: string
+  control_ref_id?: string // optional link to controls.id (library)
+  design_compliance?: number
+  design_strength?: number
+  design_timeliness?: number
+  impl_relevance?: number
+  impl_sustainability?: number
+  impl_traceability?: number
+  score?: number // derived, persisted for display
+  rating?: string // derived ControlRating, persisted for display
+}
+
+// A trigger (cause/threat) of a risk, with the controls that address it.
+export interface RiskTrigger {
+  id: string
+  description: string
+  controls: RiskControlActivity[]
+}
+
 export interface Risk {
   id: string
+  risk_code?: string // human-readable, department-based unique id (e.g. IT-2026-001)
   org_id: string
   title: string
   description: string
   category: RiskCategory
+  triggers?: RiskTrigger[]
   level: RiskLevel
   status: RiskStatus
   owner_id?: string
@@ -94,13 +121,20 @@ export interface Risk {
   reputation_impact?: number
   compliance_impact?: number
   target_residual_risk?: string
+  // Aggregate control effectiveness (derived from per-control triggers assessment)
   control_design?: number
   control_implementation?: number
+  /** @deprecated superseded by per-control RCSA on RiskControlActivity (triggers). Kept for legacy data. */
   control_design_compliance?: number
+  /** @deprecated see triggers[].controls */
   control_design_strength?: number
+  /** @deprecated see triggers[].controls */
   control_design_timeliness?: number
+  /** @deprecated see triggers[].controls */
   control_implementation_relevance?: number
+  /** @deprecated see triggers[].controls */
   control_implementation_sustainability?: number
+  /** @deprecated see triggers[].controls */
   control_implementation_traceability?: number
 }
 

@@ -2,20 +2,16 @@
 
 import { useState, useEffect, Fragment } from 'react'
 import { motion } from 'framer-motion'
-import { MOCK_RISKS } from '@/lib/seed-data'
 import { db } from '@/lib/db'
-import type { Risk, RiskLevel, JiraConfig } from '@/types'
+import type { Risk, RiskLevel } from '@/types'
 import { RISK_CATEGORIES, RISK_CATEGORY_VALUES, CATEGORY_LABELS, type RiskCategory } from '@/lib/risk-categories'
 import { RISK_STATUS_VALUES, STATUS_LABELS, normalizeStatus, type RiskStatus } from '@/lib/risk-status'
-import { residualLevelWord } from '@/lib/rcsa-content'
+import { residualLevelWord, CONTROL_RATING_INFO } from '@/lib/rcsa-content'
+import { TREATMENT_STRATEGY_LABELS, type TreatmentStrategy, type ControlRating } from '@/lib/rcsa'
 import { RiskLevelBadge, RiskStatusBadge } from '@/components/shared/Badges'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { formatDistanceToNow } from 'date-fns'
-import {
-  Plus, Search, Filter, MoreHorizontal, Edit,
-  Trash2, Eye, Zap, Clock, User, ChevronDown, Database, RefreshCw,
-} from 'lucide-react'
-import { toast } from 'sonner'
+import { Plus, Search, MoreHorizontal, Edit, Trash2, Eye } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { RiskFormDialog } from './RiskFormDialog'
 import { RiskDetailSheet } from './RiskDetailSheet'
@@ -34,15 +30,11 @@ export function RiskTable() {
   const [editRisk, setEditRisk] = useState<Risk | null>(null)
   const [detailRisk, setDetailRisk] = useState<Risk | null>(null)
   const [menuOpen, setMenuOpen] = useState<string | null>(null)
-  const [jiraConfig, setJiraConfig] = useState<JiraConfig | null>(null)
-  const [syncingId, setSyncingId] = useState<string | null>(null)
 
   useEffect(() => {
     async function load() {
       const data = await db.getRisks()
       setRisks(data)
-      const config = await db.getJiraConfig()
-      setJiraConfig(config)
     }
     load()
   }, [])
@@ -112,6 +104,7 @@ export function RiskTable() {
           <input
             value={search} onChange={e => setSearch(e.target.value)}
             placeholder="Search risks…"
+            aria-label="Search risks"
             className="flex-1 text-sm bg-transparent outline-none"
             style={{ color: 'var(--foreground)' }}
           />
@@ -158,8 +151,8 @@ export function RiskTable() {
           <table className="w-full">
             <thead>
               <tr style={{ borderBottom: '1px solid var(--border)', background: 'var(--muted)' }}>
-                {['Risk', 'Level', 'Residual', 'Status', 'Jira Issue', 'Owner', 'Due Date', 'Score', ''].map(h => (
-                  <th key={h} className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wide"
+                {['Risk ID', 'Risk', 'Status', 'Treatment', 'Due', 'Inherent', 'Residual', 'Control activities', 'Degree', 'Owner structure', 'Owner', ''].map(h => (
+                  <th key={h} className="text-left px-3 py-3 text-[11px] font-semibold uppercase tracking-wide whitespace-nowrap"
                     style={{ color: 'var(--muted-fg)' }}>
                     {h}
                   </th>
@@ -170,7 +163,7 @@ export function RiskTable() {
               {grouped.map(group => (
                   <Fragment key={group.cat.value}>
                     <tr style={{ background: 'var(--muted)', borderBottom: '1px solid var(--border)' }}>
-                      <td colSpan={9} className="px-4 py-2 text-[11px] font-bold uppercase tracking-wide"
+                      <td colSpan={12} className="px-3 py-2 text-[11px] font-bold uppercase tracking-wide"
                         style={{ color: 'var(--foreground)' }}>
                         {group.cat.label} <span className="text-slate-400 font-medium">({group.items.length})</span>
                       </td>
@@ -180,109 +173,75 @@ export function RiskTable() {
                     key={risk.id}
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
                     transition={{ delay: i * 0.04 }}
                     className="group hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors cursor-pointer"
                     style={{ borderBottom: '1px solid var(--border)' }}
                     onClick={() => setDetailRisk(risk)}
                   >
-                    <td className="px-4 py-3.5 max-w-xs">
+                    <td className="px-3 py-3.5">
+                      <span className="text-[11px] font-mono font-bold whitespace-nowrap" style={{ color: 'var(--foreground)' }}>
+                        {risk.risk_code ?? '—'}
+                      </span>
+                    </td>
+                    <td className="px-3 py-3.5 max-w-xs">
                       <p className="text-sm font-medium truncate group-hover:text-sky-500 transition-colors"
                         style={{ color: 'var(--foreground)' }}>
                         {risk.title}
                       </p>
                       <p className="text-xs mt-0.5 truncate" style={{ color: 'var(--muted-fg)' }}>
-                        {risk.description.slice(0, 60)}…
+                        {risk.description.slice(0, 50)}…
                       </p>
                     </td>
-                    <td className="px-4 py-3.5">
+                    <td className="px-3 py-3.5">
+                      <RiskStatusBadge status={risk.status} />
+                    </td>
+                    <td className="px-3 py-3.5">
+                      <span className="text-xs capitalize" style={{ color: 'var(--muted-fg)' }}>
+                        {risk.mitigation ? TREATMENT_STRATEGY_LABELS[risk.mitigation as TreatmentStrategy] ?? risk.mitigation : '—'}
+                      </span>
+                    </td>
+                    <td className="px-3 py-3.5">
+                      <span className="text-xs whitespace-nowrap" style={{ color: 'var(--muted-fg)' }}>
+                        {risk.due_date ? formatDistanceToNow(new Date(risk.due_date), { addSuffix: true }) : '—'}
+                      </span>
+                    </td>
+                    <td className="px-3 py-3.5">
                       <RiskLevelBadge level={risk.level} />
                     </td>
-                    <td className="px-4 py-3.5">
+                    <td className="px-3 py-3.5">
                       {risk.residual_level
                         ? <span className="text-xs font-semibold" style={{ color: 'var(--foreground)' }}>{residualLevelWord(risk.residual_level)}</span>
                         : <span className="text-xs" style={{ color: 'var(--muted-fg)' }}>—</span>}
                     </td>
-                    <td className="px-4 py-3.5">
-                      <RiskStatusBadge status={risk.status} />
+                    <td className="px-3 py-3.5">
+                      {(() => {
+                        const n = (risk.triggers ?? []).reduce((s, t) => s + (t.controls?.length ?? 0), 0)
+                        return <span className="text-xs" style={{ color: 'var(--muted-fg)' }}>{n > 0 ? `${n} control` : '—'}</span>
+                      })()}
                     </td>
-                    <td className="px-4 py-3.5" onClick={e => e.stopPropagation()}>
-                      {jiraConfig && jiraConfig.connected ? (
-                        risk.jira_issue_key ? (
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-sky-500/10 text-sky-500 font-mono font-bold border border-sky-500/10" title="Open in Jira">
-                              {risk.jira_issue_key}
-                            </span>
-                            <span className="text-[10px] font-semibold uppercase px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
-                              {risk.jira_issue_status}
-                            </span>
-                          </div>
-                        ) : (
-                          <button
-                            onClick={async () => {
-                              try {
-                                setSyncingId(risk.id)
-                                await new Promise(r => setTimeout(r, 1200))
-                                const updated = await db.syncRiskToJira(risk.id)
-                                setRisks(prev => prev.map(r => r.id === risk.id ? updated : r))
-                                toast.success(`Risk synced to Jira issue: ${updated.jira_issue_key}`)
-                              } catch (err) {
-                                toast.error('Failed to sync to Jira')
-                              } finally {
-                                setSyncingId(null)
-                              }
-                            }}
-                            disabled={syncingId !== null}
-                            className="flex items-center gap-1 text-[10px] font-semibold text-sky-500 hover:text-sky-500 bg-sky-500/5 hover:bg-sky-500/10 px-2 py-1 rounded-lg border border-sky-500/20 cursor-pointer disabled:opacity-50 transition-colors"
-                          >
-                            {syncingId === risk.id ? (
-                              <RefreshCw className="w-3 h-3 animate-spin" />
-                            ) : (
-                              <Database className="w-3 h-3" />
-                            )}
-                            Sync
-                          </button>
-                        )
-                      ) : (
-                        <span className="text-xs text-slate-400 font-medium">—</span>
-                      )}
+                    <td className="px-3 py-3.5">
+                      <span className="text-xs" style={{ color: 'var(--muted-fg)' }}>
+                        {risk.control_effectiveness ? (CONTROL_RATING_INFO[risk.control_effectiveness as ControlRating]?.label ?? String(risk.control_effectiveness).replace(/_/g, ' ')) : '—'}
+                      </span>
                     </td>
-                    <td className="px-4 py-3.5">
+                    <td className="px-3 py-3.5">
+                      <span className="text-xs" style={{ color: 'var(--muted-fg)' }}>{risk.owner_dept ?? '—'}</span>
+                    </td>
+                    <td className="px-3 py-3.5">
                       <div className="flex items-center gap-1.5">
-                        <div className="w-5 h-5 rounded-full bg-sky-500 flex items-center justify-center text-white text-[10px] font-bold">
+                        <div className="w-5 h-5 rounded-full bg-sky-500 flex items-center justify-center text-white text-[10px] font-bold shrink-0">
                           {risk.owner_name?.[0] ?? '?'}
                         </div>
-                        <span className="text-xs" style={{ color: 'var(--foreground)' }}>
+                        <span className="text-xs whitespace-nowrap" style={{ color: 'var(--foreground)' }}>
                           {risk.owner_name ?? '—'}
                         </span>
                       </div>
                     </td>
-                    <td className="px-4 py-3.5">
-                      <span className="text-xs" style={{ color: 'var(--muted-fg)' }}>
-                        {risk.due_date
-                          ? formatDistanceToNow(new Date(risk.due_date), { addSuffix: true })
-                          : '—'}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3.5">
-                      <div className="flex items-center gap-1">
-                        <div className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold"
-                          style={{
-                            background: risk.likelihood * risk.impact >= 16 ? '#ef444420' :
-                              risk.likelihood * risk.impact >= 9 ? '#f9731620' :
-                                risk.likelihood * risk.impact >= 4 ? '#eab30820' : '#22c55e20',
-                            color: risk.likelihood * risk.impact >= 16 ? '#ef4444' :
-                              risk.likelihood * risk.impact >= 9 ? '#f97316' :
-                                risk.likelihood * risk.impact >= 4 ? '#eab308' : '#22c55e',
-                          }}>
-                          {risk.likelihood * risk.impact}
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3.5" onClick={e => e.stopPropagation()}>
+                    <td className="px-3 py-3.5" onClick={e => e.stopPropagation()}>
                       <div className="relative">
                         <button
                           onClick={() => setMenuOpen(menuOpen === risk.id ? null : risk.id)}
+                          aria-label="Risk actions"
                           className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
                         >
                           <MoreHorizontal className="w-4 h-4" style={{ color: 'var(--muted-fg)' }} />
@@ -325,6 +284,7 @@ export function RiskTable() {
       {/* Dialogs */}
       {showForm && (
         <RiskFormDialog
+          key={editRisk?.id ?? 'new'}
           risk={editRisk}
           onClose={() => { setShowForm(false); setEditRisk(null) }}
           onSave={handleSave}

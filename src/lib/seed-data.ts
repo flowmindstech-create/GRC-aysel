@@ -34,9 +34,10 @@ const ou = (
   parent_id: string | null,
   order_index: number,
   head_user_id: string | null = null,
-  head_role: string | null = null
+  head_role: string | null = null,
+  code?: string
 ): OrgUnit => ({
-  id, org_id: 'org1', name, type, parent_id, head_user_id, head_role, order_index,
+  id, org_id: 'org1', name, code, type, parent_id, head_user_id, head_role, order_index,
   created_at: ORG_T, updated_at: ORG_T,
 })
 
@@ -55,12 +56,12 @@ export const SEED_ORG_UNITS: OrgUnit[] = [
   ou('ou-cio', 'Baş informasiya inzibatçısı', 'executive', 'ou-exec', 12),
   ou('ou-ciso', 'İnformasiya təhlükəsizliyi üzrə baş inzibatçı', 'executive', 'ou-exec', 13),
 
-  // Departments (selectable as Owner Department)
-  ou('ou-corp', 'Korporativ xidmətlər departamenti', 'department', 'ou-dep1', 20, 'u1', 'Korporativ xidmətlər departamentinin rəhbəri'),
-  ou('ou-bizdev', 'Biznesin inkişafı departamenti', 'department', 'ou-dep2', 21, 'u2', 'Biznesin inkişafı departamentinin rəhbəri'),
-  ou('ou-digital', 'Rəqəmsal həllərin inkişafı departamenti', 'department', 'ou-cio', 22, 'u3', 'Rəqəmsal həllərin inkişafı departamentinin rəhbəri'),
-  ou('ou-itinfra', 'İT infrastruktur və əməliyyatların idarəedilməsi departamenti', 'department', 'ou-cio', 23, 'u4', 'İT infrastruktur departamentinin rəhbəri'),
-  ou('ou-ops', 'Əməliyyatlar departamenti', 'department', 'ou-exec', 24, 'u2', 'Əməliyyatlar departamentinin rəhbəri'),
+  // Departments (selectable as Owner Department) — each carries a Risk ID code
+  ou('ou-corp', 'Korporativ xidmətlər departamenti', 'department', 'ou-dep1', 20, 'u1', 'Korporativ xidmətlər departamentinin rəhbəri', 'CORP'),
+  ou('ou-bizdev', 'Biznesin inkişafı departamenti', 'department', 'ou-dep2', 21, 'u2', 'Biznesin inkişafı departamentinin rəhbəri', 'BIZ'),
+  ou('ou-digital', 'Rəqəmsal həllərin inkişafı departamenti', 'department', 'ou-cio', 22, 'u3', 'Rəqəmsal həllərin inkişafı departamentinin rəhbəri', 'DIG'),
+  ou('ou-itinfra', 'İT infrastruktur və əməliyyatların idarəedilməsi departamenti', 'department', 'ou-cio', 23, 'u4', 'İT infrastruktur departamentinin rəhbəri', 'IT'),
+  ou('ou-ops', 'Əməliyyatlar departamenti', 'department', 'ou-exec', 24, 'u2', 'Əməliyyatlar departamentinin rəhbəri', 'OPS'),
 
   // Korporativ xidmətlər → şöbələr
   ou('ou-legal', 'Hüquq şöbəsi', 'division', 'ou-corp', 30),
@@ -109,103 +110,8 @@ export const SEED_ORG_UNITS: OrgUnit[] = [
 
 // ─── Risks ───────────────────────────────────────────────────────────────────
 
-export const MOCK_RISKS: Risk[] = [
-  {
-    id: 'r1', org_id: 'org1', title: 'SQL Injection Vulnerability in Customer Portal',
-    description: 'The customer-facing login portal has an unpatched SQL injection point that could expose all customer records.',
-    category: 'cybersecurity', level: 'critical', status: 'open',
-    owner_id: 'u2', owner_name: 'Leyla Mammadova',
-    due_date: '2025-02-15', likelihood: 4, impact: 5,
-    mitigation: 'Apply parameterized queries, conduct penetration test, deploy WAF rule.',
-    created_at: '2025-01-05T10:00:00Z', updated_at: '2025-01-10T14:00:00Z',
-  },
-  {
-    id: 'r2', org_id: 'org1', title: 'Third-Party Payroll Provider Insolvency Risk',
-    description: 'Our payroll SaaS vendor is showing signs of financial instability which could disrupt monthly payroll operations.',
-    category: 'financial', level: 'high', status: 'in_progress',
-    owner_id: 'u1', owner_name: 'Ali Hasanov',
-    due_date: '2025-03-01', likelihood: 3, impact: 4,
-    mitigation: 'Identify backup payroll provider, maintain 3-month payroll reserve fund.',
-    created_at: '2025-01-08T10:00:00Z', updated_at: '2025-01-15T10:00:00Z',
-  },
-  {
-    id: 'r3', org_id: 'org1', title: 'GDPR Non-Compliance in Marketing Emails',
-    description: 'Marketing team is sending promotional emails without a valid opt-in consent mechanism, violating GDPR Article 7.',
-    category: 'legal_compliance', level: 'high', status: 'in_progress',
-    owner_id: 'u2', owner_name: 'Leyla Mammadova',
-    due_date: '2025-02-01', likelihood: 4, impact: 4,
-    mitigation: 'Implement double opt-in flow, audit existing contact list, update privacy policy.',
-    created_at: '2025-01-10T10:00:00Z', updated_at: '2025-01-18T10:00:00Z',
-  },
-  {
-    id: 'r4', org_id: 'org1', title: 'Key Employee Dependency — CTO Single Point of Failure',
-    description: 'Our CTO holds exclusive knowledge of critical system architecture. Their departure would create a major operational gap.',
-    category: 'operational', level: 'medium', status: 'open',
-    owner_id: 'u1', owner_name: 'Ali Hasanov',
-    due_date: '2025-04-30', likelihood: 2, impact: 5,
-    mitigation: 'Document all architecture decisions, implement knowledge transfer sessions, hire senior engineer.',
-    created_at: '2025-01-12T10:00:00Z', updated_at: '2025-01-12T10:00:00Z',
-  },
-  {
-    id: 'r5', org_id: 'org1', title: 'Cloud Storage Misconfiguration Exposes Internal Documents',
-    description: 'AWS S3 bucket containing internal HR documents is publicly accessible due to policy misconfiguration.',
-    category: 'cybersecurity', level: 'critical', status: 'done',
-    owner_id: 'u3', owner_name: 'Rauf Quliyev',
-    due_date: '2025-01-20', likelihood: 5, impact: 5,
-    mitigation: 'Enabled S3 Block Public Access, implemented bucket policy, set up AWS Config rules for auto-remediation.',
-    created_at: '2025-01-03T10:00:00Z', updated_at: '2025-01-17T10:00:00Z',
-  },
-  {
-    id: 'r6', org_id: 'org1', title: 'Operational Disruption from Outdated BCP',
-    description: 'Business Continuity Plan has not been tested or updated since 2022, leaving the organization unprepared for major outages.',
-    category: 'operational', level: 'medium', status: 'open',
-    owner_id: 'u2', owner_name: 'Leyla Mammadova',
-    due_date: '2025-05-01', likelihood: 3, impact: 3,
-    mitigation: 'Schedule BCP tabletop exercise, update plan, assign departmental BCP owners.',
-    created_at: '2025-01-14T10:00:00Z', updated_at: '2025-01-14T10:00:00Z',
-  },
-  {
-    id: 'r7', org_id: 'org1', title: 'Software License Compliance Risk',
-    description: 'Audit revealed 12 unlicensed software installations across developer workstations, risking vendor audit and fines.',
-    category: 'legal_compliance', level: 'low', status: 'solved',
-    owner_id: 'u4', owner_name: 'Nigar Aliyeva',
-    due_date: '2025-01-31', likelihood: 2, impact: 2,
-    mitigation: 'Deployed SIEM-based software inventory scanner, purchased required licenses.',
-    created_at: '2024-12-20T10:00:00Z', updated_at: '2025-01-25T10:00:00Z',
-  },
-  {
-    id: 'OS1', org_id: 'org1', title: 'Lack of First Aid Boxes',
-    description: 'There are no standard first aid boxes or medical kits available on the company floors.',
-    category: 'operational', level: 'low', status: 'solved',
-    owner_id: 'u4', owner_name: 'Afaq Huseynova',
-    due_date: '2025-09-30', likelihood: 2, impact: 3,
-    mitigation: 'Purchase and placement of standard fully equipped first aid boxes for each floor.',
-    created_at: '2024-12-20T10:00:00Z', updated_at: '2025-09-30T10:00:00Z',
-    sub_category: 'Medical security and first aid process',
-    owner_dept: 'HSE',
-    owner_role: 'HSE Coordinator',
-    notes: 'Sample RCSA record from company policy',
-    implementation_date: '2025-09-30',
-    confidentiality: 3,
-    integrity: 2,
-    availability: 1,
-    operational_impact: 3,
-    financial_impact: 2,
-    reputation_impact: 1,
-    compliance_impact: 2,
-    target_residual_risk: 'low',
-    workflow_step: 'closed',
-    control_design_compliance: 3,
-    control_design_strength: 3,
-    control_design_timeliness: 3,
-    control_implementation_relevance: 3,
-    control_implementation_sustainability: 3,
-    control_implementation_traceability: 3,
-    control_design: 3,
-    control_implementation: 3,
-    control_effectiveness: 'adequate',
-  },
-]
+// Demo risks removed — the register starts empty so risks can be added manually.
+export const MOCK_RISKS: Risk[] = []
 
 // ─── Incidents ────────────────────────────────────────────────────────────────
 
