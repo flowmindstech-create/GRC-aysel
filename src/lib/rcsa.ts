@@ -1,4 +1,4 @@
-import type { RiskLevel } from '@/types'
+import type { RiskLevel, UserRole } from '@/types'
 
 // Inherent Risk 5x5 Matrix (Likelihood: 1-5, Impact: 1-5)
 // Rows: Likelihood (1-5), Columns: Impact (1-5)
@@ -149,5 +149,27 @@ export function getAllowedTreatmentStrategies(inherentLevel: RiskLevel): Treatme
     case 'minimal':
     default:
       return ['accept', 'transfer', 'mitigate']
+  }
+}
+
+export const TREATMENT_STRATEGY_LABELS: Record<TreatmentStrategy, string> = {
+  mitigate: 'Mitigate',
+  accept: 'Accept',
+  transfer: 'Transfer',
+  avoid: 'Avoid',
+}
+
+// Role-based gating for who may choose a treatment strategy:
+// admin & risk_manager → all; auditor → view only (none); employee → propose mitigate only.
+export function getRoleAllowedStrategies(role: UserRole | undefined): TreatmentStrategy[] {
+  switch (role) {
+    case 'admin':
+    case 'risk_manager':
+      return ['mitigate', 'accept', 'transfer', 'avoid']
+    case 'employee':
+      return ['mitigate']
+    case 'auditor':
+    default:
+      return []
   }
 }

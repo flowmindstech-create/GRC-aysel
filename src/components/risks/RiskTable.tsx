@@ -1,11 +1,13 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { useState, useEffect, Fragment } from 'react'
+import { motion } from 'framer-motion'
 import { MOCK_RISKS } from '@/lib/seed-data'
 import { db } from '@/lib/db'
-import type { Risk, RiskLevel, RiskStatus, JiraConfig } from '@/types'
-import { RISK_CATEGORY_VALUES, CATEGORY_LABELS, categoryLabel, type RiskCategory } from '@/lib/risk-categories'
+import type { Risk, RiskLevel, JiraConfig } from '@/types'
+import { RISK_CATEGORIES, RISK_CATEGORY_VALUES, CATEGORY_LABELS, type RiskCategory } from '@/lib/risk-categories'
+import { RISK_STATUS_VALUES, STATUS_LABELS, normalizeStatus, type RiskStatus } from '@/lib/risk-status'
+import { residualLevelWord } from '@/lib/rcsa-content'
 import { RiskLevelBadge, RiskStatusBadge } from '@/components/shared/Badges'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { formatDistanceToNow } from 'date-fns'
@@ -20,7 +22,7 @@ import { RiskDetailSheet } from './RiskDetailSheet'
 
 const LEVELS: (RiskLevel | 'all')[] = ['all', 'critical', 'high', 'medium', 'low', 'minimal']
 const CATEGORIES: (RiskCategory | 'all')[] = ['all', ...RISK_CATEGORY_VALUES]
-const STATUSES: (RiskStatus | 'all')[] = ['all', 'open', 'in_progress', 'mitigated', 'accepted', 'closed']
+const STATUSES: (RiskStatus | 'all')[] = ['all', ...RISK_STATUS_VALUES]
 
 export function RiskTable() {
   const [risks, setRisks] = useState<Risk[]>([])
@@ -51,9 +53,19 @@ export function RiskTable() {
       r.description.toLowerCase().includes(search.toLowerCase())
     const matchLevel = levelFilter === 'all' || r.level === levelFilter
     const matchCat = categoryFilter === 'all' || r.category === categoryFilter
-    const matchStatus = statusFilter === 'all' || r.status === statusFilter
+    const matchStatus = statusFilter === 'all' || normalizeStatus(r.status) === statusFilter
     return matchSearch && matchLevel && matchCat && matchStatus
   })
+
+  // Group by category (registry view): RISK_CATEGORIES order, newest/updated on top
+  const grouped = RISK_CATEGORIES
+    .map(cat => ({
+      cat,
+      items: filtered
+        .filter(r => r.category === cat.value)
+        .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()),
+    }))
+    .filter(g => g.items.length > 0)
 
   const handleDelete = async (id: string) => {
     await db.deleteRisk(id)
@@ -126,7 +138,7 @@ export function RiskTable() {
           className="px-3 py-2 rounded-xl text-xs font-medium outline-none cursor-pointer"
           style={{ background: 'var(--card)', border: '1px solid var(--border)', color: 'var(--foreground)' }}
         >
-          {STATUSES.map(s => <option key={s} value={s}>{s === 'all' ? 'All Status' : s.replace('_', ' ')}</option>)}
+          {STATUSES.map(s => <option key={s} value={s}>{s === 'all' ? 'All Status' : STATUS_LABELS[s]}</option>)}
         </select>
 
         {/* Category filter */}
@@ -146,7 +158,7 @@ export function RiskTable() {
           <table className="w-full">
             <thead>
               <tr style={{ borderBottom: '1px solid var(--border)', background: 'var(--muted)' }}>
-                {['Risk', 'Category', 'Level', 'Status', 'Jira Issue', 'Owner', 'Due Date', 'Score', ''].map(h => (
+                {['Risk', 'Level', 'Residual', 'Status', 'Jira Issue', 'Owner', 'Due Date', 'Score', ''].map(h => (
                   <th key={h} className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wide"
                     style={{ color: 'var(--muted-fg)' }}>
                     {h}
@@ -155,8 +167,15 @@ export function RiskTable() {
               </tr>
             </thead>
             <tbody>
-              <AnimatePresence>
-                {filtered.map((risk, i) => (
+              {grouped.map(group => (
+                  <Fragment key={group.cat.value}>
+                    <tr style={{ background: 'var(--muted)', borderBottom: '1px solid var(--border)' }}>
+                      <td colSpan={9} className="px-4 py-2 text-[11px] font-bold uppercase tracking-wide"
+                        style={{ color: 'var(--foreground)' }}>
+                        {group.cat.label} <span className="text-slate-400 font-medium">({group.items.length})</span>
+                      </td>
+                    </tr>
+                    {group.items.map((risk, i) => (
                   <motion.tr
                     key={risk.id}
                     initial={{ opacity: 0 }}
@@ -177,10 +196,12 @@ export function RiskTable() {
                       </p>
                     </td>
                     <td className="px-4 py-3.5">
-                      <span className="text-xs px-2.5 py-1 rounded-full"
-                        style={{ background: 'var(--muted)', color: 'var(--muted-fg)' }}>
-                        {categoryLabel(risk.category)}
-                      </span>
+                      <RiskLevelBadge level={risk.level} />
+                    </td>
+                    <td className="px-4 py-3.5">
+                      {risk.residual_level
+                        ? <span className="text-xs font-semibold" style={{ color: 'var(--foreground)' }}>{residualLevelWord(risk.residual_level)}</span>
+                        : <span className="text-xs" style={{ color: 'var(--muted-fg)' }}>—</span>}
                     </td>
                     <td className="px-4 py-3.5">
                       <RiskStatusBadge status={risk.status} />
@@ -288,8 +309,9 @@ export function RiskTable() {
                       </div>
                     </td>
                   </motion.tr>
+                    ))}
+                  </Fragment>
                 ))}
-              </AnimatePresence>
             </tbody>
           </table>
           {filtered.length === 0 && (

@@ -1,13 +1,14 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Sliders, FileText } from 'lucide-react'
-import type { Risk, OrgUnit, UserProfile } from '@/types'
+import type { Risk, OrgUnit, UserProfile, UserRole } from '@/types'
 import { RISK_CATEGORIES, type RiskCategory } from '@/lib/risk-categories'
+import { RISK_STATUSES, RISK_STATUS_VALUES, type RiskStatus } from '@/lib/risk-status'
 import { MOCK_USERS } from '@/lib/seed-data'
 import { db } from '@/lib/db'
 import { resolveOwnerFromUnit } from '@/lib/org'
@@ -16,20 +17,33 @@ import {
   calculateInherentLevel,
   evaluateControlEffectiveness,
   calculateResidualLevel,
-  calculateRiskGap
+  calculateRiskGap,
+  getRoleAllowedStrategies,
+  TREATMENT_STRATEGY_LABELS,
+  type TreatmentStrategy
 } from '@/lib/rcsa'
+import {
+  IMPACT_OPTIONS,
+  LIKELIHOOD_OPTIONS,
+  CONTROL_CRITERIA,
+  CONTROL_RATING_INFO,
+  residualLevelWord,
+  computeDueDate
+} from '@/lib/rcsa-content'
+import { RcsaSelect } from './RcsaSelect'
 
 const schema = z.object({
   title: z.string().min(5, 'Title must be at least 5 characters'),
   description: z.string().min(10, 'Description required'),
   category: z.enum(RISK_CATEGORIES.map((c) => c.value) as [RiskCategory, ...RiskCategory[]]),
   level: z.enum(['minimal', 'low', 'medium', 'high', 'critical']),
-  status: z.enum(['open', 'in_progress', 'mitigated', 'accepted', 'closed']),
+  status: z.enum(RISK_STATUS_VALUES as [RiskStatus, ...RiskStatus[]]),
   owner_id: z.string().optional(),
   due_date: z.string().optional(),
   likelihood: z.number().min(1).max(5),
   impact: z.number().min(1).max(5),
   mitigation: z.string().optional(),
+  treatment_plan: z.string().optional(),
   
   // RCSA Fields
   sub_category: z.string().optional(),
@@ -66,6 +80,8 @@ export function RiskFormDialog({ risk, onClose, onSave }: Props) {
   const [activeTab, setActiveTab] = useState<'general' | 'rcsa'>('general')
   const [departments, setDepartments] = useState<OrgUnit[]>([])
   const [profiles, setProfiles] = useState<UserProfile[]>(MOCK_USERS)
+  const [currentRole, setCurrentRole] = useState<UserRole>('admin')
+  const dueTouched = useRef(false)
 
   const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -81,6 +97,7 @@ export function RiskFormDialog({ risk, onClose, onSave }: Props) {
           likelihood: risk.likelihood,
           impact: risk.impact,
           mitigation: risk.mitigation ?? '',
+          treatment_plan: risk.treatment_plan ?? '',
           sub_category: risk.sub_category || '',
           owner_dept: risk.owner_dept || '',
           owner_role: risk.owner_role || '',
@@ -148,10 +165,39 @@ export function RiskFormDialog({ risk, onClose, onSave }: Props) {
   // Calculate Level based on the 5x5 Matrix
   const computedLevel = calculateInherentLevel(likelihood, computedImpact)
 
+  // Live control effectiveness + residual level (single computation, reused below)
+  const cDesignCompliance = watch('control_design_compliance')
+  const cDesignStrength = watch('control_design_strength')
+  const cDesignTimeliness = watch('control_design_timeliness')
+  const cImplRelevance = watch('control_implementation_relevance')
+  const cImplSustainability = watch('control_implementation_sustainability')
+  const cImplTraceability = watch('control_implementation_traceability')
+  const effEval = evaluateControlEffectiveness(
+    cDesignCompliance || 3,
+    cDesignStrength || 3,
+    cDesignTimeliness || 3,
+    cImplRelevance || 3,
+    cImplSustainability || 3,
+    cImplTraceability || 3
+  )
+  const residualLevel = calculateResidualLevel(computedLevel, effEval.rating)
+
   useEffect(() => {
     setValue('impact', computedImpact)
     setValue('level', computedLevel)
   }, [computedImpact, computedLevel, setValue])
+
+  // Reset the manual-edit guard whenever the dialog opens for a different risk
+  useEffect(() => {
+    dueTouched.current = false
+  }, [risk?.id])
+
+  // SLA: auto-suggest due date from residual level unless the user edited it manually
+  const createdISO = risk?.created_at
+  useEffect(() => {
+    if (dueTouched.current) return
+    setValue('due_date', computeDueDate(residualLevel, createdISO))
+  }, [residualLevel, createdISO, setValue])
 
   // Load org structure (departments only) + profiles for owner auto-fill
   useEffect(() => {
@@ -160,7 +206,10 @@ export function RiskFormDialog({ risk, onClose, onSave }: Props) {
       const [units, people] = await Promise.all([db.getOrgUnits(), db.getProfiles()])
       if (!active) return
       setDepartments(units.filter(u => u.type === 'department'))
-      if (people.length > 0) setProfiles(people)
+      if (people.length > 0) {
+        setProfiles(people)
+        setCurrentRole(people[0].role)
+      }
     }
     load()
     return () => { active = false }
@@ -198,6 +247,10 @@ export function RiskFormDialog({ risk, onClose, onSave }: Props) {
       control_design: Math.round(evalResult.designAvg),
       control_implementation: Math.round(evalResult.implementationAvg),
       control_effectiveness: evalResult.rating as any,
+      residual_level: calculateResidualLevel(
+        calculateInherentLevel(values.likelihood, values.impact),
+        evalResult.rating
+      ),
       created_at: risk?.created_at ?? new Date().toISOString(),
       updated_at: new Date().toISOString(),
     }
@@ -333,14 +386,17 @@ export function RiskFormDialog({ risk, onClose, onSave }: Props) {
                     <div>
                       <label className="block text-[11px] font-bold mb-1.5" style={{ color: 'var(--foreground)' }}>Status</label>
                       <select {...register('status')} className={inputClass} style={sty}>
-                        {['open','in_progress','mitigated','accepted','closed'].map(s => (
-                          <option key={s} value={s}>{s.replace('_',' ')}</option>
+                        {RISK_STATUSES.map(s => (
+                          <option key={s.value} value={s.value}>{s.label}</option>
                         ))}
                       </select>
                     </div>
                     <div>
-                      <label className="block text-[11px] font-bold mb-1.5" style={{ color: 'var(--foreground)' }}>Due Date</label>
-                      <input type="date" {...register('due_date')} className={inputClass} style={sty} />
+                      <label className="block text-[11px] font-bold mb-1.5" style={{ color: 'var(--foreground)' }}>
+                        Due Date <span className="text-[9px] font-normal text-slate-500">(SLA: residual səviyyədən avtomatik)</span>
+                      </label>
+                      <input type="date" {...register('due_date')} onInput={() => { dueTouched.current = true }}
+                        className={inputClass} style={sty} />
                     </div>
                   </div>
 
@@ -364,6 +420,15 @@ export function RiskFormDialog({ risk, onClose, onSave }: Props) {
                     </div>
                   </div>
 
+                  {/* Residual result — shown at the top, under the inherent risk */}
+                  <div className="p-3 rounded-xl border border-sky-500/20 bg-sky-500/5 flex items-center justify-between text-xs">
+                    <div>
+                      <p className="font-bold text-slate-300">Hesablanmış Qalıq Risk (Residual)</p>
+                      <p className="text-[10px] text-slate-500 mt-0.5">Inherent ({computedLevel}) × Control ({CONTROL_RATING_INFO[effEval.rating].label})</p>
+                    </div>
+                    <span className="text-base font-black text-sky-400 uppercase">{residualLevelWord(residualLevel)}</span>
+                  </div>
+
                   {/* ── Təsir Reytinqi (Impact Rating Scale) Legend ── */}
                   <div className="rounded-xl overflow-hidden border" style={{ borderColor: 'var(--border)' }}>
                     <div className="flex">
@@ -379,7 +444,6 @@ export function RiskFormDialog({ risk, onClose, onSave }: Props) {
                         { label: 'Orta',      bg: '#d97706', score: '3' },
                         { label: 'Yüksək',    bg: '#ea580c', score: '4' },
                         { label: 'Maksimum',  bg: '#dc2626', score: '5' },
-                        { label: 'Kritik riskler / fors-major hallar', bg: '#0ea5e9', score: '6+' },
                       ].map((item, i) => (
                         <div key={i} className="flex-1 flex flex-col items-center justify-center py-2 px-1 text-center"
                           style={{ background: item.bg, borderLeft: i > 0 ? '1px solid rgba(255,255,255,0.15)' : undefined }}>
@@ -398,12 +462,13 @@ export function RiskFormDialog({ risk, onClose, onSave }: Props) {
                         { name: 'integrity', label: 'Integrity' },
                         { name: 'availability', label: 'Availability' },
                       ].map(f => (
-                        <div key={f.name} className="p-2.5 rounded-lg border bg-black/10" style={{ borderColor: 'var(--border)' }}>
-                          <label className="text-[10px] font-semibold text-slate-400 block mb-1">
-                            {f.label}: <strong className="text-white">{watch(f.name as any)}</strong>
-                          </label>
-                          <input type="range" min={1} max={5} {...register(f.name as any, { valueAsNumber: true })} className="w-full py-1 bg-transparent cursor-pointer" />
-                        </div>
+                        <RcsaSelect
+                          key={f.name}
+                          label={f.label}
+                          value={watch(f.name as any) || 1}
+                          options={IMPACT_OPTIONS}
+                          onChange={(v) => setValue(f.name as any, v)}
+                        />
                       ))}
                     </div>
                   </div>
@@ -418,12 +483,13 @@ export function RiskFormDialog({ risk, onClose, onSave }: Props) {
                         { name: 'reputation_impact', label: 'Reputation Damage' },
                         { name: 'compliance_impact', label: 'Compliance & Legal Penalties' },
                       ].map(f => (
-                        <div key={f.name} className="p-2.5 rounded-lg border bg-black/10" style={{ borderColor: 'var(--border)' }}>
-                          <label className="text-[10px] font-semibold text-slate-400 block mb-1">
-                            {f.label}: <strong className="text-white">{watch(f.name as any)}</strong>
-                          </label>
-                          <input type="range" min={1} max={5} {...register(f.name as any, { valueAsNumber: true })} className="w-full py-1 bg-transparent cursor-pointer" />
-                        </div>
+                        <RcsaSelect
+                          key={f.name}
+                          label={f.label}
+                          value={watch(f.name as any) || 1}
+                          options={IMPACT_OPTIONS}
+                          onChange={(v) => setValue(f.name as any, v)}
+                        />
                       ))}
                     </div>
                   </div>
@@ -431,19 +497,12 @@ export function RiskFormDialog({ risk, onClose, onSave }: Props) {
                   {/* Probability */}
                   <div className="space-y-3">
                     <h4 className="text-[11px] font-bold text-sky-400 uppercase tracking-wide border-b pb-1" style={{ borderColor: 'var(--border)' }}>3. Likelihood / Probability Rating</h4>
-                    <div className="p-3 rounded-lg border bg-black/10" style={{ borderColor: 'var(--border)' }}>
-                      <label className="text-[10px] font-semibold text-slate-400 block mb-1.5">
-                        Likelihood: <strong className="text-sky-400">{likelihood} / 5</strong>
-                      </label>
-                      <input type="range" min={1} max={5} {...register('likelihood', { valueAsNumber: true })} className="w-full py-1 bg-transparent cursor-pointer" />
-                      <div className="flex justify-between text-[8px] text-slate-500 mt-2 font-mono">
-                        <span>1: Rare (&lt;5%)</span>
-                        <span>2: Unlikely (5-10%)</span>
-                        <span>3: Possible (11-20%)</span>
-                        <span>4: Likely (21-50%)</span>
-                        <span>5: Almost Certain (&gt;50%)</span>
-                      </div>
-                    </div>
+                    <RcsaSelect
+                      label="Likelihood / Probability"
+                      value={likelihood || 1}
+                      options={LIKELIHOOD_OPTIONS}
+                      onChange={(v) => setValue('likelihood', v)}
+                    />
                   </div>
 
                   {/* Control Effectiveness sliders */}
@@ -454,64 +513,46 @@ export function RiskFormDialog({ risk, onClose, onSave }: Props) {
                       {/* Design Column */}
                       <div className="space-y-3 p-3 rounded-xl border bg-black/10" style={{ borderColor: 'var(--border)' }}>
                         <span className="text-[10px] uppercase font-bold text-sky-400 tracking-wider">Control Design (1-5)</span>
-                        
-                        {[
-                          { name: 'control_design_compliance', label: 'Compliance & Coverage' },
-                          { name: 'control_design_strength', label: 'Control Strength' },
-                          { name: 'control_design_timeliness', label: 'Execution Timeliness' }
-                        ].map(f => (
-                          <div key={f.name} className="space-y-1">
-                            <label className="text-[10px] font-semibold text-slate-400 flex justify-between">
-                              <span>{f.label}:</span>
-                              <strong className="text-white">{watch(f.name as any) || 3}</strong>
-                            </label>
-                            <input type="range" min={1} max={5} {...register(f.name as any, { valueAsNumber: true })} className="w-full py-1 bg-transparent cursor-pointer" />
-                          </div>
+                        {CONTROL_CRITERIA.filter(c => c.group === 'design').map(c => (
+                          <RcsaSelect
+                            key={c.name}
+                            label={c.label}
+                            value={watch(c.name as any) || 3}
+                            options={c.options}
+                            onChange={(v) => setValue(c.name as any, v)}
+                          />
                         ))}
                       </div>
 
                       {/* Implementation Column */}
                       <div className="space-y-3 p-3 rounded-xl border bg-black/10" style={{ borderColor: 'var(--border)' }}>
                         <span className="text-[10px] uppercase font-bold text-emerald-400 tracking-wider">Control Implementation (1-5)</span>
-                        
-                        {[
-                          { name: 'control_implementation_relevance', label: 'Relevance & Currency' },
-                          { name: 'control_implementation_sustainability', label: 'Sustainability/Frequency' },
-                          { name: 'control_implementation_traceability', label: 'Traceability/Audit Trail' }
-                        ].map(f => (
-                          <div key={f.name} className="space-y-1">
-                            <label className="text-[10px] font-semibold text-slate-400 flex justify-between">
-                              <span>{f.label}:</span>
-                              <strong className="text-white">{watch(f.name as any) || 3}</strong>
-                            </label>
-                            <input type="range" min={1} max={5} {...register(f.name as any, { valueAsNumber: true })} className="w-full py-1 bg-transparent cursor-pointer" />
-                          </div>
+                        {CONTROL_CRITERIA.filter(c => c.group === 'implementation').map(c => (
+                          <RcsaSelect
+                            key={c.name}
+                            label={c.label}
+                            value={watch(c.name as any) || 3}
+                            options={c.options}
+                            accent="bg-emerald-500 text-white border-emerald-500"
+                            onChange={(v) => setValue(c.name as any, v)}
+                          />
                         ))}
                       </div>
                     </div>
 
-                    {/* Calculated Effectiveness */}
-                    {(() => {
-                      const eff = evaluateControlEffectiveness(
-                        watch('control_design_compliance') || 3,
-                        watch('control_design_strength') || 3,
-                        watch('control_design_timeliness') || 3,
-                        watch('control_implementation_relevance') || 3,
-                        watch('control_implementation_sustainability') || 3,
-                        watch('control_implementation_traceability') || 3
-                      )
-                      return (
-                        <div className="p-3 bg-black/20 rounded-xl border border-white/5 flex justify-between items-center text-xs">
-                          <div>
-                            <p className="font-bold text-slate-400">Calculated Effectiveness Rating:</p>
-                            <p className="text-[9px] text-slate-500 mt-0.5">Average Score: {eff.score.toFixed(2)}</p>
-                          </div>
-                          <span className="font-black text-sky-400 uppercase">
-                            {eff.label}
-                          </span>
+                    {/* Calculated Effectiveness + explanation */}
+                    <div className="p-3 bg-black/20 rounded-xl border border-white/5 text-xs">
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <p className="font-bold text-slate-400">Calculated Effectiveness Rating:</p>
+                          <p className="text-[9px] text-slate-500 mt-0.5">Average Score: {effEval.score.toFixed(2)}</p>
                         </div>
-                      )
-                    })()}
+                        <span className="font-black text-sky-400 uppercase">{CONTROL_RATING_INFO[effEval.rating].label}</span>
+                      </div>
+                      <p className="text-[10px] text-slate-500 leading-snug mt-2 border-t pt-2" style={{ borderColor: 'var(--border)' }}>
+                        {CONTROL_RATING_INFO[effEval.rating].desc}
+                      </p>
+                    </div>
                   </div>
 
                   {/* Target Residual Risk & Appetite check */}
@@ -529,18 +570,8 @@ export function RiskFormDialog({ risk, onClose, onSave }: Props) {
                       </div>
 
                       {(() => {
-                        const eff = evaluateControlEffectiveness(
-                          watch('control_design_compliance') || 3,
-                          watch('control_design_strength') || 3,
-                          watch('control_design_timeliness') || 3,
-                          watch('control_implementation_relevance') || 3,
-                          watch('control_implementation_sustainability') || 3,
-                          watch('control_implementation_traceability') || 3
-                        )
-                        const resLvl = calculateResidualLevel(computedLevel, eff.rating)
-                        const gapVal = calculateRiskGap(resLvl, watch('target_residual_risk'))
+                        const gapVal = calculateRiskGap(residualLevel, watch('target_residual_risk'))
                         const isOver = gapVal.gap > 0
-
                         return (
                           <div className={`p-3 rounded-xl border flex items-center justify-between text-xs self-end ${
                             isOver ? 'bg-red-500/10 border-red-500/20 text-red-400' : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
@@ -560,9 +591,32 @@ export function RiskFormDialog({ risk, onClose, onSave }: Props) {
                     </div>
                   </div>
 
-                  <div>
-                    <label className="block text-[11px] font-bold mb-1" style={{ color: 'var(--foreground)' }}>Mitigation Actions</label>
-                    <textarea {...register('mitigation')} rows={2} placeholder="Describe remediation controls, technical fixes, or SLA terms…"
+                  {/* Risk Treatment Plan (role-gated strategy) */}
+                  <div className="space-y-3">
+                    <h4 className="text-[11px] font-bold text-sky-400 uppercase tracking-wide border-b pb-1" style={{ borderColor: 'var(--border)' }}>6. Risk Treatment Plan</h4>
+                    {(() => {
+                      const allowed = getRoleAllowedStrategies(currentRole)
+                      const selected = watch('mitigation')
+                      if (allowed.length === 0) {
+                        return <p className="text-[11px] text-amber-400">Cari rol ({currentRole}) yalnız baxış icazəsinə malikdir — treatment strategiyası seçə bilməz.</p>
+                      }
+                      return (
+                        <div className="flex flex-wrap gap-2">
+                          {allowed.map((s) => {
+                            const isActive = selected === s
+                            return (
+                              <button key={s} type="button" onClick={() => setValue('mitigation', s)}
+                                className={`px-3 py-1.5 rounded-lg text-[11px] font-bold border transition-colors cursor-pointer ${
+                                  isActive ? 'bg-sky-500 text-white border-sky-500' : 'border-white/10 text-slate-400 hover:border-white/20'
+                                }`}>
+                                {TREATMENT_STRATEGY_LABELS[s as TreatmentStrategy]}
+                              </button>
+                            )
+                          })}
+                        </div>
+                      )
+                    })()}
+                    <textarea {...register('treatment_plan')} rows={2} placeholder="Treatment planı: remediasiya nəzarətləri, texniki düzəlişlər, SLA şərtləri…"
                       className={cn(inputClass, 'resize-none')} style={sty} />
                   </div>
                 </div>

@@ -128,7 +128,7 @@ export function RiskDetailSheet({ risk, onClose, onUpdate }: Props) {
       
       if (getRiskLevelNumber(residualLvl) <= getRiskLevelNumber(targetRisk as any)) {
         updates.workflow_step = 'accepted'
-        updates.status = 'accepted'
+        updates.status = 'solved'
       } else {
         updates.workflow_step = 'treatment_plan'
       }
@@ -145,18 +145,18 @@ export function RiskDetailSheet({ risk, onClose, onUpdate }: Props) {
       const reassessedLevel = calculateInherentLevel(resLikelihood, resImpact)
       if (reassessedLevel === 'low' || reassessedLevel === 'minimal') {
         updates.workflow_step = 'accepted'
-        updates.status = 'mitigated'
+        updates.status = 'done'
       } else {
         updates.workflow_step = 'escalated'
       }
     } else if (nextStep === 'accepted') {
-      updates.status = 'mitigated'
+      updates.status = 'done'
     } else if (nextStep === 'escalated_decision') {
       updates.escalation_level = escalationAction === 'accept' ? 'board' : 'committee'
-      updates.status = escalationAction === 'accept' ? 'accepted' : 'closed'
+      updates.status = 'solved'
       updates.workflow_step = 'closed'
     } else if (nextStep === 'closed') {
-      updates.status = 'closed'
+      updates.status = 'solved'
     }
 
     const updatedRisk = {
@@ -265,7 +265,7 @@ export function RiskDetailSheet({ risk, onClose, onUpdate }: Props) {
                     {risk.workflow_step ? risk.workflow_step.replace(/_/g, ' ') : 'Registered'}
                   </p>
                   <p className="text-[10px] mt-0.5" style={{ color: 'var(--muted-fg)' }}>
-                    {risk.status === 'closed' ? 'Risk completed' : 'Risk is active'}
+                    {risk.status === 'solved' ? 'Risk completed' : 'Risk is active'}
                   </p>
                 </div>
                 <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-sky-900/10 text-sky-400 border border-sky-500/10">

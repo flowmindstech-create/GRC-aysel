@@ -39,7 +39,9 @@ export interface OrgUnit {
 // ─── Risks ───────────────────────────────────────────────────────────────────
 
 export type RiskLevel = 'minimal' | 'low' | 'medium' | 'high' | 'critical'
-export type RiskStatus = 'open' | 'in_progress' | 'mitigated' | 'accepted' | 'closed'
+// RiskStatus is the single source of truth in lib/risk-status.ts
+export type { RiskStatus } from '@/lib/risk-status'
+import type { RiskStatus } from '@/lib/risk-status'
 // RiskCategory is the single source of truth in lib/risk-categories.ts
 export type { RiskCategory } from '@/lib/risk-categories'
 import type { RiskCategory } from '@/lib/risk-categories'
@@ -71,6 +73,7 @@ export interface Risk {
   control_effectiveness?: 'effective' | 'partially_effective' | 'ineffective' | 'strong' | 'relatively_strong' | 'adequate' | 'relatively_adequate' | 'weak'
   residual_likelihood?: number
   residual_impact?: number
+  residual_level?: RiskLevel
   treatment_plan?: string
   action_plan?: string
   validation_evidence?: string

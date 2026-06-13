@@ -232,7 +232,7 @@ export default function WorkflowsPage() {
       // Compare residual level with target appetite level
       if (getRiskLevelNumber(residualLvl) <= getRiskLevelNumber(targetRisk)) {
         updates.workflow_step = 'accepted'
-        updates.status = 'accepted'
+        updates.status = 'solved'
       } else {
         updates.workflow_step = 'treatment_plan'
       }
@@ -249,18 +249,18 @@ export default function WorkflowsPage() {
       const reassessedLevel = calculateInherentLevel(resLikelihood, resImpact)
       if (reassessedLevel === 'low' || reassessedLevel === 'minimal') {
         updates.workflow_step = 'accepted'
-        updates.status = 'mitigated'
+        updates.status = 'done'
       } else {
         updates.workflow_step = 'escalated'
       }
     } else if (nextStep === 'accepted') {
-      updates.status = 'mitigated'
+      updates.status = 'done'
     } else if (nextStep === 'escalated_decision') {
       updates.escalation_level = escalationAction === 'accept' ? 'board' : 'committee'
-      updates.status = escalationAction === 'accept' ? 'accepted' : 'closed'
+      updates.status = 'solved'
       updates.workflow_step = 'closed'
     } else if (nextStep === 'closed') {
-      updates.status = 'closed'
+      updates.status = 'solved'
     }
 
     await updateRiskWorkflow(updates)
@@ -481,7 +481,7 @@ export default function WorkflowsPage() {
                     <path d="M 430 215 L 430 250" stroke={isStepCompleted('appetite_check') || selectedRisk?.workflow_step === 'treatment_plan' || selectedRisk?.workflow_step === 'accepted' ? '#0ea5e9' : '#334155'} strokeWidth="2.5" markerEnd={isStepCompleted('appetite_check') || selectedRisk?.workflow_step === 'treatment_plan' || selectedRisk?.workflow_step === 'accepted' ? 'url(#arrow-active)' : 'url(#arrow)'} />
                     
                     {/* Appetite Check -> accepted (Yes) */}
-                    <path d="M 430 320 L 430 395 L 670 395 L 670 192.5 L 700 192.5" stroke={selectedRisk?.workflow_step === 'accepted' && selectedRisk?.status === 'accepted' ? '#0ea5e9' : '#334155'} strokeWidth="2.5" markerEnd={selectedRisk?.workflow_step === 'accepted' && selectedRisk?.status === 'accepted' ? 'url(#arrow-active)' : 'url(#arrow)'} />
+                    <path d="M 430 320 L 430 395 L 670 395 L 670 192.5 L 700 192.5" stroke={selectedRisk?.workflow_step === 'accepted' && selectedRisk?.status === 'solved' ? '#0ea5e9' : '#334155'} strokeWidth="2.5" markerEnd={selectedRisk?.workflow_step === 'accepted' && selectedRisk?.status === 'solved' ? 'url(#arrow-active)' : 'url(#arrow)'} />
                     
                     {/* Appetite Check -> treatment_plan (No) */}
                     <path d="M 465 285 L 502.5 285 L 502.5 102.5 L 540 102.5" stroke={isStepCompleted('treatment_plan') || selectedRisk?.workflow_step === 'treatment_plan' ? '#0ea5e9' : '#334155'} strokeWidth="2.5" markerEnd={isStepCompleted('treatment_plan') || selectedRisk?.workflow_step === 'treatment_plan' ? 'url(#arrow-active)' : 'url(#arrow)'} />
@@ -502,7 +502,7 @@ export default function WorkflowsPage() {
                     <path d="M 600 485 L 600 510" stroke={isStepCompleted('verify_reassessment') || selectedRisk?.workflow_step === 'verify_reassessment' ? '#0ea5e9' : '#334155'} strokeWidth="2.5" markerEnd={isStepCompleted('verify_reassessment') || selectedRisk?.workflow_step === 'verify_reassessment' ? 'url(#arrow-active)' : 'url(#arrow)'} />
                     
                     {/* Reassessment Check -> accepted (Yes) */}
-                    <path d="M 635 545 L 685 545 L 685 192.5 L 700 192.5" stroke={selectedRisk?.workflow_step === 'accepted' && selectedRisk?.status === 'mitigated' ? '#0ea5e9' : '#334155'} strokeWidth="2.5" markerEnd={selectedRisk?.workflow_step === 'accepted' && selectedRisk?.status === 'mitigated' ? 'url(#arrow-active)' : 'url(#arrow)'} />
+                    <path d="M 635 545 L 685 545 L 685 192.5 L 700 192.5" stroke={selectedRisk?.workflow_step === 'accepted' && selectedRisk?.status === 'done' ? '#0ea5e9' : '#334155'} strokeWidth="2.5" markerEnd={selectedRisk?.workflow_step === 'accepted' && selectedRisk?.status === 'done' ? 'url(#arrow-active)' : 'url(#arrow)'} />
                     
                     {/* Reassessment Check -> escalated (No) */}
                     <path d="M 635 545 L 685 545 L 685 302.5 L 700 302.5" stroke={isStepCompleted('escalated') || selectedRisk?.workflow_step === 'escalated' ? '#0ea5e9' : '#334155'} strokeWidth="2.5" markerEnd={isStepCompleted('escalated') || selectedRisk?.workflow_step === 'escalated' ? 'url(#arrow-active)' : 'url(#arrow)'} />

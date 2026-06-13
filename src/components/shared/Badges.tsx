@@ -1,5 +1,6 @@
 import { cn } from '@/lib/utils'
 import type { RiskLevel, IncidentSeverity, ControlStatus, AuditStatus, VendorStatus, FindingSeverity, RiskStatus, IncidentStatus } from '@/types'
+import { STATUS_CLASSES, statusLabel, normalizeStatus } from '@/lib/risk-status'
 
 // ─── Risk Level Badge ─────────────────────────────────────────────────────────
 const riskLevelStyles: Record<RiskLevel, string> = {
@@ -29,21 +30,13 @@ export function RiskLevelBadge({ level }: { level: RiskLevel }) {
 }
 
 // ─── Risk Status Badge ────────────────────────────────────────────────────────
-const riskStatusStyles: Record<RiskStatus, string> = {
-  open:        'bg-red-500/10 text-red-500',
-  in_progress: 'bg-blue-500/10 text-blue-500',
-  mitigated:   'bg-green-500/10 text-green-500',
-  accepted:    'bg-sky-500/10 text-sky-400',
-  closed:      'bg-slate-500/10 text-slate-500',
-}
-const riskStatusLabels: Record<RiskStatus, string> = {
-  open: 'Open', in_progress: 'In Progress', mitigated: 'Mitigated', accepted: 'Accepted', closed: 'Closed',
-}
-
-export function RiskStatusBadge({ status }: { status: RiskStatus }) {
+// Statuses are the single source of truth in lib/risk-status.ts. Legacy values
+// are normalized so old data still renders.
+export function RiskStatusBadge({ status }: { status: RiskStatus | string }) {
+  const s = normalizeStatus(status)
   return (
-    <span className={cn('inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium', riskStatusStyles[status])}>
-      {riskStatusLabels[status]}
+    <span className={cn('inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium', STATUS_CLASSES[s])}>
+      {statusLabel(s)}
     </span>
   )
 }

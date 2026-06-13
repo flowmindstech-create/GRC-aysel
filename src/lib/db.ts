@@ -10,6 +10,7 @@ import type {
   JiraConfig, JiraActivity, JiraComment, GRCIntakeItem, OrgUnit, UserProfile
 } from '@/types'
 import { RISK_CATEGORIES, normalizeCategory } from './risk-categories'
+import { normalizeStatus, ACTIVE_STATUSES } from './risk-status'
 
 // Helper to get items from localStorage
 function getLocalItem<T>(key: string, defaultValue: T): T {
@@ -47,28 +48,32 @@ export const db = {
       const { createClient } = await import('./supabase/client')
       const supabase = createClient()
       const { data, error } = await supabase.from('risks').select('*').order('created_at', { ascending: false })
-      if (!error && data) return (data as Risk[]).map(r => ({ ...r, category: normalizeCategory(r.category) }))
+      if (!error && data) return (data as Risk[]).map(r => ({ ...r, category: normalizeCategory(r.category), status: normalizeStatus(r.status) }))
     }
     const risks = getLocalItem<Risk[]>('risks', MOCK_RISKS)
     let modified = false
     const mapped = risks.map(r => {
-      // Remap any legacy/removed category value (hr/legal/compliance) on read
-      const normalized = normalizeCategory(r.category)
-      if (normalized !== r.category) {
-        r.category = normalized
-        modified = true
-      }
+      // Remap legacy category (hr/legal/compliance) and status (mitigated/accepted/closed) on read
+      const category = normalizeCategory(r.category)
+      const status = normalizeStatus(r.status)
+      if (category !== r.category || status !== r.status) modified = true
+
       if (!r.workflow_step) {
-        r.workflow_step = r.status === 'closed' ? 'closed' : r.status === 'mitigated' ? 'accepted' : 'registered'
-        r.inherent_likelihood = r.likelihood
-        r.inherent_impact = r.impact
-        r.residual_likelihood = r.likelihood > 1 ? r.likelihood - 1 : 1
-        r.residual_impact = r.impact > 1 ? r.impact - 1 : 1
-        r.control_effectiveness = 'effective'
-        r.escalation_level = 'none'
         modified = true
+        return {
+          ...r,
+          category,
+          status,
+          workflow_step: status === 'solved' ? 'closed' : status === 'done' ? 'accepted' : 'registered',
+          inherent_likelihood: r.likelihood,
+          inherent_impact: r.impact,
+          residual_likelihood: r.likelihood > 1 ? r.likelihood - 1 : 1,
+          residual_impact: r.impact > 1 ? r.impact - 1 : 1,
+          control_effectiveness: 'effective' as const,
+          escalation_level: 'none' as const,
+        }
       }
-      return r
+      return { ...r, category, status }
     })
     if (modified) {
       setLocalItem('risks', mapped)
@@ -390,7 +395,7 @@ export const db = {
     const incidents = await this.getIncidents()
     const controls = await this.getControls()
     
-    const openRisks = risks.filter(r => r.status === 'open' || r.status === 'in_progress')
+    const openRisks = risks.filter(r => ACTIVE_STATUSES.includes(normalizeStatus(r.status)))
     const criticalRisks = openRisks.filter(r => r.level === 'critical').length
     const openIncidents = incidents.filter(i => i.status !== 'resolved' && i.status !== 'closed').length
     
@@ -581,7 +586,7 @@ export const db = {
       
       // Map Jira statuses to RiskShield status
       if (newStatus === 'Done' || newStatus === 'Resolved') {
-        risk.status = 'mitigated'
+        risk.status = 'done'
       } else if (newStatus === 'In Progress') {
         risk.status = 'in_progress'
       }

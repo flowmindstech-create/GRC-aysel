@@ -149,7 +149,7 @@ export const MOCK_RISKS: Risk[] = [
   {
     id: 'r5', org_id: 'org1', title: 'Cloud Storage Misconfiguration Exposes Internal Documents',
     description: 'AWS S3 bucket containing internal HR documents is publicly accessible due to policy misconfiguration.',
-    category: 'cybersecurity', level: 'critical', status: 'mitigated',
+    category: 'cybersecurity', level: 'critical', status: 'done',
     owner_id: 'u3', owner_name: 'Rauf Quliyev',
     due_date: '2025-01-20', likelihood: 5, impact: 5,
     mitigation: 'Enabled S3 Block Public Access, implemented bucket policy, set up AWS Config rules for auto-remediation.',
@@ -167,7 +167,7 @@ export const MOCK_RISKS: Risk[] = [
   {
     id: 'r7', org_id: 'org1', title: 'Software License Compliance Risk',
     description: 'Audit revealed 12 unlicensed software installations across developer workstations, risking vendor audit and fines.',
-    category: 'legal_compliance', level: 'low', status: 'closed',
+    category: 'legal_compliance', level: 'low', status: 'solved',
     owner_id: 'u4', owner_name: 'Nigar Aliyeva',
     due_date: '2025-01-31', likelihood: 2, impact: 2,
     mitigation: 'Deployed SIEM-based software inventory scanner, purchased required licenses.',
@@ -176,7 +176,7 @@ export const MOCK_RISKS: Risk[] = [
   {
     id: 'OS1', org_id: 'org1', title: 'Lack of First Aid Boxes',
     description: 'There are no standard first aid boxes or medical kits available on the company floors.',
-    category: 'operational', level: 'low', status: 'closed',
+    category: 'operational', level: 'low', status: 'solved',
     owner_id: 'u4', owner_name: 'Afaq Huseynova',
     due_date: '2025-09-30', likelihood: 2, impact: 3,
     mitigation: 'Purchase and placement of standard fully equipped first aid boxes for each floor.',
