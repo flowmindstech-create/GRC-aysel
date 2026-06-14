@@ -5,8 +5,10 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { motion } from 'framer-motion'
-import { Shield, Mail, ArrowRight, ArrowLeft, CheckCircle2 } from 'lucide-react'
-import { useState } from 'react'
+import { Shield, Mail, ArrowRight, ArrowLeft, CheckCircle2, RefreshCw } from 'lucide-react'
+import { useState, useEffect } from 'react'
+
+const RESEND_COOLDOWN_SECONDS = 30
 
 const schema = z.object({ email: z.string().email('Invalid email') })
 type FormValues = z.infer<typeof schema>
@@ -16,32 +18,53 @@ export default function ForgotPasswordPage() {
   const [sent, setSent] = useState(false)
   const [sentTo, setSentTo] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const [cooldown, setCooldown] = useState(0)
 
   const { register, handleSubmit, formState: { errors } } = useForm<FormValues>({
     resolver: zodResolver(schema),
   })
 
-  const onSubmit = async (v: FormValues) => {
-    setLoading(true)
+  // Resend cooldown countdown
+  useEffect(() => {
+    if (cooldown <= 0) return
+    const id = setInterval(() => setCooldown((c) => (c <= 1 ? 0 : c - 1)), 1000)
+    return () => clearInterval(id)
+  }, [cooldown])
+
+  // Sends the reset email; returns true on success. Reused by submit + resend.
+  const sendReset = async (email: string): Promise<boolean> => {
     setError(null)
     const isMock = !process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
     if (isMock) {
       await new Promise((r) => setTimeout(r, 600))
-      setSentTo(v.email)
-      setSent(true)
-    } else {
-      try {
-        const { createClient } = await import('@/lib/supabase/client')
-        const supabase = createClient()
-        const { error } = await supabase.auth.resetPasswordForEmail(v.email, {
-          redirectTo: `${window.location.origin}/reset-password`,
-        })
-        if (error) setError(error.message)
-        else { setSentTo(v.email); setSent(true) }
-      } catch (e) {
-        setError(e instanceof Error ? e.message : 'Unexpected error')
-      }
+      return true
     }
+    try {
+      const { createClient } = await import('@/lib/supabase/client')
+      const supabase = createClient()
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      })
+      if (error) { setError(error.message); return false }
+      return true
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Unexpected error')
+      return false
+    }
+  }
+
+  const onSubmit = async (v: FormValues) => {
+    setLoading(true)
+    const ok = await sendReset(v.email)
+    if (ok) { setSentTo(v.email); setSent(true); setCooldown(RESEND_COOLDOWN_SECONDS) }
+    setLoading(false)
+  }
+
+  const onResend = async () => {
+    if (cooldown > 0 || loading || !sentTo) return
+    setLoading(true)
+    const ok = await sendReset(sentTo)
+    if (ok) setCooldown(RESEND_COOLDOWN_SECONDS)
     setLoading(false)
   }
 
@@ -95,6 +118,23 @@ export default function ForgotPasswordPage() {
               <p className="text-sm mb-6" style={{ color: 'var(--muted-fg)' }}>
                 If an account exists for <strong style={{ color: 'var(--foreground)' }}>{sentTo}</strong>, a password reset link is on its way. Check spam if you don&apos;t see it.
               </p>
+
+              {error && <p className="text-xs text-red-500 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2 mb-4">{error}</p>}
+
+              <button
+                type="button"
+                onClick={onResend}
+                disabled={cooldown > 0 || loading}
+                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold border transition-colors disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer mb-4"
+                style={{ background: 'var(--muted)', borderColor: 'var(--border)', color: 'var(--foreground)' }}
+              >
+                {loading ? (
+                  <div className="w-4 h-4 border-2 border-sky-500/30 border-t-sky-500 rounded-full animate-spin" />
+                ) : (
+                  <><RefreshCw className="w-4 h-4" />{cooldown > 0 ? `Resend in ${cooldown}s` : 'Resend email'}</>
+                )}
+              </button>
+
               <Link href="/login"
                 className="inline-flex items-center gap-2 text-sm font-semibold text-sky-500 hover:text-sky-400">
                 <ArrowLeft className="w-4 h-4" /> Back to sign in
