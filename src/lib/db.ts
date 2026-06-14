@@ -44,33 +44,6 @@ const isSupabaseConfigured = () => {
 // Falls back to the default seed org. Mock mode keeps 'org1'. Cached per session.
 const DEFAULT_ORG_ID = '00000000-0000-0000-0000-000000000001'
 let _cachedOrgId: string | null = null
-async function getCurrentOrgId(): Promise<string> {
-  if (!isSupabaseConfigured()) return 'org1'
-  if (_cachedOrgId) return _cachedOrgId
-  try {
-    const { createClient } = await import('./supabase/client')
-    const supabase = createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (user) {
-      const { data, error } = await supabase.from('profiles').select('org_id').eq('id', user.id).single()
-      if (error) console.error('Supabase getCurrentOrgId profile select error:', error)
-      if (data && data.org_id) {
-        _cachedOrgId = data.org_id as string
-        return _cachedOrgId
-      } else {
-        // Automatically backfill org_id to seed org if null (profile might have been created without org_id in old triggers)
-        const { error: updateErr } = await supabase.from('profiles').update({ org_id: DEFAULT_ORG_ID }).eq('id', user.id)
-        if (updateErr) console.error('Supabase auto-backfill org_id error:', updateErr)
-        _cachedOrgId = DEFAULT_ORG_ID
-        return DEFAULT_ORG_ID
-      }
-    }
-  } catch (err) {
-    console.error('getCurrentOrgId exception:', err)
-  }
-  return DEFAULT_ORG_ID
-}
-export { getCurrentOrgId }
 
 // Current signed-in profile (name/role) for the top nav. Mock → first mock user.
 export async function getCurrentProfile(): Promise<UserProfile | null> {
@@ -81,7 +54,12 @@ export async function getCurrentProfile(): Promise<UserProfile | null> {
     const { data: { user } } = await supabase.auth.getUser()
     if (user) {
       const { data, error } = await supabase.from('profiles').select('*').eq('id', user.id).single()
-      if (error) console.error('Supabase getCurrentProfile select error:', error)
+      if (error && error.code !== 'PGRST116') {
+        console.error('Supabase getCurrentProfile select error:', error)
+      }
+      
+      const fullName = (user.user_metadata?.full_name as string) || user.email?.split('@')[0] || 'User'
+      
       if (data) {
         if (!data.org_id) {
           const { error: updateErr } = await supabase.from('profiles').update({ org_id: DEFAULT_ORG_ID }).eq('id', user.id)
@@ -89,15 +67,50 @@ export async function getCurrentProfile(): Promise<UserProfile | null> {
           data.org_id = DEFAULT_ORG_ID
         }
         return data as UserProfile
+      } else {
+        // Profile row is missing — create it dynamically in the database
+        const newProfile: UserProfile = {
+          id: user.id,
+          org_id: DEFAULT_ORG_ID,
+          full_name: fullName,
+          email: user.email || '',
+          role: 'admin',
+          created_at: user.created_at || new Date().toISOString()
+        }
+        const { data: insertedData, error: insertErr } = await supabase
+          .from('profiles')
+          .insert(newProfile)
+          .select()
+          .single()
+        
+        if (insertErr) {
+          console.error('Supabase getCurrentProfile auto-create profile error:', insertErr)
+          return newProfile
+        }
+        return insertedData as UserProfile
       }
-      // profile row missing — fall back to auth metadata
-      return { id: user.id, org_id: DEFAULT_ORG_ID, full_name: (user.user_metadata?.full_name as string) || user.email || 'User', email: user.email || '', role: 'employee', created_at: user.created_at || new Date().toISOString() }
     }
   } catch (err) {
     console.error('getCurrentProfile exception:', err)
   }
   return null
 }
+
+async function getCurrentOrgId(): Promise<string> {
+  if (!isSupabaseConfigured()) return 'org1'
+  if (_cachedOrgId) return _cachedOrgId
+  try {
+    const profile = await getCurrentProfile()
+    if (profile && profile.org_id) {
+      _cachedOrgId = profile.org_id
+      return _cachedOrgId
+    }
+  } catch (err) {
+    console.error('getCurrentOrgId exception:', err)
+  }
+  return DEFAULT_ORG_ID
+}
+export { getCurrentOrgId }
 
 // Unified Database and LocalStorage Client
 export const db = {
