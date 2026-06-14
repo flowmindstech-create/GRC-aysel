@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { X, Plus, Save } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { db } from '@/lib/db'
+import { residualLevelWord, inherentLevelWord } from '@/lib/rcsa-methodology'
 import type {
   ComplianceObligation, ObligationStatus, ObligationSource,
   ObligationSourceType, ObligationCriticality, OrgUnit, Risk, Control,
@@ -52,11 +53,13 @@ export function ObligationFormDialog({ obligation, onClose, onSave, onSaved }: P
   const [accountableOwner, setAccountable]= useState(obligation?.accountable_owner ?? '')
   const [responsibleParty, setResponsible]= useState(obligation?.responsible_party ?? '')
   const [applicableDepts, setDepts]       = useState<string[]>(obligation?.applicable_depts ?? [])
+  const [complianceCondition, setCondition]  = useState(obligation?.compliance_condition ?? '')
+  const [responsibleStructure, setStructure] = useState(obligation?.responsible_structure ?? '')
   const [status, setStatus]               = useState<ObligationStatus>(obligation?.status ?? 'under_review')
   const [criticality, setCriticality]     = useState<ObligationCriticality>(obligation?.criticality ?? 'medium')
+  const [primaryRiskId, setPrimaryRisk]   = useState(obligation?.primary_risk_id ?? '')
   const [effectiveDate, setEffective]     = useState(obligation?.effective_date ?? '')
   const [nextReviewDate, setNextReview]   = useState(obligation?.next_review_date ?? '')
-  const [linkedRiskIds, setLinkedRisks]   = useState<string[]>([])
   const [linkedControlIds, setLinkedCtrl] = useState<string[]>([])
   const [loading, setLoading]             = useState(false)
 
@@ -75,12 +78,8 @@ export function ObligationFormDialog({ obligation, onClose, onSave, onSaved }: P
       setRisks(riskList)
       setControls(controlList)
       if (obligation?.id) {
-        const [rids, cids] = await Promise.all([
-          db.getObligationRiskIds(obligation.id),
-          db.getObligationControlIds(obligation.id),
-        ])
+        const cids = await db.getObligationControlIds(obligation.id)
         if (!active) return
-        setLinkedRisks(rids)
         setLinkedCtrl(cids)
       }
     })()
@@ -103,15 +102,18 @@ export function ObligationFormDialog({ obligation, onClose, onSave, onSaved }: P
       obligation_code:  obligation?.obligation_code ?? '',
       title:            title.trim(),
       description:      description.trim(),
+      compliance_condition: complianceCondition.trim() || undefined,
       source,
       source_type:      sourceType,
       source_reference: sourceReference.trim() || undefined,
       source_url:       sourceUrl.trim() || undefined,
       accountable_owner: accountableOwner.trim() || undefined,
       responsible_party: responsibleParty.trim() || undefined,
+      responsible_structure: responsibleStructure.trim() || undefined,
       applicable_depts: applicableDepts,
       status,
       criticality,
+      primary_risk_id:  primaryRiskId || undefined,
       effective_date:   effectiveDate || undefined,
       next_review_date: nextReviewDate || undefined,
       created_at:       obligation?.created_at ?? now,
@@ -119,8 +121,7 @@ export function ObligationFormDialog({ obligation, onClose, onSave, onSaved }: P
     }
 
     await onSave(item)
-    // Persist M:N links (obligation id is stable — db keeps the passed UUID)
-    await db.setObligationRisks(item.id, linkedRiskIds)
+    // Persist control links (obligation id is stable — db keeps the passed UUID)
     await db.setObligationControls(item.id, linkedControlIds)
     onSaved?.()
     setLoading(false)
@@ -181,7 +182,15 @@ export function ObligationFormDialog({ obligation, onClose, onSave, onSaved }: P
             <div>
               <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Description</label>
               <textarea value={description} onChange={e => setDesc(e.target.value)} rows={2}
-                placeholder="Context and details about this obligation…"
+                placeholder="What must be fulfilled…"
+                className={`${fieldCls} resize-none`} style={inputStyle} onFocus={focus} onBlur={blur} />
+            </div>
+
+            {/* Compliance condition */}
+            <div>
+              <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Compliance Condition</label>
+              <textarea value={complianceCondition} onChange={e => setCondition(e.target.value)} rows={2}
+                placeholder="The condition / criterion that must hold to be compliant…"
                 className={`${fieldCls} resize-none`} style={inputStyle} onFocus={focus} onBlur={blur} />
             </div>
 
@@ -226,6 +235,14 @@ export function ObligationFormDialog({ obligation, onClose, onSave, onSaved }: P
                 <input value={responsibleParty} onChange={e => setResponsible(e.target.value)} placeholder="Compliance Officer"
                   className={fieldCls} style={inputStyle} onFocus={focus} onBlur={blur} />
               </div>
+            </div>
+            <div>
+              <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Responsible Structure</label>
+              <select value={responsibleStructure} onChange={e => setStructure(e.target.value)}
+                className={`${fieldCls} cursor-pointer`} style={inputStyle}>
+                <option value="">— None —</option>
+                {departments.map(d => <option key={d.id} value={d.name}>{d.name}</option>)}
+              </select>
             </div>
             <div>
               <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Applicable Departments</label>
@@ -278,17 +295,33 @@ export function ObligationFormDialog({ obligation, onClose, onSave, onSaved }: P
               </div>
             </div>
 
-            {sectionTitle('Linked Risks')}
-            <div className="rounded-lg border max-h-32 overflow-y-auto" style={{ borderColor: 'var(--border)' }}>
-              {risks.length === 0 ? (
-                <p className="text-xs px-3 py-2" style={{ color: 'var(--muted-fg)' }}>No risks in the register yet.</p>
-              ) : risks.map(r => (
-                <label key={r.id} className="flex items-center gap-2 px-3 py-1.5 text-xs cursor-pointer hover:bg-white/5" style={{ color: 'var(--foreground)' }}>
-                  <input type="checkbox" checked={linkedRiskIds.includes(r.id)} onChange={() => toggle(linkedRiskIds, r.id, setLinkedRisks)} />
-                  <span className="font-mono text-[10px]" style={{ color: 'var(--brand-500)' }}>{r.risk_code ?? '—'}</span>
-                  <span className="truncate">{r.title}</span>
-                </label>
-              ))}
+            {sectionTitle('Related Risk')}
+            <div>
+              <select value={primaryRiskId} onChange={e => setPrimaryRisk(e.target.value)}
+                className={`${fieldCls} cursor-pointer`} style={inputStyle}>
+                <option value="">— None —</option>
+                {risks.map(r => <option key={r.id} value={r.id}>{(r.risk_code ?? '—') + ' · ' + r.title}</option>)}
+              </select>
+              {(() => {
+                const r = risks.find(x => x.id === primaryRiskId)
+                if (!r) return <p className="text-[10px] mt-1" style={{ color: 'var(--muted-fg)' }}>Degree, likelihood and initial degree auto-fill from the selected risk.</p>
+                return (
+                  <div className="grid grid-cols-3 gap-2 mt-2">
+                    <div className="rounded-lg px-2 py-1.5" style={{ background: 'var(--muted)' }}>
+                      <p className="text-[9px] uppercase" style={{ color: 'var(--muted-fg)' }}>Risk degree</p>
+                      <p className="text-xs font-semibold" style={{ color: 'var(--foreground)' }}>{r.residual_level ? residualLevelWord(r.residual_level) : '—'}</p>
+                    </div>
+                    <div className="rounded-lg px-2 py-1.5" style={{ background: 'var(--muted)' }}>
+                      <p className="text-[9px] uppercase" style={{ color: 'var(--muted-fg)' }}>Likelihood</p>
+                      <p className="text-xs font-semibold" style={{ color: 'var(--foreground)' }}>{r.likelihood ?? '—'}/5</p>
+                    </div>
+                    <div className="rounded-lg px-2 py-1.5" style={{ background: 'var(--muted)' }}>
+                      <p className="text-[9px] uppercase" style={{ color: 'var(--muted-fg)' }}>Initial degree</p>
+                      <p className="text-xs font-semibold" style={{ color: 'var(--foreground)' }}>{inherentLevelWord(r.level)}</p>
+                    </div>
+                  </div>
+                )
+              })()}
             </div>
 
             {sectionTitle('Linked Controls')}

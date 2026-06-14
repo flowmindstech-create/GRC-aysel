@@ -3,16 +3,16 @@
 import { useState, useEffect, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { db } from '@/lib/db'
-import type { ComplianceObligation, ObligationStatus, ObligationSource, ObligationCriticality } from '@/types'
+import type { ComplianceObligation, ObligationStatus, ObligationSource, ObligationCriticality, Risk } from '@/types'
+import { residualLevelWord, inherentLevelWord } from '@/lib/rcsa-methodology'
 import { cn } from '@/lib/utils'
 import { ObligationFormDialog } from './ObligationFormDialog'
 import { ObligationDetailSheet } from './ObligationDetailSheet'
 import {
   Plus, Search, MoreHorizontal, Edit, Trash2, Eye,
-  ChevronDown, ScrollText, CheckCircle2, Clock,
+  ChevronDown, ScrollText, CheckCircle2,
   XCircle, Layers, AlertCircle, Link2,
 } from 'lucide-react'
-import { formatDistanceToNow } from 'date-fns'
 import { toast } from 'sonner'
 
 // ── Compliance status config ────────────────────────────────────────────────
@@ -52,6 +52,7 @@ const ALL_SOURCES: ObligationSource[] = [
 
 export function ComplianceWorkflowClient() {
   const [obligations, setObligations] = useState<ComplianceObligation[]>([])
+  const [risksById, setRisksById]     = useState<Record<string, Risk>>({})
   const [linkCounts, setLinkCounts]   = useState<Record<string, { risks: number; controls: number }>>({})
   const [loading, setLoading]         = useState(true)
   const [showForm, setShowForm]       = useState(false)
@@ -70,9 +71,10 @@ export function ComplianceWorkflowClient() {
   }, [])
 
   async function reload() {
-    const [data, counts] = await Promise.all([db.getObligations(), db.getObligationLinkCounts()])
+    const [data, counts, riskList] = await Promise.all([db.getObligations(), db.getObligationLinkCounts(), db.getRisks()])
     setObligations(data)
     setLinkCounts(counts)
+    setRisksById(Object.fromEntries(riskList.map(r => [r.id, r])))
     setLoading(false)
   }
 
@@ -189,7 +191,7 @@ export function ComplianceWorkflowClient() {
           <table className="w-full">
             <thead>
               <tr style={{ borderBottom: '1px solid var(--border)', background: 'var(--muted)' }}>
-                {['Code', 'Obligation', 'Source', 'Status', 'Criticality', 'Accountable', 'Next Review', 'Links', ''].map(h => (
+                {['Code', 'Requirement', 'Source', 'Condition', 'Article', 'Status', 'Criticality', 'Resp. Structure', 'Resp. Person', 'Related Risk', 'Degree', 'Likelihood', 'Initial', 'Links', ''].map(h => (
                   <th key={h} className="text-left px-3 py-3 text-[11px] font-semibold uppercase tracking-wide whitespace-nowrap" style={{ color: 'var(--muted-fg)' }}>
                     {h}
                   </th>
@@ -198,10 +200,10 @@ export function ComplianceWorkflowClient() {
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={9} className="py-16 text-center text-sm" style={{ color: 'var(--muted-fg)' }}>Loading…</td></tr>
+                <tr><td colSpan={15} className="py-16 text-center text-sm" style={{ color: 'var(--muted-fg)' }}>Loading…</td></tr>
               ) : filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="py-16 text-center" style={{ color: 'var(--muted-fg)' }}>
+                  <td colSpan={15} className="py-16 text-center" style={{ color: 'var(--muted-fg)' }}>
                     <div className="flex flex-col items-center gap-2">
                       <ScrollText className="w-8 h-8 opacity-30" />
                       <p className="text-sm">No obligations found</p>
@@ -217,6 +219,7 @@ export function ComplianceWorkflowClient() {
                     const sc = STATUS_CONFIG[item.status]
                     const cc = CRITICALITY_CONFIG[item.criticality]
                     const lc = linkCounts[item.id] ?? { risks: 0, controls: 0 }
+                    const relatedRisk = item.primary_risk_id ? risksById[item.primary_risk_id] : undefined
                     return (
                       <motion.tr
                         key={item.id}
@@ -246,6 +249,20 @@ export function ComplianceWorkflowClient() {
                             {item.source}
                           </span>
                           <p className="text-[10px] mt-0.5 capitalize" style={{ color: 'var(--muted-fg)' }}>{item.source_type}</p>
+                        </td>
+
+                        {/* Compliance condition */}
+                        <td className="px-3 py-3.5 max-w-[160px]">
+                          <span className="text-xs truncate block" style={{ color: item.compliance_condition ? 'var(--foreground)' : 'var(--muted-fg)' }}>
+                            {item.compliance_condition || '—'}
+                          </span>
+                        </td>
+
+                        {/* Article */}
+                        <td className="px-3 py-3.5 max-w-[140px]">
+                          <span className="text-xs truncate block" style={{ color: item.source_reference ? 'var(--foreground)' : 'var(--muted-fg)' }}>
+                            {item.source_reference || '—'}
+                          </span>
                         </td>
 
                         {/* Status dropdown */}
@@ -278,17 +295,45 @@ export function ComplianceWorkflowClient() {
                           <span className={cn('inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold', cc.classes)}>{cc.label}</span>
                         </td>
 
-                        {/* Accountable owner */}
+                        {/* Responsible structure */}
                         <td className="px-3 py-3.5">
-                          <span className="text-xs whitespace-nowrap" style={{ color: item.accountable_owner ? 'var(--foreground)' : 'var(--muted-fg)' }}>
-                            {item.accountable_owner ?? '—'}
+                          <span className="text-xs whitespace-nowrap" style={{ color: item.responsible_structure ? 'var(--foreground)' : 'var(--muted-fg)' }}>
+                            {item.responsible_structure ?? '—'}
                           </span>
                         </td>
 
-                        {/* Next review */}
+                        {/* Responsible person */}
                         <td className="px-3 py-3.5">
-                          <span className="text-xs whitespace-nowrap flex items-center gap-1" style={{ color: 'var(--muted-fg)' }}>
-                            {item.next_review_date ? (<><Clock className="w-3 h-3 shrink-0" />{formatDistanceToNow(new Date(item.next_review_date), { addSuffix: true })}</>) : '—'}
+                          <span className="text-xs whitespace-nowrap" style={{ color: item.responsible_party ? 'var(--foreground)' : 'var(--muted-fg)' }}>
+                            {item.responsible_party ?? '—'}
+                          </span>
+                        </td>
+
+                        {/* Related risk */}
+                        <td className="px-3 py-3.5">
+                          <span className="text-[11px] font-mono font-bold whitespace-nowrap" style={{ color: relatedRisk ? 'var(--brand-500)' : 'var(--muted-fg)' }}>
+                            {relatedRisk?.risk_code ?? '—'}
+                          </span>
+                        </td>
+
+                        {/* Risk degree (residual) */}
+                        <td className="px-3 py-3.5">
+                          <span className="text-xs whitespace-nowrap" style={{ color: 'var(--muted-fg)' }}>
+                            {relatedRisk?.residual_level ? residualLevelWord(relatedRisk.residual_level) : '—'}
+                          </span>
+                        </td>
+
+                        {/* Risk likelihood */}
+                        <td className="px-3 py-3.5">
+                          <span className="text-xs whitespace-nowrap" style={{ color: 'var(--muted-fg)' }}>
+                            {relatedRisk?.likelihood ? `${relatedRisk.likelihood}/5` : '—'}
+                          </span>
+                        </td>
+
+                        {/* Initial degree (inherent) */}
+                        <td className="px-3 py-3.5">
+                          <span className="text-xs whitespace-nowrap" style={{ color: 'var(--muted-fg)' }}>
+                            {relatedRisk ? inherentLevelWord(relatedRisk.level) : '—'}
                           </span>
                         </td>
 

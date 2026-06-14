@@ -864,8 +864,9 @@ export interface ComplianceObligation {
   id: string
   org_id: string
   obligation_code: string
-  title: string
-  description: string
+  title: string // compliance requirement name
+  description: string // what must be fulfilled
+  compliance_condition?: string // the condition/criterion for compliance
   // Source
   source: ObligationSource
   source_type: ObligationSourceType
@@ -873,16 +874,45 @@ export interface ComplianceObligation {
   source_url?: string
   // Accountability
   accountable_owner?: string // C-level / manager
-  responsible_party?: string // executing compliance officer
+  responsible_party?: string // responsible person (executing compliance officer)
+  responsible_structure?: string // responsible department / structure
   applicable_depts?: string[]
   // Status & risk
   status: ObligationStatus
   criticality: ObligationCriticality
+  primary_risk_id?: string // related risk (risk register) — drives degree/likelihood/initial
   // Dates
   effective_date?: string
   next_review_date?: string
   created_at: string
   updated_at: string
+}
+
+// ─── Regulatory Change Management (ISO 37301) ────────────────────────────────
+export type RegulatoryChangeStatus = 'new' | 'under_assessment' | 'implemented' | 'closed'
+
+export interface RegulatoryChange {
+  id: string
+  org_id: string
+  change_code: string // RCM-YYYY-NNN
+  title: string
+  source: ObligationSource // framework / regulator family
+  regulator?: string // issuing body
+  change_date?: string // published / effective date of the change
+  description: string
+  impact_assessment?: string
+  status: RegulatoryChangeStatus
+  created_at: string
+  updated_at: string
+}
+
+// Affected obligations of a regulatory change
+export interface RegulatoryChangeLink {
+  id: string
+  org_id: string
+  change_id: string
+  obligation_id: string
+  created_at: string
 }
 
 // Many-to-many link: obligation ↔ risk register entry

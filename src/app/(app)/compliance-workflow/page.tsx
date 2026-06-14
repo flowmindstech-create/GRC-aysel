@@ -1,5 +1,5 @@
 import { TopNav } from '@/components/layout/TopNav'
-import { ComplianceWorkflowClient } from '@/components/compliance-workflow/ComplianceWorkflowClient'
+import { ComplianceTabs } from '@/components/compliance-workflow/ComplianceTabs'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = { title: 'Compliance Obligation Register | RiskShield IRM' }
@@ -9,10 +9,10 @@ export default function ComplianceWorkflowPage() {
     <>
       <TopNav
         title="Compliance Obligation Register"
-        subtitle="Manage and track compliance obligations and regulatory requirements"
+        subtitle="Obligation register and regulatory change management (ISO 37301)"
       />
       <main className="flex-1 overflow-y-auto p-6">
-        <ComplianceWorkflowClient />
+        <ComplianceTabs />
       </main>
     </>
   )

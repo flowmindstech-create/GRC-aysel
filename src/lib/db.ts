@@ -8,7 +8,7 @@ import {
 import type {
   Risk, Incident, Control, Audit, AuditFinding, Vendor, Activity, DashboardStats,
   JiraConfig, JiraActivity, JiraComment, GRCIntakeItem, OrgUnit, UserProfile,
-  ComplianceObligation, ObligationAuditLog
+  ComplianceObligation, ObligationAuditLog, RegulatoryChange
 } from '@/types'
 import { RISK_CATEGORIES, normalizeCategory } from './risk-categories'
 import { normalizeStatus, ACTIVE_STATUSES } from './risk-status'
@@ -873,9 +873,10 @@ export const db = {
       const supabase = createClient()
       const payload: any = { ...sanitized }
       const dbColumns = [
-        'id', 'org_id', 'obligation_code', 'title', 'description', 'source', 'source_type',
-        'source_reference', 'source_url', 'accountable_owner', 'responsible_party',
-        'applicable_depts', 'status', 'criticality', 'effective_date', 'next_review_date',
+        'id', 'org_id', 'obligation_code', 'title', 'description', 'compliance_condition',
+        'source', 'source_type', 'source_reference', 'source_url',
+        'accountable_owner', 'responsible_party', 'responsible_structure', 'applicable_depts',
+        'status', 'criticality', 'primary_risk_id', 'effective_date', 'next_review_date',
         'created_at', 'updated_at'
       ]
       for (const key of Object.keys(payload)) {
@@ -923,9 +924,9 @@ export const db = {
   // Compares prior vs next and records a change entry (created / status_changed / updated).
   async logObligationChange(prior: ComplianceObligation | null, next: ComplianceObligation): Promise<void> {
     const fields: (keyof ComplianceObligation)[] = [
-      'title', 'description', 'source', 'source_type', 'source_reference', 'source_url',
-      'accountable_owner', 'responsible_party', 'applicable_depts', 'status', 'criticality',
-      'effective_date', 'next_review_date',
+      'title', 'description', 'compliance_condition', 'source', 'source_type', 'source_reference',
+      'source_url', 'accountable_owner', 'responsible_party', 'responsible_structure',
+      'applicable_depts', 'status', 'criticality', 'primary_risk_id', 'effective_date', 'next_review_date',
     ]
     let action = 'created'
     let oldValue: Record<string, unknown> | null = null
@@ -1067,6 +1068,103 @@ export const db = {
     }
     getLocalItem<any[]>('obligation_risk_links', []).forEach(l => bump(l.obligation_id, 'risks'))
     getLocalItem<any[]>('obligation_control_links', []).forEach(l => bump(l.obligation_id, 'controls'))
+    return counts
+  },
+
+  // ─── REGULATORY CHANGE MANAGEMENT ────────────────────────────────────────────
+  async getRegulatoryChanges(): Promise<RegulatoryChange[]> {
+    if (isSupabaseConfigured()) {
+      const { createClient } = await import('./supabase/client')
+      const supabase = createClient()
+      const { data, error } = await supabase.from('regulatory_changes').select('*').order('created_at', { ascending: false })
+      if (error) console.error('Supabase getRegulatoryChanges error:', error)
+      if (!error && data) return data as RegulatoryChange[]
+    }
+    return getLocalItem<RegulatoryChange[]>('regulatory_changes', [])
+  },
+
+  async saveRegulatoryChange(item: RegulatoryChange): Promise<RegulatoryChange> {
+    const orgId = await getCurrentOrgId()
+    const now = new Date().toISOString()
+    const sanitized: RegulatoryChange = { ...item, id: ensureUUID(item.id), org_id: orgId, updated_at: now }
+    if (!sanitized.change_code) {
+      const existing = await this.getRegulatoryChanges()
+      const year = new Date().getFullYear()
+      sanitized.change_code = `RCM-${year}-${String(existing.length + 1).padStart(3, '0')}`
+    }
+    if (isSupabaseConfigured()) {
+      const { createClient } = await import('./supabase/client')
+      const supabase = createClient()
+      const payload: any = { ...sanitized }
+      const dbColumns = [
+        'id', 'org_id', 'change_code', 'title', 'source', 'regulator', 'change_date',
+        'description', 'impact_assessment', 'status', 'created_at', 'updated_at'
+      ]
+      for (const key of Object.keys(payload)) {
+        if (!dbColumns.includes(key)) delete payload[key]
+      }
+      const { data, error } = await supabase.from('regulatory_changes').upsert(payload).select().single()
+      if (error) console.error('Supabase saveRegulatoryChange error:', error)
+      if (!error && data) return data as RegulatoryChange
+    }
+    const current = getLocalItem<RegulatoryChange[]>('regulatory_changes', [])
+    const idx = current.findIndex(i => i.id === sanitized.id)
+    if (idx >= 0) current[idx] = sanitized
+    else current.unshift(sanitized)
+    setLocalItem('regulatory_changes', current)
+    return sanitized
+  },
+
+  async deleteRegulatoryChange(id: string): Promise<void> {
+    if (isSupabaseConfigured()) {
+      const { createClient } = await import('./supabase/client')
+      const supabase = createClient()
+      await supabase.from('regulatory_changes').delete().eq('id', id)
+    }
+    const current = getLocalItem<RegulatoryChange[]>('regulatory_changes', [])
+    setLocalItem('regulatory_changes', current.filter(i => i.id !== id))
+    setLocalItem('regulatory_change_links', getLocalItem<any[]>('regulatory_change_links', []).filter(l => l.change_id !== id))
+  },
+
+  async getRegulatoryChangeObligationIds(changeId: string): Promise<string[]> {
+    if (isSupabaseConfigured()) {
+      const { createClient } = await import('./supabase/client')
+      const supabase = createClient()
+      const { data, error } = await supabase.from('regulatory_change_links').select('obligation_id').eq('change_id', changeId)
+      if (!error && data) return (data as any[]).map(r => r.obligation_id)
+    }
+    return getLocalItem<any[]>('regulatory_change_links', []).filter(l => l.change_id === changeId).map(l => l.obligation_id)
+  },
+
+  async setRegulatoryChangeObligations(changeId: string, obligationIds: string[]): Promise<void> {
+    const orgId = await getCurrentOrgId()
+    const now = new Date().toISOString()
+    if (isSupabaseConfigured()) {
+      const { createClient } = await import('./supabase/client')
+      const supabase = createClient()
+      await supabase.from('regulatory_change_links').delete().eq('change_id', changeId)
+      if (obligationIds.length > 0) {
+        const rows = obligationIds.map(oid => ({ id: ensureUUID(), org_id: orgId, change_id: changeId, obligation_id: oid, created_at: now }))
+        const { error } = await supabase.from('regulatory_change_links').insert(rows)
+        if (error) console.error('Supabase setRegulatoryChangeObligations error:', error)
+      }
+      return
+    }
+    const all = getLocalItem<any[]>('regulatory_change_links', []).filter(l => l.change_id !== changeId)
+    obligationIds.forEach(oid => all.push({ id: ensureUUID(), org_id: orgId, change_id: changeId, obligation_id: oid, created_at: now }))
+    setLocalItem('regulatory_change_links', all)
+  },
+
+  async getRegulatoryChangeAffectedCounts(): Promise<Record<string, number>> {
+    const counts: Record<string, number> = {}
+    if (isSupabaseConfigured()) {
+      const { createClient } = await import('./supabase/client')
+      const supabase = createClient()
+      const { data } = await supabase.from('regulatory_change_links').select('change_id')
+      ;((data as any[]) ?? []).forEach(r => { counts[r.change_id] = (counts[r.change_id] ?? 0) + 1 })
+      return counts
+    }
+    getLocalItem<any[]>('regulatory_change_links', []).forEach(l => { counts[l.change_id] = (counts[l.change_id] ?? 0) + 1 })
     return counts
   },
 

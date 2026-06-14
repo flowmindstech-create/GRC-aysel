@@ -8,6 +8,7 @@ import type {
   ComplianceObligation, ObligationStatus, ObligationCriticality,
   Risk, Control, ObligationAuditLog,
 } from '@/types'
+import { residualLevelWord, inherentLevelWord } from '@/lib/rcsa-methodology'
 import { formatDistanceToNow } from 'date-fns'
 
 const STATUS_LABEL: Record<ObligationStatus, { label: string; classes: string }> = {
@@ -36,7 +37,7 @@ function auditSummary(log: ObligationAuditLog): string {
 }
 
 export function ObligationDetailSheet({ obligation, onClose, onEdit }: Props) {
-  const [risks, setRisks] = useState<Risk[]>([])
+  const [primaryRisk, setPrimaryRisk] = useState<Risk | null>(null)
   const [controls, setControls] = useState<Control[]>([])
   const [audit, setAudit] = useState<ObligationAuditLog[]>([])
   const [loading, setLoading] = useState(true)
@@ -44,21 +45,20 @@ export function ObligationDetailSheet({ obligation, onClose, onEdit }: Props) {
   useEffect(() => {
     let active = true
     ;(async () => {
-      const [riskIds, controlIds, allRisks, allControls, auditLog] = await Promise.all([
-        db.getObligationRiskIds(obligation.id),
+      const [controlIds, allRisks, allControls, auditLog] = await Promise.all([
         db.getObligationControlIds(obligation.id),
         db.getRisks(),
         db.getControls(),
         db.getObligationAuditLog(obligation.id),
       ])
       if (!active) return
-      setRisks(allRisks.filter(r => riskIds.includes(r.id)))
+      setPrimaryRisk(allRisks.find(r => r.id === obligation.primary_risk_id) ?? null)
       setControls(allControls.filter(c => controlIds.includes(c.id)))
       setAudit(auditLog)
       setLoading(false)
     })()
     return () => { active = false }
-  }, [obligation.id])
+  }, [obligation.id, obligation.primary_risk_id])
 
   const sc = STATUS_LABEL[obligation.status]
   const Field = ({ label, value }: { label: string; value?: string | null }) => (
@@ -100,6 +100,7 @@ export function ObligationDetailSheet({ obligation, onClose, onEdit }: Props) {
             {obligation.description && (
               <p className="text-sm leading-relaxed" style={{ color: 'var(--muted-fg)' }}>{obligation.description}</p>
             )}
+            {obligation.compliance_condition && <Field label="Compliance Condition" value={obligation.compliance_condition} />}
 
             {/* Source */}
             <div className="grid grid-cols-2 gap-3">
@@ -121,6 +122,7 @@ export function ObligationDetailSheet({ obligation, onClose, onEdit }: Props) {
             <div className="grid grid-cols-2 gap-3">
               <Field label="Accountable Owner" value={obligation.accountable_owner} />
               <Field label="Responsible Party" value={obligation.responsible_party} />
+              <Field label="Responsible Structure" value={obligation.responsible_structure} />
             </div>
             <div>
               <p className="text-[10px] uppercase tracking-wide mb-1 flex items-center gap-1" style={{ color: 'var(--muted-fg)' }}>
@@ -134,21 +136,24 @@ export function ObligationDetailSheet({ obligation, onClose, onEdit }: Props) {
               </div>
             </div>
 
-            {/* Linked Risks */}
+            {/* Related Risk */}
             <div>
               <p className="text-[11px] font-bold uppercase tracking-wide mb-2 flex items-center gap-1.5" style={{ color: 'var(--brand-500)' }}>
-                <ShieldAlert className="w-3.5 h-3.5" /> Linked Risks ({risks.length})
+                <ShieldAlert className="w-3.5 h-3.5" /> Related Risk
               </p>
               {loading ? <p className="text-xs" style={{ color: 'var(--muted-fg)' }}>Loading…</p>
-                : risks.length === 0 ? <p className="text-xs" style={{ color: 'var(--muted-fg)' }}>No linked risks.</p>
+                : !primaryRisk ? <p className="text-xs" style={{ color: 'var(--muted-fg)' }}>No related risk.</p>
                 : (
-                  <div className="space-y-1.5">
-                    {risks.map(r => (
-                      <div key={r.id} className="flex items-center gap-2 px-3 py-2 rounded-lg" style={{ background: 'var(--muted)' }}>
-                        <span className="text-[10px] font-mono font-bold" style={{ color: 'var(--brand-500)' }}>{r.risk_code ?? '—'}</span>
-                        <span className="text-xs truncate" style={{ color: 'var(--foreground)' }}>{r.title}</span>
-                      </div>
-                    ))}
+                  <div className="rounded-lg px-3 py-2.5" style={{ background: 'var(--muted)' }}>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-mono font-bold" style={{ color: 'var(--brand-500)' }}>{primaryRisk.risk_code ?? '—'}</span>
+                      <span className="text-xs truncate" style={{ color: 'var(--foreground)' }}>{primaryRisk.title}</span>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2 mt-2">
+                      <div><p className="text-[9px] uppercase" style={{ color: 'var(--muted-fg)' }}>Degree</p><p className="text-xs font-semibold" style={{ color: 'var(--foreground)' }}>{primaryRisk.residual_level ? residualLevelWord(primaryRisk.residual_level) : '—'}</p></div>
+                      <div><p className="text-[9px] uppercase" style={{ color: 'var(--muted-fg)' }}>Likelihood</p><p className="text-xs font-semibold" style={{ color: 'var(--foreground)' }}>{primaryRisk.likelihood ?? '—'}/5</p></div>
+                      <div><p className="text-[9px] uppercase" style={{ color: 'var(--muted-fg)' }}>Initial</p><p className="text-xs font-semibold" style={{ color: 'var(--foreground)' }}>{inherentLevelWord(primaryRisk.level)}</p></div>
+                    </div>
                   </div>
                 )}
             </div>
