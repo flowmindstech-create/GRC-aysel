@@ -4,10 +4,15 @@ import { NextResponse, type NextRequest } from 'next/server'
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request })
 
+  // Password-recovery page: a recovery session is active here, but the user must
+  // stay to set a new password — never bounce it to the dashboard.
+  const isRecoveryPage = request.nextUrl.pathname.startsWith('/reset-password')
+
   const isAuthPage =
     request.nextUrl.pathname.startsWith('/login') ||
     request.nextUrl.pathname.startsWith('/register') ||
     request.nextUrl.pathname.startsWith('/forgot-password') ||
+    isRecoveryPage ||
     request.nextUrl.pathname === '/'
 
   // ALWAYS check mock session cookie first to allow login-free demo
@@ -61,7 +66,7 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  if (user && isAuthPage && request.nextUrl.pathname !== '/') {
+  if (user && isAuthPage && request.nextUrl.pathname !== '/' && !isRecoveryPage) {
     const url = request.nextUrl.clone()
     url.pathname = '/dashboard'
     return NextResponse.redirect(url)
