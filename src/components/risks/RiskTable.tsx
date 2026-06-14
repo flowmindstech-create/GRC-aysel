@@ -162,7 +162,7 @@ export function RiskTable() {
           <table className="w-full">
             <thead>
               <tr style={{ borderBottom: '1px solid var(--border)', background: 'var(--muted)' }}>
-                {['Risk ID', 'Risk', 'Category', 'Status', 'Treatment', 'Due', 'Inherent', 'Residual', 'Control activities', 'Degree', 'Owner structure', 'Owner', ''].map(h => (
+                {['Risk ID', 'Risk', 'Category', 'Status', 'Treatment', 'Mitigation plan', 'Due', 'Inherent', 'Residual', 'Control activities', 'Degree', 'Owner structure', 'Owner', ''].map(h => (
                   <th key={h} className="text-left px-3 py-3 text-[11px] font-semibold uppercase tracking-wide whitespace-nowrap"
                     style={{ color: 'var(--muted-fg)' }}>
                     {h}
@@ -254,22 +254,27 @@ export function RiskTable() {
                         </div>
                       </td>
                       <td className="px-3 py-3.5">
-                        <div className="flex flex-col items-start gap-1.5">
-                          <span className="text-xs capitalize" style={{ color: 'var(--muted-fg)' }}>
-                            {risk.mitigation ? TREATMENT_STRATEGY_LABELS[risk.mitigation as TreatmentStrategy] ?? risk.mitigation : '—'}
-                          </span>
+                        <span className="text-xs capitalize" style={{ color: 'var(--muted-fg)' }}>
+                          {risk.mitigation ? TREATMENT_STRATEGY_LABELS[risk.mitigation as TreatmentStrategy] ?? risk.mitigation : '—'}
+                        </span>
+                      </td>
+                      <td className="px-3 py-3.5">
+                        {risk.mitigation === 'mitigate' ? (
                           <button
                             type="button"
                             onClick={(e) => { e.stopPropagation(); setEditRisk(risk); setShowForm(true) }}
-                            title="Mitigasiya planını idarə et"
-                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold whitespace-nowrap cursor-pointer transition-colors"
+                            title={risk.treatment_plan || 'Mitigasiya planını idarə et'}
+                            className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-bold cursor-pointer transition-colors max-w-[170px]"
                             style={{ background: 'rgba(14,165,233,0.12)', color: 'var(--brand-500)', border: '1px solid rgba(14,165,233,0.25)' }}
                             onMouseEnter={e => ((e.currentTarget as HTMLElement).style.background = 'rgba(14,165,233,0.2)')}
                             onMouseLeave={e => ((e.currentTarget as HTMLElement).style.background = 'rgba(14,165,233,0.12)')}
                           >
-                            <Wrench className="w-3 h-3" /> Mitigation
+                            <Wrench className="w-3 h-3 shrink-0" />
+                            <span className="truncate">{risk.treatment_plan ? risk.treatment_plan : 'Mitigation planı'}</span>
                           </button>
-                        </div>
+                        ) : (
+                          <span className="text-xs" style={{ color: 'var(--muted-fg)' }}>—</span>
+                        )}
                       </td>
                       <td className="px-3 py-3.5">
                         <span className="text-xs whitespace-nowrap" style={{ color: 'var(--muted-fg)' }}>
