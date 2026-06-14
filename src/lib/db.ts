@@ -32,6 +32,22 @@ function setLocalItem<T>(key: string, value: T) {
   if (typeof window === 'undefined') return
   localStorage.setItem(`riskshield_${key}`, JSON.stringify(value))
 }
+export function isUUID(str?: string): boolean {
+  if (!str) return false
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str)
+}
+
+export function ensureUUID(id?: string): string {
+  if (id && isUUID(id)) return id
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    return crypto.randomUUID()
+  }
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0
+    const v = c === 'x' ? r : (r & 0x3 | 0x8)
+    return v.toString(16)
+  })
+}
 
 const isSupabaseConfigured = () => {
   if (typeof window !== 'undefined' && document.cookie.includes('mock-session=true')) {
@@ -155,34 +171,45 @@ export const db = {
   },
 
   async saveRisk(risk: Risk): Promise<Risk> {
+    const orgId = await getCurrentOrgId()
+    const sanitized: Risk = {
+      ...risk,
+      id: ensureUUID(risk.id),
+      org_id: orgId,
+      owner_id: (risk.owner_id && isUUID(risk.owner_id)) ? risk.owner_id : undefined
+    }
     if (isSupabaseConfigured()) {
       const { createClient } = await import('./supabase/client')
       const supabase = createClient()
-      const { data, error } = await supabase.from('risks').upsert({ ...risk, org_id: await getCurrentOrgId() }).select().single()
+      const payload: any = {
+        ...sanitized,
+        owner_id: sanitized.owner_id || null
+      }
+      const { data, error } = await supabase.from('risks').upsert(payload).select().single()
       if (error) console.error('Supabase saveRisk error:', error)
       if (!error && data) return data as Risk
     }
     const current = getLocalItem<Risk[]>('risks', MOCK_RISKS)
-    const idx = current.findIndex(r => r.id === risk.id)
+    const idx = current.findIndex(r => r.id === sanitized.id)
     if (idx >= 0) {
-      current[idx] = { ...risk, updated_at: new Date().toISOString() }
+      current[idx] = { ...sanitized, updated_at: new Date().toISOString() }
     } else {
-      current.unshift(risk)
+      current.unshift(sanitized)
     }
     setLocalItem('risks', current)
     
     // Add to activity feed
     await this.addActivity({
-      id: Math.random().toString(36).substr(2, 9),
-      org_id: risk.org_id || 'org1',
+      id: ensureUUID(),
+      org_id: sanitized.org_id,
       action: idx >= 0 ? 'updated risk' : 'created risk',
       entity_type: 'risk',
-      entity_id: risk.id,
-      entity_title: risk.title,
+      entity_id: sanitized.id,
+      entity_title: sanitized.title,
       created_at: new Date().toISOString()
     })
     
-    return risk
+    return sanitized
   },
 
   async deleteRisk(id: string): Promise<boolean> {
@@ -211,32 +238,46 @@ export const db = {
   },
 
   async saveIncident(incident: Incident): Promise<Incident> {
+    const orgId = await getCurrentOrgId()
+    const sanitized: Incident = {
+      ...incident,
+      id: ensureUUID(incident.id),
+      org_id: orgId,
+      assigned_to: (incident.assigned_to && isUUID(incident.assigned_to)) ? incident.assigned_to : undefined,
+      reported_by: (incident.reported_by && isUUID(incident.reported_by)) ? incident.reported_by : undefined
+    }
     if (isSupabaseConfigured()) {
       const { createClient } = await import('./supabase/client')
       const supabase = createClient()
-      const { data, error } = await supabase.from('incidents').upsert({ ...incident, org_id: await getCurrentOrgId() }).select().single()
+      const payload: any = {
+        ...sanitized,
+        assigned_to: sanitized.assigned_to || null,
+        reported_by: sanitized.reported_by || null
+      }
+      const { data, error } = await supabase.from('incidents').upsert(payload).select().single()
+      if (error) console.error('Supabase saveIncident error:', error)
       if (!error && data) return data as Incident
     }
     const current = getLocalItem<Incident[]>('incidents', MOCK_INCIDENTS)
-    const idx = current.findIndex(i => i.id === incident.id)
+    const idx = current.findIndex(i => i.id === sanitized.id)
     if (idx >= 0) {
-      current[idx] = { ...incident, updated_at: new Date().toISOString() }
+      current[idx] = { ...sanitized, updated_at: new Date().toISOString() }
     } else {
-      current.unshift(incident)
+      current.unshift(sanitized)
     }
     setLocalItem('incidents', current)
 
     await this.addActivity({
-      id: Math.random().toString(36).substr(2, 9),
-      org_id: incident.org_id || 'org1',
+      id: ensureUUID(),
+      org_id: sanitized.org_id,
       action: idx >= 0 ? 'updated incident' : 'reported incident',
       entity_type: 'incident',
-      entity_id: incident.id,
-      entity_title: incident.title,
+      entity_id: sanitized.id,
+      entity_title: sanitized.title,
       created_at: new Date().toISOString()
     })
 
-    return incident
+    return sanitized
   },
 
   async deleteIncident(id: string): Promise<boolean> {
@@ -264,32 +305,44 @@ export const db = {
   },
 
   async saveControl(control: Control): Promise<Control> {
+    const orgId = await getCurrentOrgId()
+    const sanitized: Control = {
+      ...control,
+      id: ensureUUID(control.id),
+      org_id: orgId,
+      reviewed_by: (control.reviewed_by && isUUID(control.reviewed_by)) ? control.reviewed_by : undefined
+    }
     if (isSupabaseConfigured()) {
       const { createClient } = await import('./supabase/client')
       const supabase = createClient()
-      const { data, error } = await supabase.from('controls').upsert({ ...control, org_id: await getCurrentOrgId() }).select().single()
+      const payload: any = {
+        ...sanitized,
+        reviewed_by: sanitized.reviewed_by || null
+      }
+      const { data, error } = await supabase.from('controls').upsert(payload).select().single()
+      if (error) console.error('Supabase saveControl error:', error)
       if (!error && data) return data as Control
     }
     const current = getLocalItem<Control[]>('controls', MOCK_CONTROLS)
-    const idx = current.findIndex(c => c.id === control.id)
+    const idx = current.findIndex(c => c.id === sanitized.id)
     if (idx >= 0) {
-      current[idx] = { ...control, reviewed_at: new Date().toISOString() }
+      current[idx] = { ...sanitized, reviewed_at: new Date().toISOString() }
     } else {
-      current.unshift(control)
+      current.unshift(sanitized)
     }
     setLocalItem('controls', current)
 
     await this.addActivity({
-      id: Math.random().toString(36).substr(2, 9),
-      org_id: control.org_id || 'org1',
+      id: ensureUUID(),
+      org_id: sanitized.org_id,
       action: 'updated control review',
       entity_type: 'control',
-      entity_id: control.id,
-      entity_title: `${control.control_id} - ${control.title}`,
+      entity_id: sanitized.id,
+      entity_title: `${sanitized.control_id} - ${sanitized.title}`,
       created_at: new Date().toISOString()
     })
 
-    return control
+    return sanitized
   },
 
   // ─── AUDITS & FINDINGS ─────────────────────────────────────────────────────
@@ -304,32 +357,44 @@ export const db = {
   },
 
   async saveAudit(audit: Audit): Promise<Audit> {
+    const orgId = await getCurrentOrgId()
+    const sanitized: Audit = {
+      ...audit,
+      id: ensureUUID(audit.id),
+      org_id: orgId,
+      auditor_id: (audit.auditor_id && isUUID(audit.auditor_id)) ? audit.auditor_id : undefined
+    }
     if (isSupabaseConfigured()) {
       const { createClient } = await import('./supabase/client')
       const supabase = createClient()
-      const { data, error } = await supabase.from('audits').upsert({ ...audit, org_id: await getCurrentOrgId() }).select().single()
+      const payload: any = {
+        ...sanitized,
+        auditor_id: sanitized.auditor_id || null
+      }
+      const { data, error } = await supabase.from('audits').upsert(payload).select().single()
+      if (error) console.error('Supabase saveAudit error:', error)
       if (!error && data) return data as Audit
     }
     const current = getLocalItem<Audit[]>('audits', MOCK_AUDITS)
-    const idx = current.findIndex(a => a.id === audit.id)
+    const idx = current.findIndex(a => a.id === sanitized.id)
     if (idx >= 0) {
-      current[idx] = audit
+      current[idx] = sanitized
     } else {
-      current.unshift(audit)
+      current.unshift(sanitized)
     }
     setLocalItem('audits', current)
 
     await this.addActivity({
-      id: Math.random().toString(36).substr(2, 9),
-      org_id: audit.org_id || 'org1',
+      id: ensureUUID(),
+      org_id: sanitized.org_id,
       action: idx >= 0 ? 'updated audit' : 'created audit',
       entity_type: 'audit',
-      entity_id: audit.id,
-      entity_title: audit.title,
+      entity_id: sanitized.id,
+      entity_title: sanitized.title,
       created_at: new Date().toISOString()
     })
 
-    return audit
+    return sanitized
   },
 
   async deleteAudit(id: string): Promise<boolean> {
@@ -356,21 +421,27 @@ export const db = {
   },
 
   async saveFinding(finding: AuditFinding): Promise<AuditFinding> {
+    const sanitized = {
+      ...finding,
+      id: ensureUUID(finding.id),
+      audit_id: ensureUUID(finding.audit_id)
+    }
     if (isSupabaseConfigured()) {
       const { createClient } = await import('./supabase/client')
       const supabase = createClient()
-      const { data, error } = await supabase.from('audit_findings').upsert(finding).select().single()
+      const { data, error } = await supabase.from('audit_findings').upsert(sanitized).select().single()
+      if (error) console.error('Supabase saveFinding error:', error)
       if (!error && data) return data as AuditFinding
     }
     const current = getLocalItem<AuditFinding[]>('findings', MOCK_FINDINGS)
-    const idx = current.findIndex(f => f.id === finding.id)
+    const idx = current.findIndex(f => f.id === sanitized.id)
     if (idx >= 0) {
-      current[idx] = finding
+      current[idx] = sanitized
     } else {
-      current.unshift(finding)
+      current.unshift(sanitized)
     }
     setLocalItem('findings', current)
-    return finding
+    return sanitized
   },
 
   async deleteFinding(id: string): Promise<boolean> {
@@ -398,32 +469,39 @@ export const db = {
   },
 
   async saveVendor(vendor: Vendor): Promise<Vendor> {
+    const orgId = await getCurrentOrgId()
+    const sanitized = {
+      ...vendor,
+      id: ensureUUID(vendor.id),
+      org_id: orgId
+    }
     if (isSupabaseConfigured()) {
       const { createClient } = await import('./supabase/client')
       const supabase = createClient()
-      const { data, error } = await supabase.from('vendors').upsert({ ...vendor, org_id: await getCurrentOrgId() }).select().single()
+      const { data, error } = await supabase.from('vendors').upsert(sanitized).select().single()
+      if (error) console.error('Supabase saveVendor error:', error)
       if (!error && data) return data as Vendor
     }
     const current = getLocalItem<Vendor[]>('vendors', MOCK_VENDORS)
-    const idx = current.findIndex(v => v.id === vendor.id)
+    const idx = current.findIndex(v => v.id === sanitized.id)
     if (idx >= 0) {
-      current[idx] = vendor
+      current[idx] = sanitized
     } else {
-      current.unshift(vendor)
+      current.unshift(sanitized)
     }
     setLocalItem('vendors', current)
 
     await this.addActivity({
-      id: Math.random().toString(36).substr(2, 9),
-      org_id: vendor.org_id || 'org1',
+      id: ensureUUID(),
+      org_id: sanitized.org_id,
       action: idx >= 0 ? 'updated vendor profile' : 'added vendor',
       entity_type: 'vendor',
-      entity_id: vendor.id,
-      entity_title: vendor.name,
+      entity_id: sanitized.id,
+      entity_title: sanitized.name,
       created_at: new Date().toISOString()
     })
 
-    return vendor
+    return sanitized
   },
 
   async deleteVendor(id: string): Promise<boolean> {
@@ -451,16 +529,30 @@ export const db = {
   },
 
   async addActivity(activity: Activity): Promise<Activity> {
+    const orgId = await getCurrentOrgId()
+    const sanitized: Activity = {
+      ...activity,
+      id: ensureUUID(activity.id),
+      org_id: orgId,
+      user_id: (activity.user_id && isUUID(activity.user_id)) ? activity.user_id : undefined,
+      entity_id: (activity.entity_id && isUUID(activity.entity_id)) ? activity.entity_id : undefined
+    }
     if (isSupabaseConfigured()) {
       const { createClient } = await import('./supabase/client')
       const supabase = createClient()
-      const { data, error } = await supabase.from('activities').insert({ ...activity, org_id: await getCurrentOrgId() }).select().single()
+      const payload: any = {
+        ...sanitized,
+        user_id: sanitized.user_id || null,
+        entity_id: sanitized.entity_id || null
+      }
+      const { data, error } = await supabase.from('activities').insert(payload).select().single()
+      if (error) console.error('Supabase addActivity error:', error)
       if (!error && data) return data as Activity
     }
     const current = getLocalItem<Activity[]>('activities', MOCK_ACTIVITIES)
-    current.unshift(activity)
+    current.unshift(sanitized)
     setLocalItem('activities', current)
-    return activity
+    return sanitized
   },
 
   // ─── DASHBOARD STATS ───────────────────────────────────────────────────────
@@ -726,32 +818,39 @@ export const db = {
   },
 
   async saveGRCIntakeItem(item: GRCIntakeItem): Promise<GRCIntakeItem> {
+    const orgId = await getCurrentOrgId()
+    const sanitized = {
+      ...item,
+      id: ensureUUID(item.id),
+      org_id: orgId
+    }
     if (isSupabaseConfigured()) {
       const { createClient } = await import('./supabase/client')
       const supabase = createClient()
-      const { data, error } = await supabase.from('grc_intake_items').upsert({ ...item, org_id: await getCurrentOrgId() }).select().single()
+      const { data, error } = await supabase.from('grc_intake_items').upsert(sanitized).select().single()
+      if (error) console.error('Supabase saveGRCIntakeItem error:', error)
       if (!error && data) return data as GRCIntakeItem
     }
     const current = getLocalItem<GRCIntakeItem[]>('grc_intake_items', [])
-    const idx = current.findIndex(i => i.id === item.id)
+    const idx = current.findIndex(i => i.id === sanitized.id)
     if (idx >= 0) {
-      current[idx] = item
+      current[idx] = sanitized
     } else {
-      current.unshift(item)
+      current.unshift(sanitized)
     }
     setLocalItem('grc_intake_items', current)
 
     await this.addActivity({
-      id: Math.random().toString(36).substr(2, 9),
-      org_id: item.org_id || 'org1',
-      action: idx >= 0 ? `updated intake: ${item.title}` : `registered new GRC intake: ${item.title}`,
+      id: ensureUUID(),
+      org_id: sanitized.org_id,
+      action: idx >= 0 ? `updated intake: ${sanitized.title}` : `registered new GRC intake: ${sanitized.title}`,
       entity_type: 'intake',
-      entity_id: item.id,
-      entity_title: item.title,
+      entity_id: sanitized.id,
+      entity_title: sanitized.title,
       created_at: new Date().toISOString()
     })
 
-    return item
+    return sanitized
   },
 
   async deleteGRCIntakeItem(id: string): Promise<boolean> {
@@ -790,22 +889,36 @@ export const db = {
   },
 
   async saveOrgUnit(unit: OrgUnit): Promise<OrgUnit> {
-    const record: OrgUnit = { ...unit, updated_at: new Date().toISOString() }
+    const orgId = await getCurrentOrgId()
+    const sanitized: OrgUnit = {
+      ...unit,
+      id: ensureUUID(unit.id),
+      org_id: orgId,
+      parent_id: (unit.parent_id && isUUID(unit.parent_id)) ? unit.parent_id : undefined,
+      head_user_id: (unit.head_user_id && isUUID(unit.head_user_id)) ? unit.head_user_id : undefined,
+      updated_at: new Date().toISOString()
+    }
     if (isSupabaseConfigured()) {
       const { createClient } = await import('./supabase/client')
       const supabase = createClient()
-      const { data, error } = await supabase.from('org_units').upsert({ ...record, org_id: await getCurrentOrgId() }).select().single()
+      const payload: any = {
+        ...sanitized,
+        parent_id: sanitized.parent_id || null,
+        head_user_id: sanitized.head_user_id || null
+      }
+      const { data, error } = await supabase.from('org_units').upsert(payload).select().single()
+      if (error) console.error('Supabase saveOrgUnit error:', error)
       if (!error && data) return data as OrgUnit
     }
     const current = getLocalItem<OrgUnit[]>('org_units', SEED_ORG_UNITS)
-    const idx = current.findIndex(u => u.id === record.id)
+    const idx = current.findIndex(u => u.id === sanitized.id)
     if (idx >= 0) {
-      current[idx] = record
+      current[idx] = sanitized
     } else {
-      current.push(record)
+      current.push(sanitized)
     }
     setLocalItem('org_units', current)
-    return record
+    return sanitized
   },
 
   async deleteOrgUnit(id: string): Promise<boolean> {
