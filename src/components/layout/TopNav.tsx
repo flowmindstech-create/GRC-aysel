@@ -1,7 +1,6 @@
 'use client'
 
-import { useTheme } from 'next-themes'
-import { Sun, Moon, Bell, Search, LogOut, User, ChevronDown } from 'lucide-react'
+import { Bell, Search, LogOut, User, ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
@@ -32,8 +31,6 @@ function timeAgo(iso: string): string {
 }
 
 export function TopNav({ title, subtitle }: TopNavProps) {
-  const { theme, setTheme } = useTheme()
-  const [mounted, setMounted] = useState(false)
   const [showUserMenu, setShowUserMenu] = useState(false)
   const [showNotif, setShowNotif] = useState(false)
   const [profile, setProfile] = useState<UserProfile | null>(null)
@@ -41,10 +38,8 @@ export function TopNav({ title, subtitle }: TopNavProps) {
   const router = useRouter()
 
   useEffect(() => {
-    const t = setTimeout(() => setMounted(true), 0)
     getCurrentProfile().then(setProfile)
     db.getActivities().then((a) => setActivities(a.slice(0, 12))).catch(() => {})
-    return () => clearTimeout(t)
   }, [])
 
   const handleSignOut = async () => {
@@ -172,21 +167,6 @@ export function TopNav({ title, subtitle }: TopNavProps) {
           </>
         )}
       </div>
-
-      {/* Theme toggle */}
-      {mounted && (
-        <button
-          onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-          className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
-          style={{ color: 'var(--muted-fg)' }}
-          onMouseEnter={e => ((e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.05)')}
-          onMouseLeave={e => ((e.currentTarget as HTMLElement).style.background = '')}
-        >
-          {theme === 'dark'
-            ? <Sun className="w-4 h-4 text-yellow-400" />
-            : <Moon className="w-4 h-4" />}
-        </button>
-      )}
 
       {/* Divider */}
       <div className="w-px h-5 hidden sm:block" style={{ background: 'var(--border)' }} />
