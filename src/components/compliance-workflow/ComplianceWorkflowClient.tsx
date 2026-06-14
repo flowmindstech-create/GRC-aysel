@@ -1,199 +1,129 @@
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
-import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { db } from '@/lib/db'
-import type { GRCIntakeItem, GRCIntakeType, GRCIntakeStep } from '@/types'
+import type { ComplianceObligation, ObligationStatus, ObligationSource } from '@/types'
 import { cn } from '@/lib/utils'
-import { IntakeFormDialog } from './IntakeFormDialog'
+import { ObligationFormDialog } from './ObligationFormDialog'
 import {
-  Plus, AlertTriangle, CheckCircle2, Clock, Filter,
-  FileText, ShieldAlert, Search, Layers, Activity,
+  Plus, Search, MoreHorizontal, Edit, Trash2, Eye,
+  ChevronDown, ScrollText, CheckCircle2, Clock,
+  FileEdit, Archive, Layers, AlertCircle,
 } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
+import { toast } from 'sonner'
 
-// ── Constants ────────────────────────────────────────────────────────────────
+// ── Status config ─────────────────────────────────────────────────────────────
 
-const TYPE_ICON = {
-  requirement: FileText,
-  risk:        ShieldAlert,
-  finding:     Search,
-  incident:    AlertTriangle,
+const STATUS_CONFIG: Record<ObligationStatus, { label: string; classes: string; dot: string }> = {
+  draft:        { label: 'Draft',        classes: 'bg-slate-500/15 text-slate-400 border-slate-500/25', dot: 'bg-slate-400' },
+  active:       { label: 'Active',       classes: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/25', dot: 'bg-emerald-400' },
+  under_review: { label: 'Under Review', classes: 'bg-amber-500/15 text-amber-400 border-amber-500/25', dot: 'bg-amber-400' },
+  retired:      { label: 'Retired',      classes: 'bg-zinc-500/15 text-zinc-500 border-zinc-500/25', dot: 'bg-zinc-500' },
 }
 
-const TYPE_COLOR: Record<GRCIntakeType, string> = {
-  requirement: 'text-blue-400 bg-blue-400/10',
-  risk:        'text-orange-400 bg-orange-400/10',
-  finding:     'text-yellow-400 bg-yellow-400/10',
-  incident:    'text-red-400 bg-red-400/10',
+const ALL_STATUSES: ObligationStatus[] = ['draft', 'active', 'under_review', 'retired']
+
+const SOURCE_COLORS: Record<ObligationSource, string> = {
+  'ISO 27001':        'bg-blue-500/12 text-blue-400',
+  'GDPR':             'bg-purple-500/12 text-purple-400',
+  'SOC 2':            'bg-cyan-500/12 text-cyan-400',
+  'PCI DSS':          'bg-orange-500/12 text-orange-400',
+  'Local Regulation': 'bg-green-500/12 text-green-400',
+  'Internal Policy':  'bg-indigo-500/12 text-indigo-400',
+  'Contractual':      'bg-rose-500/12 text-rose-400',
+  'Other':            'bg-zinc-500/12 text-zinc-400',
 }
 
-const KANBAN_COLUMNS: { key: string; label: string; steps: GRCIntakeStep[]; color: string }[] = [
-  {
-    key: 'intake',
-    label: 'Intake',
-    steps: ['registration', 'classification'],
-    color: 'rgba(59,130,246,0.3)',
-  },
-  {
-    key: 'mapping',
-    label: 'Mapping & Evidence',
-    steps: ['control_mapping', 'evidence_collection', 'compliance_assessment'],
-    color: 'rgba(168,85,247,0.3)',
-  },
-  {
-    key: 'assessment',
-    label: 'Risk Assessment',
-    steps: ['inherent_assessment', 'control_effectiveness_review', 'residual_assessment'],
-    color: 'rgba(234,179,8,0.3)',
-  },
-  {
-    key: 'review',
-    label: 'Review & Decision',
-    steps: ['owner_review', 'mgt_review', 'appetite_gate'],
-    color: 'rgba(234,88,12,0.3)',
-  },
-  {
-    key: 'treatment',
-    label: 'Treatment',
-    steps: ['action_plan', 'assignment', 'implementation', 'evidence_upload', 'validation', 'reassessment', 'escalation', 'committee_review', 'non_compliance', 'risk_routing', 'monitoring'],
-    color: 'rgba(14,165,233,0.3)',
-  },
-  {
-    key: 'closed',
-    label: 'Closed',
-    steps: ['compliant_closed', 'closed'],
-    color: 'rgba(5,150,105,0.3)',
-  },
+const ALL_SOURCES: ObligationSource[] = [
+  'ISO 27001', 'GDPR', 'SOC 2', 'PCI DSS',
+  'Local Regulation', 'Internal Policy', 'Contractual', 'Other',
 ]
 
-const STEP_LABEL: Partial<Record<GRCIntakeStep, string>> = {
-  registration:               'Registration',
-  classification:             'Classification',
-  control_mapping:            'Control Mapping',
-  evidence_collection:        'Evidence Collection',
-  compliance_assessment:      'Compliance Assessment',
-  inherent_assessment:        'Inherent Assessment',
-  control_effectiveness_review: 'Control Effectiveness',
-  residual_assessment:        'Residual Assessment',
-  owner_review:               'Owner Review',
-  mgt_review:                 'Mgmt Review',
-  appetite_gate:              'Appetite Gate',
-  action_plan:                'Action Plan',
-  assignment:                 'Assignment',
-  implementation:             'Implementation',
-  evidence_upload:            'Evidence Upload',
-  validation:                 'Validation',
-  reassessment:               'Reassessment',
-  escalation:                 'Escalation',
-  committee_review:           'Committee Review',
-  monitoring:                 'Monitoring',
-  compliant_closed:           'Compliant',
-  non_compliance:             'Non-Compliant',
-  risk_routing:               'Risk Routing',
-  closed:                     'Closed',
-}
-
-// ── Components ───────────────────────────────────────────────────────────────
-
-function ItemCard({ item, onClick }: { item: GRCIntakeItem; onClick: () => void }) {
-  const Icon = TYPE_ICON[item.type]
-  const elapsed = formatDistanceToNow(new Date(item.created_at), { addSuffix: false })
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      onClick={onClick}
-      className="card p-3.5 cursor-pointer group hover:shadow-md transition-all"
-      style={{ borderColor: 'var(--card-border)' }}
-    >
-      <div className="flex items-start gap-2 mb-2.5">
-        <div className={cn('w-6 h-6 rounded-md flex items-center justify-center shrink-0 mt-0.5', TYPE_COLOR[item.type])}>
-          <Icon className="w-3.5 h-3.5" />
-        </div>
-        <p className="text-xs font-medium leading-snug group-hover:text-sky-400 transition-colors line-clamp-2"
-          style={{ color: 'var(--foreground)' }}>
-          {item.title}
-        </p>
-      </div>
-
-      <div className="flex items-center justify-between gap-2">
-        <span
-          className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium"
-          style={{ background: 'rgba(14,165,233,0.1)', color: 'var(--brand-500)' }}
-        >
-          {STEP_LABEL[item.step] ?? item.step}
-        </span>
-        <div className="flex items-center gap-1.5">
-          {item.gap_identified && (
-            <span className="flex items-center gap-0.5 text-[10px] text-red-400">
-              <AlertTriangle className="w-3 h-3" /> Gap
-            </span>
-          )}
-          <span className="text-[10px] flex items-center gap-0.5" style={{ color: 'var(--muted-fg)' }}>
-            <Clock className="w-2.5 h-2.5" />{elapsed}
-          </span>
-        </div>
-      </div>
-    </motion.div>
-  )
-}
-
-// ── Main ─────────────────────────────────────────────────────────────────────
+// ── Main ──────────────────────────────────────────────────────────────────────
 
 export function ComplianceWorkflowClient() {
-  const router = useRouter()
-  const [items, setItems]         = useState<GRCIntakeItem[]>([])
-  const [loading, setLoading]     = useState(true)
-  const [showForm, setShowForm]   = useState(false)
-  const [typeFilter, setTypeFilter] = useState<GRCIntakeType | 'all'>('all')
-  const [search, setSearch]       = useState('')
+  const [obligations, setObligations] = useState<ComplianceObligation[]>([])
+  const [loading, setLoading]         = useState(true)
+  const [showForm, setShowForm]       = useState(false)
+  const [editItem, setEditItem]       = useState<ComplianceObligation | null>(null)
+  const [search, setSearch]           = useState('')
+  const [statusFilter, setStatusFilter] = useState<ObligationStatus | 'all'>('all')
+  const [sourceFilter, setSourceFilter] = useState<ObligationSource | 'all'>('all')
+  const [menuOpen, setMenuOpen]       = useState<string | null>(null)
+  const [openStatusId, setOpenStatusId] = useState<string | null>(null)
 
+  // Click-outside to close menus
   useEffect(() => {
-    db.getGRCIntakeItems().then(data => { setItems(data); setLoading(false) })
+    const close = () => { setMenuOpen(null); setOpenStatusId(null) }
+    window.addEventListener('click', close)
+    return () => window.removeEventListener('click', close)
   }, [])
 
-  const filtered = useMemo(() => items.filter(i => {
-    const matchType   = typeFilter === 'all' || i.type === typeFilter
-    const matchSearch = !search || i.title.toLowerCase().includes(search.toLowerCase())
-    return matchType && matchSearch
-  }), [items, typeFilter, search])
+  useEffect(() => {
+    db.getObligations().then(data => { setObligations(data); setLoading(false) })
+  }, [])
+
+  const filtered = useMemo(() => obligations.filter(o => {
+    const matchSearch = !search ||
+      o.title.toLowerCase().includes(search.toLowerCase()) ||
+      o.obligation_code.toLowerCase().includes(search.toLowerCase()) ||
+      o.description.toLowerCase().includes(search.toLowerCase())
+    const matchStatus = statusFilter === 'all' || o.status === statusFilter
+    const matchSource = sourceFilter === 'all' || o.source === sourceFilter
+    return matchSearch && matchStatus && matchSource
+  }), [obligations, search, statusFilter, sourceFilter])
 
   const stats = useMemo(() => ({
-    total:   items.length,
-    active:  items.filter(i => !['compliant_closed','closed'].includes(i.step)).length,
-    gap:     items.filter(i => i.gap_identified).length,
-    closed:  items.filter(i => ['compliant_closed','closed'].includes(i.step)).length,
-  }), [items])
+    total:   obligations.length,
+    active:  obligations.filter(o => o.status === 'active').length,
+    review:  obligations.filter(o => o.status === 'under_review').length,
+    draft:   obligations.filter(o => o.status === 'draft').length,
+  }), [obligations])
 
-  async function handleCreate(data: Omit<GRCIntakeItem, 'id' | 'created_at'>) {
-    const newItem: GRCIntakeItem = {
-      ...data,
-      id:         crypto.randomUUID(),
-      created_at: new Date().toISOString(),
-    }
-    const saved = await db.saveGRCIntakeItem(newItem)
-    setItems(prev => [saved, ...prev])
+  async function handleSave(item: ComplianceObligation) {
+    const saved = await db.saveObligation(item)
+    setObligations(prev => {
+      const idx = prev.findIndex(o => o.id === saved.id)
+      if (idx >= 0) { const next = [...prev]; next[idx] = saved; return next }
+      return [saved, ...prev]
+    })
+    setShowForm(false)
+    setEditItem(null)
+    toast.success(editItem ? 'Obligation updated' : 'Obligation created')
+  }
+
+  async function handleDelete(id: string) {
+    await db.deleteObligation(id)
+    setObligations(prev => prev.filter(o => o.id !== id))
+    setMenuOpen(null)
+    toast.success('Obligation deleted')
+  }
+
+  async function handleStatusChange(item: ComplianceObligation, newStatus: ObligationStatus) {
+    const updated = { ...item, status: newStatus }
+    await handleSave(updated)
+    setOpenStatusId(null)
+    toast.success(`Status changed to ${STATUS_CONFIG[newStatus].label}`)
   }
 
   return (
     <div className="space-y-5">
-      {/* Stats */}
+      {/* ── Stat Cards ────────────────────────────────────────────────── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label: 'Total Items',    value: stats.total,  icon: Layers,        color: '14,165,233' },
-          { label: 'Active',         value: stats.active, icon: Activity,      color: '234,88,12'  },
-          { label: 'Gap Identified', value: stats.gap,    icon: AlertTriangle, color: '225,29,72'  },
-          { label: 'Closed',         value: stats.closed, icon: CheckCircle2,  color: '5,150,105'  },
+          { label: 'Total Obligations', value: stats.total,  icon: Layers,       color: '14,165,233' },
+          { label: 'Active',            value: stats.active, icon: CheckCircle2,  color: '5,150,105'  },
+          { label: 'Under Review',      value: stats.review, icon: AlertCircle,   color: '234,179,8'  },
+          { label: 'Draft',             value: stats.draft,  icon: FileEdit,      color: '148,163,184'},
         ].map((s, i) => (
           <motion.div
             key={s.label}
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.05 }}
-            className="card p-4 overflow-hidden"
+            className="card p-4 overflow-hidden relative"
           >
             <div
               className="absolute top-0 left-0 right-0 h-px"
@@ -213,102 +143,276 @@ export function ComplianceWorkflowClient() {
         ))}
       </div>
 
-      {/* Toolbar */}
+      {/* ── Toolbar ───────────────────────────────────────────────────── */}
       <div className="flex flex-wrap items-center gap-3">
+        {/* Search */}
         <div
-          className="flex items-center gap-2 px-3 py-2 rounded-lg flex-1 min-w-48"
-          style={{ background: 'var(--muted)', border: '1px solid var(--border)' }}
+          className="flex items-center gap-2 px-3 py-2 rounded-xl flex-1 min-w-52"
+          style={{ background: 'var(--card)', border: '1px solid var(--border)' }}
         >
-          <Search className="w-3.5 h-3.5 shrink-0" style={{ color: 'var(--muted-fg)' }} />
+          <Search className="w-4 h-4 shrink-0" style={{ color: 'var(--muted-fg)' }} />
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
-            placeholder="Search items…"
-            className="bg-transparent text-sm outline-none flex-1"
+            placeholder="Search obligations…"
+            aria-label="Search obligations"
+            className="flex-1 text-sm bg-transparent outline-none"
             style={{ color: 'var(--foreground)' }}
           />
         </div>
 
-        <div className="flex items-center gap-1 p-1 rounded-lg" style={{ background: 'var(--muted)', border: '1px solid var(--border)' }}>
-          {(['all', 'requirement', 'risk', 'finding', 'incident'] as const).map(t => (
+        {/* Status filter pills */}
+        <div
+          className="flex items-center gap-1 p-1 rounded-xl"
+          style={{ background: 'var(--card)', border: '1px solid var(--border)' }}
+        >
+          {(['all', ...ALL_STATUSES] as const).map(s => (
             <button
-              key={t}
-              onClick={() => setTypeFilter(t)}
-              className={cn('px-3 py-1.5 rounded-md text-xs font-medium capitalize transition-all')}
-              style={typeFilter === t ? {
-                background: 'var(--brand-500)',
-                color: '#fff',
-              } : { color: 'var(--muted-fg)' }}
+              key={s}
+              onClick={() => setStatusFilter(s)}
+              className={cn('px-3 py-1.5 rounded-lg text-xs font-medium capitalize transition-all')}
+              style={statusFilter === s
+                ? { background: 'var(--brand-500)', color: '#fff' }
+                : { color: 'var(--muted-fg)' }
+              }
             >
-              {t}
+              {s === 'all' ? 'All' : STATUS_CONFIG[s].label}
             </button>
           ))}
         </div>
 
-        <button
-          onClick={() => setShowForm(true)}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-white transition-colors"
-          style={{ background: 'var(--brand-500)' }}
+        {/* Source filter dropdown */}
+        <select
+          value={sourceFilter}
+          onChange={e => setSourceFilter(e.target.value as ObligationSource | 'all')}
+          className="px-3 py-2 rounded-xl text-xs font-medium outline-none cursor-pointer"
+          style={{ background: 'var(--card)', border: '1px solid var(--border)', color: 'var(--foreground)' }}
         >
-          <Plus className="w-4 h-4" /> New Item
+          <option value="all">All Sources</option>
+          {ALL_SOURCES.map(s => <option key={s} value={s}>{s}</option>)}
+        </select>
+
+        {/* New button */}
+        <button
+          onClick={() => { setEditItem(null); setShowForm(true) }}
+          className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white transition-colors shadow-lg"
+          style={{ background: 'var(--brand-500)', boxShadow: '0 4px 14px rgba(14,165,233,0.25)' }}
+        >
+          <Plus className="w-4 h-4" /> New Obligation
         </button>
       </div>
 
-      {/* Kanban */}
-      {loading ? (
-        <div className="flex items-center justify-center h-48" style={{ color: 'var(--muted-fg)' }}>
-          Loading…
-        </div>
-      ) : (
-        <div className="flex gap-4 overflow-x-auto pb-4">
-          {KANBAN_COLUMNS.map(col => {
-            const colItems = filtered.filter(i => (col.steps as string[]).includes(i.step))
-            return (
-              <div key={col.key} className="flex-shrink-0 w-64">
-                {/* Column header */}
-                <div
-                  className="flex items-center justify-between px-3 py-2 rounded-t-xl mb-2 border-b"
-                  style={{ borderColor: col.color, borderBottomWidth: 2 }}
-                >
-                  <span className="text-xs font-semibold" style={{ color: 'var(--foreground)' }}>{col.label}</span>
-                  <span
-                    className="text-[10px] font-bold px-1.5 py-0.5 rounded-full"
-                    style={{ background: col.color.replace('0.3', '0.15'), color: 'var(--foreground)' }}
+      {/* ── Table ─────────────────────────────────────────────────────── */}
+      <div className="card overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr style={{ borderBottom: '1px solid var(--border)', background: 'var(--muted)' }}>
+                {['Code', 'Obligation', 'Source', 'Status', 'Due Date', 'Department', 'Owner', ''].map(h => (
+                  <th
+                    key={h}
+                    className="text-left px-3 py-3 text-[11px] font-semibold uppercase tracking-wide whitespace-nowrap"
+                    style={{ color: 'var(--muted-fg)' }}
                   >
-                    {colItems.length}
-                  </span>
-                </div>
-
-                {/* Cards */}
-                <div className="space-y-2 min-h-16">
-                  {colItems.length === 0 ? (
-                    <div
-                      className="text-center py-6 rounded-xl border border-dashed text-xs"
-                      style={{ borderColor: 'var(--border)', color: 'var(--muted-fg)' }}
-                    >
-                      Empty
+                    {h}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr>
+                  <td colSpan={8} className="py-16 text-center text-sm" style={{ color: 'var(--muted-fg)' }}>
+                    Loading…
+                  </td>
+                </tr>
+              ) : filtered.length === 0 ? (
+                <tr>
+                  <td colSpan={8} className="py-16 text-center" style={{ color: 'var(--muted-fg)' }}>
+                    <div className="flex flex-col items-center gap-2">
+                      <ScrollText className="w-8 h-8 opacity-30" />
+                      <p className="text-sm">No obligations found</p>
+                      <p className="text-xs opacity-60">Create a new obligation to get started</p>
                     </div>
-                  ) : (
-                    colItems.map(item => (
-                      <ItemCard
+                  </td>
+                </tr>
+              ) : (
+                filtered
+                  .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
+                  .map((item, i) => {
+                    const isNearBottom = filtered.length > 2 && i >= filtered.length - 2
+                    const sc = STATUS_CONFIG[item.status]
+                    return (
+                      <motion.tr
                         key={item.id}
-                        item={item}
-                        onClick={() => router.push(`/compliance-workflow/${item.id}`)}
-                      />
-                    ))
-                  )}
-                </div>
-              </div>
-            )
-          })}
-        </div>
-      )}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: i * 0.03 }}
+                        className="group hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors"
+                        style={{ borderBottom: '1px solid var(--border)' }}
+                      >
+                        {/* Code */}
+                        <td className="px-3 py-3.5">
+                          <span
+                            className="text-[11px] font-mono font-bold whitespace-nowrap"
+                            style={{ color: 'var(--brand-500)' }}
+                          >
+                            {item.obligation_code}
+                          </span>
+                        </td>
 
-      <IntakeFormDialog
-        open={showForm}
-        onClose={() => setShowForm(false)}
-        onSubmit={handleCreate}
-      />
+                        {/* Obligation (title + desc) */}
+                        <td className="px-3 py-3.5 max-w-xs">
+                          <p
+                            className="text-sm font-medium truncate group-hover:text-sky-500 transition-colors"
+                            style={{ color: 'var(--foreground)' }}
+                          >
+                            {item.title}
+                          </p>
+                          {item.description && (
+                            <p className="text-xs mt-0.5 truncate" style={{ color: 'var(--muted-fg)' }}>
+                              {item.description.slice(0, 60)}{item.description.length > 60 ? '…' : ''}
+                            </p>
+                          )}
+                        </td>
+
+                        {/* Source badge */}
+                        <td className="px-3 py-3.5">
+                          <span className={cn(
+                            'inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold whitespace-nowrap',
+                            SOURCE_COLORS[item.source] ?? SOURCE_COLORS['Other']
+                          )}>
+                            {item.source}
+                          </span>
+                        </td>
+
+                        {/* Status dropdown */}
+                        <td className="px-3 py-3.5" onClick={e => e.stopPropagation()}>
+                          <div className="relative inline-block">
+                            <button
+                              onClick={e => { e.stopPropagation(); setOpenStatusId(openStatusId === item.id ? null : item.id) }}
+                              className={cn(
+                                'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border cursor-pointer transition-all hover:brightness-110 shadow-sm outline-none',
+                                sc.classes
+                              )}
+                            >
+                              <span>{sc.label}</span>
+                              <ChevronDown className="w-3 h-3 shrink-0 opacity-80" />
+                            </button>
+                            {openStatusId === item.id && (
+                              <div
+                                className={cn(
+                                  "absolute left-0 mt-1.5 w-44 rounded-xl shadow-2xl z-30 border py-1 animate-in fade-in slide-in-from-top-1 duration-150",
+                                  isNearBottom && "bottom-full mb-1 mt-0"
+                                )}
+                                style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
+                                onClick={e => e.stopPropagation()}
+                              >
+                                {ALL_STATUSES.map(s => (
+                                  <button
+                                    key={s}
+                                    onClick={() => handleStatusChange(item, s)}
+                                    className="w-full flex items-center px-3 py-2 text-xs hover:bg-black/5 dark:hover:bg-white/5 text-left transition-colors font-semibold"
+                                    style={{ color: item.status === s ? '#38bdf8' : 'var(--foreground)' }}
+                                  >
+                                    <span className={cn('w-1.5 h-1.5 rounded-full mr-2 shrink-0', STATUS_CONFIG[s].dot)} />
+                                    {STATUS_CONFIG[s].label}
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </td>
+
+                        {/* Due date */}
+                        <td className="px-3 py-3.5">
+                          <span className="text-xs whitespace-nowrap flex items-center gap-1" style={{ color: 'var(--muted-fg)' }}>
+                            {item.due_date ? (
+                              <>
+                                <Clock className="w-3 h-3 shrink-0" />
+                                {formatDistanceToNow(new Date(item.due_date), { addSuffix: true })}
+                              </>
+                            ) : '—'}
+                          </span>
+                        </td>
+
+                        {/* Department */}
+                        <td className="px-3 py-3.5">
+                          <span className="text-xs" style={{ color: 'var(--muted-fg)' }}>
+                            {item.owner_dept ?? '—'}
+                          </span>
+                        </td>
+
+                        {/* Owner */}
+                        <td className="px-3 py-3.5">
+                          {item.owner_name ? (
+                            <div className="flex items-center gap-1.5">
+                              <div className="w-5 h-5 rounded-full bg-sky-500 flex items-center justify-center text-white text-[10px] font-bold shrink-0">
+                                {item.owner_name[0]?.toUpperCase() ?? '?'}
+                              </div>
+                              <span className="text-xs whitespace-nowrap" style={{ color: 'var(--foreground)' }}>
+                                {item.owner_name}
+                              </span>
+                            </div>
+                          ) : (
+                            <span className="text-xs" style={{ color: 'var(--muted-fg)' }}>—</span>
+                          )}
+                        </td>
+
+                        {/* Actions menu */}
+                        <td className="px-3 py-3.5" onClick={e => e.stopPropagation()}>
+                          <div className="relative inline-block">
+                            <button
+                              onClick={e => { e.stopPropagation(); setMenuOpen(menuOpen === item.id ? null : item.id) }}
+                              aria-label="Obligation actions"
+                              className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
+                            >
+                              <MoreHorizontal className="w-4 h-4" style={{ color: 'var(--muted-fg)' }} />
+                            </button>
+                            {menuOpen === item.id && (
+                              <div
+                                className={cn(
+                                  "absolute right-0 w-40 rounded-xl shadow-xl z-20 border py-1",
+                                  isNearBottom ? "bottom-full mb-1" : "top-full mt-1"
+                                )}
+                                style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
+                                onClick={e => e.stopPropagation()}
+                              >
+                                <button
+                                  onClick={() => { setEditItem(item); setShowForm(true); setMenuOpen(null) }}
+                                  className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-black/5 dark:hover:bg-white/5 text-left"
+                                  style={{ color: 'var(--foreground)' }}
+                                >
+                                  <Edit className="w-3.5 h-3.5" /> Edit
+                                </button>
+                                <button
+                                  onClick={() => handleDelete(item.id)}
+                                  className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-red-50 dark:hover:bg-red-900/20 text-left text-red-500"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" /> Delete
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        </td>
+                      </motion.tr>
+                    )
+                  })
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* ── Form Dialog ──────────────────────────────────────────────── */}
+      {showForm && (
+        <ObligationFormDialog
+          key={editItem?.id ?? 'new'}
+          obligation={editItem}
+          onClose={() => { setShowForm(false); setEditItem(null) }}
+          onSave={handleSave}
+        />
+      )}
     </div>
   )
 }

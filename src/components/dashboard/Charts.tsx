@@ -20,7 +20,7 @@ export function RiskTrendChart({ stats }: Props) {
     <div className="card p-5">
       <div className="mb-5">
         <h3 className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>Risk & Incident Trends</h3>
-        <p className="text-xs mt-0.5" style={{ color: 'var(--muted-fg)' }}>Last 6 months</p>
+        <p className="text-xs mt-0.5" style={{ color: 'var(--muted-fg)' }}>Last 14 days (cumulative)</p>
       </div>
       <ResponsiveContainer width="100%" height={200}>
         <AreaChart data={combined} margin={{ top: 4, right: 4, left: -24, bottom: 0 }}>

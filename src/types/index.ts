@@ -842,3 +842,30 @@ export interface RiskAppetiteStatement {
   updated_at: string
 }
 
+// ─── Compliance Obligation Register ──────────────────────────────────────────
+
+export type ObligationStatus = 'draft' | 'active' | 'under_review' | 'retired'
+export type ObligationSource =
+  | 'ISO 27001'
+  | 'GDPR'
+  | 'SOC 2'
+  | 'PCI DSS'
+  | 'Local Regulation'
+  | 'Internal Policy'
+  | 'Contractual'
+  | 'Other'
+
+export interface ComplianceObligation {
+  id: string
+  org_id: string
+  obligation_code: string
+  title: string
+  description: string
+  source: ObligationSource
+  status: ObligationStatus
+  due_date?: string
+  owner_dept?: string
+  owner_name?: string
+  created_at: string
+  updated_at: string
+}

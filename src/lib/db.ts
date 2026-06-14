@@ -2,12 +2,13 @@
 
 import {
   MOCK_RISKS, MOCK_INCIDENTS, MOCK_CONTROLS, MOCK_AUDITS,
-  MOCK_FINDINGS, MOCK_VENDORS, MOCK_ACTIVITIES, MOCK_DASHBOARD_STATS,
+  MOCK_FINDINGS, MOCK_VENDORS, MOCK_ACTIVITIES,
   MOCK_USERS, SEED_ORG_UNITS
 } from './seed-data'
 import type {
   Risk, Incident, Control, Audit, AuditFinding, Vendor, Activity, DashboardStats,
-  JiraConfig, JiraActivity, JiraComment, GRCIntakeItem, OrgUnit, UserProfile
+  JiraConfig, JiraActivity, JiraComment, GRCIntakeItem, OrgUnit, UserProfile,
+  ComplianceObligation
 } from '@/types'
 import { RISK_CATEGORIES, normalizeCategory } from './risk-categories'
 import { normalizeStatus, ACTIVE_STATUSES } from './risk-status'
@@ -594,6 +595,21 @@ export const db = {
       return acc
     }, {} as DashboardStats['risk_by_category'])
 
+    // Real cumulative trend over the last 14 days, from created_at dates.
+    // Cumulative so a risk added on a day stays counted on every following day.
+    const TREND_DAYS = 14
+    const buildTrend = (items: { created_at?: string }[]) => {
+      const today = new Date(); today.setHours(0, 0, 0, 0)
+      const series: { month: string; count: number }[] = []
+      for (let i = TREND_DAYS - 1; i >= 0; i--) {
+        const day = new Date(today); day.setDate(today.getDate() - i)
+        const end = new Date(day); end.setDate(day.getDate() + 1)
+        const count = items.filter(it => it.created_at && new Date(it.created_at).getTime() < end.getTime()).length
+        series.push({ month: `${day.getDate()}/${day.getMonth() + 1}`, count })
+      }
+      return series
+    }
+
     return {
       total_risks: risks.length,
       critical_risks: criticalRisks,
@@ -605,8 +621,8 @@ export const db = {
       vendors_under_review: vendorsUnderReview,
       risk_by_level: riskByLevel,
       risk_by_category: riskByCategory,
-      monthly_risks: MOCK_DASHBOARD_STATS.monthly_risks,
-      monthly_incidents: MOCK_DASHBOARD_STATS.monthly_incidents
+      monthly_risks: buildTrend(risks),
+      monthly_incidents: buildTrend(incidents)
     }
   },
 
@@ -819,6 +835,76 @@ export const db = {
     }
 
     return false
+  },
+
+  // ─── COMPLIANCE OBLIGATIONS ─────────────────────────────────────────────────
+  async getObligations(): Promise<ComplianceObligation[]> {
+    if (isSupabaseConfigured()) {
+      const { createClient } = await import('./supabase/client')
+      const supabase = createClient()
+      const { data, error } = await supabase
+        .from('compliance_obligations')
+        .select('*')
+        .order('created_at', { ascending: false })
+      if (!error && data) return data as ComplianceObligation[]
+    }
+    return getLocalItem<ComplianceObligation[]>('compliance_obligations', [])
+  },
+
+  async saveObligation(item: ComplianceObligation): Promise<ComplianceObligation> {
+    const orgId = await getCurrentOrgId()
+    const now = new Date().toISOString()
+    const sanitized: ComplianceObligation = {
+      ...item,
+      id: ensureUUID(item.id),
+      org_id: orgId,
+      updated_at: now,
+    }
+    // Auto-generate obligation_code if missing
+    if (!sanitized.obligation_code) {
+      const existing = getLocalItem<ComplianceObligation[]>('compliance_obligations', [])
+      const year = new Date().getFullYear()
+      const seq = existing.length + 1
+      sanitized.obligation_code = `OBL-${year}-${String(seq).padStart(3, '0')}`
+    }
+    if (isSupabaseConfigured()) {
+      const { createClient } = await import('./supabase/client')
+      const supabase = createClient()
+      const payload: any = { ...sanitized }
+      const dbColumns = [
+        'id', 'org_id', 'obligation_code', 'title', 'description', 'source',
+        'status', 'due_date', 'owner_dept', 'owner_name', 'created_at', 'updated_at'
+      ]
+      for (const key of Object.keys(payload)) {
+        if (!dbColumns.includes(key)) delete payload[key]
+      }
+      const { data, error } = await supabase
+        .from('compliance_obligations')
+        .upsert(payload)
+        .select()
+        .single()
+      if (error) console.error('Supabase saveObligation error:', error)
+      if (!error && data) return data as ComplianceObligation
+    }
+    const current = getLocalItem<ComplianceObligation[]>('compliance_obligations', [])
+    const idx = current.findIndex(i => i.id === sanitized.id)
+    if (idx >= 0) {
+      current[idx] = sanitized
+    } else {
+      current.unshift(sanitized)
+    }
+    setLocalItem('compliance_obligations', current)
+    return sanitized
+  },
+
+  async deleteObligation(id: string): Promise<void> {
+    if (isSupabaseConfigured()) {
+      const { createClient } = await import('./supabase/client')
+      const supabase = createClient()
+      await supabase.from('compliance_obligations').delete().eq('id', id)
+    }
+    const current = getLocalItem<ComplianceObligation[]>('compliance_obligations', [])
+    setLocalItem('compliance_obligations', current.filter(i => i.id !== id))
   },
 
   // ─── GRC INTAKE ITEMS ──────────────────────────────────────────────────────
