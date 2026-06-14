@@ -25,6 +25,7 @@ function setMockSessionCookie() {
 export default function LoginPage() {
   const [showPass, setShowPass] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [authError, setAuthError] = useState<string | null>(null)
   const router = useRouter()
 
   const { register, handleSubmit, formState: { errors } } = useForm<FormValues>({
@@ -33,6 +34,7 @@ export default function LoginPage() {
 
   const onSubmit = async (v: FormValues) => {
     setLoading(true)
+    setAuthError(null)
     const isMock = !process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
     if (isMock) {
       await new Promise(r => setTimeout(r, 800))
@@ -46,9 +48,8 @@ export default function LoginPage() {
         password: v.password,
       })
       if (error) {
-        // If login fails (or fake account), bypass to mock demo session
-        setMockSessionCookie()
-        router.push('/dashboard')
+        // Real Supabase auth — show the error (no silent mock fallback)
+        setAuthError(error.message)
       } else {
         router.push('/dashboard')
       }
@@ -149,6 +150,8 @@ export default function LoginPage() {
               </div>
               {errors.password && <p className="text-xs text-red-500 mt-1">{errors.password.message}</p>}
             </div>
+
+            {authError && <p className="text-xs text-red-500 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">{authError}</p>}
 
             <button type="submit" disabled={loading}
               className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold text-white bg-sky-500 hover:bg-sky-600 disabled:opacity-60 transition-all shadow-lg shadow-sky-500/25 mt-2">

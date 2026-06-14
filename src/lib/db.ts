@@ -40,6 +40,26 @@ const isSupabaseConfigured = () => {
   return !!(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
 }
 
+// Resolve the authenticated user's org_id (Supabase mode) so writes satisfy RLS.
+// Falls back to the default seed org. Mock mode keeps 'org1'. Cached per session.
+const DEFAULT_ORG_ID = '00000000-0000-0000-0000-000000000001'
+let _cachedOrgId: string | null = null
+async function getCurrentOrgId(): Promise<string> {
+  if (!isSupabaseConfigured()) return 'org1'
+  if (_cachedOrgId) return _cachedOrgId
+  try {
+    const { createClient } = await import('./supabase/client')
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (user) {
+      const { data } = await supabase.from('profiles').select('org_id').eq('id', user.id).single()
+      if (data?.org_id) { _cachedOrgId = data.org_id as string; return _cachedOrgId }
+    }
+  } catch { /* fall through */ }
+  return DEFAULT_ORG_ID
+}
+export { getCurrentOrgId }
+
 // Unified Database and LocalStorage Client
 export const db = {
   // ─── RISKS ─────────────────────────────────────────────────────────────────
@@ -85,7 +105,7 @@ export const db = {
     if (isSupabaseConfigured()) {
       const { createClient } = await import('./supabase/client')
       const supabase = createClient()
-      const { data, error } = await supabase.from('risks').upsert(risk).select().single()
+      const { data, error } = await supabase.from('risks').upsert({ ...risk, org_id: await getCurrentOrgId() }).select().single()
       if (!error && data) return data as Risk
     }
     const current = getLocalItem<Risk[]>('risks', MOCK_RISKS)
@@ -139,7 +159,7 @@ export const db = {
     if (isSupabaseConfigured()) {
       const { createClient } = await import('./supabase/client')
       const supabase = createClient()
-      const { data, error } = await supabase.from('incidents').upsert(incident).select().single()
+      const { data, error } = await supabase.from('incidents').upsert({ ...incident, org_id: await getCurrentOrgId() }).select().single()
       if (!error && data) return data as Incident
     }
     const current = getLocalItem<Incident[]>('incidents', MOCK_INCIDENTS)
@@ -192,7 +212,7 @@ export const db = {
     if (isSupabaseConfigured()) {
       const { createClient } = await import('./supabase/client')
       const supabase = createClient()
-      const { data, error } = await supabase.from('controls').upsert(control).select().single()
+      const { data, error } = await supabase.from('controls').upsert({ ...control, org_id: await getCurrentOrgId() }).select().single()
       if (!error && data) return data as Control
     }
     const current = getLocalItem<Control[]>('controls', MOCK_CONTROLS)
@@ -232,7 +252,7 @@ export const db = {
     if (isSupabaseConfigured()) {
       const { createClient } = await import('./supabase/client')
       const supabase = createClient()
-      const { data, error } = await supabase.from('audits').upsert(audit).select().single()
+      const { data, error } = await supabase.from('audits').upsert({ ...audit, org_id: await getCurrentOrgId() }).select().single()
       if (!error && data) return data as Audit
     }
     const current = getLocalItem<Audit[]>('audits', MOCK_AUDITS)
@@ -326,7 +346,7 @@ export const db = {
     if (isSupabaseConfigured()) {
       const { createClient } = await import('./supabase/client')
       const supabase = createClient()
-      const { data, error } = await supabase.from('vendors').upsert(vendor).select().single()
+      const { data, error } = await supabase.from('vendors').upsert({ ...vendor, org_id: await getCurrentOrgId() }).select().single()
       if (!error && data) return data as Vendor
     }
     const current = getLocalItem<Vendor[]>('vendors', MOCK_VENDORS)
@@ -379,7 +399,7 @@ export const db = {
     if (isSupabaseConfigured()) {
       const { createClient } = await import('./supabase/client')
       const supabase = createClient()
-      const { data, error } = await supabase.from('activities').insert(activity).select().single()
+      const { data, error } = await supabase.from('activities').insert({ ...activity, org_id: await getCurrentOrgId() }).select().single()
       if (!error && data) return data as Activity
     }
     const current = getLocalItem<Activity[]>('activities', MOCK_ACTIVITIES)
@@ -654,7 +674,7 @@ export const db = {
     if (isSupabaseConfigured()) {
       const { createClient } = await import('./supabase/client')
       const supabase = createClient()
-      const { data, error } = await supabase.from('grc_intake_items').upsert(item).select().single()
+      const { data, error } = await supabase.from('grc_intake_items').upsert({ ...item, org_id: await getCurrentOrgId() }).select().single()
       if (!error && data) return data as GRCIntakeItem
     }
     const current = getLocalItem<GRCIntakeItem[]>('grc_intake_items', [])
@@ -719,7 +739,7 @@ export const db = {
     if (isSupabaseConfigured()) {
       const { createClient } = await import('./supabase/client')
       const supabase = createClient()
-      const { data, error } = await supabase.from('org_units').upsert(record).select().single()
+      const { data, error } = await supabase.from('org_units').upsert({ ...record, org_id: await getCurrentOrgId() }).select().single()
       if (!error && data) return data as OrgUnit
     }
     const current = getLocalItem<OrgUnit[]>('org_units', SEED_ORG_UNITS)
