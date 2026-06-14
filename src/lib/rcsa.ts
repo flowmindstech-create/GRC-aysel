@@ -182,6 +182,20 @@ export function getAllowedTreatmentStrategies(inherentLevel: RiskLevel): Treatme
   }
 }
 
+// Excel "5-Riskin müalicəsi" matrix — which treatments are allowed (*) vs forbidden (×)
+// per risk level. Forbidden selections require Executive Director approval.
+const TREATMENT_MATRIX: Record<RiskLevel, Record<TreatmentStrategy, boolean>> = {
+  critical: { accept: false, transfer: true,  mitigate: true, avoid: true },
+  high:     { accept: false, transfer: true,  mitigate: true, avoid: true },
+  medium:   { accept: false, transfer: true,  mitigate: true, avoid: true },
+  low:      { accept: true,  transfer: true,  mitigate: true, avoid: false },
+  minimal:  { accept: true,  transfer: false, mitigate: true, avoid: false },
+}
+
+export function isTreatmentAllowed(level: RiskLevel, strategy: TreatmentStrategy): boolean {
+  return TREATMENT_MATRIX[level]?.[strategy] ?? true
+}
+
 export const TREATMENT_STRATEGY_LABELS: Record<TreatmentStrategy, string> = {
   mitigate: 'Mitigate',
   accept: 'Accept',

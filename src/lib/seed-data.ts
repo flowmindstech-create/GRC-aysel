@@ -156,22 +156,9 @@ export const MOCK_INCIDENTS: Incident[] = [
 
 // ─── Controls ─────────────────────────────────────────────────────────────────
 
-export const MOCK_CONTROLS: Control[] = [
-  // ISO 27001
-  { id: 'c1', org_id: 'org1', framework: 'iso27001', control_id: 'A.5.1', title: 'Information Security Policies', description: 'Policies for information security shall be defined, approved by management, published and communicated.', status: 'pass', reviewed_at: '2025-01-10T00:00:00Z', reviewed_by: 'Rauf Quliyev', created_at: '2024-12-01T00:00:00Z' },
-  { id: 'c2', org_id: 'org1', framework: 'iso27001', control_id: 'A.6.1', title: 'Roles and Responsibilities', description: 'All information security responsibilities shall be defined and allocated.', status: 'pass', reviewed_at: '2025-01-10T00:00:00Z', reviewed_by: 'Rauf Quliyev', created_at: '2024-12-01T00:00:00Z' },
-  { id: 'c3', org_id: 'org1', framework: 'iso27001', control_id: 'A.8.1', title: 'Inventory of Assets', description: 'Assets associated with information and information processing facilities shall be identified.', status: 'partial', created_at: '2024-12-01T00:00:00Z' },
-  { id: 'c4', org_id: 'org1', framework: 'iso27001', control_id: 'A.9.1', title: 'Access Control Policy', description: 'An access control policy shall be established, documented and reviewed based on business requirements.', status: 'pass', reviewed_at: '2025-01-08T00:00:00Z', reviewed_by: 'Ali Hasanov', created_at: '2024-12-01T00:00:00Z' },
-  { id: 'c5', org_id: 'org1', framework: 'iso27001', control_id: 'A.10.1', title: 'Cryptographic Policy', description: 'A policy on the use of cryptographic controls for protection of information shall be developed and implemented.', status: 'fail', created_at: '2024-12-01T00:00:00Z' },
-  { id: 'c6', org_id: 'org1', framework: 'iso27001', control_id: 'A.12.1', title: 'Operational Procedures', description: 'Operating procedures shall be documented and made available to all users who need them.', status: 'pass', reviewed_at: '2025-01-05T00:00:00Z', reviewed_by: 'Leyla Mammadova', created_at: '2024-12-01T00:00:00Z' },
-  { id: 'c7', org_id: 'org1', framework: 'iso27001', control_id: 'A.14.2', title: 'Secure Development Policy', description: 'Rules for the development of software and systems shall be established and applied to developments.', status: 'partial', created_at: '2024-12-01T00:00:00Z' },
-  { id: 'c8', org_id: 'org1', framework: 'iso27001', control_id: 'A.16.1', title: 'Management of Security Events', description: 'Responsibilities and procedures shall be established to ensure a quick, effective and orderly response to security incidents.', status: 'pass', reviewed_at: '2025-01-12T00:00:00Z', reviewed_by: 'Rauf Quliyev', created_at: '2024-12-01T00:00:00Z' },
-  // SOC2
-  { id: 'c9', org_id: 'org1', framework: 'soc2', control_id: 'CC1.1', title: 'Control Environment — COSO Principles', description: 'The entity demonstrates a commitment to integrity and ethical values.', status: 'pass', reviewed_at: '2025-01-15T00:00:00Z', reviewed_by: 'Ali Hasanov', created_at: '2024-12-01T00:00:00Z' },
-  { id: 'c10', org_id: 'org1', framework: 'soc2', control_id: 'CC6.1', title: 'Logical Access Controls', description: 'The entity implements logical access security software, infrastructure, and architectures to protect against unauthorized access.', status: 'pass', reviewed_at: '2025-01-15T00:00:00Z', reviewed_by: 'Leyla Mammadova', created_at: '2024-12-01T00:00:00Z' },
-  { id: 'c11', org_id: 'org1', framework: 'soc2', control_id: 'CC7.1', title: 'Change Management', description: 'The entity uses detection and monitoring procedures to identify changes to configurations.', status: 'fail', created_at: '2024-12-01T00:00:00Z' },
-  { id: 'c12', org_id: 'org1', framework: 'soc2', control_id: 'CC9.1', title: 'Risk Mitigation', description: 'The entity identifies, selects, and develops risk mitigation activities for risks arising from potential business disruptions.', status: 'partial', created_at: '2024-12-01T00:00:00Z' },
-]
+// Control Library starts empty — controls are added from the UI (ControlFormDialog)
+// or seeded from ISO standards. No demo controls.
+export const MOCK_CONTROLS: Control[] = []
 
 // ─── Audits ───────────────────────────────────────────────────────────────────
 

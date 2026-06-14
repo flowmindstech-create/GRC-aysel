@@ -10,7 +10,7 @@ import type { Risk, OrgUnit, UserProfile, UserRole, Control, RiskTrigger } from 
 import { RISK_CATEGORIES, type RiskCategory } from '@/lib/risk-categories'
 import { RISK_STATUSES, RISK_STATUS_VALUES, type RiskStatus } from '@/lib/risk-status'
 import { MOCK_USERS } from '@/lib/seed-data'
-import { db } from '@/lib/db'
+import { db, getCurrentProfile } from '@/lib/db'
 import { resolveOwnerFromUnit } from '@/lib/org'
 import { orgUnitCode, generateRiskCode } from '@/lib/risk-id'
 import { validateRiskConsistency } from '@/lib/risk-logic'
@@ -22,7 +22,7 @@ import {
   calculateResidualLevel,
   calculateRiskGap,
   applyMaxImpactRule,
-  getRoleAllowedStrategies,
+  isTreatmentAllowed,
   type TreatmentStrategy
 } from '@/lib/rcsa'
 import {
@@ -37,6 +37,7 @@ import {
 import { RcsaDropdown } from './RcsaDropdown'
 import { TriggersEditor } from './TriggersEditor'
 import { ControlEffectivenessAssessment } from './ControlEffectivenessAssessment'
+import { ExecutiveApprovalModal } from './ExecutiveApprovalModal'
 
 const schema = z.object({
   title: z.string().min(5, 'Title must be at least 5 characters'),
@@ -84,9 +85,20 @@ export function RiskFormDialog({ risk, onClose, onSave }: Props) {
   const [departments, setDepartments] = useState<OrgUnit[]>([])
   const [profiles, setProfiles] = useState<UserProfile[]>(MOCK_USERS)
   const [currentRole, setCurrentRole] = useState<UserRole>('admin')
+  const [currentName, setCurrentName] = useState<string>('')
   const [triggers, setTriggers] = useState<RiskTrigger[]>(risk?.triggers ?? [])
   const [controlsLib, setControlsLib] = useState<Control[]>([])
   const dueTouched = useRef(false)
+
+  // Executive-director approval for a treatment forbidden by the matrix
+  const [approval, setApproval] = useState<{ approved: boolean; note?: string; by?: string; at?: string }>({
+    approved: risk?.treatment_approved ?? false,
+    note: risk?.treatment_approval_note,
+    by: risk?.treatment_approved_by,
+    at: risk?.treatment_approved_at,
+  })
+  const [pendingStrategy, setPendingStrategy] = useState<TreatmentStrategy | null>(null)
+  const canApprove = currentRole === 'admin' || currentRole === 'risk_manager'
 
   const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -175,13 +187,16 @@ export function RiskFormDialog({ risk, onClose, onSave }: Props) {
   useEffect(() => {
     let active = true
     async function load() {
-      const [units, people, controls] = await Promise.all([db.getOrgUnits(), db.getProfiles(), db.getControls()])
+      const [units, people, controls, me] = await Promise.all([db.getOrgUnits(), db.getProfiles(), db.getControls(), getCurrentProfile()])
       if (!active) return
-      setDepartments(units.filter(u => u.type === 'department'))
+      setDepartments(units.filter((u: OrgUnit) => u.type === 'department'))
       setControlsLib(controls)
-      if (people.length > 0) {
-        setProfiles(people)
-        setCurrentRole(people[0].role)
+      if (people.length > 0) setProfiles(people)
+      // Current user drives role-gating (treatment approval) and approver name
+      const current = me ?? (people.length > 0 ? people[0] : null)
+      if (current) {
+        setCurrentRole(current.role)
+        setCurrentName(current.full_name)
       }
     }
     load()
@@ -235,6 +250,10 @@ export function RiskFormDialog({ risk, onClose, onSave }: Props) {
       control_implementation: Math.round(evalResult.implementationAvg),
       control_effectiveness: evalResult.rating as any,
       residual_level: calculateResidualLevel(inherent, evalResult.rating),
+      treatment_approved: approval.approved,
+      treatment_approval_note: approval.note,
+      treatment_approved_by: approval.by,
+      treatment_approved_at: approval.at,
       created_at: risk?.created_at ?? new Date().toISOString(),
       updated_at: new Date().toISOString(),
     }
@@ -498,26 +517,48 @@ export function RiskFormDialog({ risk, onClose, onSave }: Props) {
                     </div>
                   </div>
 
-                  {/* Risk Treatment Plan (role-gated strategy) */}
+                  {/* Risk Treatment Plan — gated by inherent risk level (Excel matrix) */}
                   <div className="space-y-3">
                     <h4 className="text-[11px] font-bold text-sky-400 uppercase tracking-wide border-b pb-1" style={{ borderColor: 'var(--border)' }}>6. Risk Treatment Plan</h4>
+                    <p className="text-[10px] text-slate-500 leading-snug">
+                      İcazəli strategiyalar inherent risk səviyyəsinə (<strong className="text-slate-300">{inherentLevelWord(computedLevel)}</strong>) görə müəyyən edilir. Qadağan (×) seçim icraçı direktor təsdiqi tələb edir.
+                    </p>
                     {(() => {
-                      const allowed = getRoleAllowedStrategies(currentRole)
                       const selected = watch('mitigation')
-                      if (allowed.length === 0) {
-                        return <p className="text-[11px] text-amber-400">Cari rol ({currentRole}) yalnız baxış icazəsinə malikdir — treatment strategiyası seçə bilməz.</p>
-                      }
                       return (
                         <div className="grid grid-cols-2 gap-2">
-                          {TREATMENT_OPTIONS.filter((o) => allowed.includes(o.value as TreatmentStrategy)).map((o) => {
-                            const isActive = selected === o.value
+                          {TREATMENT_OPTIONS.map((o) => {
+                            const value = o.value as TreatmentStrategy
+                            const allowed = isTreatmentAllowed(computedLevel, value)
+                            const isActive = selected === value
+                            const showApproved = isActive && !allowed && approval.approved
                             return (
-                              <button key={o.value} type="button" onClick={() => setValue('mitigation', o.value)}
+                              <button
+                                key={o.value}
+                                type="button"
+                                onClick={() => {
+                                  if (allowed) {
+                                    setValue('mitigation', value)
+                                    setApproval({ approved: false })
+                                  } else {
+                                    setPendingStrategy(value)
+                                  }
+                                }}
                                 className={`text-left px-3 py-2 rounded-lg border transition-colors cursor-pointer ${
-                                  isActive ? 'bg-sky-500/15 border-sky-500' : 'border-white/10 hover:border-white/20'
+                                  isActive ? 'bg-sky-500/15 border-sky-500'
+                                  : allowed ? 'border-white/10 hover:border-white/20'
+                                  : 'border-amber-500/30 hover:border-amber-500/50'
                                 }`}>
-                                <p className="text-[11px] font-bold" style={{ color: 'var(--foreground)' }}>{o.label}</p>
+                                <div className="flex items-center justify-between gap-1">
+                                  <p className="text-[11px] font-bold" style={{ color: 'var(--foreground)' }}>{o.label}</p>
+                                  {!allowed && <span className="text-[9px] font-bold text-amber-400 shrink-0">× təsdiq</span>}
+                                </div>
                                 <p className="text-[10px] text-slate-500 leading-snug mt-0.5">{o.desc}</p>
+                                {showApproved && (
+                                  <p className="text-[9px] text-emerald-400 mt-1 leading-snug">
+                                    ✓ İcraçı direktor təsdiqləyib{approval.by ? `: ${approval.by}` : ''}{approval.note ? ` — ${approval.note}` : ''}
+                                  </p>
+                                )}
                               </button>
                             )
                           })}
@@ -552,6 +593,20 @@ export function RiskFormDialog({ risk, onClose, onSave }: Props) {
             </button>
           </div>
         </motion.div>
+
+        {pendingStrategy && (
+          <ExecutiveApprovalModal
+            strategyLabel={TREATMENT_OPTIONS.find((o) => o.value === pendingStrategy)?.label ?? pendingStrategy}
+            levelWord={inherentLevelWord(computedLevel)}
+            canApprove={canApprove}
+            onApprove={(note) => {
+              setValue('mitigation', pendingStrategy)
+              setApproval({ approved: true, note, by: currentName || currentRole, at: new Date().toISOString() })
+              setPendingStrategy(null)
+            }}
+            onClose={() => setPendingStrategy(null)}
+          />
+        )}
       </div>
     </AnimatePresence>
   )

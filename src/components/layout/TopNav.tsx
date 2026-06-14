@@ -5,6 +5,8 @@ import { Sun, Moon, Bell, Search, LogOut, User, ChevronDown } from 'lucide-react
 import { cn } from '@/lib/utils'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { getCurrentProfile } from '@/lib/db'
+import type { UserProfile } from '@/types'
 
 interface TopNavProps {
   title: string
@@ -21,25 +23,31 @@ export function TopNav({ title, subtitle }: TopNavProps) {
   const { theme, setTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
   const [showUserMenu, setShowUserMenu] = useState(false)
+  const [profile, setProfile] = useState<UserProfile | null>(null)
   const router = useRouter()
 
   useEffect(() => {
     const t = setTimeout(() => setMounted(true), 0)
+    getCurrentProfile().then(setProfile)
     return () => clearTimeout(t)
   }, [])
 
   const handleSignOut = async () => {
-    const isMock = !process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-    if (isMock) {
-      deleteMockSessionCookie()
-      router.push('/login')
-    } else {
-      const { createClient } = await import('@/lib/supabase/client')
-      const supabase = createClient()
-      await supabase.auth.signOut()
-      router.push('/login')
-    }
+    // Always clear the mock cookie (else middleware bounces back to the dashboard)
+    deleteMockSessionCookie()
+    try {
+      const isMock = !process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+      if (!isMock) {
+        const { createClient } = await import('@/lib/supabase/client')
+        await createClient().auth.signOut()
+      }
+    } catch { /* ignore */ }
+    router.push('/login')
   }
+
+  const displayName = profile?.full_name ?? 'User'
+  const roleLabel = profile?.role ? profile.role.replace('_', ' ') : ''
+  const initial = displayName.charAt(0).toUpperCase()
 
 
   return (
@@ -134,10 +142,10 @@ export function TopNav({ title, subtitle }: TopNavProps) {
               boxShadow: '0 0 10px rgba(14,165,233,0.3)',
             }}
           >
-            A
+            {initial}
           </div>
           <span className="text-sm font-medium hidden sm:block" style={{ color: 'var(--foreground)' }}>
-            Ali Hasanov
+            {displayName}
           </span>
           <ChevronDown className="w-3 h-3" style={{ color: 'var(--muted-fg)' }} />
         </button>
@@ -153,8 +161,8 @@ export function TopNav({ title, subtitle }: TopNavProps) {
             }}
           >
             <div className="px-3 py-2.5 border-b" style={{ borderColor: 'var(--border)' }}>
-              <p className="text-xs font-semibold" style={{ color: 'var(--foreground)' }}>Ali Hasanov</p>
-              <p className="text-[11px] mt-0.5" style={{ color: 'var(--muted-fg)' }}>Administrator</p>
+              <p className="text-xs font-semibold" style={{ color: 'var(--foreground)' }}>{displayName}</p>
+              <p className="text-[11px] mt-0.5 capitalize" style={{ color: 'var(--muted-fg)' }}>{roleLabel}</p>
             </div>
             <button
               className="w-full flex items-center gap-2.5 px-3 py-2 text-sm transition-colors"

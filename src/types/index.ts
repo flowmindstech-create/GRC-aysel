@@ -106,6 +106,11 @@ export interface Risk {
   residual_impact?: number
   residual_level?: RiskLevel
   treatment_plan?: string
+  // Executive-director approval for a treatment that the matrix forbids
+  treatment_approved?: boolean
+  treatment_approval_note?: string
+  treatment_approved_by?: string
+  treatment_approved_at?: string
   action_plan?: string
   validation_evidence?: string
   escalation_level?: 'none' | 'committee' | 'board'

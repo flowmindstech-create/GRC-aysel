@@ -60,6 +60,23 @@ async function getCurrentOrgId(): Promise<string> {
 }
 export { getCurrentOrgId }
 
+// Current signed-in profile (name/role) for the top nav. Mock → first mock user.
+export async function getCurrentProfile(): Promise<UserProfile | null> {
+  if (!isSupabaseConfigured()) return MOCK_USERS[0] ?? null
+  try {
+    const { createClient } = await import('./supabase/client')
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (user) {
+      const { data } = await supabase.from('profiles').select('*').eq('id', user.id).single()
+      if (data) return data as UserProfile
+      // profile row missing — fall back to auth metadata
+      return { id: user.id, org_id: DEFAULT_ORG_ID, full_name: (user.user_metadata?.full_name as string) || user.email || 'User', email: user.email || '', role: 'employee', created_at: user.created_at || new Date().toISOString() }
+    }
+  } catch { /* ignore */ }
+  return null
+}
+
 // Unified Database and LocalStorage Client
 export const db = {
   // ─── RISKS ─────────────────────────────────────────────────────────────────
