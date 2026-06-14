@@ -69,6 +69,15 @@ const schema = z.object({
   hse_impact: z.number().min(1).max(5),
   strategy_impact: z.number().min(1).max(5),
   target_residual_risk: z.string().optional(),
+}).superRefine((data, ctx) => {
+  // Mitigation plan is mandatory when the treatment strategy is "mitigate" (Azaltma)
+  if (data.mitigation === 'mitigate' && !data.treatment_plan?.trim()) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['treatment_plan'],
+      message: 'Azaltma seçildikdə Mitigation planı mütləq doldurulmalıdır',
+    })
+  }
 })
 
 type FormValues = z.infer<typeof schema>
@@ -565,8 +574,19 @@ export function RiskFormDialog({ risk, onClose, onSave }: Props) {
                         </div>
                       )
                     })()}
-                    <textarea {...register('treatment_plan')} rows={2} placeholder="Treatment planı: remediasiya nəzarətləri, texniki düzəlişlər, SLA şərtləri…"
+                    {watch('mitigation') === 'mitigate' && (
+                      <label className="block text-[11px] font-bold text-sky-400 mt-1">
+                        Mitigation plan <span className="text-red-400">*</span>
+                      </label>
+                    )}
+                    <textarea {...register('treatment_plan')} rows={2}
+                      placeholder={watch('mitigation') === 'mitigate'
+                        ? 'Mitigasiya planı: remediasiya nəzarətləri, texniki düzəlişlər, SLA şərtləri… (məcburi)'
+                        : 'Treatment planı: remediasiya nəzarətləri, texniki düzəlişlər, SLA şərtləri…'}
                       className={cn(inputClass, 'resize-none')} style={sty} />
+                    {errors.treatment_plan && (
+                      <p className="text-[11px] text-red-500 mt-1">{errors.treatment_plan.message}</p>
+                    )}
                   </div>
                 </div>
               )}
