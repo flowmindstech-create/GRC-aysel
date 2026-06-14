@@ -258,19 +258,17 @@ export function RiskTable() {
                           <span className="text-xs capitalize" style={{ color: 'var(--muted-fg)' }}>
                             {risk.mitigation ? TREATMENT_STRATEGY_LABELS[risk.mitigation as TreatmentStrategy] ?? risk.mitigation : '—'}
                           </span>
-                          {risk.mitigation === 'mitigate' && (
-                            <button
-                              type="button"
-                              onClick={(e) => { e.stopPropagation(); setEditRisk(risk); setShowForm(true) }}
-                              title="Mitigasiya planını idarə et"
-                              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold whitespace-nowrap cursor-pointer transition-colors"
-                              style={{ background: 'rgba(14,165,233,0.12)', color: 'var(--brand-500)', border: '1px solid rgba(14,165,233,0.25)' }}
-                              onMouseEnter={e => ((e.currentTarget as HTMLElement).style.background = 'rgba(14,165,233,0.2)')}
-                              onMouseLeave={e => ((e.currentTarget as HTMLElement).style.background = 'rgba(14,165,233,0.12)')}
-                            >
-                              <Wrench className="w-3 h-3" /> Mitigation
-                            </button>
-                          )}
+                          <button
+                            type="button"
+                            onClick={(e) => { e.stopPropagation(); setEditRisk(risk); setShowForm(true) }}
+                            title="Mitigasiya planını idarə et"
+                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold whitespace-nowrap cursor-pointer transition-colors"
+                            style={{ background: 'rgba(14,165,233,0.12)', color: 'var(--brand-500)', border: '1px solid rgba(14,165,233,0.25)' }}
+                            onMouseEnter={e => ((e.currentTarget as HTMLElement).style.background = 'rgba(14,165,233,0.2)')}
+                            onMouseLeave={e => ((e.currentTarget as HTMLElement).style.background = 'rgba(14,165,233,0.12)')}
+                          >
+                            <Wrench className="w-3 h-3" /> Mitigation
+                          </button>
                         </div>
                       </td>
                       <td className="px-3 py-3.5">
