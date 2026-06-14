@@ -3,7 +3,7 @@ import { Shield, Zap, ShieldAlert, AlertTriangle, ClipboardCheck, Search, Users,
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'RiskShield — AI-Powered Risk Management for SMEs',
+  title: 'RiskShield — Risk Management for SMEs',
 }
 
 const FEATURES = [
@@ -11,12 +11,12 @@ const FEATURES = [
   { icon: AlertTriangle, title: 'Incident Management', desc: 'Report incidents, assign investigators, track resolution timelines and severity escalations.', color: 'text-orange-500 bg-orange-500/10' },
   { icon: ClipboardCheck, title: 'Compliance Tracking', desc: 'Map controls to ISO 27001, SOC2 and GDPR frameworks. Track pass/fail with evidence upload.', color: 'text-green-500 bg-green-500/10' },
   { icon: Search, title: 'Audit Management', desc: 'Plan and execute internal audits, track findings and generate exportable audit reports.', color: 'text-blue-500 bg-blue-500/10' },
-  { icon: Users, title: 'Vendor Risk', desc: 'Score your vendors, track contract renewals, run security questionnaires and get AI summaries.', color: 'text-sky-400 bg-sky-500/10' },
-  { icon: Zap, title: 'AI Insights', desc: 'GPT-4o powered risk summaries, mitigation suggestions, incident analysis, and compliance recommendations.', color: 'text-yellow-500 bg-yellow-500/10' },
+  { icon: Users, title: 'Vendor Risk', desc: 'Score your vendors, track contract renewals, run security questionnaires and assessment notes.', color: 'text-sky-400 bg-sky-500/10' },
+  { icon: CheckCircle2, title: 'RCSA Methodology', desc: 'Selection-based inherent & residual scoring, control effectiveness and treatment matrices — fully rule-based, transparent and auditable.', color: 'text-yellow-500 bg-yellow-500/10' },
 ]
 
 const TESTIMONIALS = [
-  { name: 'Sarah Chen', role: 'CISO, TechCorp', text: 'RiskShield cut our risk review time by 60%. The AI summaries are incredibly accurate.', stars: 5 },
+  { name: 'Sarah Chen', role: 'CISO, TechCorp', text: 'RiskShield cut our risk review time by 60%. The transparent, rule-based scoring is exactly what auditors want to see.', stars: 5 },
   { name: 'Marcus López', role: 'Risk Manager, FinGroup', text: 'Finally a tool that doesn\'t require a 6-month implementation. We were live in a week.', stars: 5 },
   { name: 'Ayse Kilic', role: 'Compliance Lead, MedTech', text: 'The ISO 27001 control tracking is exactly what we needed for our certification audit.', stars: 5 },
 ]
@@ -55,7 +55,7 @@ export default function LandingPage() {
         <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold mb-6"
           style={{ background: 'var(--muted)', border: '1px solid var(--border)', color: 'var(--muted-fg)' }}>
           <Zap className="w-3 h-3 text-sky-500" />
-          AI-Powered · GPT-4o · ISO 27001 · SOC2
+          Rule-based · RCSA · ISO 27001 · SOC2
         </div>
         <h1 className="text-5xl md:text-7xl font-black leading-tight mb-6" style={{ color: 'var(--foreground)' }}>
           Enterprise Risk
@@ -65,7 +65,7 @@ export default function LandingPage() {
           <span className="text-3xl md:text-5xl" style={{ color: 'var(--muted-fg)' }}>Built for SMEs.</span>
         </h1>
         <p className="text-lg md:text-xl max-w-2xl mx-auto mb-10 leading-relaxed" style={{ color: 'var(--muted-fg)' }}>
-          The lightweight, AI-powered alternative to Archer IRM. Manage risks, incidents, compliance, audits and vendor risk in one platform — without enterprise complexity or price tags.
+          The lightweight alternative to Archer IRM. Manage risks, incidents, compliance, audits and vendor risk in one platform — without enterprise complexity or price tags.
         </p>
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
           <Link href="/register"
@@ -113,7 +113,7 @@ export default function LandingPage() {
               </div>
             </div>
             <div className="h-32 rounded-xl p-3" style={{ background: 'var(--muted)' }}>
-              <p className="text-xs font-semibold mb-2" style={{ color: 'var(--muted-fg)' }}>AI Insights</p>
+              <p className="text-xs font-semibold mb-2" style={{ color: 'var(--muted-fg)' }}>Priority Risks</p>
               <div className="space-y-2">
                 {['Critical: SQL Injection found', 'Warning: Phishing spike detected'].map((t, i) => (
                   <div key={i} className="flex items-start gap-2">

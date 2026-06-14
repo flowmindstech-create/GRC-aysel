@@ -1,7 +1,7 @@
 'use client'
 
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Zap, User, Calendar, Tag, Clock, Database, RefreshCw, Send, ExternalLink } from 'lucide-react'
+import { X, FileText, User, Calendar, Tag, Clock, Database, RefreshCw, Send, ExternalLink } from 'lucide-react'
 import type { Risk } from '@/types'
 import { categoryLabel } from '@/lib/risk-categories'
 import { RiskLevelBadge, RiskStatusBadge } from '@/components/shared/Badges'
@@ -232,12 +232,12 @@ export function RiskDetailSheet({ risk, onClose, onUpdate, onEdit }: Props) {
               </div>
             )}
 
-            {/* AI Summary */}
+            {/* Risk Summary (rule-based) */}
             <div className="p-4 rounded-xl border"
               style={{ background: 'linear-gradient(135deg, #0c2d4e20, #0a192920)', borderColor: '#0ea5e930' }}>
               <div className="flex items-center gap-2 mb-2">
-                <Zap className="w-3.5 h-3.5 text-sky-400" />
-                <p className="text-xs font-semibold text-sky-400">AI Risk Summary</p>
+                <FileText className="w-3.5 h-3.5 text-sky-400" />
+                <p className="text-xs font-semibold text-sky-400">Risk Summary</p>
               </div>
               <p className="text-xs leading-relaxed" style={{ color: 'var(--muted-fg)' }}>
                 This {risk.level} severity {risk.category} risk has a composite score of {score}/25.

@@ -1,6 +1,6 @@
 import type {
   Risk, Incident, Control, Audit, AuditFinding,
-  Vendor, Activity, DashboardStats, UserProfile, AiInsight, OrgUnit, OrgUnitType
+  Vendor, Activity, DashboardStats, UserProfile, OrgUnit, OrgUnitType
 } from '@/types'
 
 // ─── Users ───────────────────────────────────────────────────────────────────
@@ -276,27 +276,3 @@ export const MOCK_DASHBOARD_STATS: DashboardStats = {
   ],
 }
 
-// ─── AI Insights ─────────────────────────────────────────────────────────────
-
-export const MOCK_AI_INSIGHTS: AiInsight[] = [
-  {
-    title: 'Critical Cybersecurity Exposure',
-    content: 'You have 2 unmitigated critical cybersecurity risks. The SQL Injection vulnerability in your customer portal poses immediate data breach risk. Recommend prioritizing remediation this sprint.',
-    type: 'risk', severity: 'critical',
-  },
-  {
-    title: 'Phishing Trend Detected',
-    content: 'Recent phishing incident targeting Finance team correlates with a 340% spike in similar attacks across the financial sector in January 2025. Consider running an immediate security awareness training.',
-    type: 'incident', severity: 'warning',
-  },
-  {
-    title: 'Compliance Score Below Target',
-    content: 'Your current compliance score of 68% is below the industry benchmark of 80%. Key gaps are in Cryptographic Policy (ISO A.10.1) and Change Management (SOC2 CC7.1). Addressing these 2 controls would raise your score to 76%.',
-    type: 'compliance', severity: 'warning',
-  },
-  {
-    title: 'Vendor Contract Renewals Approaching',
-    content: 'PayrollPro Systems contract renews in 40 days and has an elevated risk score of 85/100. Recommend initiating renewal negotiations immediately or identifying an alternative vendor.',
-    type: 'general', severity: 'warning',
-  },
-]

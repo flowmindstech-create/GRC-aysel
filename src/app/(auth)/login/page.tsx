@@ -81,10 +81,10 @@ export default function LoginPage() {
             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
             className="text-4xl font-black text-white leading-tight mb-4">
             Enterprise Risk<br />Management.<br />
-            <span className="text-sky-400">AI-Powered.</span>
+            <span className="text-sky-400">Built for SMEs.</span>
           </motion.h1>
           <p className="text-slate-400 text-base leading-relaxed max-w-md">
-            Protect your business with intelligent risk identification, incident management, and compliance tracking — all in one platform.
+            Protect your business with structured risk identification, incident management, and compliance tracking — all in one platform.
           </p>
         </div>
 

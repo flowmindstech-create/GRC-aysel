@@ -183,15 +183,8 @@ export default function SettingsPage() {
               {activeSection === 'api' && (
                 <div className="card p-6">
                   <h3 className="text-sm font-semibold mb-2" style={{ color: 'var(--foreground)' }}>API Configuration</h3>
-                  <p className="text-xs mb-5" style={{ color: 'var(--muted-fg)' }}>Configure third-party API integrations for AI features.</p>
+                  <p className="text-xs mb-5" style={{ color: 'var(--muted-fg)' }}>Configure third-party API integrations.</p>
                   <div className="space-y-4">
-                    <div>
-                      <label className="block text-xs font-semibold mb-1.5" style={{ color: 'var(--foreground)' }}>OpenAI API Key</label>
-                      <input type="password" defaultValue="sk-••••••••••••••••••••••••••••••••"
-                        className="w-full px-3 py-2.5 rounded-xl text-sm border outline-none font-mono"
-                        style={{ background: 'var(--muted)', borderColor: 'var(--border)', color: 'var(--foreground)' }} />
-                      <p className="text-xs mt-1" style={{ color: 'var(--muted-fg)' }}>Used for AI risk summaries and mitigation suggestions.</p>
-                    </div>
                     <div>
                       <label className="block text-xs font-semibold mb-1.5" style={{ color: 'var(--foreground)' }}>Supabase URL</label>
                       <input defaultValue="https://your-project.supabase.co"

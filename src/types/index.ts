@@ -342,15 +342,6 @@ export interface DashboardStats {
   monthly_incidents: { month: string; count: number }[]
 }
 
-// ─── AI ──────────────────────────────────────────────────────────────────────
-
-export interface AiInsight {
-  title: string
-  content: string
-  type: 'risk' | 'incident' | 'compliance' | 'general'
-  severity: 'info' | 'warning' | 'critical'
-}
-
 // ─── Jira Integration ────────────────────────────────────────────────────────
 
 export interface JiraConfig {

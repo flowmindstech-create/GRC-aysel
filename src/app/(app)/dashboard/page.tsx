@@ -1,7 +1,7 @@
 import { TopNav } from '@/components/layout/TopNav'
 import { DashboardClient } from '@/components/dashboard/DashboardClient'
 import {
-  MOCK_DASHBOARD_STATS, MOCK_ACTIVITIES, MOCK_AI_INSIGHTS,
+  MOCK_DASHBOARD_STATS, MOCK_ACTIVITIES,
   MOCK_RISKS, MOCK_INCIDENTS,
 } from '@/lib/seed-data'
 import type { Metadata } from 'next'
@@ -19,7 +19,6 @@ export default function DashboardPage() {
       <DashboardClient
         stats={stats}
         activities={MOCK_ACTIVITIES}
-        insights={MOCK_AI_INSIGHTS}
         openRisks={openRisks}
         openIncidents={openIncidents}
       />

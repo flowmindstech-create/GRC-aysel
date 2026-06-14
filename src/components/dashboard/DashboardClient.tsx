@@ -4,7 +4,6 @@ import { StatsCard } from '@/components/dashboard/StatsCard'
 import { RiskHeatmap } from '@/components/dashboard/RiskHeatmap'
 import { RiskTrendChart, RiskCategoryChart } from '@/components/dashboard/Charts'
 import { ActivityFeed } from '@/components/dashboard/ActivityFeed'
-import { AiInsightsPanel } from '@/components/dashboard/AiInsightsPanel'
 import { ComplianceGauge } from '@/components/dashboard/ComplianceGauge'
 import { RiskLevelBadge, IncidentStatusBadge } from '@/components/shared/Badges'
 import {
@@ -12,7 +11,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { formatDistanceToNow } from 'date-fns'
-import type { DashboardStats, Activity, AiInsight, Risk, Incident, JiraConfig } from '@/types'
+import type { DashboardStats, Activity, Risk, Incident, JiraConfig } from '@/types'
 import { useState, useEffect } from 'react'
 import { db } from '@/lib/db'
 import { toast } from 'sonner'
@@ -20,7 +19,6 @@ import { toast } from 'sonner'
 interface DashboardClientProps {
   stats: DashboardStats
   activities: Activity[]
-  insights: AiInsight[]
   openRisks: Risk[]
   openIncidents: Incident[]
 }
@@ -28,7 +26,6 @@ interface DashboardClientProps {
 export function DashboardClient({
   stats: initialStats,
   activities: initialActivities,
-  insights: initialInsights,
   openRisks: initialOpenRisks,
   openIncidents: initialOpenIncidents,
 }: DashboardClientProps) {
@@ -36,7 +33,6 @@ export function DashboardClient({
   const [activities, setActivities] = useState<Activity[]>(initialActivities)
   const [openRisks, setOpenRisks] = useState<Risk[]>(initialOpenRisks)
   const [openIncidents, setOpenIncidents] = useState<Incident[]>(initialOpenIncidents)
-  const [insights, setInsights] = useState<AiInsight[]>(initialInsights)
   const [jiraConfig, setJiraConfig] = useState<JiraConfig | null>(null)
   const [syncedStats, setSyncedStats] = useState({ total: 0, done: 0 })
   const [syncing, setSyncing] = useState(false)
@@ -60,27 +56,6 @@ export function DashboardClient({
       const total = syncedRisks.length + syncedIncidents.length
       const done = [...syncedRisks, ...syncedIncidents].filter(x => x.jira_issue_status === 'Done' || x.jira_issue_status === 'Resolved').length
       setSyncedStats({ total, done })
-
-      const unsyncedCriticals = r.filter(x => !x.jira_issue_key && x.level === 'critical')
-      let newInsights = [...initialInsights]
-      if (unsyncedCriticals.length > 0) {
-        newInsights.unshift({
-          title: 'Jira Sync Action Required',
-          content: `You have ${unsyncedCriticals.length} unsynced critical risks. Sync them to project "${jira.projectMapping.risks}" immediately to create developer tracking tasks.`,
-          type: 'risk',
-          severity: 'critical'
-        })
-      } else {
-        newInsights.unshift({
-          title: 'Jira Integration Healthy',
-          content: `All critical GRC items have been synced to Jira. ${done}/${total} mitigation tasks are completed. Status synchronization is active.`,
-          type: 'general',
-          severity: 'info'
-        })
-      }
-      setInsights(newInsights)
-    } else {
-      setInsights(initialInsights)
     }
   }
 
@@ -174,11 +149,10 @@ export function DashboardClient({
         />
       </div>
 
-      {/* Row 2 — Heatmap + Gauge + AI Insights */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+      {/* Row 2 — Heatmap + Gauge */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
         <div className="lg:col-span-1"><RiskHeatmap stats={stats} /></div>
         <div className="lg:col-span-1"><ComplianceGauge score={stats.compliance_score} /></div>
-        <div className="lg:col-span-1"><AiInsightsPanel insights={insights} /></div>
       </div>
 
       {/* Row 3 — Charts */}

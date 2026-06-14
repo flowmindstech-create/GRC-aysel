@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils'
 import {
   LayoutDashboard, ShieldAlert, AlertTriangle, ClipboardCheck,
   Search, Users, Settings, ChevronLeft, ChevronRight,
-  Shield, Zap, GitBranch, Workflow, FileSearch, Activity,
+  Shield, GitBranch, Workflow, FileSearch, Activity,
   BookOpen, Network, ScrollText, LogOut,
 } from 'lucide-react'
 import { useState, useEffect } from 'react'
@@ -179,25 +179,6 @@ export function Sidebar({ onMobileClose }: SidebarProps) {
           </div>
         ))}
       </nav>
-
-      {/* AI Badge */}
-      {!collapsed && (
-        <div
-          className="mx-3 mb-3 p-3 rounded-xl border"
-          style={{
-            background: 'rgba(14,165,233,0.06)',
-            borderColor: 'rgba(14,165,233,0.15)',
-          }}
-        >
-          <div className="flex items-center gap-2 mb-1">
-            <Zap className="w-3.5 h-3.5" style={{ color: 'var(--brand-500)' }} />
-            <span className="text-xs font-semibold" style={{ color: 'var(--brand-500)' }}>AI-Powered</span>
-          </div>
-          <p className="text-[11px] leading-relaxed" style={{ color: 'var(--muted-fg)' }}>
-            Risk summaries & mitigation suggestions powered by OpenAI.
-          </p>
-        </div>
-      )}
 
       {/* Org panel */}
       {!collapsed && (

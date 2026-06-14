@@ -57,7 +57,7 @@ export function VendorFormDialog({ vendor, onClose, onSave }: Props) {
       id: vendor?.id ?? `v-${Date.now()}`,
       org_id: 'org1',
       ...values,
-      ai_summary: values.ai_summary || `AI Assessment: ${values.name} displays a ${riskScore >= 70 ? 'high' : riskScore >= 40 ? 'medium' : 'low'} risk profile. Proper review cycle recommended.`,
+      ai_summary: values.ai_summary || `${values.name} displays a ${riskScore >= 70 ? 'high' : riskScore >= 40 ? 'medium' : 'low'} risk profile. Proper review cycle recommended.`,
       created_at: vendor?.created_at ?? new Date().toISOString(),
     }
     onSave(saved)
@@ -160,10 +160,10 @@ export function VendorFormDialog({ vendor, onClose, onSave }: Props) {
                 style={{ background: 'var(--muted)', borderColor: 'var(--border)', color: 'var(--foreground)' }} />
             </div>
 
-            {/* AI Summary override */}
+            {/* Security assessment note override */}
             <div>
-              <label className="block text-xs font-semibold mb-1.5" style={{ color: 'var(--foreground)' }}>AI Security Assessment Note (Optional)</label>
-              <textarea {...register('ai_summary')} rows={2} placeholder="AI summary will be auto-generated if left empty…" className={cn(inputClass, 'resize-none')}
+              <label className="block text-xs font-semibold mb-1.5" style={{ color: 'var(--foreground)' }}>Security Assessment Note (Optional)</label>
+              <textarea {...register('ai_summary')} rows={2} placeholder="A summary note will be generated if left empty…" className={cn(inputClass, 'resize-none')}
                 style={{ background: 'var(--muted)', borderColor: 'var(--border)', color: 'var(--foreground)' }} />
             </div>
           </form>

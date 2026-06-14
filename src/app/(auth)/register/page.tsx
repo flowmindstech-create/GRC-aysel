@@ -76,7 +76,7 @@ export default function RegisterPage() {
         </div>
 
         <h2 className="text-2xl font-black mb-1" style={{ color: 'var(--foreground)' }}>Create your account</h2>
-        <p className="text-sm mb-8" style={{ color: 'var(--muted-fg)' }}>Start managing risks with AI — free 14-day trial.</p>
+        <p className="text-sm mb-8" style={{ color: 'var(--muted-fg)' }}>Start managing risks — free 14-day trial.</p>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           {[

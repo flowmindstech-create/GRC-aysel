@@ -9,7 +9,7 @@ import { VendorStatusBadge } from '@/components/shared/Badges'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { format, formatDistanceToNow, isPast } from 'date-fns'
 import {
-  Plus, Search, Zap, AlertTriangle, CheckCircle, Calendar,
+  Plus, Search, FileText, AlertTriangle, CheckCircle, Calendar,
   Mail, ExternalLink, MoreHorizontal, ChevronDown,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -35,7 +35,7 @@ function RiskScore({ score }: { score: number }) {
 function getRandomAiSummary(vendorName: string) {
   const summaries = [
     `${vendorName} risk profile has been recalculated. General security compliance matches targets. Highly responsive security team.`,
-    `AI Alert: ${vendorName} has recently updated their privacy policy. No severe exposure found, but compliance certification is pending.`,
+    `${vendorName} has recently updated their privacy policy. No severe exposure found, but compliance certification is pending.`,
     `${vendorName} is fully aligned with industry best practices. Minor recommendations logged for key rotation policies.`,
   ]
   return summaries[Math.floor(Math.random() * summaries.length)]
@@ -182,7 +182,7 @@ export function VendorTable() {
                   style={{ color: 'var(--muted-fg)' }} />
               </button>
 
-              {/* Expanded AI Summary */}
+              {/* Expanded details */}
               {expanded === vendor.id && (
                 <motion.div initial={{ height: 0 }} animate={{ height: 'auto' }}
                   className="border-t overflow-hidden" style={{ borderColor: 'var(--border)' }}>
@@ -205,13 +205,13 @@ export function VendorTable() {
                       )}
                     </div>
 
-                    {/* AI Summary */}
+                    {/* Security assessment note */}
                     {vendor.ai_summary && (
                       <div className="p-4 rounded-xl border"
                         style={{ background: 'linear-gradient(135deg, #0c2d4e10, #0a192910)', borderColor: '#0ea5e930' }}>
                         <div className="flex items-center gap-2 mb-2">
-                          <Zap className="w-3.5 h-3.5 text-sky-400" />
-                          <p className="text-xs font-semibold text-sky-400">AI Vendor Analysis</p>
+                          <FileText className="w-3.5 h-3.5 text-sky-400" />
+                          <p className="text-xs font-semibold text-sky-400">Security Assessment</p>
                         </div>
                         <p className="text-xs leading-relaxed" style={{ color: 'var(--muted-fg)' }}>{vendor.ai_summary}</p>
                       </div>
@@ -225,8 +225,8 @@ export function VendorTable() {
                       <button onClick={() => handleRegenerateAi(vendor)} disabled={loadingAi === vendor.id}
                         className="px-3 py-1.5 text-xs font-medium rounded-lg border hover:bg-black/5 dark:hover:bg-white/5 flex items-center gap-1 disabled:opacity-60"
                         style={{ borderColor: 'var(--border)', color: 'var(--foreground)' }}>
-                        <Zap className="w-3.5 h-3.5 text-sky-500 animate-pulse" /> 
-                        {loadingAi === vendor.id ? 'Analyzing...' : 'Regenerate AI Summary'}
+                        <FileText className="w-3.5 h-3.5 text-sky-500" />
+                        {loadingAi === vendor.id ? 'Updating...' : 'Regenerate Summary'}
                       </button>
                       <button onClick={() => { setEditVendor(vendor); setShowForm(true) }}
                         className="px-3 py-1.5 text-xs font-medium rounded-lg border hover:bg-black/5 dark:hover:bg-white/5"
