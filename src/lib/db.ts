@@ -52,10 +52,22 @@ async function getCurrentOrgId(): Promise<string> {
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (user) {
-      const { data } = await supabase.from('profiles').select('org_id').eq('id', user.id).single()
-      if (data?.org_id) { _cachedOrgId = data.org_id as string; return _cachedOrgId }
+      const { data, error } = await supabase.from('profiles').select('org_id').eq('id', user.id).single()
+      if (error) console.error('Supabase getCurrentOrgId profile select error:', error)
+      if (data && data.org_id) {
+        _cachedOrgId = data.org_id as string
+        return _cachedOrgId
+      } else {
+        // Automatically backfill org_id to seed org if null (profile might have been created without org_id in old triggers)
+        const { error: updateErr } = await supabase.from('profiles').update({ org_id: DEFAULT_ORG_ID }).eq('id', user.id)
+        if (updateErr) console.error('Supabase auto-backfill org_id error:', updateErr)
+        _cachedOrgId = DEFAULT_ORG_ID
+        return DEFAULT_ORG_ID
+      }
     }
-  } catch { /* fall through */ }
+  } catch (err) {
+    console.error('getCurrentOrgId exception:', err)
+  }
   return DEFAULT_ORG_ID
 }
 export { getCurrentOrgId }
@@ -68,12 +80,22 @@ export async function getCurrentProfile(): Promise<UserProfile | null> {
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (user) {
-      const { data } = await supabase.from('profiles').select('*').eq('id', user.id).single()
-      if (data) return data as UserProfile
+      const { data, error } = await supabase.from('profiles').select('*').eq('id', user.id).single()
+      if (error) console.error('Supabase getCurrentProfile select error:', error)
+      if (data) {
+        if (!data.org_id) {
+          const { error: updateErr } = await supabase.from('profiles').update({ org_id: DEFAULT_ORG_ID }).eq('id', user.id)
+          if (updateErr) console.error('Supabase getCurrentProfile auto-backfill org_id error:', updateErr)
+          data.org_id = DEFAULT_ORG_ID
+        }
+        return data as UserProfile
+      }
       // profile row missing — fall back to auth metadata
       return { id: user.id, org_id: DEFAULT_ORG_ID, full_name: (user.user_metadata?.full_name as string) || user.email || 'User', email: user.email || '', role: 'employee', created_at: user.created_at || new Date().toISOString() }
     }
-  } catch { /* ignore */ }
+  } catch (err) {
+    console.error('getCurrentProfile exception:', err)
+  }
   return null
 }
 
@@ -85,6 +107,7 @@ export const db = {
       const { createClient } = await import('./supabase/client')
       const supabase = createClient()
       const { data, error } = await supabase.from('risks').select('*').order('created_at', { ascending: false })
+      if (error) console.error('Supabase getRisks error:', error)
       if (!error && data) return (data as Risk[]).map(r => ({ ...r, category: normalizeCategory(r.category), status: normalizeStatus(r.status) }))
     }
     const risks = getLocalItem<Risk[]>('risks', MOCK_RISKS)
@@ -123,6 +146,7 @@ export const db = {
       const { createClient } = await import('./supabase/client')
       const supabase = createClient()
       const { data, error } = await supabase.from('risks').upsert({ ...risk, org_id: await getCurrentOrgId() }).select().single()
+      if (error) console.error('Supabase saveRisk error:', error)
       if (!error && data) return data as Risk
     }
     const current = getLocalItem<Risk[]>('risks', MOCK_RISKS)
@@ -153,6 +177,7 @@ export const db = {
       const { createClient } = await import('./supabase/client')
       const supabase = createClient()
       const { error } = await supabase.from('risks').delete().eq('id', id)
+      if (error) console.error('Supabase deleteRisk error:', error)
       if (!error) return true
     }
     const current = getLocalItem<Risk[]>('risks', MOCK_RISKS)
