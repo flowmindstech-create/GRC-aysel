@@ -11,7 +11,7 @@ import { TREATMENT_STRATEGY_LABELS, type TreatmentStrategy, type ControlRating }
 import { RiskLevelBadge } from '@/components/shared/Badges'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { formatDistanceToNow } from 'date-fns'
-import { Plus, Search, MoreHorizontal, Edit, Trash2, Eye } from 'lucide-react'
+import { Plus, Search, MoreHorizontal, Edit, Trash2, Eye, ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { RiskFormDialog } from './RiskFormDialog'
 import { RiskDetailSheet } from './RiskDetailSheet'
@@ -31,6 +31,16 @@ export function RiskTable() {
   const [editRisk, setEditRisk] = useState<Risk | null>(null)
   const [detailRisk, setDetailRisk] = useState<Risk | null>(null)
   const [menuOpen, setMenuOpen] = useState<string | null>(null)
+  const [openStatusRiskId, setOpenStatusRiskId] = useState<string | null>(null)
+
+  useEffect(() => {
+    const handleOutsideClick = () => {
+      setMenuOpen(null)
+      setOpenStatusRiskId(null)
+    }
+    window.addEventListener('click', handleOutsideClick)
+    return () => window.removeEventListener('click', handleOutsideClick)
+  }, [])
 
   useEffect(() => {
     async function load() {
@@ -197,32 +207,50 @@ export function RiskTable() {
                       </td>
                       <td className="px-3 py-3.5" onClick={e => e.stopPropagation()}>
                         <div className="relative inline-block">
-                          <select
-                            value={risk.status}
-                            onChange={async (e) => {
-                              const newStatus = e.target.value as any
-                              const updated = { ...risk, status: newStatus }
-                              await handleSave(updated)
-                              toast.success('Status updated successfully')
-                            }}
+                          <button
+                            onClick={() => setOpenStatusRiskId(openStatusRiskId === risk.id ? null : risk.id)}
                             className={cn(
-                              'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border border-transparent cursor-pointer outline-none pr-6',
+                              'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border border-transparent cursor-pointer transition-all hover:brightness-110 shadow-sm outline-none',
                               STATUS_CLASSES[normalizeStatus(risk.status)]
                             )}
-                            style={{
-                              appearance: 'none',
-                              WebkitAppearance: 'none',
-                              backgroundImage: `url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='none' stroke='%23475569' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='3 4.5 6 7.5 9 4.5'></polyline></svg>")`,
-                              backgroundRepeat: 'no-repeat',
-                              backgroundPosition: 'right 0.4rem center',
-                            }}
                           >
-                            {RISK_STATUSES.map(s => (
-                              <option key={s.value} value={s.value} className="bg-slate-900 text-white">
-                                {s.label}
-                              </option>
-                            ))}
-                          </select>
+                            <span>{STATUS_LABELS[normalizeStatus(risk.status)] ?? risk.status}</span>
+                            <ChevronDown className="w-3 h-3 shrink-0 opacity-80" />
+                          </button>
+                          {openStatusRiskId === risk.id && (
+                            <div
+                              className="absolute left-0 mt-1.5 w-40 rounded-xl shadow-2xl z-30 border py-1 animate-in fade-in slide-in-from-top-1 duration-150"
+                              style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
+                            >
+                              {RISK_STATUSES.map(s => (
+                                <button
+                                  key={s.value}
+                                  onClick={async () => {
+                                    const updated = { ...risk, status: s.value as any }
+                                    await handleSave(updated)
+                                    setOpenStatusRiskId(null)
+                                    toast.success('Status updated successfully')
+                                  }}
+                                  className={cn(
+                                    "w-full flex items-center px-3 py-2 text-xs hover:bg-black/5 dark:hover:bg-white/5 text-left transition-colors font-semibold",
+                                    risk.status === s.value ? "text-sky-500" : "text-[var(--foreground)]"
+                                  )}
+                                  style={{ color: risk.status === s.value ? '#38bdf8' : 'var(--foreground)' }}
+                                >
+                                  <span className={cn(
+                                    "w-1.5 h-1.5 rounded-full mr-2 shrink-0",
+                                    s.value === 'open' ? 'bg-red-500' :
+                                    s.value === 'backlog' ? 'bg-slate-400' :
+                                    s.value === 'in_progress' ? 'bg-blue-500' :
+                                    s.value === 'review' ? 'bg-amber-500' :
+                                    s.value === 'done' ? 'bg-green-500' :
+                                    'bg-emerald-400'
+                                  )} />
+                                  {s.label}
+                                </button>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       </td>
                       <td className="px-3 py-3.5">
