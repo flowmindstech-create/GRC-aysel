@@ -36,6 +36,7 @@ import {
 } from '@/lib/rcsa-methodology'
 import { RcsaDropdown } from './RcsaDropdown'
 import { TriggersEditor } from './TriggersEditor'
+import { ControlEffectivenessAssessment } from './ControlEffectivenessAssessment'
 
 const schema = z.object({
   title: z.string().min(5, 'Title must be at least 5 characters'),
@@ -444,40 +445,10 @@ export function RiskFormDialog({ risk, onClose, onSave }: Props) {
                     />
                   </div>
 
-                  {/* Control Effectiveness — aggregated from per-control assessments under Triggers (General Details) */}
+                  {/* 4. Control Effectiveness — assess each trigger's control(s) on the 6 sub-criteria */}
                   <div className="space-y-3">
-                    <h4 className="text-[11px] font-bold text-sky-400 uppercase tracking-wide border-b pb-1" style={{ borderColor: 'var(--border)' }}>4. Control Effectiveness (per-control aqreqat)</h4>
-
-                    {triggers.flatMap(t => t.controls).length === 0 ? (
-                      <p className="text-[11px] text-amber-400">Hələ control yoxdur. Effektivlik üçün General Details → Triggers bölməsində hər səbəbə control əlavə edib qiymətləndirin.</p>
-                    ) : (
-                      <div className="p-3 bg-black/20 rounded-xl border border-white/5 text-xs space-y-2">
-                        <div className="flex justify-between items-center">
-                          <div>
-                            <p className="font-bold text-slate-400">Aqreqat Effectiveness Rating:</p>
-                            <p className="text-[9px] text-slate-500 mt-0.5">{triggers.flatMap(t => t.controls).length} control · Orta bal: {effEval.score.toFixed(2)}</p>
-                          </div>
-                          <span className="font-black text-sky-400 uppercase">{CONTROL_RATING_INFO[effEval.rating].label}</span>
-                        </div>
-
-                        {/* Per-control breakdown — these are the controls chosen in General Details */}
-                        <div className="border-t pt-2 space-y-1" style={{ borderColor: 'var(--border)' }}>
-                          {triggers.flatMap(t => t.controls).map((c) => {
-                            const e = evaluateControlActivity(c)
-                            return (
-                              <div key={c.id} className="flex items-center justify-between gap-2">
-                                <span className="text-[10px] text-slate-400 truncate">• {c.description || 'Adsız control'}</span>
-                                <span className="text-[10px] font-bold text-sky-400 uppercase shrink-0">{CONTROL_RATING_INFO[e.rating].label}</span>
-                              </div>
-                            )
-                          })}
-                        </div>
-
-                        <p className="text-[10px] text-slate-500 leading-snug border-t pt-2" style={{ borderColor: 'var(--border)' }}>
-                          {CONTROL_RATING_INFO[effEval.rating].desc}
-                        </p>
-                      </div>
-                    )}
+                    <h4 className="text-[11px] font-bold text-sky-400 uppercase tracking-wide border-b pb-1" style={{ borderColor: 'var(--border)' }}>4. Control Effectiveness (6 göstərici + radar)</h4>
+                    <ControlEffectivenessAssessment triggers={triggers} onChange={setTriggers} />
 
                     {/* Consistency warnings */}
                     {consistencyIssues.length > 0 && (

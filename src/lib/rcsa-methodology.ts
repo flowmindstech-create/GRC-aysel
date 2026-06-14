@@ -128,28 +128,84 @@ export const LIKELIHOOD_OPTIONS: ScaleOption[] = [
   { value: 5, label: 'Mütəmadi', desc: '>50% · 1 il ərzində bir və daha çox baş verməsi ehtimal olunur' },
 ]
 
-// ── Control effectiveness: TWO dimensions per control (Excel: Dizayn + Tətbiqi).
-// value 1 = Güclü (best) … 5 = Zəif (worst).
-const CONTROL_RATING_LABELS = ['Güclü', 'Nisbətən güclü', 'Adekvat', 'Nisbətən adekvat', 'Zəif və ya yox'] as const
+// ── Control effectiveness: 6 sub-criteria — Design (3) + Implementation (3).
+// value 1 = Güclü (best) … 5 = Zəif (worst). Each criterion has its own 1-5 description.
+const CONTROL_RATING_LABELS = ['Güclü', 'Nisbətən güclü', 'Adekvat', 'Nisbətən adekvat', 'Zəif'] as const
 function ctrlOptions(descs: [string, string, string, string, string]): ScaleOption[] {
   return descs.map((desc, i) => ({ value: i + 1, label: CONTROL_RATING_LABELS[i], desc }))
 }
 
-export const CONTROL_DESIGN_OPTIONS: ScaleOption[] = ctrlOptions([
-  'Bütün kritik risklər tam əhatə olunur, kontrol dizaynı risk səviyyəsinə tam proporsionaldır və residual risk minimallaşdırılır. Dizayn standartlara və best practice-lərə tam uyğundur; real vaxtda/dərhal icra olunur, preventiv xarakterlidir.',
-  'Risk əsaslı yanaşma tətbiq olunub, əhatə ~90%. Dizayn ümumilikdə adekvatdır, yalnız kiçik boşluqlar qalır. Yüksək keyfiyyətli və standartlara uyğun; zamanlılıq əsasən təmin olunur (minimal gecikmə).',
-  'Risklərin 50–89%-i əhatə olunur, dizaynda qeyri-bərabərlik və bəzi boşluqlar var. Güc orta səviyyədədir, təkmilləşdirmə tələb olunur. Əksər hallarda vaxtında, lakin nəzərəçarpan gecikmələr var.',
-  'Risklərin yalnız 25–49%-i əhatə olunur, dizayn risk xəritəsini tam əhatə etmir. Dizayn zəifdir, standartlara qismən uyğundur. Kontrol çox vaxt gecikir, icra qeyri-sabitdir (reaktiv).',
-  'Risklər 0–24% səviyyəsində əhatə olunur, kritik boşluqlar var. Dizayn standartlara uyğun deyil və effektiv deyil. Kontrol vaxtında icra edilmir və ya ümumiyyətlə tətbiq olunmur.',
-])
+export interface ControlSubCriterion {
+  key:
+    | 'design_compliance' | 'design_strength' | 'design_timeliness'
+    | 'impl_relevance' | 'impl_sustainability' | 'impl_traceability'
+  group: 'design' | 'implementation'
+  label: string
+  options: ScaleOption[]
+}
 
-export const CONTROL_IMPL_OPTIONS: ScaleOption[] = ctrlOptions([
-  'Nəzarət tam aktualdır (risk və biznes dəyişikliklərinə 91–100% uyğun). Tam avtomatlaşdırılmış və fasiləsiz tətbiq olunur. Real-time monitorinq və tam audit trail mövcuddur.',
-  'Nəzarət yüksək dərəcədə aktualdır (~90%) və biznes tələblərinə uyğundur. Demək olar ki, davamlı və stabil tətbiq edilir (kiçik fasilələr). Sistemli izləmə və audit izi var.',
-  'Nəzarət əsas riskləri əhatə edir (50–89%), bəzi uyğunluq boşluqları var. Müntəzəm tətbiq olunur, lakin fasilələr/gecikmələr var. Qismən sənədləşdirilmiş izləmə və sübutlar.',
-  'Nəzarət qismən aktualdır (25–49%), bəzi proses dəyişiklikləri ilə uyğunlaşmayıb. Ara-sıra tətbiq olunur, sistemsizdir. Əsasən manual izləmə, sübutlar natamamdır.',
-  'Nəzarət köhnəlmişdir (0–24%) və risklərlə uyğun deyil. Tətbiq edilmir/çox nadir. Heç bir izləmə, audit izi və ya sənədləşmə yoxdur.',
-])
+export const CONTROL_SUBCRITERIA: ControlSubCriterion[] = [
+  {
+    key: 'design_compliance', group: 'design', label: 'Uyğunluq (əhatə)',
+    options: ctrlOptions([
+      'Bütün kritik risklər tam əhatə olunur; dizayn riskə proporsionaldır, standartlara cavab verir. Preventiv/dərhal.',
+      'Risk-əsaslı yanaşma, ~90% əhatə. Minimal boşluq. Əsasən vaxtında.',
+      'Risklərin 50-89%-i əhatə olunur, bəzi dizayn boşluqları var. Nəzərəçarpan gecikmə.',
+      'Yalnız 25-49% əhatə; dizayn risk xəritəsini örtmür. İcra reaktiv/qeyri-sabit.',
+      '0-24% əhatə; kritik dizayn boşluqları. Nəzarət vaxtında tətbiq olunmur.',
+    ]),
+  },
+  {
+    key: 'design_strength', group: 'design', label: 'Güclülük',
+    options: ctrlOptions([
+      'Dizayn test standartlarına və ən yaxşı təcrübələrə tam cavab verir.',
+      'Əksər aspektlərdə adekvat, minimal təkmilləşmə (90%-ə qədər standart).',
+      'Bəzi sahələrdə qeyri-adekvat, orta təkmilləşmə (70%-ə qədər).',
+      'Bir neçə aspektdə qeyri-adekvat, əhəmiyyətli təkmilləşmə (50%-ə qədər).',
+      'Çox aspektdə qeyri-adekvat; təcili genişləndirmə tələb olunur.',
+    ]),
+  },
+  {
+    key: 'design_timeliness', group: 'design', label: 'Zamanlılıq',
+    options: ctrlOptions([
+      'Real vaxtda/dərhal icra. Gecikmə yox. Preventiv.',
+      'Preventiv, vaxtında, kiçik gecikmələr (<10%).',
+      'Əsasən vaxtında, gecikmələr (11-49%). Detektiv/preventiv.',
+      'Tez-tez gecikmələr (50-90%). Detektiv/direktiv.',
+      'Vaxtında icra edilmir (91-100%) və ya tətbiq olunmur.',
+    ]),
+  },
+  {
+    key: 'impl_relevance', group: 'implementation', label: 'Münasiblik (aktuallıq)',
+    options: ctrlOptions([
+      'Tam aktual (91-100% risk/biznes dəyişikliklərinə uyğun).',
+      'Yüksək aktual (~90%), biznes tələblərinə uyğun.',
+      'Əsas riskləri əhatə edir (50-89%), orta uyğun. Proseslərlə dəyişməyib.',
+      'Qismən aktual (25-49%), yalnız bəzi biznes ehtiyaclarına uyğun.',
+      'Köhnəlmiş (0-24%), uyğun deyil/işləmir.',
+    ]),
+  },
+  {
+    key: 'impl_sustainability', group: 'implementation', label: 'Davamlılıq',
+    options: ctrlOptions([
+      'Tam avtomatlaşdırılmış və fasiləsiz tətbiq olunur.',
+      'Demək olar fasiləsiz, stabil tətbiq.',
+      'Müntəzəm, lakin bəzi fasilələrlə tətbiq.',
+      'Ara-sıra, sistemsiz tətbiq.',
+      'Tətbiq olunmur və ya çox nadir.',
+    ]),
+  },
+  {
+    key: 'impl_traceability', group: 'implementation', label: 'İzləniləbilərlik',
+    options: ctrlOptions([
+      'Real-vaxt monitorinq, tam audit izi, tam icra sübutu.',
+      'Sistemli izləmə və audit izi mövcuddur.',
+      'Qismən sənədləşdirilmiş izləmə və sübut.',
+      'Yalnız manual və natamam izləmə.',
+      'Monitorinq, izləmə və ya sənədləşmə yoxdur.',
+    ]),
+  },
+]
 
 // Overall control rating descriptions (Excel "Təsvir") — keyed by ControlRating
 export const CONTROL_RATING_INFO: Record<string, { label: string; desc: string }> = {

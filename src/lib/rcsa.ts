@@ -82,13 +82,7 @@ export function ratingFromScore(score: number): { rating: ControlRating; label: 
 }
 
 export function evaluateControlActivity(a: RiskControlActivity): ControlEvaluation {
-  if (a.design != null || a.implementation != null) {
-    const designAvg = Math.max(1, Math.min(5, a.design || 3))
-    const implementationAvg = Math.max(1, Math.min(5, a.implementation || 3))
-    const score = (designAvg + implementationAvg) / 2
-    const { rating, label } = ratingFromScore(score)
-    return { score, rating, label, designAvg, implementationAvg }
-  }
+  // 6 sub-criteria: Design (compliance/strength/timeliness) + Implementation (relevance/sustainability/traceability)
   return evaluateControlEffectiveness(
     a.design_compliance || 3,
     a.design_strength || 3,
