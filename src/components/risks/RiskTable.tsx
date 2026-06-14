@@ -296,7 +296,7 @@ export function RiskTable() {
                         </div>
                       </td>
                       <td className="px-3 py-3.5" onClick={e => e.stopPropagation()}>
-                        <div className="relative">
+                        <div className="relative inline-block">
                           <button
                             onClick={() => setMenuOpen(menuOpen === risk.id ? null : risk.id)}
                             aria-label="Risk actions"
