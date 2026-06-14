@@ -1,15 +1,17 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import {
   LayoutDashboard, ShieldAlert, AlertTriangle, ClipboardCheck,
   Search, Users, Settings, ChevronLeft, ChevronRight,
   Shield, Zap, GitBranch, Workflow, FileSearch, Activity,
-  BookOpen, Network, ScrollText,
+  BookOpen, Network, ScrollText, LogOut,
 } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { getCurrentProfile } from '@/lib/db'
+import type { UserProfile } from '@/types'
 
 const navGroups = [
   {
@@ -47,9 +49,37 @@ interface SidebarProps {
   onMobileClose?: () => void
 }
 
+function deleteMockSessionCookie() {
+  if (typeof document !== 'undefined') {
+    document.cookie = 'mock-session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'
+  }
+}
+
 export function Sidebar({ onMobileClose }: SidebarProps) {
   const pathname = usePathname()
+  const router = useRouter()
   const [collapsed, setCollapsed] = useState(false)
+  const [profile, setProfile] = useState<UserProfile | null>(null)
+
+  useEffect(() => {
+    getCurrentProfile().then(setProfile)
+  }, [])
+
+  const handleSignOut = async () => {
+    deleteMockSessionCookie()
+    try {
+      const isMock = !process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+      if (!isMock) {
+        const { createClient } = await import('@/lib/supabase/client')
+        await createClient().auth.signOut()
+      }
+    } catch { /* ignore */ }
+    router.push('/login')
+  }
+
+  const displayName = profile?.full_name ?? 'User'
+  const roleLabel = profile?.role ? profile.role.replace('_', ' ') : ''
+  const initial = displayName.charAt(0).toUpperCase()
 
   return (
     <aside
@@ -194,6 +224,50 @@ export function Sidebar({ onMobileClose }: SidebarProps) {
           </span>
         </div>
       )}
+
+      {/* User + Sign out (always visible) */}
+      <div className="mx-3 mb-4">
+        {!collapsed ? (
+          <div
+            className="flex items-center gap-2 p-2 rounded-xl border"
+            style={{ borderColor: 'var(--border)', background: 'rgba(255,255,255,0.02)' }}
+          >
+            <div
+              className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0"
+              style={{ background: 'linear-gradient(135deg, var(--brand-500), var(--brand-700))' }}
+            >
+              {initial}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-semibold truncate" style={{ color: 'var(--foreground)' }}>{displayName}</p>
+              <p className="text-[10px] capitalize truncate" style={{ color: 'var(--muted-fg)' }}>{roleLabel}</p>
+            </div>
+            <button
+              onClick={handleSignOut}
+              title="Sign out"
+              aria-label="Sign out"
+              className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 cursor-pointer transition-colors"
+              style={{ color: 'var(--risk-critical)' }}
+              onMouseEnter={e => ((e.currentTarget as HTMLElement).style.background = 'rgba(225,29,72,0.1)')}
+              onMouseLeave={e => ((e.currentTarget as HTMLElement).style.background = '')}
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={handleSignOut}
+            title="Sign out"
+            aria-label="Sign out"
+            className="w-full h-9 rounded-lg flex items-center justify-center cursor-pointer transition-colors"
+            style={{ color: 'var(--risk-critical)', border: '1px solid var(--border)' }}
+            onMouseEnter={e => ((e.currentTarget as HTMLElement).style.background = 'rgba(225,29,72,0.1)')}
+            onMouseLeave={e => ((e.currentTarget as HTMLElement).style.background = '')}
+          >
+            <LogOut className="w-4 h-4" />
+          </button>
+        )}
+      </div>
 
       {/* Collapse toggle */}
       <button
