@@ -842,9 +842,14 @@ export interface RiskAppetiteStatement {
   updated_at: string
 }
 
-// ─── Compliance Obligation Register ──────────────────────────────────────────
+// ─── Compliance Obligation Register (ISO 37301) ──────────────────────────────
 
-export type ObligationStatus = 'draft' | 'active' | 'under_review' | 'retired'
+// Compliance status of the obligation (replaces the old lifecycle status)
+export type ObligationStatus = 'compliant' | 'non_compliant' | 'under_review' | 'not_applicable'
+// Category of the obligation source
+export type ObligationSourceType = 'external' | 'internal' | 'contractual'
+export type ObligationCriticality = 'low' | 'medium' | 'high'
+// The framework / standard the obligation derives from
 export type ObligationSource =
   | 'ISO 27001'
   | 'GDPR'
@@ -861,11 +866,51 @@ export interface ComplianceObligation {
   obligation_code: string
   title: string
   description: string
+  // Source
   source: ObligationSource
+  source_type: ObligationSourceType
+  source_reference?: string // law article / clause text
+  source_url?: string
+  // Accountability
+  accountable_owner?: string // C-level / manager
+  responsible_party?: string // executing compliance officer
+  applicable_depts?: string[]
+  // Status & risk
   status: ObligationStatus
-  due_date?: string
-  owner_dept?: string
-  owner_name?: string
+  criticality: ObligationCriticality
+  // Dates
+  effective_date?: string
+  next_review_date?: string
   created_at: string
   updated_at: string
+}
+
+// Many-to-many link: obligation ↔ risk register entry
+export interface ObligationRiskLink {
+  id: string
+  org_id: string
+  obligation_id: string
+  risk_id: string
+  created_at: string
+}
+
+// Many-to-many link: obligation ↔ control library entry
+export interface ObligationControlLink {
+  id: string
+  org_id: string
+  obligation_id: string
+  control_id: string
+  created_at: string
+}
+
+// ISO 37301 traceability — change history of an obligation
+export interface ObligationAuditLog {
+  id: string
+  org_id: string
+  obligation_id: string
+  changed_by: string
+  action: string // 'created' | 'updated' | 'status_changed' | 'deleted'
+  old_value?: Record<string, unknown> | null
+  new_value?: Record<string, unknown> | null
+  created_at: string
 }

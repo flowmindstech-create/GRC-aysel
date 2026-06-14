@@ -8,7 +8,7 @@ import {
 import type {
   Risk, Incident, Control, Audit, AuditFinding, Vendor, Activity, DashboardStats,
   JiraConfig, JiraActivity, JiraComment, GRCIntakeItem, OrgUnit, UserProfile,
-  ComplianceObligation
+  ComplianceObligation, ObligationAuditLog
 } from '@/types'
 import { RISK_CATEGORIES, normalizeCategory } from './risk-categories'
 import { normalizeStatus, ACTIVE_STATUSES } from './risk-status'
@@ -860,20 +860,23 @@ export const db = {
       org_id: orgId,
       updated_at: now,
     }
-    // Auto-generate obligation_code if missing
+    const existingList = await this.getObligations()
+    const prior = existingList.find(o => o.id === sanitized.id) ?? null
+    // Auto-generate obligation_code if missing (COMP-OBL-YYYY-NNN)
     if (!sanitized.obligation_code) {
-      const existing = getLocalItem<ComplianceObligation[]>('compliance_obligations', [])
       const year = new Date().getFullYear()
-      const seq = existing.length + 1
-      sanitized.obligation_code = `OBL-${year}-${String(seq).padStart(3, '0')}`
+      const seq = existingList.length + 1
+      sanitized.obligation_code = `COMP-OBL-${year}-${String(seq).padStart(3, '0')}`
     }
     if (isSupabaseConfigured()) {
       const { createClient } = await import('./supabase/client')
       const supabase = createClient()
       const payload: any = { ...sanitized }
       const dbColumns = [
-        'id', 'org_id', 'obligation_code', 'title', 'description', 'source',
-        'status', 'due_date', 'owner_dept', 'owner_name', 'created_at', 'updated_at'
+        'id', 'org_id', 'obligation_code', 'title', 'description', 'source', 'source_type',
+        'source_reference', 'source_url', 'accountable_owner', 'responsible_party',
+        'applicable_depts', 'status', 'criticality', 'effective_date', 'next_review_date',
+        'created_at', 'updated_at'
       ]
       for (const key of Object.keys(payload)) {
         if (!dbColumns.includes(key)) delete payload[key]
@@ -884,7 +887,10 @@ export const db = {
         .select()
         .single()
       if (error) console.error('Supabase saveObligation error:', error)
-      if (!error && data) return data as ComplianceObligation
+      if (!error && data) {
+        await this.logObligationChange(prior, sanitized)
+        return data as ComplianceObligation
+      }
     }
     const current = getLocalItem<ComplianceObligation[]>('compliance_obligations', [])
     const idx = current.findIndex(i => i.id === sanitized.id)
@@ -894,6 +900,7 @@ export const db = {
       current.unshift(sanitized)
     }
     setLocalItem('compliance_obligations', current)
+    await this.logObligationChange(prior, sanitized)
     return sanitized
   },
 
@@ -901,10 +908,166 @@ export const db = {
     if (isSupabaseConfigured()) {
       const { createClient } = await import('./supabase/client')
       const supabase = createClient()
+      // links + audit logs are removed by ON DELETE CASCADE
       await supabase.from('compliance_obligations').delete().eq('id', id)
     }
     const current = getLocalItem<ComplianceObligation[]>('compliance_obligations', [])
     setLocalItem('compliance_obligations', current.filter(i => i.id !== id))
+    // Mock mode: clean up links + audit manually (no cascade)
+    setLocalItem('obligation_risk_links', getLocalItem<any[]>('obligation_risk_links', []).filter(l => l.obligation_id !== id))
+    setLocalItem('obligation_control_links', getLocalItem<any[]>('obligation_control_links', []).filter(l => l.obligation_id !== id))
+    setLocalItem('obligation_audit_logs', getLocalItem<ObligationAuditLog[]>('obligation_audit_logs', []).filter(l => l.obligation_id !== id))
+  },
+
+  // ── Obligation audit trail (ISO 37301 traceability) ──────────────────────────
+  // Compares prior vs next and records a change entry (created / status_changed / updated).
+  async logObligationChange(prior: ComplianceObligation | null, next: ComplianceObligation): Promise<void> {
+    const fields: (keyof ComplianceObligation)[] = [
+      'title', 'description', 'source', 'source_type', 'source_reference', 'source_url',
+      'accountable_owner', 'responsible_party', 'applicable_depts', 'status', 'criticality',
+      'effective_date', 'next_review_date',
+    ]
+    let action = 'created'
+    let oldValue: Record<string, unknown> | null = null
+    let newValue: Record<string, unknown> | null = { title: next.title, status: next.status, criticality: next.criticality }
+    if (prior) {
+      if (prior.status !== next.status) {
+        action = 'status_changed'
+        oldValue = { status: prior.status }
+        newValue = { status: next.status }
+      } else {
+        const changed = fields.filter(f => JSON.stringify((prior as any)[f] ?? null) !== JSON.stringify((next as any)[f] ?? null))
+        if (changed.length === 0) return
+        action = 'updated'
+        oldValue = Object.fromEntries(changed.map(f => [f, (prior as any)[f] ?? null]))
+        newValue = Object.fromEntries(changed.map(f => [f, (next as any)[f] ?? null]))
+      }
+    }
+    await this.addObligationAudit({
+      id: ensureUUID(),
+      org_id: next.org_id,
+      obligation_id: next.id,
+      changed_by: (await getCurrentProfile())?.full_name ?? 'System',
+      action,
+      old_value: oldValue,
+      new_value: newValue,
+      created_at: new Date().toISOString(),
+    })
+  },
+
+  async addObligationAudit(log: ObligationAuditLog): Promise<void> {
+    if (isSupabaseConfigured()) {
+      const { createClient } = await import('./supabase/client')
+      const supabase = createClient()
+      const { error } = await supabase.from('obligation_audit_logs').insert({
+        id: log.id, org_id: log.org_id, obligation_id: log.obligation_id,
+        changed_by: log.changed_by, action: log.action,
+        old_value: log.old_value ?? null, new_value: log.new_value ?? null,
+        created_at: log.created_at,
+      })
+      if (error) console.error('Supabase addObligationAudit error:', error)
+      if (!error) return
+    }
+    const current = getLocalItem<ObligationAuditLog[]>('obligation_audit_logs', [])
+    current.unshift(log)
+    setLocalItem('obligation_audit_logs', current)
+  },
+
+  async getObligationAuditLog(obligationId: string): Promise<ObligationAuditLog[]> {
+    if (isSupabaseConfigured()) {
+      const { createClient } = await import('./supabase/client')
+      const supabase = createClient()
+      const { data, error } = await supabase
+        .from('obligation_audit_logs').select('*')
+        .eq('obligation_id', obligationId)
+        .order('created_at', { ascending: false })
+      if (!error && data) return data as ObligationAuditLog[]
+    }
+    return getLocalItem<ObligationAuditLog[]>('obligation_audit_logs', [])
+      .filter(l => l.obligation_id === obligationId)
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+  },
+
+  // ── Obligation ↔ Risk / Control links (M:N) ──────────────────────────────────
+  async getObligationRiskIds(obligationId: string): Promise<string[]> {
+    if (isSupabaseConfigured()) {
+      const { createClient } = await import('./supabase/client')
+      const supabase = createClient()
+      const { data, error } = await supabase.from('obligation_risk_links').select('risk_id').eq('obligation_id', obligationId)
+      if (!error && data) return (data as any[]).map(r => r.risk_id)
+    }
+    return getLocalItem<any[]>('obligation_risk_links', []).filter(l => l.obligation_id === obligationId).map(l => l.risk_id)
+  },
+
+  async setObligationRisks(obligationId: string, riskIds: string[]): Promise<void> {
+    const orgId = await getCurrentOrgId()
+    const now = new Date().toISOString()
+    if (isSupabaseConfigured()) {
+      const { createClient } = await import('./supabase/client')
+      const supabase = createClient()
+      await supabase.from('obligation_risk_links').delete().eq('obligation_id', obligationId)
+      if (riskIds.length > 0) {
+        const rows = riskIds.map(rid => ({ id: ensureUUID(), org_id: orgId, obligation_id: obligationId, risk_id: rid, created_at: now }))
+        const { error } = await supabase.from('obligation_risk_links').insert(rows)
+        if (error) console.error('Supabase setObligationRisks error:', error)
+      }
+      return
+    }
+    const all = getLocalItem<any[]>('obligation_risk_links', []).filter(l => l.obligation_id !== obligationId)
+    riskIds.forEach(rid => all.push({ id: ensureUUID(), org_id: orgId, obligation_id: obligationId, risk_id: rid, created_at: now }))
+    setLocalItem('obligation_risk_links', all)
+  },
+
+  async getObligationControlIds(obligationId: string): Promise<string[]> {
+    if (isSupabaseConfigured()) {
+      const { createClient } = await import('./supabase/client')
+      const supabase = createClient()
+      const { data, error } = await supabase.from('obligation_control_links').select('control_id').eq('obligation_id', obligationId)
+      if (!error && data) return (data as any[]).map(r => r.control_id)
+    }
+    return getLocalItem<any[]>('obligation_control_links', []).filter(l => l.obligation_id === obligationId).map(l => l.control_id)
+  },
+
+  async setObligationControls(obligationId: string, controlIds: string[]): Promise<void> {
+    const orgId = await getCurrentOrgId()
+    const now = new Date().toISOString()
+    if (isSupabaseConfigured()) {
+      const { createClient } = await import('./supabase/client')
+      const supabase = createClient()
+      await supabase.from('obligation_control_links').delete().eq('obligation_id', obligationId)
+      if (controlIds.length > 0) {
+        const rows = controlIds.map(cid => ({ id: ensureUUID(), org_id: orgId, obligation_id: obligationId, control_id: cid, created_at: now }))
+        const { error } = await supabase.from('obligation_control_links').insert(rows)
+        if (error) console.error('Supabase setObligationControls error:', error)
+      }
+      return
+    }
+    const all = getLocalItem<any[]>('obligation_control_links', []).filter(l => l.obligation_id !== obligationId)
+    controlIds.forEach(cid => all.push({ id: ensureUUID(), org_id: orgId, obligation_id: obligationId, control_id: cid, created_at: now }))
+    setLocalItem('obligation_control_links', all)
+  },
+
+  // Risk/control link counts per obligation (for the register table)
+  async getObligationLinkCounts(): Promise<Record<string, { risks: number; controls: number }>> {
+    const counts: Record<string, { risks: number; controls: number }> = {}
+    const bump = (id: string, key: 'risks' | 'controls') => {
+      if (!counts[id]) counts[id] = { risks: 0, controls: 0 }
+      counts[id][key]++
+    }
+    if (isSupabaseConfigured()) {
+      const { createClient } = await import('./supabase/client')
+      const supabase = createClient()
+      const [{ data: rl }, { data: cl }] = await Promise.all([
+        supabase.from('obligation_risk_links').select('obligation_id'),
+        supabase.from('obligation_control_links').select('obligation_id'),
+      ])
+      ;((rl as any[]) ?? []).forEach(r => bump(r.obligation_id, 'risks'))
+      ;((cl as any[]) ?? []).forEach(c => bump(c.obligation_id, 'controls'))
+      return counts
+    }
+    getLocalItem<any[]>('obligation_risk_links', []).forEach(l => bump(l.obligation_id, 'risks'))
+    getLocalItem<any[]>('obligation_control_links', []).forEach(l => bump(l.obligation_id, 'controls'))
+    return counts
   },
 
   // ─── GRC INTAKE ITEMS ──────────────────────────────────────────────────────

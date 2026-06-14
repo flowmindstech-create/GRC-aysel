@@ -3,37 +3,93 @@
 import { useState, useEffect } from 'react'
 import { X, Plus, Save } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
-import type { ComplianceObligation, ObligationStatus, ObligationSource } from '@/types'
+import { db } from '@/lib/db'
+import type {
+  ComplianceObligation, ObligationStatus, ObligationSource,
+  ObligationSourceType, ObligationCriticality, OrgUnit, Risk, Control,
+} from '@/types'
 
 const SOURCES: ObligationSource[] = [
   'ISO 27001', 'GDPR', 'SOC 2', 'PCI DSS',
   'Local Regulation', 'Internal Policy', 'Contractual', 'Other',
 ]
 
+const SOURCE_TYPES: { value: ObligationSourceType; label: string }[] = [
+  { value: 'external',    label: 'External' },
+  { value: 'internal',    label: 'Internal' },
+  { value: 'contractual', label: 'Contractual' },
+]
+
 const STATUSES: { value: ObligationStatus; label: string }[] = [
-  { value: 'draft',        label: 'Draft' },
-  { value: 'active',       label: 'Active' },
-  { value: 'under_review', label: 'Under Review' },
-  { value: 'retired',      label: 'Retired' },
+  { value: 'compliant',      label: 'Compliant' },
+  { value: 'non_compliant',  label: 'Non-Compliant' },
+  { value: 'under_review',   label: 'Under Review' },
+  { value: 'not_applicable', label: 'Not Applicable' },
+]
+
+const CRITICALITIES: { value: ObligationCriticality; label: string }[] = [
+  { value: 'low',    label: 'Low' },
+  { value: 'medium', label: 'Medium' },
+  { value: 'high',   label: 'High' },
 ]
 
 interface Props {
   obligation: ComplianceObligation | null
   onClose: () => void
   onSave: (item: ComplianceObligation) => Promise<void>
+  onSaved?: () => void
 }
 
-export function ObligationFormDialog({ obligation, onClose, onSave }: Props) {
+export function ObligationFormDialog({ obligation, onClose, onSave, onSaved }: Props) {
   const isEdit = !!obligation
 
-  const [title, setTitle]         = useState(obligation?.title ?? '')
-  const [description, setDesc]    = useState(obligation?.description ?? '')
-  const [source, setSource]       = useState<ObligationSource>(obligation?.source ?? 'ISO 27001')
-  const [status, setStatus]       = useState<ObligationStatus>(obligation?.status ?? 'draft')
-  const [dueDate, setDueDate]     = useState(obligation?.due_date ?? '')
-  const [ownerDept, setOwnerDept] = useState(obligation?.owner_dept ?? '')
-  const [ownerName, setOwnerName] = useState(obligation?.owner_name ?? '')
-  const [loading, setLoading]     = useState(false)
+  const [title, setTitle]                 = useState(obligation?.title ?? '')
+  const [description, setDesc]            = useState(obligation?.description ?? '')
+  const [source, setSource]               = useState<ObligationSource>(obligation?.source ?? 'ISO 27001')
+  const [sourceType, setSourceType]       = useState<ObligationSourceType>(obligation?.source_type ?? 'external')
+  const [sourceReference, setSourceRef]   = useState(obligation?.source_reference ?? '')
+  const [sourceUrl, setSourceUrl]         = useState(obligation?.source_url ?? '')
+  const [accountableOwner, setAccountable]= useState(obligation?.accountable_owner ?? '')
+  const [responsibleParty, setResponsible]= useState(obligation?.responsible_party ?? '')
+  const [applicableDepts, setDepts]       = useState<string[]>(obligation?.applicable_depts ?? [])
+  const [status, setStatus]               = useState<ObligationStatus>(obligation?.status ?? 'under_review')
+  const [criticality, setCriticality]     = useState<ObligationCriticality>(obligation?.criticality ?? 'medium')
+  const [effectiveDate, setEffective]     = useState(obligation?.effective_date ?? '')
+  const [nextReviewDate, setNextReview]   = useState(obligation?.next_review_date ?? '')
+  const [linkedRiskIds, setLinkedRisks]   = useState<string[]>([])
+  const [linkedControlIds, setLinkedCtrl] = useState<string[]>([])
+  const [loading, setLoading]             = useState(false)
+
+  const [departments, setDepartments] = useState<OrgUnit[]>([])
+  const [risks, setRisks]             = useState<Risk[]>([])
+  const [controls, setControls]       = useState<Control[]>([])
+
+  useEffect(() => {
+    let active = true
+    ;(async () => {
+      const [units, riskList, controlList] = await Promise.all([
+        db.getOrgUnits(), db.getRisks(), db.getControls(),
+      ])
+      if (!active) return
+      setDepartments(units.filter(u => u.type === 'department' || u.type === 'division'))
+      setRisks(riskList)
+      setControls(controlList)
+      if (obligation?.id) {
+        const [rids, cids] = await Promise.all([
+          db.getObligationRiskIds(obligation.id),
+          db.getObligationControlIds(obligation.id),
+        ])
+        if (!active) return
+        setLinkedRisks(rids)
+        setLinkedCtrl(cids)
+      }
+    })()
+    return () => { active = false }
+  }, [obligation?.id])
+
+  function toggle(list: string[], value: string, setter: (v: string[]) => void) {
+    setter(list.includes(value) ? list.filter(v => v !== value) : [...list, value])
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -48,33 +104,44 @@ export function ObligationFormDialog({ obligation, onClose, onSave }: Props) {
       title:            title.trim(),
       description:      description.trim(),
       source,
+      source_type:      sourceType,
+      source_reference: sourceReference.trim() || undefined,
+      source_url:       sourceUrl.trim() || undefined,
+      accountable_owner: accountableOwner.trim() || undefined,
+      responsible_party: responsibleParty.trim() || undefined,
+      applicable_depts: applicableDepts,
       status,
-      due_date:         dueDate || undefined,
-      owner_dept:       ownerDept.trim() || undefined,
-      owner_name:       ownerName.trim() || undefined,
+      criticality,
+      effective_date:   effectiveDate || undefined,
+      next_review_date: nextReviewDate || undefined,
       created_at:       obligation?.created_at ?? now,
       updated_at:       now,
     }
 
     await onSave(item)
+    // Persist M:N links (obligation id is stable — db keeps the passed UUID)
+    await db.setObligationRisks(item.id, linkedRiskIds)
+    await db.setObligationControls(item.id, linkedControlIds)
+    onSaved?.()
     setLoading(false)
   }
 
-  const inputStyle = {
-    background: 'var(--muted)',
-    border: '1px solid var(--border)',
-    color: 'var(--foreground)',
-  }
+  const inputStyle = { background: 'var(--muted)', border: '1px solid var(--border)', color: 'var(--foreground)' }
+  const labelCls = 'block text-xs font-medium mb-1.5'
+  const fieldCls = 'w-full px-3 py-2 rounded-lg text-sm outline-none transition-colors'
+  const focus = (e: React.FocusEvent<HTMLElement>) => ((e.target as HTMLElement).style.borderColor = 'var(--brand-500)')
+  const blur = (e: React.FocusEvent<HTMLElement>) => ((e.target as HTMLElement).style.borderColor = 'var(--border)')
+
+  const sectionTitle = (t: string) => (
+    <p className="text-[11px] font-bold uppercase tracking-wide pt-2" style={{ color: 'var(--brand-500)' }}>{t}</p>
+  )
 
   return (
     <AnimatePresence>
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-          onClick={onClose}
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+          className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose}
         />
         <motion.div
           initial={{ opacity: 0, scale: 0.96, y: 8 }}
@@ -91,155 +158,163 @@ export function ObligationFormDialog({ obligation, onClose, onSave }: Props) {
                 {isEdit ? 'Edit Obligation' : 'New Obligation'}
               </h2>
               <p className="text-xs mt-0.5" style={{ color: 'var(--muted-fg)' }}>
-                {isEdit ? `Editing ${obligation.obligation_code}` : 'Code will be auto-generated'}
+                {isEdit ? `Editing ${obligation.obligation_code}` : 'Code will be auto-generated (COMP-OBL-…)'}
               </p>
             </div>
-            <button
-              onClick={onClose}
-              className="w-7 h-7 rounded-lg flex items-center justify-center transition-colors hover:bg-white/5"
-            >
+            <button onClick={onClose} className="w-7 h-7 rounded-lg flex items-center justify-center transition-colors hover:bg-white/5">
               <X className="w-4 h-4" style={{ color: 'var(--muted-fg)' }} />
             </button>
           </div>
 
-          {/* Glow bar */}
           <div className="h-0.5 mx-6" style={{ background: 'linear-gradient(90deg, transparent, var(--brand-500), transparent)' }} />
 
           <form onSubmit={handleSubmit} className="px-6 py-5 space-y-4">
             {/* Title */}
             <div>
-              <label className="block text-xs font-medium mb-1.5" style={{ color: 'var(--muted-fg)' }}>
-                Title <span className="text-red-400">*</span>
-              </label>
-              <input
-                autoFocus
-                value={title}
-                onChange={e => setTitle(e.target.value)}
+              <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Title <span className="text-red-400">*</span></label>
+              <input autoFocus value={title} onChange={e => setTitle(e.target.value)}
                 placeholder="e.g. GDPR Article 7 — Consent Management"
-                className="w-full px-3 py-2 rounded-lg text-sm outline-none transition-colors"
-                style={inputStyle}
-                onFocus={e => (e.target.style.borderColor = 'var(--brand-500)')}
-                onBlur={e => (e.target.style.borderColor = 'var(--border)')}
-                required
-              />
+                className={fieldCls} style={inputStyle} onFocus={focus} onBlur={blur} required />
             </div>
 
             {/* Description */}
             <div>
-              <label className="block text-xs font-medium mb-1.5" style={{ color: 'var(--muted-fg)' }}>
-                Description
-              </label>
-              <textarea
-                value={description}
-                onChange={e => setDesc(e.target.value)}
-                rows={3}
-                placeholder="Provide context and details about this obligation…"
-                className="w-full px-3 py-2 rounded-lg text-sm outline-none resize-none transition-colors"
-                style={inputStyle}
-                onFocus={e => (e.target.style.borderColor = 'var(--brand-500)')}
-                onBlur={e => (e.target.style.borderColor = 'var(--border)')}
-              />
+              <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Description</label>
+              <textarea value={description} onChange={e => setDesc(e.target.value)} rows={2}
+                placeholder="Context and details about this obligation…"
+                className={`${fieldCls} resize-none`} style={inputStyle} onFocus={focus} onBlur={blur} />
             </div>
 
-            {/* Source + Status (2-col) */}
+            {sectionTitle('Source')}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-medium mb-1.5" style={{ color: 'var(--muted-fg)' }}>
-                  Source <span className="text-red-400">*</span>
-                </label>
-                <select
-                  value={source}
-                  onChange={e => setSource(e.target.value as ObligationSource)}
-                  className="w-full px-3 py-2 rounded-lg text-sm outline-none cursor-pointer"
-                  style={inputStyle}
-                >
+                <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Source Type</label>
+                <select value={sourceType} onChange={e => setSourceType(e.target.value as ObligationSourceType)}
+                  className={`${fieldCls} cursor-pointer`} style={inputStyle}>
+                  {SOURCE_TYPES.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Framework / Standard</label>
+                <select value={source} onChange={e => setSource(e.target.value as ObligationSource)}
+                  className={`${fieldCls} cursor-pointer`} style={inputStyle}>
                   {SOURCES.map(s => <option key={s} value={s}>{s}</option>)}
                 </select>
               </div>
+            </div>
+            <div>
+              <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Source Reference (law article / clause)</label>
+              <textarea value={sourceReference} onChange={e => setSourceRef(e.target.value)} rows={2}
+                placeholder="e.g. GDPR Art. 7(1); Local Law No. 123, §5"
+                className={`${fieldCls} resize-none`} style={inputStyle} onFocus={focus} onBlur={blur} />
+            </div>
+            <div>
+              <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Source URL</label>
+              <input value={sourceUrl} onChange={e => setSourceUrl(e.target.value)} placeholder="https://…"
+                className={fieldCls} style={inputStyle} onFocus={focus} onBlur={blur} />
+            </div>
+
+            {sectionTitle('Accountability')}
+            <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-medium mb-1.5" style={{ color: 'var(--muted-fg)' }}>
-                  Status
-                </label>
-                <select
-                  value={status}
-                  onChange={e => setStatus(e.target.value as ObligationStatus)}
-                  className="w-full px-3 py-2 rounded-lg text-sm outline-none cursor-pointer"
-                  style={inputStyle}
-                >
+                <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Accountable Owner</label>
+                <input value={accountableOwner} onChange={e => setAccountable(e.target.value)} placeholder="C-level / Manager"
+                  className={fieldCls} style={inputStyle} onFocus={focus} onBlur={blur} />
+              </div>
+              <div>
+                <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Responsible Party</label>
+                <input value={responsibleParty} onChange={e => setResponsible(e.target.value)} placeholder="Compliance Officer"
+                  className={fieldCls} style={inputStyle} onFocus={focus} onBlur={blur} />
+              </div>
+            </div>
+            <div>
+              <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Applicable Departments</label>
+              <div className="flex flex-wrap gap-1.5">
+                {departments.length === 0 && <span className="text-xs" style={{ color: 'var(--muted-fg)' }}>No departments found.</span>}
+                {departments.map(d => {
+                  const on = applicableDepts.includes(d.name)
+                  return (
+                    <button key={d.id} type="button" onClick={() => toggle(applicableDepts, d.name, setDepts)}
+                      className="px-2.5 py-1 rounded-full text-[11px] font-medium border transition-colors"
+                      style={on
+                        ? { background: 'var(--brand-500)', color: '#fff', borderColor: 'var(--brand-500)' }
+                        : { background: 'var(--muted)', color: 'var(--muted-fg)', borderColor: 'var(--border)' }}>
+                      {d.name}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+
+            {sectionTitle('Status & Criticality')}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Compliance Status</label>
+                <select value={status} onChange={e => setStatus(e.target.value as ObligationStatus)}
+                  className={`${fieldCls} cursor-pointer`} style={inputStyle}>
                   {STATUSES.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Criticality</label>
+                <select value={criticality} onChange={e => setCriticality(e.target.value as ObligationCriticality)}
+                  className={`${fieldCls} cursor-pointer`} style={inputStyle}>
+                  {CRITICALITIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
                 </select>
               </div>
             </div>
 
-            {/* Due date */}
-            <div>
-              <label className="block text-xs font-medium mb-1.5" style={{ color: 'var(--muted-fg)' }}>
-                Due Date
-              </label>
-              <input
-                type="date"
-                value={dueDate}
-                onChange={e => setDueDate(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg text-sm outline-none transition-colors"
-                style={inputStyle}
-                onFocus={e => (e.target.style.borderColor = 'var(--brand-500)')}
-                onBlur={e => (e.target.style.borderColor = 'var(--border)')}
-              />
-            </div>
-
-            {/* Owner dept + name (2-col) */}
+            {sectionTitle('Dates')}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-medium mb-1.5" style={{ color: 'var(--muted-fg)' }}>
-                  Owner Department
-                </label>
-                <input
-                  value={ownerDept}
-                  onChange={e => setOwnerDept(e.target.value)}
-                  placeholder="e.g. IT Security"
-                  className="w-full px-3 py-2 rounded-lg text-sm outline-none transition-colors"
-                  style={inputStyle}
-                  onFocus={e => (e.target.style.borderColor = 'var(--brand-500)')}
-                  onBlur={e => (e.target.style.borderColor = 'var(--border)')}
-                />
+                <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Effective Date</label>
+                <input type="date" value={effectiveDate} onChange={e => setEffective(e.target.value)}
+                  className={fieldCls} style={inputStyle} onFocus={focus} onBlur={blur} />
               </div>
               <div>
-                <label className="block text-xs font-medium mb-1.5" style={{ color: 'var(--muted-fg)' }}>
-                  Owner Name
-                </label>
-                <input
-                  value={ownerName}
-                  onChange={e => setOwnerName(e.target.value)}
-                  placeholder="e.g. Aysel Mammadova"
-                  className="w-full px-3 py-2 rounded-lg text-sm outline-none transition-colors"
-                  style={inputStyle}
-                  onFocus={e => (e.target.style.borderColor = 'var(--brand-500)')}
-                  onBlur={e => (e.target.style.borderColor = 'var(--border)')}
-                />
+                <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Next Review Date</label>
+                <input type="date" value={nextReviewDate} onChange={e => setNextReview(e.target.value)}
+                  className={fieldCls} style={inputStyle} onFocus={focus} onBlur={blur} />
               </div>
+            </div>
+
+            {sectionTitle('Linked Risks')}
+            <div className="rounded-lg border max-h-32 overflow-y-auto" style={{ borderColor: 'var(--border)' }}>
+              {risks.length === 0 ? (
+                <p className="text-xs px-3 py-2" style={{ color: 'var(--muted-fg)' }}>No risks in the register yet.</p>
+              ) : risks.map(r => (
+                <label key={r.id} className="flex items-center gap-2 px-3 py-1.5 text-xs cursor-pointer hover:bg-white/5" style={{ color: 'var(--foreground)' }}>
+                  <input type="checkbox" checked={linkedRiskIds.includes(r.id)} onChange={() => toggle(linkedRiskIds, r.id, setLinkedRisks)} />
+                  <span className="font-mono text-[10px]" style={{ color: 'var(--brand-500)' }}>{r.risk_code ?? '—'}</span>
+                  <span className="truncate">{r.title}</span>
+                </label>
+              ))}
+            </div>
+
+            {sectionTitle('Linked Controls')}
+            <div className="rounded-lg border max-h-32 overflow-y-auto" style={{ borderColor: 'var(--border)' }}>
+              {controls.length === 0 ? (
+                <p className="text-xs px-3 py-2" style={{ color: 'var(--muted-fg)' }}>No controls in the library yet.</p>
+              ) : controls.map(c => (
+                <label key={c.id} className="flex items-center gap-2 px-3 py-1.5 text-xs cursor-pointer hover:bg-white/5" style={{ color: 'var(--foreground)' }}>
+                  <input type="checkbox" checked={linkedControlIds.includes(c.id)} onChange={() => toggle(linkedControlIds, c.id, setLinkedCtrl)} />
+                  <span className="font-mono text-[10px]" style={{ color: 'var(--brand-500)' }}>{c.control_id}</span>
+                  <span className="truncate">{c.title}</span>
+                </label>
+              ))}
             </div>
 
             {/* Footer */}
             <div className="flex items-center justify-between pt-2">
-              <button
-                type="button"
-                onClick={onClose}
-                className="px-4 py-2 rounded-lg text-sm transition-colors hover:bg-white/5"
-                style={{ color: 'var(--muted-fg)' }}
-              >
+              <button type="button" onClick={onClose}
+                className="px-4 py-2 rounded-lg text-sm transition-colors hover:bg-white/5" style={{ color: 'var(--muted-fg)' }}>
                 Cancel
               </button>
-              <button
-                type="submit"
-                disabled={!title.trim() || loading}
+              <button type="submit" disabled={!title.trim() || loading}
                 className="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold text-white transition-colors disabled:opacity-50"
-                style={{ background: 'var(--brand-500)' }}
-              >
+                style={{ background: 'var(--brand-500)' }}>
                 {loading ? 'Saving…' : (
-                  <>
-                    {isEdit ? <Save className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}
-                    {isEdit ? 'Update' : 'Create'}
-                  </>
+                  <>{isEdit ? <Save className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}{isEdit ? 'Update' : 'Create'}</>
                 )}
               </button>
             </div>
