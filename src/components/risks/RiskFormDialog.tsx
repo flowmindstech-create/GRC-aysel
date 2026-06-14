@@ -576,7 +576,7 @@ export function RiskFormDialog({ risk, onClose, onSave }: Props) {
                     })()}
                     {watch('mitigation') === 'mitigate' && (
                       <label className="block text-[11px] font-bold text-sky-400 mt-1">
-                        Mitigation plan <span className="text-red-400">*</span>
+                        Mitigation plan (Azaltma tədbiri) <span className="text-red-400">*</span>
                       </label>
                     )}
                     <textarea {...register('treatment_plan')} rows={2}
