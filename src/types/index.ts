@@ -335,7 +335,11 @@ export interface DashboardStats {
   total_risks: number
   critical_risks: number
   open_incidents: number
+  incidents_investigating: number
   compliance_score: number
+  controls_failing: number
+  active_vendors: number
+  vendors_under_review: number
   risk_by_level: Record<RiskLevel, number>
   risk_by_category: Record<RiskCategory, number>
   monthly_risks: { month: string; count: number }[]

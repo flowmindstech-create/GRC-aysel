@@ -116,33 +116,30 @@ export function DashboardClient({
           icon={ShieldAlert}
           iconColor="text-sky-500"
           iconBg="bg-sky-500/10"
-          trend={{ value: 12, label: 'vs. last month' }}
         />
         <StatsCard
           index={1}
           title="Open Incidents"
           value={stats.open_incidents}
-          subtitle="2 under investigation"
+          subtitle={`${stats.incidents_investigating} under investigation`}
           icon={AlertTriangle}
           iconColor="text-orange-500"
           iconBg="bg-orange-500/10"
-          trend={{ value: 100, label: 'vs. last month' }}
         />
         <StatsCard
           index={2}
           title="Compliance Score"
           value={`${stats.compliance_score}%`}
-          subtitle="2 controls failing"
+          subtitle={`${stats.controls_failing} controls failing`}
           icon={ClipboardCheck}
           iconColor="text-green-500"
           iconBg="bg-green-500/10"
-          trend={{ value: -5, label: 'vs. last audit' }}
         />
         <StatsCard
           index={3}
           title="Active Vendors"
-          value={4}
-          subtitle="1 under review"
+          value={stats.active_vendors}
+          subtitle={`${stats.vendors_under_review} under review`}
           icon={Users}
           iconColor="text-blue-500"
           iconBg="bg-blue-500/10"

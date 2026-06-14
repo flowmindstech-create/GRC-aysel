@@ -566,14 +566,20 @@ export const db = {
     const risks = await this.getRisks()
     const incidents = await this.getIncidents()
     const controls = await this.getControls()
-    
+    const vendors = await this.getVendors()
+
     const openRisks = risks.filter(r => ACTIVE_STATUSES.includes(normalizeStatus(r.status)))
     const criticalRisks = openRisks.filter(r => r.level === 'critical').length
     const openIncidents = incidents.filter(i => i.status !== 'resolved' && i.status !== 'closed').length
-    
+    const incidentsInvestigating = incidents.filter(i => i.status === 'investigating').length
+
     const passedControls = controls.filter(c => c.status === 'pass').length
+    const failingControls = controls.filter(c => c.status === 'fail').length
     const totalControls = controls.filter(c => c.status !== 'na').length
     const complianceScore = totalControls > 0 ? Math.round((passedControls / totalControls) * 100) : 100
+
+    const activeVendors = vendors.filter(v => v.status === 'active').length
+    const vendorsUnderReview = vendors.filter(v => v.status === 'under_review').length
 
     const riskByLevel = {
       minimal: risks.filter(r => r.level === 'minimal').length,
@@ -592,7 +598,11 @@ export const db = {
       total_risks: risks.length,
       critical_risks: criticalRisks,
       open_incidents: openIncidents,
+      incidents_investigating: incidentsInvestigating,
       compliance_score: complianceScore,
+      controls_failing: failingControls,
+      active_vendors: activeVendors,
+      vendors_under_review: vendorsUnderReview,
       risk_by_level: riskByLevel,
       risk_by_category: riskByCategory,
       monthly_risks: MOCK_DASHBOARD_STATS.monthly_risks,
