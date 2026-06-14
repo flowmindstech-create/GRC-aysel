@@ -14,9 +14,10 @@ interface Props {
   risk: Risk
   onClose: () => void
   onUpdate?: (risk: Risk) => void
+  onEdit?: (risk: Risk) => void
 }
 
-export function RiskDetailSheet({ risk, onClose, onUpdate }: Props) {
+export function RiskDetailSheet({ risk, onClose, onUpdate, onEdit }: Props) {
   const [jiraConfig, setJiraConfig] = useState<any>(null)
   const [syncing, setSyncing] = useState(false)
   const [activities, setActivities] = useState<any[]>([])
@@ -423,11 +424,22 @@ export function RiskDetailSheet({ risk, onClose, onUpdate }: Props) {
 
           {/* Footer */}
           <div className="px-6 py-4 border-t flex gap-3" style={{ borderColor: 'var(--border)' }}>
-            <button className="flex-1 py-2 rounded-xl text-sm font-medium border hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
-              style={{ borderColor: 'var(--border)', color: 'var(--foreground)' }}>
+            <button
+              onClick={() => onEdit?.(risk)}
+              className="flex-1 py-2 rounded-xl text-sm font-medium border hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
+              style={{ borderColor: 'var(--border)', color: 'var(--foreground)' }}
+            >
               Edit Risk
             </button>
-            <button className="flex-1 py-2 rounded-xl text-sm font-semibold text-white bg-sky-500 hover:bg-sky-600 transition-colors cursor-pointer">
+            <button
+              onClick={async () => {
+                const updated = { ...risk, status: 'done' as any }
+                const saved = await db.saveRisk(updated)
+                if (onUpdate) onUpdate(saved)
+                toast.success('Risk status updated to Done')
+              }}
+              className="flex-1 py-2 rounded-xl text-sm font-semibold text-white bg-sky-500 hover:bg-sky-600 transition-colors cursor-pointer"
+            >
               Mark Mitigated
             </button>
           </div>

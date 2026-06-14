@@ -77,25 +77,19 @@ export function TriggersEditor({ triggers, onChange, library }: Props) {
                     value={c.control_ref_id ?? ''}
                     onChange={(e) => {
                       const ref = library.find((l) => l.id === e.target.value)
-                      patchControl(t.id, c.id, {
-                        control_ref_id: e.target.value || undefined,
-                        description: ref ? `${ref.control_id} — ${ref.title}` : c.description,
-                      })
+                      if (ref) {
+                        patchControl(t.id, c.id, {
+                          control_ref_id: ref.id,
+                          description: `${ref.control_id} — ${ref.title}`,
+                        })
+                      }
                     }}
-                    className="px-2 py-1 rounded-lg text-[11px] border outline-none shrink-0 max-w-[40%]"
+                    className="flex-1 px-2.5 py-1.5 rounded-lg text-xs border outline-none min-w-[200px]"
                     style={{ background: 'var(--muted)', borderColor: 'var(--border)', color: 'var(--foreground)' }}
-                    title="Control Library-dən seçin (və ya boş qoyub sərbəst yazın)"
                   >
-                    <option value="">Sərbəst mətn…</option>
+                    <option value="" disabled>Nəzarəti seçin...</option>
                     {library.map((l) => <option key={l.id} value={l.id}>{l.control_id} — {l.title}</option>)}
                   </select>
-                  <input
-                    value={c.description}
-                    onChange={(e) => patchControl(t.id, c.id, { description: e.target.value })}
-                    placeholder={`Control ${ci + 1} təsviri`}
-                    className="flex-1 px-2 py-1 rounded-lg text-[11px] border outline-none"
-                    style={{ background: 'var(--muted)', borderColor: 'var(--border)', color: 'var(--foreground)' }}
-                  />
                   <span className="text-[10px] font-bold shrink-0" style={{ color: assessed ? '#0ea5e9' : 'var(--muted-fg)' }}>
                     {assessed ? CONTROL_RATING_INFO[rating].label : 'qiymətləndirilməyib'}
                   </span>
