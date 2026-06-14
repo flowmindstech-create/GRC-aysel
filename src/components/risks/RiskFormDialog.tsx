@@ -17,23 +17,24 @@ import { validateRiskConsistency } from '@/lib/risk-logic'
 import { cn } from '@/lib/utils'
 import {
   calculateInherentLevel,
-  evaluateControlEffectiveness,
   evaluateControlActivity,
   aggregateControlEffectiveness,
   calculateResidualLevel,
   calculateRiskGap,
+  applyMaxImpactRule,
   getRoleAllowedStrategies,
-  TREATMENT_STRATEGY_LABELS,
   type TreatmentStrategy
 } from '@/lib/rcsa'
 import {
-  IMPACT_OPTIONS,
+  IMPACT_DOMAINS,
   LIKELIHOOD_OPTIONS,
   CONTROL_RATING_INFO,
+  TREATMENT_OPTIONS,
   residualLevelWord,
+  inherentLevelWord,
   computeDueDate
-} from '@/lib/rcsa-content'
-import { RcsaSelect } from './RcsaSelect'
+} from '@/lib/rcsa-methodology'
+import { RcsaDropdown } from './RcsaDropdown'
 import { TriggersEditor } from './TriggersEditor'
 
 const schema = z.object({
@@ -62,6 +63,9 @@ const schema = z.object({
   financial_impact: z.number().min(1).max(5),
   reputation_impact: z.number().min(1).max(5),
   compliance_impact: z.number().min(1).max(5),
+  business_process_impact: z.number().min(1).max(5),
+  hse_impact: z.number().min(1).max(5),
+  strategy_impact: z.number().min(1).max(5),
   target_residual_risk: z.string().optional(),
 })
 
@@ -110,6 +114,9 @@ export function RiskFormDialog({ risk, onClose, onSave }: Props) {
           financial_impact: risk.financial_impact || 1,
           reputation_impact: risk.reputation_impact || 1,
           compliance_impact: risk.compliance_impact || 1,
+          business_process_impact: risk.business_process_impact || 1,
+          hse_impact: risk.hse_impact || 1,
+          strategy_impact: risk.strategy_impact || 1,
           target_residual_risk: risk.target_residual_risk || 'low',
         }
       : {
@@ -125,33 +132,21 @@ export function RiskFormDialog({ risk, onClose, onSave }: Props) {
           financial_impact: 1,
           reputation_impact: 1,
           compliance_impact: 1,
+          business_process_impact: 1,
+          hse_impact: 1,
+          strategy_impact: 1,
           target_residual_risk: 'low',
         },
   })
 
   // Watch RCSA values for live calculation
-  const confidentiality = watch('confidentiality')
-  const integrity = watch('integrity')
-  const availability = watch('availability')
-  const operational_impact = watch('operational_impact')
-  const financial_impact = watch('financial_impact')
-  const reputation_impact = watch('reputation_impact')
-  const compliance_impact = watch('compliance_impact')
   const likelihood = watch('likelihood')
 
-  // Calculate final impact as the maximum watermark of all domains
-  const computedImpact = Math.max(
-    confidentiality || 1,
-    integrity || 1,
-    availability || 1,
-    operational_impact || 1,
-    financial_impact || 1,
-    reputation_impact || 1,
-    compliance_impact || 1
-  )
+  // Final impact = maximum watermark across all Excel impact dimensions
+  const computedImpact = Math.max(1, ...IMPACT_DOMAINS.map((d) => watch(d.field as any) || 1))
 
-  // Calculate Level based on the 5x5 Matrix
-  const computedLevel = calculateInherentLevel(likelihood, computedImpact)
+  // Inherent level from the 5x5 matrix + Excel special rule (impact=5 → at least Orta)
+  const computedLevel = applyMaxImpactRule(calculateInherentLevel(likelihood, computedImpact), computedImpact)
 
   // Control effectiveness is now aggregated from per-control assessments under triggers
   const effEval = aggregateControlEffectiveness(triggers)
@@ -223,10 +218,7 @@ export function RiskFormDialog({ risk, onClose, onSave }: Props) {
     const savedTriggers: RiskTrigger[] = triggers.map(t => ({
       ...t,
       controls: t.controls.map(c => {
-        const e = evaluateControlEffectiveness(
-          c.design_compliance || 3, c.design_strength || 3, c.design_timeliness || 3,
-          c.impl_relevance || 3, c.impl_sustainability || 3, c.impl_traceability || 3
-        )
+        const e = evaluateControlActivity(c)
         return { ...c, score: e.score, rating: e.rating }
       }),
     }))
@@ -412,7 +404,7 @@ export function RiskFormDialog({ risk, onClose, onSave }: Props) {
                     </div>
                     <div className="text-right">
                       <p className="text-[10px] font-bold uppercase tracking-wider">Matrix Rating</p>
-                      <p className="text-lg font-black uppercase mt-0.5">{computedLevel}</p>
+                      <p className="text-lg font-black uppercase mt-0.5">{inherentLevelWord(computedLevel)}</p>
                     </div>
                   </div>
 
@@ -420,81 +412,32 @@ export function RiskFormDialog({ risk, onClose, onSave }: Props) {
                   <div className="p-3 rounded-xl border border-sky-500/20 bg-sky-500/5 flex items-center justify-between text-xs">
                     <div>
                       <p className="font-bold text-slate-300">Hesablanmış Qalıq Risk (Residual)</p>
-                      <p className="text-[10px] text-slate-500 mt-0.5">Inherent ({computedLevel}) × Control ({CONTROL_RATING_INFO[effEval.rating].label})</p>
+                      <p className="text-[10px] text-slate-500 mt-0.5">Inherent ({inherentLevelWord(computedLevel)}) × Control ({CONTROL_RATING_INFO[effEval.rating].label})</p>
                     </div>
                     <span className="text-base font-black text-sky-400 uppercase">{residualLevelWord(residualLevel)}</span>
                   </div>
 
-                  {/* ── Təsir Reytinqi (Impact Rating Scale) Legend ── */}
-                  <div className="rounded-xl overflow-hidden border" style={{ borderColor: 'var(--border)' }}>
-                    <div className="flex">
-                      {/* Header cell */}
-                      <div className="flex items-center justify-center px-3 py-2 text-[10px] font-bold shrink-0 w-28"
-                        style={{ background: 'var(--card)', color: 'var(--foreground)', borderRight: '1px solid var(--border)' }}>
-                        Təsir reytinqi
-                      </div>
-                      {/* Scale cells */}
-                      {[
-                        { label: 'Minimal',   bg: '#16a34a', score: '1' },
-                        { label: 'Aşağı',     bg: '#ca8a04', score: '2' },
-                        { label: 'Orta',      bg: '#d97706', score: '3' },
-                        { label: 'Yüksək',    bg: '#ea580c', score: '4' },
-                        { label: 'Maksimum',  bg: '#dc2626', score: '5' },
-                      ].map((item, i) => (
-                        <div key={i} className="flex-1 flex flex-col items-center justify-center py-2 px-1 text-center"
-                          style={{ background: item.bg, borderLeft: i > 0 ? '1px solid rgba(255,255,255,0.15)' : undefined }}>
-                          <span className="text-[9px] font-black text-white leading-tight">{item.label}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Impact categories */}
+                  {/* 1. Impact domains (Excel "Təsir Şkalası" — 9 dimensions, compact dropdowns) */}
                   <div className="space-y-3">
-                    <h4 className="text-[11px] font-bold text-sky-400 uppercase tracking-wide border-b pb-1" style={{ borderColor: 'var(--border)' }}>1. Security Confidentiality, Integrity & Availability (CIA) Impacts</h4>
-                    <div className="grid grid-cols-3 gap-3">
-                      {[
-                        { name: 'confidentiality', label: 'Confidentiality' },
-                        { name: 'integrity', label: 'Integrity' },
-                        { name: 'availability', label: 'Availability' },
-                      ].map(f => (
-                        <RcsaSelect
-                          key={f.name}
-                          label={f.label}
-                          value={watch(f.name as any) || 1}
-                          options={IMPACT_OPTIONS}
-                          onChange={(v) => setValue(f.name as any, v)}
-                        />
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Impact Domains */}
-                  <div className="space-y-3">
-                    <h4 className="text-[11px] font-bold text-sky-400 uppercase tracking-wide border-b pb-1" style={{ borderColor: 'var(--border)' }}>2. Impact Domains (Operational, Financial, Reputation, Compliance)</h4>
+                    <h4 className="text-[11px] font-bold text-sky-400 uppercase tracking-wide border-b pb-1" style={{ borderColor: 'var(--border)' }}>1. Təsir domenləri (max watermark)</h4>
                     <div className="grid grid-cols-2 gap-3">
-                      {[
-                        { name: 'operational_impact', label: 'Operational Impact' },
-                        { name: 'financial_impact', label: 'Financial Loss Impact' },
-                        { name: 'reputation_impact', label: 'Reputation Damage' },
-                        { name: 'compliance_impact', label: 'Compliance & Legal Penalties' },
-                      ].map(f => (
-                        <RcsaSelect
-                          key={f.name}
-                          label={f.label}
-                          value={watch(f.name as any) || 1}
-                          options={IMPACT_OPTIONS}
-                          onChange={(v) => setValue(f.name as any, v)}
+                      {IMPACT_DOMAINS.map((d) => (
+                        <RcsaDropdown
+                          key={d.key}
+                          label={d.group ? `${d.group} · ${d.label}` : d.label}
+                          value={watch(d.field as any) || 1}
+                          options={d.options}
+                          onChange={(v) => setValue(d.field as any, v)}
                         />
                       ))}
                     </div>
                   </div>
 
-                  {/* Probability */}
+                  {/* 2. Likelihood / Probability */}
                   <div className="space-y-3">
-                    <h4 className="text-[11px] font-bold text-sky-400 uppercase tracking-wide border-b pb-1" style={{ borderColor: 'var(--border)' }}>3. Likelihood / Probability Rating</h4>
-                    <RcsaSelect
-                      label="Likelihood / Probability"
+                    <h4 className="text-[11px] font-bold text-sky-400 uppercase tracking-wide border-b pb-1" style={{ borderColor: 'var(--border)' }}>2. Ehtimal (Likelihood)</h4>
+                    <RcsaDropdown
+                      label="Ehtimal / Probability"
                       value={likelihood || 1}
                       options={LIKELIHOOD_OPTIONS}
                       onChange={(v) => setValue('likelihood', v)}
@@ -539,8 +482,8 @@ export function RiskFormDialog({ risk, onClose, onSave }: Props) {
                     {/* Consistency warnings */}
                     {consistencyIssues.length > 0 && (
                       <div className="space-y-1">
-                        {consistencyIssues.map((iss, i) => (
-                          <p key={i} className={`text-[10px] ${iss.severity === 'warning' ? 'text-amber-400' : 'text-slate-400'}`}>
+                        {consistencyIssues.map((iss) => (
+                          <p key={iss.message} className={`text-[10px] ${iss.severity === 'warning' ? 'text-amber-400' : 'text-slate-400'}`}>
                             • {iss.message}
                           </p>
                         ))}
@@ -594,15 +537,16 @@ export function RiskFormDialog({ risk, onClose, onSave }: Props) {
                         return <p className="text-[11px] text-amber-400">Cari rol ({currentRole}) yalnız baxış icazəsinə malikdir — treatment strategiyası seçə bilməz.</p>
                       }
                       return (
-                        <div className="flex flex-wrap gap-2">
-                          {allowed.map((s) => {
-                            const isActive = selected === s
+                        <div className="grid grid-cols-2 gap-2">
+                          {TREATMENT_OPTIONS.filter((o) => allowed.includes(o.value as TreatmentStrategy)).map((o) => {
+                            const isActive = selected === o.value
                             return (
-                              <button key={s} type="button" onClick={() => setValue('mitigation', s)}
-                                className={`px-3 py-1.5 rounded-lg text-[11px] font-bold border transition-colors cursor-pointer ${
-                                  isActive ? 'bg-sky-500 text-white border-sky-500' : 'border-white/10 text-slate-400 hover:border-white/20'
+                              <button key={o.value} type="button" onClick={() => setValue('mitigation', o.value)}
+                                className={`text-left px-3 py-2 rounded-lg border transition-colors cursor-pointer ${
+                                  isActive ? 'bg-sky-500/15 border-sky-500' : 'border-white/10 hover:border-white/20'
                                 }`}>
-                                {TREATMENT_STRATEGY_LABELS[s as TreatmentStrategy]}
+                                <p className="text-[11px] font-bold" style={{ color: 'var(--foreground)' }}>{o.label}</p>
+                                <p className="text-[10px] text-slate-500 leading-snug mt-0.5">{o.desc}</p>
                               </button>
                             )
                           })}

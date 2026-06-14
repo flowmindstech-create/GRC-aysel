@@ -71,8 +71,24 @@ export function evaluateControlEffectiveness(
   return { score, rating, label, designAvg, implementationAvg }
 }
 
-// Per-control effectiveness — runs the 6-criteria evaluation for one control activity.
+// Per-control effectiveness — Excel methodology: average of Design (Dizayn) + Implementation (Tətbiqi).
+// Falls back to the legacy 6 sub-criteria if the new fields are absent.
+export function ratingFromScore(score: number): { rating: ControlRating; label: string } {
+  if (score <= 1.5) return { rating: 'strong', label: 'Strong' }
+  if (score <= 2.5) return { rating: 'relatively_strong', label: 'Relatively Strong' }
+  if (score <= 3.5) return { rating: 'adequate', label: 'Adequate' }
+  if (score <= 4.5) return { rating: 'relatively_adequate', label: 'Relatively Adequate' }
+  return { rating: 'weak', label: 'Weak or None' }
+}
+
 export function evaluateControlActivity(a: RiskControlActivity): ControlEvaluation {
+  if (a.design != null || a.implementation != null) {
+    const designAvg = Math.max(1, Math.min(5, a.design || 3))
+    const implementationAvg = Math.max(1, Math.min(5, a.implementation || 3))
+    const score = (designAvg + implementationAvg) / 2
+    const { rating, label } = ratingFromScore(score)
+    return { score, rating, label, designAvg, implementationAvg }
+  }
   return evaluateControlEffectiveness(
     a.design_compliance || 3,
     a.design_strength || 3,
@@ -134,46 +150,27 @@ export function calculateRiskGap(residualLevel: RiskLevel, targetLevel: string |
   }
 }
 
+// Residual matrix — verbatim from Excel "Qalıq Risk" table.
+// Rows: control rating (strong=1 … weak=5). Cols: inherent level (minimal..critical).
+// Residual "critical" is displayed as "Çox Yüksək" (see residualLevelWord).
+const RESIDUAL_MATRIX: Record<ControlRating, RiskLevel[]> = {
+  // inherent:        minimal     low         medium      high        critical
+  strong:            ['minimal', 'minimal', 'low',      'low',      'medium'],
+  relatively_strong: ['minimal', 'minimal', 'low',      'medium',   'medium'],
+  adequate:          ['minimal', 'minimal', 'low',      'medium',   'high'],
+  relatively_adequate:['minimal','low',     'medium',   'high',     'critical'],
+  weak:              ['minimal', 'low',      'medium',   'high',     'critical'],
+}
+
 export function calculateResidualLevel(inherentLevel: RiskLevel, controlRating: ControlRating): RiskLevel {
-  // If control is weak or relatively adequate, the risk level is unchanged (Excel Rows 79 and 80)
-  if (controlRating === 'weak' || controlRating === 'relatively_adequate') {
-    return inherentLevel
-  }
+  const col = getRiskLevelNumber(inherentLevel) - 1
+  return RESIDUAL_MATRIX[controlRating]?.[col] ?? inherentLevel
+}
 
-  // Excel Row 81: 3 Adekvat
-  if (controlRating === 'adequate') {
-    switch (inherentLevel) {
-      case 'critical': return 'high'
-      case 'high': return 'medium'
-      case 'medium': return 'low'
-      case 'low': return 'minimal'
-      case 'minimal': return 'minimal'
-    }
-  }
-
-  // Excel Row 82: 2 Nisbətən Güclü
-  if (controlRating === 'relatively_strong') {
-    switch (inherentLevel) {
-      case 'critical': return 'medium'
-      case 'high': return 'medium'
-      case 'medium': return 'low'
-      case 'low': return 'minimal'
-      case 'minimal': return 'minimal'
-    }
-  }
-
-  // Excel Row 83: 1 Güclü
-  if (controlRating === 'strong') {
-    switch (inherentLevel) {
-      case 'critical': return 'medium' // Special Limit Rule: even with strong controls, critical inherent remains medium
-      case 'high': return 'low'
-      case 'medium': return 'low'
-      case 'low': return 'minimal'
-      case 'minimal': return 'minimal'
-    }
-  }
-
-  return inherentLevel
+// Excel special rule: if any impact dimension is 5 (Maksimum), the risk is at least Orta (Medium).
+export function applyMaxImpactRule(level: RiskLevel, maxImpact: number): RiskLevel {
+  if (maxImpact >= 5 && getRiskLevelNumber(level) < getRiskLevelNumber('medium')) return 'medium'
+  return level
 }
 
 export type TreatmentStrategy = 'accept' | 'mitigate' | 'transfer' | 'avoid'

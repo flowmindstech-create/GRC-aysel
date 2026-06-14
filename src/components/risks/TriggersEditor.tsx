@@ -2,31 +2,10 @@
 
 import { useState } from 'react'
 import type { Control, RiskTrigger, RiskControlActivity } from '@/types'
-import { CONTROL_CRITERIA } from '@/lib/rcsa-content'
+import { CONTROL_DESIGN_OPTIONS, CONTROL_IMPL_OPTIONS, CONTROL_RATING_INFO } from '@/lib/rcsa-methodology'
 import { evaluateControlActivity } from '@/lib/rcsa'
-import { CONTROL_RATING_INFO } from '@/lib/rcsa-content'
-import { RcsaSelect } from './RcsaSelect'
+import { RcsaDropdown } from './RcsaDropdown'
 import { Plus, Trash2, ChevronDown, ChevronRight, Zap } from 'lucide-react'
-
-// Map the shared 6 criteria onto per-control activity field keys.
-type ActivityKey =
-  | 'design_compliance' | 'design_strength' | 'design_timeliness'
-  | 'impl_relevance' | 'impl_sustainability' | 'impl_traceability'
-
-const NAME_TO_KEY: Record<string, ActivityKey> = {
-  control_design_compliance: 'design_compliance',
-  control_design_strength: 'design_strength',
-  control_design_timeliness: 'design_timeliness',
-  control_implementation_relevance: 'impl_relevance',
-  control_implementation_sustainability: 'impl_sustainability',
-  control_implementation_traceability: 'impl_traceability',
-}
-const CONTROL_FIELDS = CONTROL_CRITERIA.map((c) => ({
-  key: NAME_TO_KEY[c.name],
-  label: c.label,
-  group: c.group,
-  options: c.options,
-}))
 
 const uid = (p: string) =>
   typeof crypto !== 'undefined' && crypto.randomUUID ? `${p}-${crypto.randomUUID()}` : `${p}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`
@@ -141,16 +120,18 @@ export function TriggersEditor({ triggers, onChange, library }: Props) {
 
                   {isOpen && (
                     <div className="grid grid-cols-2 gap-2 pt-1">
-                      {CONTROL_FIELDS.map((f) => (
-                        <RcsaSelect
-                          key={f.key}
-                          label={f.label}
-                          value={(c[f.key] as number) || 3}
-                          options={f.options}
-                          accent={f.group === 'implementation' ? 'bg-emerald-500 text-white border-emerald-500' : undefined}
-                          onChange={(v) => patchControl(t.id, c.id, { [f.key]: v })}
-                        />
-                      ))}
+                      <RcsaDropdown
+                        label="Nəzarətin dizaynı"
+                        value={c.design || 3}
+                        options={CONTROL_DESIGN_OPTIONS}
+                        onChange={(v) => patchControl(t.id, c.id, { design: v })}
+                      />
+                      <RcsaDropdown
+                        label="Nəzarətin tətbiqi"
+                        value={c.implementation || 3}
+                        options={CONTROL_IMPL_OPTIONS}
+                        onChange={(v) => patchControl(t.id, c.id, { implementation: v })}
+                      />
                     </div>
                   )}
                 </div>

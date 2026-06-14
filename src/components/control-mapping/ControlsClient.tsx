@@ -6,7 +6,9 @@ import { db } from '@/lib/db'
 import { dbExt } from '@/lib/db-extensions'
 import type { Control, ControlMapping, EffectivenessRating, ControlType } from '@/types'
 import { cn } from '@/lib/utils'
-import { Search, Shield, CheckCircle2, AlertCircle, Clock, Plus, ChevronDown, ChevronUp } from 'lucide-react'
+import { Search, Shield, Plus, ChevronDown, ChevronUp, Pencil } from 'lucide-react'
+import { toast } from 'sonner'
+import { ControlFormDialog } from './ControlFormDialog'
 
 const TYPE_COLOR: Record<string, string> = {
   preventive: 'text-blue-400 bg-blue-400/10',
@@ -33,7 +35,7 @@ function EffBadge({ rating }: { rating?: EffectivenessRating }) {
   )
 }
 
-function ControlCard({ ctrl, mappings, index }: { ctrl: Control; mappings: ControlMapping[]; index: number }) {
+function ControlCard({ ctrl, mappings, index, onEdit }: { ctrl: Control; mappings: ControlMapping[]; index: number; onEdit: () => void }) {
   const [expanded, setExpanded] = useState(false)
   const myMappings = mappings.filter(m => m.control_id === ctrl.id)
   const eff = ctrl.effectiveness_rating as EffectivenessRating | undefined
@@ -85,6 +87,10 @@ function ControlCard({ ctrl, mappings, index }: { ctrl: Control; mappings: Contr
               {myMappings.length} mapped
             </span>
           )}
+          <button onClick={(e) => { e.stopPropagation(); onEdit() }} aria-label="Edit control"
+            className="p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer">
+            <Pencil className="w-3.5 h-3.5" style={{ color: 'var(--muted-fg)' }} />
+          </button>
           {expanded ? <ChevronUp className="w-4 h-4" style={{ color: 'var(--muted-fg)' }} /> : <ChevronDown className="w-4 h-4" style={{ color: 'var(--muted-fg)' }} />}
         </div>
       </div>
@@ -158,11 +164,25 @@ export function ControlsClient() {
   const [search, setSearch]       = useState('')
   const [fwFilter, setFwFilter]   = useState<string>('all')
   const [loading, setLoading]     = useState(true)
+  const [showForm, setShowForm]   = useState(false)
+  const [editControl, setEditControl] = useState<Control | null>(null)
 
   useEffect(() => {
     Promise.all([db.getControls(), dbExt.getControlMappings()])
-      .then(([c, m]) => { setControls(c); setMappings(m); setLoading(false) })
+      .then(([c, m]) => { setControls(c); setMappings(m) })
+      .catch(() => toast.error('Nəzarətlər yüklənmədi'))
+      .finally(() => setLoading(false))
   }, [])
+
+  const handleSaveControl = (saved: Control) => {
+    setControls(prev => {
+      const idx = prev.findIndex(c => c.id === saved.id)
+      if (idx >= 0) { const next = [...prev]; next[idx] = saved; return next }
+      return [saved, ...prev]
+    })
+    setShowForm(false)
+    setEditControl(null)
+  }
 
   const frameworks = ['all', ...Array.from(new Set(controls.map(c => c.framework)))]
 
@@ -217,6 +237,10 @@ export function ControlsClient() {
             </button>
           ))}
         </div>
+        <button onClick={() => { setEditControl(null); setShowForm(true) }}
+          className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold text-white bg-sky-500 hover:bg-sky-600 cursor-pointer">
+          <Plus className="w-4 h-4" /> New Control
+        </button>
       </div>
 
       {/* Cards */}
@@ -224,8 +248,18 @@ export function ControlsClient() {
         <div className="flex items-center justify-center h-40" style={{ color: 'var(--muted-fg)' }}>Loading…</div>
       ) : (
         <div className="space-y-3">
-          {filtered.map((c, i) => <ControlCard key={c.id} ctrl={c} mappings={mappings} index={i} />)}
+          {filtered.map((c, i) => <ControlCard key={c.id} ctrl={c} mappings={mappings} index={i} onEdit={() => { setEditControl(c); setShowForm(true) }} />)}
         </div>
+      )}
+
+      {showForm && (
+        <ControlFormDialog
+          key={editControl?.id ?? 'new'}
+          control={editControl}
+          existing={controls}
+          onClose={() => { setShowForm(false); setEditControl(null) }}
+          onSave={handleSaveControl}
+        />
       )}
     </div>
   )

@@ -54,6 +54,10 @@ export interface RiskControlActivity {
   id: string
   description: string
   control_ref_id?: string // optional link to controls.id (library)
+  // Excel methodology: control effectiveness = Design (Dizayn) + Implementation (Tətbiqi), each 1-5 (1=Güclü best)
+  design?: number
+  implementation?: number
+  // legacy 6 sub-criteria (kept for old data)
   design_compliance?: number
   design_strength?: number
   design_timeliness?: number
@@ -120,6 +124,9 @@ export interface Risk {
   financial_impact?: number
   reputation_impact?: number
   compliance_impact?: number
+  business_process_impact?: number
+  hse_impact?: number
+  strategy_impact?: number
   target_residual_risk?: string
   // Aggregate control effectiveness (derived from per-control triggers assessment)
   control_design?: number
@@ -174,7 +181,7 @@ export interface IncidentTimelineEvent {
 
 // ─── Compliance ───────────────────────────────────────────────────────────────
 
-export type ControlFramework = 'iso27001' | 'soc2' | 'gdpr' | 'pci_dss'
+export type ControlFramework = 'iso27001' | 'soc2' | 'gdpr' | 'pci_dss' | 'custom'
 export type ControlStatus = 'pass' | 'fail' | 'partial' | 'na'
 export type ControlType = 'preventive' | 'detective' | 'corrective' | 'directive'
 export type ControlClassification = 'manual' | 'automated' | 'hybrid'
