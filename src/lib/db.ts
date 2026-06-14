@@ -185,6 +185,7 @@ export const db = {
         ...sanitized,
         owner_id: sanitized.owner_id || null
       }
+      delete payload.owner_name
       const { data, error } = await supabase.from('risks').upsert(payload).select().single()
       if (error) console.error('Supabase saveRisk error:', error)
       if (!error && data) return data as Risk
@@ -254,6 +255,8 @@ export const db = {
         assigned_to: sanitized.assigned_to || null,
         reported_by: sanitized.reported_by || null
       }
+      delete payload.assigned_name
+      delete payload.reporter_name
       const { data, error } = await supabase.from('incidents').upsert(payload).select().single()
       if (error) console.error('Supabase saveIncident error:', error)
       if (!error && data) return data as Incident
@@ -371,6 +374,7 @@ export const db = {
         ...sanitized,
         auditor_id: sanitized.auditor_id || null
       }
+      delete payload.auditor_name
       const { data, error } = await supabase.from('audits').upsert(payload).select().single()
       if (error) console.error('Supabase saveAudit error:', error)
       if (!error && data) return data as Audit
@@ -545,6 +549,7 @@ export const db = {
         user_id: sanitized.user_id || null,
         entity_id: sanitized.entity_id || null
       }
+      delete payload.user_name
       const { data, error } = await supabase.from('activities').insert(payload).select().single()
       if (error) console.error('Supabase addActivity error:', error)
       if (!error && data) return data as Activity
@@ -827,7 +832,19 @@ export const db = {
     if (isSupabaseConfigured()) {
       const { createClient } = await import('./supabase/client')
       const supabase = createClient()
-      const { data, error } = await supabase.from('grc_intake_items').upsert(sanitized).select().single()
+      const payload: any = { ...sanitized }
+      const dbColumns = [
+        'id', 'org_id', 'type', 'title', 'description', 'classification',
+        'mapped_control_ids', 'evidence_url', 'evidence_note', 'status',
+        'step', 'gap_identified', 'risk_creation_required', 'risk_created_id',
+        'created_at'
+      ]
+      for (const key of Object.keys(payload)) {
+        if (!dbColumns.includes(key)) {
+          delete payload[key]
+        }
+      }
+      const { data, error } = await supabase.from('grc_intake_items').upsert(payload).select().single()
       if (error) console.error('Supabase saveGRCIntakeItem error:', error)
       if (!error && data) return data as GRCIntakeItem
     }

@@ -5,8 +5,8 @@ import { Sun, Moon, Bell, Search, LogOut, User, ChevronDown } from 'lucide-react
 import { cn } from '@/lib/utils'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { getCurrentProfile } from '@/lib/db'
-import type { UserProfile } from '@/types'
+import { db, getCurrentProfile } from '@/lib/db'
+import type { Activity, UserProfile } from '@/types'
 
 interface TopNavProps {
   title: string
@@ -19,16 +19,31 @@ function deleteMockSessionCookie() {
   }
 }
 
+function timeAgo(iso: string): string {
+  const s = Math.floor((Date.now() - new Date(iso).getTime()) / 1000)
+  if (s < 60) return 'just now'
+  const m = Math.floor(s / 60)
+  if (m < 60) return `${m}m ago`
+  const h = Math.floor(m / 60)
+  if (h < 24) return `${h}h ago`
+  const d = Math.floor(h / 24)
+  if (d < 7) return `${d}d ago`
+  return new Date(iso).toLocaleDateString()
+}
+
 export function TopNav({ title, subtitle }: TopNavProps) {
   const { theme, setTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
   const [showUserMenu, setShowUserMenu] = useState(false)
+  const [showNotif, setShowNotif] = useState(false)
   const [profile, setProfile] = useState<UserProfile | null>(null)
+  const [activities, setActivities] = useState<Activity[]>([])
   const router = useRouter()
 
   useEffect(() => {
     const t = setTimeout(() => setMounted(true), 0)
     getCurrentProfile().then(setProfile)
+    db.getActivities().then((a) => setActivities(a.slice(0, 12))).catch(() => {})
     return () => clearTimeout(t)
   }, [])
 
@@ -94,18 +109,69 @@ export function TopNav({ title, subtitle }: TopNavProps) {
       </div>
 
       {/* Notifications */}
-      <button
-        className="relative w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
-        style={{ color: 'var(--muted-fg)' }}
-        onMouseEnter={e => ((e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.05)')}
-        onMouseLeave={e => ((e.currentTarget as HTMLElement).style.background = '')}
-      >
-        <Bell className="w-4 h-4" />
-        <span
-          className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full"
-          style={{ background: 'var(--risk-critical)', boxShadow: '0 0 6px rgba(225,29,72,0.6)' }}
-        />
-      </button>
+      <div className="relative">
+        <button
+          onClick={() => { setShowNotif(v => !v); setShowUserMenu(false) }}
+          className="relative w-8 h-8 rounded-lg flex items-center justify-center transition-colors cursor-pointer"
+          style={{ color: 'var(--muted-fg)' }}
+          onMouseEnter={e => ((e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.05)')}
+          onMouseLeave={e => ((e.currentTarget as HTMLElement).style.background = '')}
+          aria-label="Notifications"
+        >
+          <Bell className="w-4 h-4" />
+          {activities.length > 0 && (
+            <span
+              className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full"
+              style={{ background: 'var(--risk-critical)', boxShadow: '0 0 6px rgba(225,29,72,0.6)' }}
+            />
+          )}
+        </button>
+
+        {showNotif && (
+          <>
+            <div className="fixed inset-0 z-40" onClick={() => setShowNotif(false)} />
+            <div
+              className="absolute right-0 top-full mt-2 w-80 rounded-xl shadow-2xl z-50 border overflow-hidden"
+              style={{
+                background: 'rgba(12,20,38,0.97)',
+                backdropFilter: 'blur(16px)',
+                borderColor: 'var(--border)',
+                boxShadow: '0 8px 32px rgba(0,0,0,0.4), 0 2px 8px rgba(0,0,0,0.2)',
+              }}
+            >
+              <div className="flex items-center justify-between px-4 py-3 border-b" style={{ borderColor: 'var(--border)' }}>
+                <p className="text-xs font-bold uppercase tracking-wide" style={{ color: 'var(--foreground)' }}>Notifications</p>
+                {activities.length > 0 && (
+                  <span className="text-[10px] px-1.5 py-0.5 rounded-full font-semibold" style={{ background: 'rgba(14,165,233,0.15)', color: 'var(--brand-500)' }}>{activities.length}</span>
+                )}
+              </div>
+
+              <div className="max-h-80 overflow-y-auto">
+                {activities.length === 0 ? (
+                  <div className="px-4 py-10 text-center">
+                    <Bell className="w-6 h-6 mx-auto mb-2" style={{ color: 'var(--muted-fg)', opacity: 0.4 }} />
+                    <p className="text-xs" style={{ color: 'var(--muted-fg)' }}>No notifications yet</p>
+                  </div>
+                ) : (
+                  activities.map((a) => (
+                    <div key={a.id} className="flex items-start gap-2.5 px-4 py-2.5 border-b last:border-b-0 transition-colors hover:bg-white/[0.03]" style={{ borderColor: 'var(--border)' }}>
+                      <span className="mt-1.5 w-1.5 h-1.5 rounded-full shrink-0" style={{ background: 'var(--brand-500)' }} />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs leading-snug" style={{ color: 'var(--foreground)' }}>
+                          {a.user_name && <span className="font-semibold">{a.user_name} </span>}
+                          {a.action}
+                          {a.entity_title && <span className="font-medium"> — {a.entity_title}</span>}
+                        </p>
+                        <p className="text-[10px] mt-0.5" style={{ color: 'var(--muted-fg)' }}>{timeAgo(a.created_at)}</p>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </>
+        )}
+      </div>
 
       {/* Theme toggle */}
       {mounted && (
@@ -128,9 +194,9 @@ export function TopNav({ title, subtitle }: TopNavProps) {
       {/* User menu */}
       <div className="relative">
         <button
-          onClick={() => setShowUserMenu(!showUserMenu)}
+          onClick={() => { setShowUserMenu(v => !v); setShowNotif(false) }}
           className={cn(
-            'flex items-center gap-2 pl-1 pr-2.5 py-1 rounded-lg transition-colors',
+            'flex items-center gap-2 pl-1 pr-2.5 py-1 rounded-lg transition-colors cursor-pointer',
           )}
           onMouseEnter={e => ((e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.04)')}
           onMouseLeave={e => ((e.currentTarget as HTMLElement).style.background = '')}

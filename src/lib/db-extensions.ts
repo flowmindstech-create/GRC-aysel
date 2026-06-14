@@ -61,9 +61,13 @@ export const dbExt = {
     if (isSupabase()) {
       const { createClient } = await import('./supabase/client')
       const sb = createClient()
+      const payload: any = { ...sanitized }
+      delete payload.finding_title
+      delete payload.finding_severity
+      delete payload.finding_recommendation
       const { data, error } = await sb
         .from('audit_finding_workflow')
-        .upsert(sanitized)
+        .upsert(payload)
         .select()
         .single()
       if (error) console.error('Supabase saveAuditFindingWorkflow error:', error)
