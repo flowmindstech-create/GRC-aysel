@@ -106,6 +106,7 @@ export function ObligationDetailSheet({ obligation, onClose, onEdit }: Props) {
             <div className="grid grid-cols-2 gap-3">
               <Field label="Framework" value={obligation.source} />
               <Field label="Source Type" value={obligation.source_type} />
+              <Field label="Obligation Type" value={obligation.obligation_type === 'commitment' ? 'Commitment' : 'Requirement'} />
               <Field label="Criticality" value={CRITICALITY_LABEL[obligation.criticality]} />
               <Field label="Effective Date" value={obligation.effective_date} />
               <Field label="Next Review" value={obligation.next_review_date} />

@@ -7,7 +7,7 @@ import { db } from '@/lib/db'
 import { residualLevelWord, inherentLevelWord } from '@/lib/rcsa-methodology'
 import type {
   ComplianceObligation, ObligationStatus, ObligationSource,
-  ObligationSourceType, ObligationCriticality, OrgUnit, Risk, Control,
+  ObligationSourceType, ObligationCriticality, ObligationType, OrgUnit, Risk, Control,
 } from '@/types'
 
 const SOURCES: ObligationSource[] = [
@@ -34,6 +34,11 @@ const CRITICALITIES: { value: ObligationCriticality; label: string }[] = [
   { value: 'high',   label: 'High' },
 ]
 
+const OBLIGATION_TYPES: { value: ObligationType; label: string }[] = [
+  { value: 'requirement', label: 'Requirement (mandatory)' },
+  { value: 'commitment',  label: 'Commitment (voluntary)' },
+]
+
 interface Props {
   obligation: ComplianceObligation | null
   onClose: () => void
@@ -56,6 +61,7 @@ export function ObligationFormDialog({ obligation, onClose, onSave, onSaved }: P
   const [complianceCondition, setCondition]  = useState(obligation?.compliance_condition ?? '')
   const [responsibleStructure, setStructure] = useState(obligation?.responsible_structure ?? '')
   const [status, setStatus]               = useState<ObligationStatus>(obligation?.status ?? 'under_review')
+  const [obligationType, setObligationType] = useState<ObligationType>(obligation?.obligation_type ?? 'requirement')
   const [criticality, setCriticality]     = useState<ObligationCriticality>(obligation?.criticality ?? 'medium')
   const [primaryRiskId, setPrimaryRisk]   = useState(obligation?.primary_risk_id ?? '')
   const [effectiveDate, setEffective]     = useState(obligation?.effective_date ?? '')
@@ -105,6 +111,7 @@ export function ObligationFormDialog({ obligation, onClose, onSave, onSaved }: P
       compliance_condition: complianceCondition.trim() || undefined,
       source,
       source_type:      sourceType,
+      obligation_type:  obligationType,
       source_reference: sourceReference.trim() || undefined,
       source_url:       sourceUrl.trim() || undefined,
       accountable_owner: accountableOwner.trim() || undefined,
@@ -279,6 +286,13 @@ export function ObligationFormDialog({ obligation, onClose, onSave, onSaved }: P
                   {CRITICALITIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
                 </select>
               </div>
+            </div>
+            <div>
+              <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Obligation Type (ISO 37301)</label>
+              <select value={obligationType} onChange={e => setObligationType(e.target.value as ObligationType)}
+                className={`${fieldCls} cursor-pointer`} style={inputStyle}>
+                {OBLIGATION_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+              </select>
             </div>
 
             {sectionTitle('Dates')}

@@ -849,6 +849,8 @@ export type ObligationStatus = 'compliant' | 'non_compliant' | 'under_review' | 
 // Category of the obligation source
 export type ObligationSourceType = 'external' | 'internal' | 'contractual'
 export type ObligationCriticality = 'low' | 'medium' | 'high'
+// ISO 37301: legally binding (requirement) vs voluntary/contractual (commitment)
+export type ObligationType = 'requirement' | 'commitment'
 // The framework / standard the obligation derives from
 export type ObligationSource =
   | 'ISO 27001'
@@ -870,6 +872,7 @@ export interface ComplianceObligation {
   // Source
   source: ObligationSource
   source_type: ObligationSourceType
+  obligation_type?: ObligationType // ISO 37301: requirement (mandatory) vs commitment (voluntary)
   source_reference?: string // law article / clause text
   source_url?: string
   // Accountability

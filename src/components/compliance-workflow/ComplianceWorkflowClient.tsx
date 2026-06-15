@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { db } from '@/lib/db'
-import type { ComplianceObligation, ObligationStatus, ObligationSource, ObligationCriticality, Risk } from '@/types'
+import type { ComplianceObligation, ObligationStatus, ObligationSource, ObligationCriticality, ObligationType, Risk } from '@/types'
 import { residualLevelWord, inherentLevelWord } from '@/lib/rcsa-methodology'
 import { cn } from '@/lib/utils'
 import { ObligationFormDialog } from './ObligationFormDialog'
@@ -30,6 +30,11 @@ const CRITICALITY_CONFIG: Record<ObligationCriticality, { label: string; classes
   low:    { label: 'Low',    classes: 'bg-emerald-500/15 text-emerald-400' },
   medium: { label: 'Medium', classes: 'bg-amber-500/15 text-amber-400' },
   high:   { label: 'High',   classes: 'bg-red-500/15 text-red-400' },
+}
+
+const TYPE_CONFIG: Record<ObligationType, { label: string; classes: string }> = {
+  requirement: { label: 'Requirement', classes: 'bg-blue-500/15 text-blue-400' },
+  commitment:  { label: 'Commitment',  classes: 'bg-violet-500/15 text-violet-400' },
 }
 
 const SOURCE_COLORS: Record<ObligationSource, string> = {
@@ -191,7 +196,7 @@ export function ComplianceWorkflowClient() {
           <table className="w-full">
             <thead>
               <tr style={{ borderBottom: '1px solid var(--border)', background: 'var(--muted)' }}>
-                {['Code', 'Requirement', 'Source', 'Condition', 'Article', 'Status', 'Criticality', 'Resp. Structure', 'Resp. Person', 'Related Risk', 'Degree', 'Likelihood', 'Initial', 'Links', ''].map(h => (
+                {['Code', 'Requirement', 'Source', 'Condition', 'Article', 'Status', 'Type', 'Criticality', 'Resp. Structure', 'Resp. Person', 'Related Risk', 'Degree', 'Likelihood', 'Initial', 'Links', ''].map(h => (
                   <th key={h} className="text-left px-3 py-3 text-[11px] font-semibold uppercase tracking-wide whitespace-nowrap" style={{ color: 'var(--muted-fg)' }}>
                     {h}
                   </th>
@@ -200,10 +205,10 @@ export function ComplianceWorkflowClient() {
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={15} className="py-16 text-center text-sm" style={{ color: 'var(--muted-fg)' }}>Loading…</td></tr>
+                <tr><td colSpan={16} className="py-16 text-center text-sm" style={{ color: 'var(--muted-fg)' }}>Loading…</td></tr>
               ) : filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={15} className="py-16 text-center" style={{ color: 'var(--muted-fg)' }}>
+                  <td colSpan={16} className="py-16 text-center" style={{ color: 'var(--muted-fg)' }}>
                     <div className="flex flex-col items-center gap-2">
                       <ScrollText className="w-8 h-8 opacity-30" />
                       <p className="text-sm">No obligations found</p>
@@ -288,6 +293,14 @@ export function ComplianceWorkflowClient() {
                               </div>
                             )}
                           </div>
+                        </td>
+
+                        {/* Obligation type */}
+                        <td className="px-3 py-3.5">
+                          {(() => {
+                            const t = TYPE_CONFIG[item.obligation_type ?? 'requirement']
+                            return <span className={cn('inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold whitespace-nowrap', t.classes)}>{t.label}</span>
+                          })()}
                         </td>
 
                         {/* Criticality */}

@@ -874,7 +874,7 @@ export const db = {
       const payload: any = { ...sanitized }
       const dbColumns = [
         'id', 'org_id', 'obligation_code', 'title', 'description', 'compliance_condition',
-        'source', 'source_type', 'source_reference', 'source_url',
+        'source', 'source_type', 'obligation_type', 'source_reference', 'source_url',
         'accountable_owner', 'responsible_party', 'responsible_structure', 'applicable_depts',
         'status', 'criticality', 'primary_risk_id', 'effective_date', 'next_review_date',
         'created_at', 'updated_at'
@@ -924,8 +924,8 @@ export const db = {
   // Compares prior vs next and records a change entry (created / status_changed / updated).
   async logObligationChange(prior: ComplianceObligation | null, next: ComplianceObligation): Promise<void> {
     const fields: (keyof ComplianceObligation)[] = [
-      'title', 'description', 'compliance_condition', 'source', 'source_type', 'source_reference',
-      'source_url', 'accountable_owner', 'responsible_party', 'responsible_structure',
+      'title', 'description', 'compliance_condition', 'source', 'source_type', 'obligation_type',
+      'source_reference', 'source_url', 'accountable_owner', 'responsible_party', 'responsible_structure',
       'applicable_depts', 'status', 'criticality', 'primary_risk_id', 'effective_date', 'next_review_date',
     ]
     let action = 'created'
