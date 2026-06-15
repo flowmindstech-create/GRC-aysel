@@ -18,7 +18,13 @@ const STATUS_LABEL: Record<ObligationStatus, { label: string; classes: string }>
   not_applicable: { label: 'Not Applicable', classes: 'bg-zinc-500/15 text-zinc-400 border-zinc-500/25' },
 }
 
-const CRITICALITY_LABEL: Record<ObligationCriticality, string> = { low: 'Low', medium: 'Medium', high: 'High' }
+const CRITICALITY_LABEL: Record<ObligationCriticality, string> = {
+  minimal: 'Minimal',
+  low: 'Low',
+  medium: 'Medium',
+  high: 'High',
+  critical: 'Critical',
+}
 
 interface Props {
   obligation: ComplianceObligation

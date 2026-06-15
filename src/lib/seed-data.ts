@@ -1,6 +1,7 @@
 import type {
   Risk, Incident, Control, Audit, AuditFinding,
-  Vendor, Activity, DashboardStats, UserProfile, OrgUnit, OrgUnitType
+  Vendor, Activity, DashboardStats, UserProfile, OrgUnit, OrgUnitType,
+  Policy, PolicyChangeEntry, RegulatoryChange
 } from '@/types'
 
 // ─── Users ───────────────────────────────────────────────────────────────────
@@ -119,7 +120,7 @@ export const MOCK_INCIDENTS: Incident[] = [
   {
     id: 'i1', org_id: 'org1', title: 'Phishing Attack — Finance Team',
     description: '3 finance team members clicked a credential-harvesting phishing link. One credential was compromised before MFA blocked access.',
-    severity: 'high', status: 'investigating',
+    severity: 'high', status: 'investigating', workflow_stage: 'investigation',
     assigned_to: 'u2', assigned_name: 'Leyla Mammadova',
     reported_by: 'u4', reporter_name: 'Nigar Aliyeva',
     created_at: '2025-01-18T08:30:00Z', updated_at: '2025-01-18T12:00:00Z',
@@ -127,7 +128,7 @@ export const MOCK_INCIDENTS: Incident[] = [
   {
     id: 'i2', org_id: 'org1', title: 'Production Database Outage — 2.5 Hours',
     description: 'Primary PostgreSQL database became unresponsive due to a runaway query from a recent deployment. Caused 2.5 hour service outage.',
-    severity: 'critical', status: 'resolved',
+    severity: 'critical', status: 'resolved', workflow_stage: 'resolution',
     assigned_to: 'u3', assigned_name: 'Rauf Quliyev',
     reported_by: 'u1', reporter_name: 'Ali Hasanov',
     created_at: '2025-01-10T02:15:00Z',
@@ -137,7 +138,7 @@ export const MOCK_INCIDENTS: Incident[] = [
   {
     id: 'i3', org_id: 'org1', title: 'Unauthorized Data Access by Former Employee',
     description: 'IT audit revealed a terminated employee retained active VPN credentials and accessed the customer database 11 days post-termination.',
-    severity: 'critical', status: 'investigating',
+    severity: 'critical', status: 'investigating', workflow_stage: 'investigation',
     assigned_to: 'u2', assigned_name: 'Leyla Mammadova',
     reported_by: 'u3', reporter_name: 'Rauf Quliyev',
     created_at: '2025-01-15T11:00:00Z', updated_at: '2025-01-16T09:00:00Z',
@@ -145,7 +146,7 @@ export const MOCK_INCIDENTS: Incident[] = [
   {
     id: 'i4', org_id: 'org1', title: 'DDoS Attack on Web Application',
     description: 'Volumetric DDoS attack at 28 Gbps targeting public API. Cloudflare WAF mitigated in 18 minutes. No data exfiltration detected.',
-    severity: 'medium', status: 'resolved',
+    severity: 'medium', status: 'resolved', workflow_stage: 'resolution',
     assigned_to: 'u1', assigned_name: 'Ali Hasanov',
     reported_by: 'u2', reporter_name: 'Leyla Mammadova',
     created_at: '2025-01-07T19:00:00Z',
@@ -156,9 +157,141 @@ export const MOCK_INCIDENTS: Incident[] = [
 
 // ─── Controls ─────────────────────────────────────────────────────────────────
 
-// Control Library starts empty — controls are added from the UI (ControlFormDialog)
-// or seeded from ISO standards. No demo controls.
-export const MOCK_CONTROLS: Control[] = []
+export const MOCK_CONTROLS: Control[] = [
+  {
+    id: 'c1',
+    org_id: 'org1',
+    framework: 'iso27001',
+    control_id: 'A.5.1',
+    title: 'Information Security Policies',
+    description: 'A set of policies for information security shall be defined, approved by management, published and communicated to employees and relevant external parties.',
+    status: 'pass',
+    effectiveness_rating: 'effective',
+    design_effectiveness: 'pass',
+    operating_effectiveness: 'pass',
+    classification: 'manual',
+    execution_frequency: 'annual',
+    approval_status: 'approved',
+    version: 1,
+    is_live: true,
+    created_at: '2025-01-01T00:00:00Z',
+    updated_at: '2025-01-01T00:00:00Z',
+  },
+  {
+    id: 'c2',
+    org_id: 'org1',
+    framework: 'iso27001',
+    control_id: 'A.6.1',
+    title: 'Information Security Roles and Responsibilities',
+    description: 'All information security responsibilities shall be defined and allocated.',
+    status: 'pass',
+    effectiveness_rating: 'effective',
+    design_effectiveness: 'pass',
+    operating_effectiveness: 'pass',
+    classification: 'hybrid',
+    execution_frequency: 'continuous',
+    approval_status: 'approved',
+    version: 1,
+    is_live: true,
+    created_at: '2025-01-01T00:00:00Z',
+    updated_at: '2025-01-01T00:00:00Z',
+  },
+  {
+    id: 'c3',
+    org_id: 'org1',
+    framework: 'iso27001',
+    control_id: 'A.8.1',
+    title: 'Inventory of Assets',
+    description: 'Information, other assets associated with information and information processing facilities shall be identified and an inventory of these assets shall be drawn up and maintained.',
+    status: 'partial',
+    effectiveness_rating: 'partially_effective',
+    design_effectiveness: 'pass',
+    operating_effectiveness: 'partial',
+    classification: 'automated',
+    execution_frequency: 'monthly',
+    approval_status: 'approved',
+    version: 2,
+    is_live: true,
+    created_at: '2025-01-01T00:00:00Z',
+    updated_at: '2025-01-01T00:00:00Z',
+  },
+  {
+    id: 'c4',
+    org_id: 'org1',
+    framework: 'iso27001',
+    control_id: 'A.9.1',
+    title: 'Access Control Policy',
+    description: 'An access control policy shall be established, documented and reviewed based on business and information security requirements.',
+    status: 'fail',
+    effectiveness_rating: 'ineffective',
+    design_effectiveness: 'fail',
+    operating_effectiveness: 'fail',
+    classification: 'manual',
+    execution_frequency: 'quarterly',
+    approval_status: 'approved',
+    version: 1,
+    is_live: true,
+    created_at: '2025-01-01T00:00:00Z',
+    updated_at: '2025-01-01T00:00:00Z',
+  },
+  {
+    id: 'c5',
+    org_id: 'org1',
+    framework: 'pci_dss',
+    control_id: 'PCI-6.4.3',
+    title: 'Production Environment Access Control',
+    description: 'Ensure that access to the production environment is strictly restricted and audit logs are maintained.',
+    status: 'pass',
+    effectiveness_rating: 'effective',
+    design_effectiveness: 'pass',
+    operating_effectiveness: 'pass',
+    classification: 'automated',
+    execution_frequency: 'continuous',
+    approval_status: 'approved',
+    version: 1,
+    is_live: true,
+    created_at: '2025-01-01T00:00:00Z',
+    updated_at: '2025-01-01T00:00:00Z',
+  },
+  {
+    id: 'c6',
+    org_id: 'org1',
+    framework: 'soc2',
+    control_id: 'CC6.1',
+    title: 'Logical Access Controls',
+    description: 'The entity restricts logical access to security assets to authorized users.',
+    status: 'partial',
+    effectiveness_rating: 'partially_effective',
+    design_effectiveness: 'pass',
+    operating_effectiveness: 'partial',
+    classification: 'hybrid',
+    execution_frequency: 'monthly',
+    approval_status: 'approved',
+    version: 1,
+    is_live: true,
+    created_at: '2025-01-01T00:00:00Z',
+    updated_at: '2025-01-01T00:00:00Z',
+  },
+  {
+    id: 'c7',
+    org_id: 'org1',
+    framework: 'gdpr',
+    control_id: 'Art-32',
+    title: 'Security of Personal Data Processing',
+    description: 'Implement appropriate technical and organizational measures to ensure a level of security appropriate to the risk.',
+    status: 'pass',
+    effectiveness_rating: 'effective',
+    design_effectiveness: 'pass',
+    operating_effectiveness: 'pass',
+    classification: 'hybrid',
+    execution_frequency: 'continuous',
+    approval_status: 'approved',
+    version: 1,
+    is_live: true,
+    created_at: '2025-01-01T00:00:00Z',
+    updated_at: '2025-01-01T00:00:00Z',
+  }
+]
 
 // ─── Audits ───────────────────────────────────────────────────────────────────
 
@@ -279,4 +412,134 @@ export const MOCK_DASHBOARD_STATS: DashboardStats = {
     { month: 'Dec', count: 1 }, { month: 'Jan', count: 4 },
   ],
 }
+
+// ─── Policies ─────────────────────────────────────────────────────────────────
+
+export const MOCK_POLICIES: Policy[] = [
+  {
+    id: 'p1',
+    org_id: 'org1',
+    policy_id: 'POL-2026-101',
+    title: 'İnformasiya Təhlükəsizliyi Siyasəti (Information Security Policy)',
+    description: 'Şirkət daxilində bütün informasiya aktivlərinin qorunması, istifadəçi səlahiyyətlərinin idarə edilməsi və təhlükəsizlik qaydalarını müəyyən edir.',
+    category: 'information_security',
+    version: '2.1',
+    status: 'published',
+    owner_dept: 'İnformasiya Təhlükəsizliyi Şöbəsi',
+    effective_date: '2026-01-01',
+    review_date: '2027-01-01',
+    linked_control_ids: ['c1', 'c2'],
+    linked_requirement_ids: [],
+    change_summary: 'MFA tələbləri və uzaqdan iş qaydaları yeniləndi.',
+    change_history: [
+      { version: '1.0', changed_by: 'Ali Hasanov', changed_at: '2024-01-01T08:00:00Z', summary: 'İlk versiya yaradıldı.' },
+      { version: '2.0', changed_by: 'Ali Hasanov', changed_at: '2025-01-01T09:00:00Z', summary: 'Şifrə mürəkkəbliyi tələbləri sərtləşdirildi.' },
+      { version: '2.1', changed_by: 'Ali Hasanov', changed_at: '2026-01-01T10:00:00Z', summary: 'MFA tələbləri və uzaqdan iş qaydaları yeniləndi.' }
+    ],
+    created_at: '2024-01-01T08:00:00Z',
+    updated_at: '2026-01-01T10:00:00Z'
+  },
+  {
+    id: 'p2',
+    org_id: 'org1',
+    policy_id: 'POL-2026-102',
+    title: 'Fərdi Məlumatların Qorunması Siyasəti (Data Protection Policy)',
+    description: 'Müştəri və tərəfdaşların fərdi məlumatlarının toplanması, emal edilməsi və saxlanması proseslərinin tənzimlənməsi.',
+    category: 'compliance',
+    version: '1.0',
+    status: 'approved',
+    owner_dept: 'Hüquq şöbəsi',
+    effective_date: '2026-03-01',
+    review_date: '2027-03-01',
+    linked_control_ids: [],
+    linked_requirement_ids: [],
+    change_history: [
+      { version: '1.0', changed_by: 'Leyla Mammadova', changed_at: '2026-02-15T14:30:00Z', summary: 'GDPR və yerli qanunvericilik əsasında ilkin sənəd.' }
+    ],
+    created_at: '2026-02-15T14:30:00Z',
+    updated_at: '2026-02-15T14:30:00Z'
+  },
+  {
+    id: 'p3',
+    org_id: 'org1',
+    policy_id: 'POL-2026-103',
+    title: 'Biznesin Fasiləsizliyi Planı (Business Continuity Policy)',
+    description: 'Fövqəladə hallar və gözlənilməz kəsintilər zamanı kritik biznes proseslərinin bərpası və davamlılığının təmin edilməsi.',
+    category: 'operational',
+    version: '1.0',
+    status: 'in_review',
+    owner_dept: 'Risklərin idarəedilməsi şöbəsi',
+    review_date: '2026-12-01',
+    linked_control_ids: [],
+    linked_requirement_ids: [],
+    change_history: [
+      { version: '1.0', changed_by: 'Leyla Mammadova', changed_at: '2026-05-10T11:00:00Z', summary: 'İlkin layihə rəy üçün təqdim edilib.' }
+    ],
+    created_at: '2026-05-10T11:00:00Z',
+    updated_at: '2026-05-10T11:00:00Z'
+  },
+  {
+    id: 'p4',
+    org_id: 'org1',
+    policy_id: 'POL-2026-104',
+    title: 'İnsan Resursları Təhlükəsizlik Qaydaları (HR Security Policy)',
+    description: 'İşə qəbul, işdən ayrılma və daxili intizam qaydalarında təhlükəsizlik tələbləri.',
+    category: 'hr',
+    version: '1.0',
+    status: 'draft',
+    owner_dept: 'İnsan resurslarının idarəedilməsi şöbəsi',
+    linked_control_ids: [],
+    linked_requirement_ids: [],
+    change_history: [],
+    created_at: '2026-06-01T09:00:00Z',
+    updated_at: '2026-06-01T09:00:00Z'
+  }
+]
+
+export const MOCK_REGULATORY_CHANGES: RegulatoryChange[] = [
+  {
+    id: 'rcm1',
+    org_id: 'org1',
+    change_code: 'RCM-2026-001',
+    title: 'GDPR Amendment 2026 (Fərdi Məlumatların Qorunması Yeniliyi)',
+    source: 'GDPR',
+    regulator: 'European Data Protection Board',
+    change_date: '2026-05-15',
+    description: 'Updates to consent management and stricter penalties for automated decision-making breaches.',
+    impact_assessment: 'Requires updates to customer consent checkboxes, revisions in Data Protection Policy, and retraining of front-facing staff.',
+    status: 'under_assessment',
+    created_at: '2026-05-01T00:00:00Z',
+    updated_at: '2026-05-01T00:00:00Z',
+  },
+  {
+    id: 'rcm2',
+    org_id: 'org1',
+    change_code: 'RCM-2026-002',
+    title: 'Local Data Protection Law Update (Fərdi Məlumatlar haqqında Qanuna Dəyişikliklər)',
+    source: 'Local Regulation',
+    regulator: 'State Security Service / Ministry of Digital Development',
+    change_date: '2026-07-01',
+    description: 'Mandatory localization of storage for critical citizen identifiers and new breach notification SLA of 48 hours.',
+    impact_assessment: 'Database migrations required to local hosting partners; incident workflow must be updated to trigger regulator alerts within 48h.',
+    status: 'new',
+    created_at: '2026-06-01T00:00:00Z',
+    updated_at: '2026-06-01T00:00:00Z',
+  },
+  {
+    id: 'rcm3',
+    org_id: 'org1',
+    change_code: 'RCM-2026-003',
+    title: 'PCI DSS v4.1 Update (Kart Məlumatları Təhlükəsizliyi Yeniliyi)',
+    source: 'PCI DSS',
+    regulator: 'PCI SSC',
+    change_date: '2026-09-30',
+    description: 'New requirements for multi-factor authentication (MFA) and automated log reviews.',
+    impact_assessment: 'MFA implementation on all administrative systems must support hardware keys. Log parsing routines need update.',
+    status: 'new',
+    created_at: '2026-06-10T00:00:00Z',
+    updated_at: '2026-06-10T00:00:00Z',
+  }
+]
+
+
 

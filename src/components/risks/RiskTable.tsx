@@ -32,6 +32,7 @@ export function RiskTable() {
   const [detailRisk, setDetailRisk] = useState<Risk | null>(null)
   const [menuOpen, setMenuOpen] = useState<string | null>(null)
   const [openStatusRiskId, setOpenStatusRiskId] = useState<string | null>(null)
+  const [jiraConfig, setJiraConfig] = useState<any>(null)
 
   useEffect(() => {
     const handleOutsideClick = () => {
@@ -46,6 +47,8 @@ export function RiskTable() {
     async function load() {
       const data = await db.getRisks()
       setRisks(data)
+      const config = await db.getJiraConfig()
+      setJiraConfig(config)
     }
     load()
   }, [])
@@ -162,7 +165,7 @@ export function RiskTable() {
           <table className="w-full">
             <thead>
               <tr style={{ borderBottom: '1px solid var(--border)', background: 'var(--muted)' }}>
-                {['Risk ID', 'Risk', 'Category', 'Status', 'Treatment', 'Mitigation plan', 'Due', 'Inherent', 'Residual', 'Control activities', 'Degree', 'Owner structure', 'Owner', ''].map(h => (
+                {['Risk ID', 'Risk', 'Category', 'Status', 'Jira Issue', 'Treatment', 'Mitigation plan', 'Due', 'Inherent', 'Residual', 'Control activities', 'Degree', 'Owner structure', 'Owner', ''].map(h => (
                   <th key={h} className="text-left px-3 py-3 text-[11px] font-semibold uppercase tracking-wide whitespace-nowrap"
                     style={{ color: 'var(--muted-fg)' }}>
                     {h}
@@ -252,6 +255,21 @@ export function RiskTable() {
                             </div>
                           )}
                         </div>
+                      </td>
+                      <td className="px-3 py-3.5">
+                        {risk.jira_issue_key ? (
+                          <a
+                            href={jiraConfig?.connected ? `https://${jiraConfig.instanceUrl}/browse/${risk.jira_issue_key}` : '#'}
+                            target="_blank"
+                            rel="noreferrer"
+                            onClick={e => e.stopPropagation()}
+                            className="inline-flex items-center px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-455 text-indigo-400 hover:text-indigo-300 font-mono font-bold border border-indigo-500/10 text-[10px]"
+                          >
+                            {risk.jira_issue_key}
+                          </a>
+                        ) : (
+                          <span className="text-xs" style={{ color: 'var(--muted-fg)' }}>—</span>
+                        )}
                       </td>
                       <td className="px-3 py-3.5">
                         <span className="text-xs capitalize" style={{ color: 'var(--muted-fg)' }}>

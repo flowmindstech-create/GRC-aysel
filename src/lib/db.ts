@@ -3,7 +3,7 @@
 import {
   MOCK_RISKS, MOCK_INCIDENTS, MOCK_CONTROLS, MOCK_AUDITS,
   MOCK_FINDINGS, MOCK_VENDORS, MOCK_ACTIVITIES,
-  MOCK_USERS, SEED_ORG_UNITS
+  MOCK_USERS, SEED_ORG_UNITS, MOCK_REGULATORY_CHANGES
 } from './seed-data'
 import type {
   Risk, Incident, Control, Audit, AuditFinding, Vendor, Activity, DashboardStats,
@@ -1080,7 +1080,7 @@ export const db = {
       if (error) console.error('Supabase getRegulatoryChanges error:', error)
       if (!error && data) return data as RegulatoryChange[]
     }
-    return getLocalItem<RegulatoryChange[]>('regulatory_changes', [])
+    return getLocalItem<RegulatoryChange[]>('regulatory_changes', MOCK_REGULATORY_CHANGES)
   },
 
   async saveRegulatoryChange(item: RegulatoryChange): Promise<RegulatoryChange> {

@@ -6,6 +6,7 @@ import { db } from '@/lib/db'
 import type { RegulatoryChange, RegulatoryChangeStatus } from '@/types'
 import { cn } from '@/lib/utils'
 import { RegulatoryChangeFormDialog } from './RegulatoryChangeFormDialog'
+import { RegulatoryChangeDetailSheet } from './RegulatoryChangeDetailSheet'
 import {
   Plus, Search, MoreHorizontal, Edit, Trash2, RefreshCw,
   Sparkles, ClipboardCheck, CheckCircle2, Archive, Link2,
@@ -31,6 +32,7 @@ export function RegulatoryChangeClient() {
   const [search, setSearch]     = useState('')
   const [statusFilter, setStatusFilter] = useState<RegulatoryChangeStatus | 'all'>('all')
   const [menuOpen, setMenuOpen] = useState<string | null>(null)
+  const [detailItem, setDetailItem] = useState<RegulatoryChange | null>(null)
 
   useEffect(() => {
     const close = () => setMenuOpen(null)
@@ -71,6 +73,9 @@ export function RegulatoryChangeClient() {
     })
     setShowForm(false)
     setEditItem(null)
+    if (detailItem && detailItem.id === saved.id) {
+      setDetailItem(saved)
+    }
     toast.success(editItem ? 'Regulatory change updated' : 'Regulatory change created')
   }
 
@@ -161,7 +166,8 @@ export function RegulatoryChangeClient() {
                     const sc = STATUS_CONFIG[item.status]
                     return (
                       <motion.tr key={item.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.03 }}
-                        className="group hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors" style={{ borderBottom: '1px solid var(--border)' }}>
+                        onClick={() => setDetailItem(item)}
+                        className="group hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors cursor-pointer" style={{ borderBottom: '1px solid var(--border)' }}>
                         <td className="px-3 py-3.5"><span className="text-[11px] font-mono font-bold whitespace-nowrap" style={{ color: 'var(--brand-500)' }}>{item.change_code}</span></td>
                         <td className="px-3 py-3.5 max-w-xs">
                           <p className="text-sm font-medium truncate" style={{ color: 'var(--foreground)' }}>{item.title}</p>
@@ -215,6 +221,25 @@ export function RegulatoryChangeClient() {
           onClose={() => { setShowForm(false); setEditItem(null) }}
           onSave={handleSave}
           onSaved={reload}
+        />
+      )}
+
+      {detailItem && (
+        <RegulatoryChangeDetailSheet
+          change={detailItem}
+          onClose={() => setDetailItem(null)}
+          onSaved={() => {
+            reload()
+            db.getRegulatoryChanges().then(list => {
+              const updated = list.find(x => x.id === detailItem.id)
+              if (updated) setDetailItem(updated)
+            })
+          }}
+          onEdit={() => {
+            setEditItem(detailItem)
+            setShowForm(true)
+            setDetailItem(null)
+          }}
         />
       )}
     </div>

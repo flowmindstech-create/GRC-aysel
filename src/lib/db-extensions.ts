@@ -1,5 +1,6 @@
 import type { AuditFindingWorkflow, NIRAPItem, KRIItem, KCIItem, KPIItem, MonitoringAlert, Policy, PolicyApproval } from '@/types'
 import { isUUID, ensureUUID } from './db'
+import { MOCK_POLICIES } from './seed-data'
 
 const isSupabase = () => {
   if (typeof window !== 'undefined' && document.cookie.includes('mock-session=true')) {
@@ -320,7 +321,7 @@ export const dbExt = {
       const { data } = await createClient().from('policies').select('*').order('created_at', { ascending: false })
       return (data ?? []) as Policy[]
     }
-    return getLocal<Policy[]>('policies', [])
+    return getLocal<Policy[]>('policies', MOCK_POLICIES)
   },
 
   async savePolicy(item: Policy): Promise<Policy> {

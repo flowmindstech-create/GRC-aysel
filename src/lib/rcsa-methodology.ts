@@ -121,11 +121,11 @@ export const IMPACT_DOMAINS: ImpactDomain[] = [
 
 // ── Likelihood / Probability (Excel "3-Ehtimal")
 export const LIKELIHOOD_OPTIONS: ScaleOption[] = [
-  { value: 1, label: 'Nadir', desc: '<5% · Hadisələr 10+ ildən uzun aralıqda baş verir' },
-  { value: 2, label: 'Az ehtimal edilən', desc: '5%-10% · 61 aydan-10 ildən bir baş verməsi ehtimal olunur' },
-  { value: 3, label: 'Mümkün', desc: '11%-20% · 25 ay-5 ildən bir baş verməsi ehtimal olunur' },
-  { value: 4, label: 'Çox ehtimal edilən', desc: '21-50% · 13 ay-2 ildən bir baş verməsi ehtimal olunur' },
-  { value: 5, label: 'Mütəmadi', desc: '>50% · 1 il ərzində bir və daha çox baş verməsi ehtimal olunur' },
+  { value: 1, label: 'Nadir (<5%)', desc: '<5% · Hadisələr 10+ ildən uzun aralıqda baş verir' },
+  { value: 2, label: 'Az ehtimal edilən (5%-10%)', desc: '5%-10% · 61 aydan-10 ildən bir baş verməsi ehtimal olunur' },
+  { value: 3, label: 'Mümkün (11-20%)', desc: '11%-20% · 25 ay-5 ildən bir baş verməsi ehtimal olunur' },
+  { value: 4, label: 'Çox ehtimal edilən (21-50%)', desc: '21-50% · 13 ay-2 ildən bir baş verməsi ehtimal olunur' },
+  { value: 5, label: 'Mütəmadi (>50%)', desc: '>50% · 1 il ərzində bir və daha çox baş verməsi ehtimal olunur' },
 ]
 
 // ── Control effectiveness: 6 sub-criteria — Design (3) + Implementation (3).

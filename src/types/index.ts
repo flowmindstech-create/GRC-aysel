@@ -152,8 +152,28 @@ export interface Risk {
 
 // ─── Incidents ───────────────────────────────────────────────────────────────
 
-export type IncidentSeverity = 'low' | 'medium' | 'high' | 'critical'
+export type IncidentSeverity = 'minimal' | 'low' | 'medium' | 'high' | 'critical'
 export type IncidentStatus = 'open' | 'investigating' | 'contained' | 'resolved' | 'closed'
+export type IncidentWorkflowStage = 'intake' | 'investigation' | 'resolution'
+export type IncidentPriority = 'P1_critical' | 'P2_high' | 'P3_medium' | 'P4_low' | 'P5_minimal'
+
+export interface AttachedFile {
+  id: string
+  name: string
+  size: number
+  type: string
+  data_url?: string  // base64 for IndexedDB storage
+  uploaded_at: string
+}
+
+export interface CorrectiveAction {
+  id: string
+  title: string
+  description?: string
+  assignee?: string
+  due_date?: string
+  status: 'pending' | 'in_progress' | 'done'
+}
 
 export interface Incident {
   id: string
@@ -162,12 +182,40 @@ export interface Incident {
   description: string
   severity: IncidentSeverity
   status: IncidentStatus
+  workflow_stage: IncidentWorkflowStage
   assigned_to?: string
   assigned_name?: string
   reported_by?: string
   reporter_name?: string
-  created_at: string
+  // ── Intake fields (Pəncərə 1) ──────────────────────────
+  reporter_email?: string
+  reporter_structure?: string         // auto from email/org
+  occurrence_datetime?: string        // manual calendar pick
+  discovery_datetime?: string         // auto when form opens
+  priority?: IncidentPriority         // auto = likelihood × impact
+  likelihood?: number                 // 1-5
+  impact?: number                     // 1-5
+  loss_effect?: string                // financial loss description
+  loss_amount?: number                // amount
+  loss_currency?: string              // AZN, USD, EUR
+  attached_files?: AttachedFile[]     // file attachments
+  // ── Investigation fields (Pəncərə 2) ───────────────────
+  root_cause?: string
+  root_cause_category?: 'process' | 'technology' | 'people' | 'external'
+  investigation_notes?: string
+  investigation_lead?: string
+  investigation_start?: string
+  investigation_end?: string
+  affected_systems?: string[]
+  affected_departments?: string[]
+  // ── Resolution fields (Pəncərə 3) ──────────────────────
+  resolution_summary?: string
+  corrective_actions?: CorrectiveAction[]
+  lessons_learned?: string
   resolved_at?: string
+  closed_at?: string
+  // ── Dates ──────────────────────────────────────────────
+  created_at: string
   updated_at: string
   jira_issue_key?: string
   jira_issue_status?: string
@@ -848,7 +896,7 @@ export interface RiskAppetiteStatement {
 export type ObligationStatus = 'compliant' | 'non_compliant' | 'under_review' | 'not_applicable'
 // Category of the obligation source
 export type ObligationSourceType = 'external' | 'internal' | 'contractual'
-export type ObligationCriticality = 'low' | 'medium' | 'high'
+export type ObligationCriticality = 'minimal' | 'low' | 'medium' | 'high' | 'critical'
 // ISO 37301: legally binding (requirement) vs voluntary/contractual (commitment)
 export type ObligationType = 'requirement' | 'commitment'
 // The framework / standard the obligation derives from

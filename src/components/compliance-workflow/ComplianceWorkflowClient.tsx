@@ -27,9 +27,11 @@ const STATUS_CONFIG: Record<ObligationStatus, { label: string; classes: string; 
 const ALL_STATUSES: ObligationStatus[] = ['compliant', 'non_compliant', 'under_review', 'not_applicable']
 
 const CRITICALITY_CONFIG: Record<ObligationCriticality, { label: string; classes: string }> = {
-  low:    { label: 'Low',    classes: 'bg-emerald-500/15 text-emerald-400' },
-  medium: { label: 'Medium', classes: 'bg-amber-500/15 text-amber-400' },
-  high:   { label: 'High',   classes: 'bg-red-500/15 text-red-400' },
+  minimal:  { label: 'Minimal',  classes: 'bg-slate-500/15 text-slate-400' },
+  low:      { label: 'Low',      classes: 'bg-emerald-500/15 text-emerald-400' },
+  medium:   { label: 'Medium',   classes: 'bg-amber-500/15 text-amber-400' },
+  high:     { label: 'High',     classes: 'bg-orange-500/15 text-orange-400' },
+  critical: { label: 'Critical', classes: 'bg-red-500/15 text-red-400' },
 }
 
 const TYPE_CONFIG: Record<ObligationType, { label: string; classes: string }> = {

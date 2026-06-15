@@ -231,9 +231,9 @@ export function ControlsClient() {
         <div className="flex gap-1 p-1 rounded-lg" style={{ background: 'var(--muted)', border: '1px solid var(--border)' }}>
           {frameworks.map(fw => (
             <button key={fw} onClick={() => setFwFilter(fw)}
-              className="px-3 py-1.5 rounded-md text-xs font-medium uppercase transition-all"
+              className="px-3 py-1.5 rounded-md text-xs font-medium uppercase transition-all cursor-pointer"
               style={fwFilter === fw ? { background: 'var(--brand-500)', color: '#fff' } : { color: 'var(--muted-fg)' }}>
-              {fw}
+              {fw === 'all' ? 'ALL' : fw.toUpperCase().replace('_', ' ')}
             </button>
           ))}
         </div>

@@ -38,6 +38,7 @@ export function RcsaDropdown({ label, value, options, onChange }: Props) {
         aria-haspopup="listbox"
         aria-expanded={open}
         onClick={() => setOpen((o) => !o)}
+        title={active?.desc}
         className="w-full flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-lg border text-left cursor-pointer"
         style={{ background: 'var(--muted)', borderColor: 'var(--border)', color: 'var(--foreground)' }}
       >
@@ -49,7 +50,7 @@ export function RcsaDropdown({ label, value, options, onChange }: Props) {
 
       {/* Collapsed description preview */}
       {!open && active?.desc && (
-        <p className="text-[10px] text-slate-500 leading-snug mt-1 line-clamp-2">{active.desc}</p>
+        <p className="text-[10px] text-slate-500 leading-snug mt-1 line-clamp-2" title={active.desc}>{active.desc}</p>
       )}
 
       {open && (
@@ -67,6 +68,7 @@ export function RcsaDropdown({ label, value, options, onChange }: Props) {
                 role="option"
                 aria-selected={isActive}
                 onClick={() => { onChange(o.value); setOpen(false) }}
+                title={o.desc}
                 className={`w-full text-left px-3 py-2 border-b last:border-0 transition-colors ${isActive ? 'bg-sky-500/10' : 'hover:bg-black/5 dark:hover:bg-white/5'}`}
                 style={{ borderColor: 'var(--border)' }}
               >

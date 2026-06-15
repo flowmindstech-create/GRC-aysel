@@ -29,9 +29,11 @@ const STATUSES: { value: ObligationStatus; label: string }[] = [
 ]
 
 const CRITICALITIES: { value: ObligationCriticality; label: string }[] = [
-  { value: 'low',    label: 'Low' },
-  { value: 'medium', label: 'Medium' },
-  { value: 'high',   label: 'High' },
+  { value: 'minimal',  label: 'Minimal (1)' },
+  { value: 'low',      label: 'Low (2)' },
+  { value: 'medium',   label: 'Medium (3)' },
+  { value: 'high',     label: 'High (4)' },
+  { value: 'critical', label: 'Critical (5)' },
 ]
 
 const OBLIGATION_TYPES: { value: ObligationType; label: string }[] = [
