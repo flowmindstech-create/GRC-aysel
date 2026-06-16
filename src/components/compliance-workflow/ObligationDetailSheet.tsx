@@ -118,6 +118,7 @@ export function ObligationDetailSheet({ obligation, onClose, onEdit }: Props) {
               <Field label="Next Review" value={obligation.next_review_date} />
             </div>
             <Field label="Source Reference" value={obligation.source_reference} />
+            <Field label="Regulator / Authority" value={obligation.regulator} />
             {obligation.source_url && (
               <a href={obligation.source_url} target="_blank" rel="noopener noreferrer"
                 className="inline-flex items-center gap-1.5 text-xs text-sky-500 hover:text-sky-400">

@@ -57,6 +57,7 @@ export function ObligationFormDialog({ obligation, onClose, onSave, onSaved }: P
   const [sourceType, setSourceType]       = useState<ObligationSourceType>(obligation?.source_type ?? 'external')
   const [sourceReference, setSourceRef]   = useState(obligation?.source_reference ?? '')
   const [sourceUrl, setSourceUrl]         = useState(obligation?.source_url ?? '')
+  const [regulator, setRegulator]         = useState(obligation?.regulator ?? '')
   const [accountableOwner, setAccountable]= useState(obligation?.accountable_owner ?? '')
   const [responsibleParty, setResponsible]= useState(obligation?.responsible_party ?? '')
   const [applicableDepts, setDepts]       = useState<string[]>(obligation?.applicable_depts ?? [])
@@ -116,6 +117,7 @@ export function ObligationFormDialog({ obligation, onClose, onSave, onSaved }: P
       obligation_type:  obligationType,
       source_reference: sourceReference.trim() || undefined,
       source_url:       sourceUrl.trim() || undefined,
+      regulator:        regulator.trim() || undefined,
       accountable_owner: accountableOwner.trim() || undefined,
       responsible_party: responsibleParty.trim() || undefined,
       responsible_structure: responsibleStructure.trim() || undefined,
@@ -226,10 +228,17 @@ export function ObligationFormDialog({ obligation, onClose, onSave, onSaved }: P
                 placeholder="e.g. GDPR Art. 7(1); Local Law No. 123, §5"
                 className={`${fieldCls} resize-none`} style={inputStyle} onFocus={focus} onBlur={blur} />
             </div>
-            <div>
-              <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Source URL</label>
-              <input value={sourceUrl} onChange={e => setSourceUrl(e.target.value)} placeholder="https://…"
-                className={fieldCls} style={inputStyle} onFocus={focus} onBlur={blur} />
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Source URL</label>
+                <input value={sourceUrl} onChange={e => setSourceUrl(e.target.value)} placeholder="https://…"
+                  className={fieldCls} style={inputStyle} onFocus={focus} onBlur={blur} />
+              </div>
+              <div>
+                <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Regulator / Authority</label>
+                <input value={regulator} onChange={e => setRegulator(e.target.value)} placeholder="e.g. State Tax Service"
+                  className={fieldCls} style={inputStyle} onFocus={focus} onBlur={blur} />
+              </div>
             </div>
 
             {sectionTitle('Accountability')}

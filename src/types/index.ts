@@ -923,6 +923,7 @@ export interface ComplianceObligation {
   obligation_type?: ObligationType // ISO 37301: requirement (mandatory) vs commitment (voluntary)
   source_reference?: string // law article / clause text
   source_url?: string
+  regulator?: string // enforcing / auditing authority (e.g. Tax Authority, Central Bank)
   // Accountability
   accountable_owner?: string // C-level / manager
   responsible_party?: string // responsible person (executing compliance officer)
