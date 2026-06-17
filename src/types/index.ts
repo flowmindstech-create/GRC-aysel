@@ -927,8 +927,10 @@ export interface ComplianceObligation {
   // Accountability
   accountable_owner?: string // C-level / manager
   responsible_party?: string // responsible person (executing compliance officer)
+  responsible_role?: string // role/position of the responsible person (auto from structure)
   responsible_structure?: string // responsible department / structure
   applicable_depts?: string[]
+  evidence?: string // documentation / proof of compliance
   // Status & risk
   status: ObligationStatus
   criticality: ObligationCriticality

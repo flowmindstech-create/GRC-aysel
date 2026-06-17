@@ -10,7 +10,7 @@ import { ObligationFormDialog } from './ObligationFormDialog'
 import { ObligationDetailSheet } from './ObligationDetailSheet'
 import {
   Plus, Search, MoreHorizontal, Edit, Trash2, Eye,
-  ChevronDown, ScrollText, CheckCircle2,
+  ChevronDown, ScrollText, CheckCircle2, Clock,
   XCircle, Layers, AlertCircle, Link2,
 } from 'lucide-react'
 import { toast } from 'sonner'
@@ -35,8 +35,15 @@ const CRITICALITY_CONFIG: Record<ObligationCriticality, { label: string; classes
 }
 
 const TYPE_CONFIG: Record<ObligationType, { label: string; classes: string }> = {
-  requirement: { label: 'Requirement', classes: 'bg-blue-500/15 text-blue-400' },
-  commitment:  { label: 'Commitment',  classes: 'bg-violet-500/15 text-violet-400' },
+  requirement: { label: 'Mandatory', classes: 'bg-blue-500/15 text-blue-400' },
+  commitment:  { label: 'Voluntary', classes: 'bg-violet-500/15 text-violet-400' },
+}
+
+// Derived: review date has passed (and the obligation is still applicable)
+function isOverdue(o: ComplianceObligation): boolean {
+  if (!o.next_review_date || o.status === 'not_applicable') return false
+  const d = new Date(o.next_review_date); d.setHours(23, 59, 59, 999)
+  return d.getTime() < Date.now()
 }
 
 const SOURCE_COLORS: Record<ObligationSource, string> = {
@@ -66,7 +73,7 @@ export function ComplianceWorkflowClient() {
   const [editItem, setEditItem]       = useState<ComplianceObligation | null>(null)
   const [detailItem, setDetailItem]   = useState<ComplianceObligation | null>(null)
   const [search, setSearch]           = useState('')
-  const [statusFilter, setStatusFilter] = useState<ObligationStatus | 'all'>('all')
+  const [statusFilter, setStatusFilter] = useState<ObligationStatus | 'all' | 'overdue'>('all')
   const [sourceFilter, setSourceFilter] = useState<ObligationSource | 'all'>('all')
   const [menuOpen, setMenuOpen]       = useState<string | null>(null)
   const [openStatusId, setOpenStatusId] = useState<string | null>(null)
@@ -92,7 +99,8 @@ export function ComplianceWorkflowClient() {
       o.title.toLowerCase().includes(search.toLowerCase()) ||
       o.obligation_code.toLowerCase().includes(search.toLowerCase()) ||
       o.description.toLowerCase().includes(search.toLowerCase())
-    const matchStatus = statusFilter === 'all' || o.status === statusFilter
+    const matchStatus = statusFilter === 'all'
+      || (statusFilter === 'overdue' ? isOverdue(o) : o.status === statusFilter)
     const matchSource = sourceFilter === 'all' || o.source === sourceFilter
     return matchSearch && matchStatus && matchSource
   }), [obligations, search, statusFilter, sourceFilter])
@@ -102,6 +110,7 @@ export function ComplianceWorkflowClient() {
     compliant:     obligations.filter(o => o.status === 'compliant').length,
     non_compliant: obligations.filter(o => o.status === 'non_compliant').length,
     review:        obligations.filter(o => o.status === 'under_review').length,
+    overdue:       obligations.filter(isOverdue).length,
   }), [obligations])
 
   async function handleSave(item: ComplianceObligation) {
@@ -134,12 +143,13 @@ export function ComplianceWorkflowClient() {
   return (
     <div className="space-y-5">
       {/* ── Stat Cards ────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         {[
           { label: 'Total Obligations', value: stats.total,         icon: Layers,      color: '14,165,233' },
           { label: 'Compliant',         value: stats.compliant,     icon: CheckCircle2, color: '5,150,105'  },
           { label: 'Non-Compliant',     value: stats.non_compliant, icon: XCircle,      color: '225,29,72'  },
           { label: 'Under Review',      value: stats.review,        icon: AlertCircle,  color: '234,179,8'  },
+          { label: 'Overdue Review',    value: stats.overdue,       icon: Clock,        color: '234,88,12'  },
         ].map((s, i) => (
           <motion.div
             key={s.label}
@@ -169,11 +179,11 @@ export function ComplianceWorkflowClient() {
         </div>
 
         <div className="flex items-center gap-1 p-1 rounded-xl" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
-          {(['all', ...ALL_STATUSES] as const).map(s => (
+          {(['all', ...ALL_STATUSES, 'overdue'] as const).map(s => (
             <button key={s} onClick={() => setStatusFilter(s)}
               className={cn('px-3 py-1.5 rounded-lg text-xs font-medium transition-all')}
               style={statusFilter === s ? { background: 'var(--brand-500)', color: '#fff' } : { color: 'var(--muted-fg)' }}>
-              {s === 'all' ? 'All' : STATUS_CONFIG[s].label}
+              {s === 'all' ? 'All' : s === 'overdue' ? 'Overdue' : STATUS_CONFIG[s].label}
             </button>
           ))}
         </div>
@@ -198,7 +208,7 @@ export function ComplianceWorkflowClient() {
           <table className="w-full">
             <thead>
               <tr style={{ borderBottom: '1px solid var(--border)', background: 'var(--muted)' }}>
-                {['Code', 'Requirement', 'Source', 'Condition', 'Article', 'Status', 'Type', 'Criticality', 'Resp. Structure', 'Resp. Person', 'Related Risk', 'Degree', 'Likelihood', 'Initial', 'Links', ''].map(h => (
+                {['Code', 'Requirement', 'Source', 'Scope', 'Compliance Article', 'Status', 'Type', 'Criticality', 'Resp. Structure', 'Resp. Person', 'Related Risk', 'Degree', 'Likelihood', 'Initial', 'Links', ''].map(h => (
                   <th key={h} className="text-left px-3 py-3 text-[11px] font-semibold uppercase tracking-wide whitespace-nowrap" style={{ color: 'var(--muted-fg)' }}>
                     {h}
                   </th>
@@ -295,6 +305,11 @@ export function ComplianceWorkflowClient() {
                               </div>
                             )}
                           </div>
+                          {isOverdue(item) && (
+                            <span className="mt-1 inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold bg-orange-500/15 text-orange-400 whitespace-nowrap">
+                              <Clock className="w-2.5 h-2.5" /> Overdue Review
+                            </span>
+                          )}
                         </td>
 
                         {/* Obligation type */}

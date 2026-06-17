@@ -875,7 +875,8 @@ export const db = {
       const dbColumns = [
         'id', 'org_id', 'obligation_code', 'title', 'description', 'compliance_condition',
         'source', 'source_type', 'obligation_type', 'source_reference', 'source_url', 'regulator',
-        'accountable_owner', 'responsible_party', 'responsible_structure', 'applicable_depts',
+        'accountable_owner', 'responsible_party', 'responsible_role', 'responsible_structure',
+        'applicable_depts', 'evidence',
         'status', 'criticality', 'primary_risk_id', 'effective_date', 'next_review_date',
         'created_at', 'updated_at'
       ]
@@ -925,8 +926,9 @@ export const db = {
   async logObligationChange(prior: ComplianceObligation | null, next: ComplianceObligation): Promise<void> {
     const fields: (keyof ComplianceObligation)[] = [
       'title', 'description', 'compliance_condition', 'source', 'source_type', 'obligation_type',
-      'source_reference', 'source_url', 'regulator', 'accountable_owner', 'responsible_party', 'responsible_structure',
-      'applicable_depts', 'status', 'criticality', 'primary_risk_id', 'effective_date', 'next_review_date',
+      'source_reference', 'source_url', 'regulator', 'accountable_owner', 'responsible_party',
+      'responsible_role', 'responsible_structure', 'applicable_depts', 'evidence',
+      'status', 'criticality', 'primary_risk_id', 'effective_date', 'next_review_date',
     ]
     let action = 'created'
     let oldValue: Record<string, unknown> | null = null

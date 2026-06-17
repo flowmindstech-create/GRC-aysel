@@ -91,6 +91,9 @@ export function ObligationDetailSheet({ obligation, onClose, onEdit }: Props) {
               <p className="text-[11px] font-mono font-bold" style={{ color: 'var(--brand-500)' }}>{obligation.obligation_code}</p>
               <h2 className="text-sm font-semibold mt-0.5" style={{ color: 'var(--foreground)' }}>{obligation.title}</h2>
               <span className={`inline-flex items-center mt-2 px-2 py-0.5 rounded-full text-[10px] font-semibold border ${sc.classes}`}>{sc.label}</span>
+              {obligation.next_review_date && obligation.status !== 'not_applicable' && new Date(obligation.next_review_date) < new Date() && (
+                <span className="inline-flex items-center ml-1.5 mt-2 px-2 py-0.5 rounded-full text-[10px] font-bold bg-orange-500/15 text-orange-400">Overdue Review</span>
+              )}
             </div>
             <div className="flex items-center gap-1 shrink-0">
               <button onClick={onEdit} className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/5" title="Edit">
@@ -106,18 +109,18 @@ export function ObligationDetailSheet({ obligation, onClose, onEdit }: Props) {
             {obligation.description && (
               <p className="text-sm leading-relaxed" style={{ color: 'var(--muted-fg)' }}>{obligation.description}</p>
             )}
-            {obligation.compliance_condition && <Field label="Compliance Condition" value={obligation.compliance_condition} />}
+            {obligation.compliance_condition && <Field label="Scope of Requirement" value={obligation.compliance_condition} />}
 
             {/* Source */}
             <div className="grid grid-cols-2 gap-3">
               <Field label="Framework" value={obligation.source} />
               <Field label="Source Type" value={obligation.source_type} />
-              <Field label="Obligation Type" value={obligation.obligation_type === 'commitment' ? 'Commitment' : 'Requirement'} />
+              <Field label="Obligation Type" value={obligation.obligation_type === 'commitment' ? 'Voluntary' : 'Mandatory'} />
               <Field label="Criticality" value={CRITICALITY_LABEL[obligation.criticality]} />
               <Field label="Effective Date" value={obligation.effective_date} />
               <Field label="Next Review" value={obligation.next_review_date} />
             </div>
-            <Field label="Source Reference" value={obligation.source_reference} />
+            <Field label="Compliance Article" value={obligation.source_reference} />
             <Field label="Regulator / Authority" value={obligation.regulator} />
             {obligation.source_url && (
               <a href={obligation.source_url} target="_blank" rel="noopener noreferrer"
@@ -130,8 +133,10 @@ export function ObligationDetailSheet({ obligation, onClose, onEdit }: Props) {
             <div className="grid grid-cols-2 gap-3">
               <Field label="Accountable Owner" value={obligation.accountable_owner} />
               <Field label="Responsible Party" value={obligation.responsible_party} />
+              <Field label="Role / Position" value={obligation.responsible_role} />
               <Field label="Responsible Structure" value={obligation.responsible_structure} />
             </div>
+            <Field label="Evidence" value={obligation.evidence} />
             <div>
               <p className="text-[10px] uppercase tracking-wide mb-1 flex items-center gap-1" style={{ color: 'var(--muted-fg)' }}>
                 <Building2 className="w-3 h-3" /> Applicable Departments

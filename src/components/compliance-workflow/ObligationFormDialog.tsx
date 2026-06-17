@@ -5,9 +5,10 @@ import { X, Plus, Save } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { db } from '@/lib/db'
 import { residualLevelWord, inherentLevelWord } from '@/lib/rcsa-methodology'
+import { resolveOwnerFromUnit } from '@/lib/org'
 import type {
   ComplianceObligation, ObligationStatus, ObligationSource,
-  ObligationSourceType, ObligationCriticality, ObligationType, OrgUnit, Risk, Control,
+  ObligationSourceType, ObligationCriticality, ObligationType, OrgUnit, Risk, Control, UserProfile,
 } from '@/types'
 
 const SOURCES: ObligationSource[] = [
@@ -37,8 +38,8 @@ const CRITICALITIES: { value: ObligationCriticality; label: string }[] = [
 ]
 
 const OBLIGATION_TYPES: { value: ObligationType; label: string }[] = [
-  { value: 'requirement', label: 'Requirement (mandatory)' },
-  { value: 'commitment',  label: 'Commitment (voluntary)' },
+  { value: 'requirement', label: 'Mandatory (legal)' },
+  { value: 'commitment',  label: 'Voluntary (internal/contract)' },
 ]
 
 interface Props {
@@ -60,7 +61,9 @@ export function ObligationFormDialog({ obligation, onClose, onSave, onSaved }: P
   const [regulator, setRegulator]         = useState(obligation?.regulator ?? '')
   const [accountableOwner, setAccountable]= useState(obligation?.accountable_owner ?? '')
   const [responsibleParty, setResponsible]= useState(obligation?.responsible_party ?? '')
+  const [responsibleRole, setRole]        = useState(obligation?.responsible_role ?? '')
   const [applicableDepts, setDepts]       = useState<string[]>(obligation?.applicable_depts ?? [])
+  const [evidence, setEvidence]           = useState(obligation?.evidence ?? '')
   const [complianceCondition, setCondition]  = useState(obligation?.compliance_condition ?? '')
   const [responsibleStructure, setStructure] = useState(obligation?.responsible_structure ?? '')
   const [status, setStatus]               = useState<ObligationStatus>(obligation?.status ?? 'under_review')
@@ -73,17 +76,19 @@ export function ObligationFormDialog({ obligation, onClose, onSave, onSaved }: P
   const [loading, setLoading]             = useState(false)
 
   const [departments, setDepartments] = useState<OrgUnit[]>([])
+  const [profiles, setProfiles]       = useState<UserProfile[]>([])
   const [risks, setRisks]             = useState<Risk[]>([])
   const [controls, setControls]       = useState<Control[]>([])
 
   useEffect(() => {
     let active = true
     ;(async () => {
-      const [units, riskList, controlList] = await Promise.all([
-        db.getOrgUnits(), db.getRisks(), db.getControls(),
+      const [units, people, riskList, controlList] = await Promise.all([
+        db.getOrgUnits(), db.getProfiles(), db.getRisks(), db.getControls(),
       ])
       if (!active) return
       setDepartments(units.filter(u => u.type === 'department' || u.type === 'division'))
+      setProfiles(people)
       setRisks(riskList)
       setControls(controlList)
       if (obligation?.id) {
@@ -97,6 +102,17 @@ export function ObligationFormDialog({ obligation, onClose, onSave, onSaved }: P
 
   function toggle(list: string[], value: string, setter: (v: string[]) => void) {
     setter(list.includes(value) ? list.filter(v => v !== value) : [...list, value])
+  }
+
+  // Owner dependency: when a responsible structure (dept) is picked, auto-fill person + role
+  function handleStructureChange(structureName: string) {
+    setStructure(structureName)
+    const unit = departments.find(u => u.name === structureName)
+    if (unit) {
+      const resolved = resolveOwnerFromUnit(unit, profiles)
+      if (resolved.owner_name) setResponsible(resolved.owner_name)
+      if (resolved.owner_role) setRole(resolved.owner_role)
+    }
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -120,8 +136,10 @@ export function ObligationFormDialog({ obligation, onClose, onSave, onSaved }: P
       regulator:        regulator.trim() || undefined,
       accountable_owner: accountableOwner.trim() || undefined,
       responsible_party: responsibleParty.trim() || undefined,
+      responsible_role: responsibleRole.trim() || undefined,
       responsible_structure: responsibleStructure.trim() || undefined,
       applicable_depts: applicableDepts,
+      evidence:         evidence.trim() || undefined,
       status,
       criticality,
       primary_risk_id:  primaryRiskId || undefined,
@@ -199,7 +217,7 @@ export function ObligationFormDialog({ obligation, onClose, onSave, onSaved }: P
 
             {/* Compliance condition */}
             <div>
-              <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Compliance Condition</label>
+              <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Scope of Requirement</label>
               <textarea value={complianceCondition} onChange={e => setCondition(e.target.value)} rows={2}
                 placeholder="The condition / criterion that must hold to be compliant…"
                 className={`${fieldCls} resize-none`} style={inputStyle} onFocus={focus} onBlur={blur} />
@@ -223,7 +241,7 @@ export function ObligationFormDialog({ obligation, onClose, onSave, onSaved }: P
               </div>
             </div>
             <div>
-              <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Source Reference (law article / clause)</label>
+              <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Compliance Article (law article / clause)</label>
               <textarea value={sourceReference} onChange={e => setSourceRef(e.target.value)} rows={2}
                 placeholder="e.g. GDPR Art. 7(1); Local Law No. 123, §5"
                 className={`${fieldCls} resize-none`} style={inputStyle} onFocus={focus} onBlur={blur} />
@@ -254,13 +272,20 @@ export function ObligationFormDialog({ obligation, onClose, onSave, onSaved }: P
                   className={fieldCls} style={inputStyle} onFocus={focus} onBlur={blur} />
               </div>
             </div>
-            <div>
-              <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Responsible Structure</label>
-              <select value={responsibleStructure} onChange={e => setStructure(e.target.value)}
-                className={`${fieldCls} cursor-pointer`} style={inputStyle}>
-                <option value="">— None —</option>
-                {departments.map(d => <option key={d.id} value={d.name}>{d.name}</option>)}
-              </select>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Responsible Structure</label>
+                <select value={responsibleStructure} onChange={e => handleStructureChange(e.target.value)}
+                  className={`${fieldCls} cursor-pointer`} style={inputStyle}>
+                  <option value="">— None —</option>
+                  {departments.map(d => <option key={d.id} value={d.name}>{d.name}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Role / Position</label>
+                <input value={responsibleRole} onChange={e => setRole(e.target.value)} placeholder="Auto-fills from structure"
+                  className={fieldCls} style={inputStyle} onFocus={focus} onBlur={blur} />
+              </div>
             </div>
             <div>
               <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Applicable Departments</label>
@@ -360,6 +385,14 @@ export function ObligationFormDialog({ obligation, onClose, onSave, onSaved }: P
                   <span className="truncate">{c.title}</span>
                 </label>
               ))}
+            </div>
+
+            {/* Evidence */}
+            <div>
+              <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Evidence</label>
+              <textarea value={evidence} onChange={e => setEvidence(e.target.value)} rows={2}
+                placeholder="Documentation / proof of compliance (reports, records, links)…"
+                className={`${fieldCls} resize-none`} style={inputStyle} onFocus={focus} onBlur={blur} />
             </div>
 
             {/* Footer */}
