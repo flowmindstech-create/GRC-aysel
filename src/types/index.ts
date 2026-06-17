@@ -952,9 +952,16 @@ export interface RegulatoryChange {
   title: string
   source: ObligationSource // framework / regulator family
   regulator?: string // issuing body
-  change_date?: string // published / effective date of the change
+  change_date?: string // date the change was published
+  effective_date?: string // official law enforcement date
   description: string
-  impact_assessment?: string
+  impact_assessment?: string // gap analysis / detailed assessment
+  business_effect?: string // how it impacts business operations
+  assessor?: string // person who evaluated the change
+  action_plan?: string // steps/tasks to take due to this change
+  responsible_structure?: string
+  responsible_person?: string
+  requirement_link_id?: string // linked top-level obligation (compliance_obligations.id)
   status: RegulatoryChangeStatus
   created_at: string
   updated_at: string

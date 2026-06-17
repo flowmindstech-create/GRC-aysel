@@ -1099,8 +1099,10 @@ export const db = {
       const supabase = createClient()
       const payload: any = { ...sanitized }
       const dbColumns = [
-        'id', 'org_id', 'change_code', 'title', 'source', 'regulator', 'change_date',
-        'description', 'impact_assessment', 'status', 'created_at', 'updated_at'
+        'id', 'org_id', 'change_code', 'title', 'source', 'regulator', 'change_date', 'effective_date',
+        'description', 'impact_assessment', 'business_effect', 'assessor', 'action_plan',
+        'responsible_structure', 'responsible_person', 'requirement_link_id',
+        'status', 'created_at', 'updated_at'
       ]
       for (const key of Object.keys(payload)) {
         if (!dbColumns.includes(key)) delete payload[key]

@@ -34,8 +34,15 @@ export function RegulatoryChangeFormDialog({ change, onClose, onSave, onSaved }:
   const [source, setSource]     = useState<ObligationSource>(change?.source ?? 'Local Regulation')
   const [regulator, setReg]     = useState(change?.regulator ?? '')
   const [changeDate, setDate]   = useState(change?.change_date ?? '')
+  const [effectiveDate, setEffective] = useState(change?.effective_date ?? '')
   const [description, setDesc]  = useState(change?.description ?? '')
   const [impact, setImpact]     = useState(change?.impact_assessment ?? '')
+  const [businessEffect, setBusinessEffect] = useState(change?.business_effect ?? '')
+  const [assessor, setAssessor] = useState(change?.assessor ?? '')
+  const [actionPlan, setActionPlan] = useState(change?.action_plan ?? '')
+  const [respStructure, setRespStructure] = useState(change?.responsible_structure ?? '')
+  const [respPerson, setRespPerson] = useState(change?.responsible_person ?? '')
+  const [requirementLinkId, setRequirementLink] = useState(change?.requirement_link_id ?? '')
   const [status, setStatus]     = useState<RegulatoryChangeStatus>(change?.status ?? 'new')
   const [affected, setAffected] = useState<string[]>([])
   const [obligations, setObligations] = useState<ComplianceObligation[]>([])
@@ -63,6 +70,7 @@ export function RegulatoryChangeFormDialog({ change, onClose, onSave, onSaved }:
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!title.trim()) return
+    if (!effectiveDate || !businessEffect.trim()) return // effective date + business effect are mandatory
     setLoading(true)
     const now = new Date().toISOString()
     const item: RegulatoryChange = {
@@ -73,8 +81,15 @@ export function RegulatoryChangeFormDialog({ change, onClose, onSave, onSaved }:
       source,
       regulator:         regulator.trim() || undefined,
       change_date:       changeDate || undefined,
+      effective_date:    effectiveDate || undefined,
       description:       description.trim(),
       impact_assessment: impact.trim() || undefined,
+      business_effect:   businessEffect.trim() || undefined,
+      assessor:          assessor.trim() || undefined,
+      action_plan:       actionPlan.trim() || undefined,
+      responsible_structure: respStructure.trim() || undefined,
+      responsible_person:    respPerson.trim() || undefined,
+      requirement_link_id:   requirementLinkId || undefined,
       status,
       created_at:        change?.created_at ?? now,
       updated_at:        now,
@@ -150,6 +165,27 @@ export function RegulatoryChangeFormDialog({ change, onClose, onSave, onSaved }:
               </div>
             </div>
 
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Effective Date <span className="text-red-400">*</span></label>
+                <input type="date" value={effectiveDate} onChange={e => setEffective(e.target.value)}
+                  className={fieldCls} style={inputStyle} onFocus={focus} onBlur={blur} required />
+              </div>
+              <div>
+                <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Assessor</label>
+                <input value={assessor} onChange={e => setAssessor(e.target.value)} placeholder="Who evaluated the change"
+                  className={fieldCls} style={inputStyle} onFocus={focus} onBlur={blur} />
+              </div>
+            </div>
+
+            <div>
+              <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Linked Requirement (obligation)</label>
+              <select value={requirementLinkId} onChange={e => setRequirementLink(e.target.value)} className={`${fieldCls} cursor-pointer`} style={inputStyle}>
+                <option value="">— None —</option>
+                {obligations.map(o => <option key={o.id} value={o.id}>{o.obligation_code} · {o.title}</option>)}
+              </select>
+            </div>
+
             <div>
               <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Description</label>
               <textarea value={description} onChange={e => setDesc(e.target.value)} rows={2}
@@ -157,9 +193,34 @@ export function RegulatoryChangeFormDialog({ change, onClose, onSave, onSaved }:
             </div>
 
             <div>
-              <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Impact Assessment</label>
+              <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Impact Assessment / Gap Analysis</label>
               <textarea value={impact} onChange={e => setImpact(e.target.value)} rows={2}
-                placeholder="How it affects the organisation and what must change…" className={`${fieldCls} resize-none`} style={inputStyle} onFocus={focus} onBlur={blur} />
+                placeholder="Gap analysis and what must change…" className={`${fieldCls} resize-none`} style={inputStyle} onFocus={focus} onBlur={blur} />
+            </div>
+
+            <div>
+              <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Business Effect <span className="text-red-400">*</span></label>
+              <textarea value={businessEffect} onChange={e => setBusinessEffect(e.target.value)} rows={2}
+                placeholder="How it impacts business operations…" className={`${fieldCls} resize-none`} style={inputStyle} onFocus={focus} onBlur={blur} required />
+            </div>
+
+            <div>
+              <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Action Plan</label>
+              <textarea value={actionPlan} onChange={e => setActionPlan(e.target.value)} rows={2}
+                placeholder="Steps / tasks to take due to this change…" className={`${fieldCls} resize-none`} style={inputStyle} onFocus={focus} onBlur={blur} />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Responsible Structure</label>
+                <input value={respStructure} onChange={e => setRespStructure(e.target.value)} placeholder="Department"
+                  className={fieldCls} style={inputStyle} onFocus={focus} onBlur={blur} />
+              </div>
+              <div>
+                <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Responsible Person</label>
+                <input value={respPerson} onChange={e => setRespPerson(e.target.value)} placeholder="Owner"
+                  className={fieldCls} style={inputStyle} onFocus={focus} onBlur={blur} />
+              </div>
             </div>
 
             <div>
@@ -179,7 +240,7 @@ export function RegulatoryChangeFormDialog({ change, onClose, onSave, onSaved }:
 
             <div className="flex items-center justify-between pt-2">
               <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg text-sm transition-colors hover:bg-white/5" style={{ color: 'var(--muted-fg)' }}>Cancel</button>
-              <button type="submit" disabled={!title.trim() || loading}
+              <button type="submit" disabled={!title.trim() || !effectiveDate || !businessEffect.trim() || loading}
                 className="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold text-white transition-colors disabled:opacity-50" style={{ background: 'var(--brand-500)' }}>
                 {loading ? 'Saving…' : (<>{isEdit ? <Save className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}{isEdit ? 'Update' : 'Create'}</>)}
               </button>

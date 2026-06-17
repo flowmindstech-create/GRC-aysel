@@ -135,7 +135,53 @@ export function RegulatoryChangeDetailSheet({ change, onClose, onSaved, onEdit }
                   {change.change_date ? format(new Date(change.change_date), 'd MMM yyyy') : '—'}
                 </p>
               </div>
+
+              <div className="p-3 rounded-xl" style={{ background: 'var(--muted)' }}>
+                <div className="flex items-center gap-1.5 mb-1 text-[10px] font-semibold uppercase tracking-wide" style={{ color: 'var(--muted-fg)' }}>
+                  <Calendar className="w-3.5 h-3.5" />
+                  <span>Effective Date</span>
+                </div>
+                <p className="text-xs font-semibold" style={{ color: 'var(--foreground)' }}>
+                  {change.effective_date ? format(new Date(change.effective_date), 'd MMM yyyy') : '—'}
+                </p>
+              </div>
+
+              <div className="p-3 rounded-xl" style={{ background: 'var(--muted)' }}>
+                <div className="flex items-center gap-1.5 mb-1 text-[10px] font-semibold uppercase tracking-wide" style={{ color: 'var(--muted-fg)' }}>
+                  <span>Assessor</span>
+                </div>
+                <p className="text-xs font-semibold" style={{ color: change.assessor ? 'var(--foreground)' : 'var(--muted-fg)' }}>
+                  {change.assessor ?? '—'}
+                </p>
+              </div>
+
+              <div className="p-3 rounded-xl" style={{ background: 'var(--muted)' }}>
+                <div className="flex items-center gap-1.5 mb-1 text-[10px] font-semibold uppercase tracking-wide" style={{ color: 'var(--muted-fg)' }}>
+                  <span>Responsibility</span>
+                </div>
+                <p className="text-xs font-semibold" style={{ color: (change.responsible_person || change.responsible_structure) ? 'var(--foreground)' : 'var(--muted-fg)' }}>
+                  {change.responsible_person ?? change.responsible_structure ?? '—'}
+                </p>
+              </div>
             </div>
+
+            {change.business_effect && (
+              <div className="space-y-2">
+                <p className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: 'var(--muted-fg)' }}>Business Effect</p>
+                <div className="p-4 rounded-xl border text-xs leading-relaxed" style={{ background: 'var(--muted)', borderColor: 'var(--border)', color: 'var(--foreground)' }}>
+                  {change.business_effect}
+                </div>
+              </div>
+            )}
+
+            {change.action_plan && (
+              <div className="space-y-2">
+                <p className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: 'var(--muted-fg)' }}>Action Plan</p>
+                <div className="p-4 rounded-xl border text-xs leading-relaxed" style={{ background: 'var(--muted)', borderColor: 'var(--border)', color: 'var(--foreground)' }}>
+                  {change.action_plan}
+                </div>
+              </div>
+            )}
 
             {/* Description */}
             <div className="space-y-2">
