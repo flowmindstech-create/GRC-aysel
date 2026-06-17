@@ -980,6 +980,24 @@ export interface RegulatoryChangeLink {
   created_at: string
 }
 
+// ─── Interested Parties (ISO 37301/37001 stakeholders) ───────────────────────
+export type PartyType = 'internal' | 'external' | 'regulator' | 'customer' | 'supplier' | 'employee' | 'community'
+export type PartyInfluence = 'low' | 'medium' | 'high'
+
+export interface InterestedParty {
+  id: string
+  org_id: string
+  party_code: string // IP-YYYY-NNN
+  name: string
+  party_type: PartyType
+  needs_expectations?: string
+  influence: PartyInfluence
+  owner?: string
+  notes?: string
+  created_at: string
+  updated_at: string
+}
+
 // Many-to-many link: obligation ↔ risk register entry
 export interface ObligationRiskLink {
   id: string

@@ -8,7 +8,7 @@ import {
 import type {
   Risk, Incident, Control, Audit, AuditFinding, Vendor, Activity, DashboardStats,
   JiraConfig, JiraActivity, JiraComment, GRCIntakeItem, OrgUnit, UserProfile,
-  ComplianceObligation, ObligationAuditLog, RegulatoryChange
+  ComplianceObligation, ObligationAuditLog, RegulatoryChange, InterestedParty
 } from '@/types'
 import { RISK_CATEGORIES, normalizeCategory } from './risk-categories'
 import { normalizeStatus, ACTIVE_STATUSES } from './risk-status'
@@ -1186,6 +1186,52 @@ export const db = {
     }
     getLocalItem<any[]>('regulatory_change_links', []).forEach(l => { counts[l.change_id] = (counts[l.change_id] ?? 0) + 1 })
     return counts
+  },
+
+  // ─── INTERESTED PARTIES (ISO 37301/37001) ────────────────────────────────────
+  async getInterestedParties(): Promise<InterestedParty[]> {
+    if (isSupabaseConfigured()) {
+      const { createClient } = await import('./supabase/client')
+      const supabase = createClient()
+      const { data, error } = await supabase.from('interested_parties').select('*').order('created_at', { ascending: false })
+      if (error) console.error('Supabase getInterestedParties error:', error)
+      if (!error && data) return data as InterestedParty[]
+    }
+    return getLocalItem<InterestedParty[]>('interested_parties', [])
+  },
+
+  async saveInterestedParty(item: InterestedParty): Promise<InterestedParty> {
+    const orgId = await getCurrentOrgId()
+    const now = new Date().toISOString()
+    const sanitized: InterestedParty = { ...item, id: ensureUUID(item.id), org_id: orgId, updated_at: now }
+    if (!sanitized.party_code) {
+      const existing = await this.getInterestedParties()
+      const year = new Date().getFullYear()
+      sanitized.party_code = `IP-${year}-${String(existing.length + 1).padStart(3, '0')}`
+    }
+    if (isSupabaseConfigured()) {
+      const { createClient } = await import('./supabase/client')
+      const supabase = createClient()
+      const { data, error } = await supabase.from('interested_parties').upsert(sanitized).select().single()
+      if (error) console.error('Supabase saveInterestedParty error:', error)
+      if (!error && data) return data as InterestedParty
+    }
+    const current = getLocalItem<InterestedParty[]>('interested_parties', [])
+    const idx = current.findIndex(i => i.id === sanitized.id)
+    if (idx >= 0) current[idx] = sanitized
+    else current.unshift(sanitized)
+    setLocalItem('interested_parties', current)
+    return sanitized
+  },
+
+  async deleteInterestedParty(id: string): Promise<void> {
+    if (isSupabaseConfigured()) {
+      const { createClient } = await import('./supabase/client')
+      const supabase = createClient()
+      await supabase.from('interested_parties').delete().eq('id', id)
+    }
+    const current = getLocalItem<InterestedParty[]>('interested_parties', [])
+    setLocalItem('interested_parties', current.filter(i => i.id !== id))
   },
 
   // ─── GRC INTAKE ITEMS ──────────────────────────────────────────────────────

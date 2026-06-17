@@ -1,23 +1,27 @@
 'use client'
 
 import { useState } from 'react'
-import { ScrollText, RefreshCw } from 'lucide-react'
+import { ScrollText, RefreshCw, FileText, Users } from 'lucide-react'
 import { ComplianceWorkflowClient } from './ComplianceWorkflowClient'
 import { RegulatoryChangeClient } from './RegulatoryChangeClient'
+import { InterestedPartiesClient } from './InterestedPartiesClient'
+import { PolicyKanbanClient } from '@/components/governance/PolicyKanbanClient'
 
-type Tab = 'register' | 'rcm'
+type Tab = 'register' | 'rcm' | 'policies' | 'parties'
 
 export function ComplianceTabs() {
   const [tab, setTab] = useState<Tab>('register')
 
   const tabs: { id: Tab; label: string; icon: typeof ScrollText }[] = [
-    { id: 'register', label: 'Register', icon: ScrollText },
+    { id: 'register', label: 'Obligation Register', icon: ScrollText },
     { id: 'rcm', label: 'Regulatory Change Management', icon: RefreshCw },
+    { id: 'policies', label: 'Internal Policies', icon: FileText },
+    { id: 'parties', label: 'Interested Parties', icon: Users },
   ]
 
   return (
     <div className="space-y-5">
-      <div className="flex items-center gap-1 p-1 rounded-xl w-fit" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
+      <div className="flex items-center gap-1 p-1 rounded-xl w-fit flex-wrap" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
         {tabs.map(t => (
           <button
             key={t.id}
@@ -30,7 +34,10 @@ export function ComplianceTabs() {
         ))}
       </div>
 
-      {tab === 'register' ? <ComplianceWorkflowClient /> : <RegulatoryChangeClient />}
+      {tab === 'register' && <ComplianceWorkflowClient />}
+      {tab === 'rcm' && <RegulatoryChangeClient />}
+      {tab === 'policies' && <PolicyKanbanClient />}
+      {tab === 'parties' && <InterestedPartiesClient />}
     </div>
   )
 }
