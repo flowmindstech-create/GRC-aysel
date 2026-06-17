@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { db } from '@/lib/db'
-import type { Incident, IncidentSeverity, IncidentStatus, JiraConfig } from '@/types'
+import { db, getCurrentProfile } from '@/lib/db'
+import type { Incident, IncidentSeverity, IncidentStatus, JiraConfig, UserProfile } from '@/types'
 import { RiskLevelBadge, IncidentStatusBadge } from '@/components/shared/Badges'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { IncidentFormDialog } from './IncidentFormDialog'
@@ -25,6 +25,7 @@ export function IncidentTable() {
   const [detailIncident, setDetailIncident] = useState<Incident | null>(null)
   const [menuOpen, setMenuOpen] = useState<string | null>(null)
   const [jiraConfig, setJiraConfig] = useState<JiraConfig | null>(null)
+  const [profile, setProfile] = useState<UserProfile | null>(null)
 
   useEffect(() => {
     async function load() {
@@ -32,15 +33,22 @@ export function IncidentTable() {
       setIncidents(data)
       const config = await db.getJiraConfig()
       setJiraConfig(config)
+      setProfile(await getCurrentProfile())
     }
     load()
   }, [])
+
+  // 3-tier RBAC: managers (admin/risk_manager) see all; everyone else sees only
+  // incidents they reported or are assigned to (RLS enforces this server-side too).
+  const isManager = profile?.role === 'admin' || profile?.role === 'risk_manager'
+  const myId = profile?.id
 
   const filtered = incidents.filter(i => {
     const matchS = i.title.toLowerCase().includes(search.toLowerCase())
     const matchSev = severity === 'all' || i.severity === severity
     const matchSt = status === 'all' || i.status === status
-    return matchS && matchSev && matchSt
+    const matchTier = isManager || i.reported_by === myId || i.assigned_to === myId
+    return matchS && matchSev && matchSt && matchTier
   })
 
   const handleDelete = async (id: string) => {
@@ -160,15 +168,19 @@ export function IncidentTable() {
                             style={{ color: 'var(--foreground)' }}>
                             <Eye className="w-3.5 h-3.5" /> View Details
                           </button>
-                          <button onClick={() => { setEditIncident(inc); setShowForm(true); setMenuOpen(null) }}
-                            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-left hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer"
-                            style={{ color: 'var(--foreground)' }}>
-                            <Edit className="w-3.5 h-3.5" /> Edit Incident
-                          </button>
-                          <button onClick={() => handleDelete(inc.id)}
-                            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-left text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 cursor-pointer">
-                            <Trash2 className="w-3.5 h-3.5" /> Delete
-                          </button>
+                          {(isManager || inc.assigned_to === myId) && (
+                            <button onClick={() => { setEditIncident(inc); setShowForm(true); setMenuOpen(null) }}
+                              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-left hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer"
+                              style={{ color: 'var(--foreground)' }}>
+                              <Edit className="w-3.5 h-3.5" /> Edit Incident
+                            </button>
+                          )}
+                          {isManager && (
+                            <button onClick={() => handleDelete(inc.id)}
+                              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-left text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 cursor-pointer">
+                              <Trash2 className="w-3.5 h-3.5" /> Delete
+                            </button>
+                          )}
                         </div>
                       )}
                     </div>
