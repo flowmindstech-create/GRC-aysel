@@ -33,6 +33,23 @@ export function IncidentDetailSheet({ incident, onClose, onUpdate, onEdit }: Pro
 
   // Status updating dropdown state
   const [updatingStatus, setUpdatingStatus] = useState(false)
+  const [linkedRisk, setLinkedRisk] = useState('')
+  const [linkedControl, setLinkedControl] = useState('')
+
+  useEffect(() => {
+    let active = true
+    ;(async () => {
+      if (incident.risk_id) {
+        const r = (await db.getRisks()).find(x => x.id === incident.risk_id)
+        if (active && r) setLinkedRisk(`${r.risk_code ?? '—'} · ${r.title}`)
+      }
+      if (incident.control_id) {
+        const c = (await db.getControls()).find(x => x.id === incident.control_id)
+        if (active && c) setLinkedControl(`${c.control_id} · ${c.title}`)
+      }
+    })()
+    return () => { active = false }
+  }, [incident.risk_id, incident.control_id])
 
   useEffect(() => {
     async function loadJiraData() {
@@ -317,6 +334,18 @@ export function IncidentDetailSheet({ incident, onClose, onUpdate, onEdit }: Pro
                       </div>
                     </div>
 
+                    {/* GRC linkage */}
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Əlaqəli Risk</p>
+                        <p className="text-xs" style={{ color: linkedRisk ? 'var(--brand-500)' : 'var(--muted-fg)' }}>{linkedRisk || '—'}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Əlaqəli Control</p>
+                        <p className="text-xs" style={{ color: linkedControl ? 'var(--brand-500)' : 'var(--muted-fg)' }}>{linkedControl || '—'}</p>
+                      </div>
+                    </div>
+
                     {/* Impacted Systems and Departments */}
                     <div className="grid grid-cols-2 gap-4">
                       <div>
@@ -411,6 +440,14 @@ export function IncidentDetailSheet({ incident, onClose, onUpdate, onEdit }: Pro
                       <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Alınan Dərslər (Lessons Learned)</p>
                       <div className="p-3.5 rounded-xl border text-xs leading-relaxed whitespace-pre-line" style={{ borderColor: 'var(--border)' }}>
                         {incident.lessons_learned || 'Dərslər qeyd olunmayıb.'}
+                      </div>
+                    </div>
+
+                    {/* Reputation Impact */}
+                    <div className="space-y-2">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Reputasiya Təsiri</p>
+                      <div className="p-3.5 rounded-xl border text-xs leading-relaxed whitespace-pre-line" style={{ borderColor: 'var(--border)' }}>
+                        {incident.reputation_impact || 'Reputasiya təsiri qeyd olunmayıb.'}
                       </div>
                     </div>
 

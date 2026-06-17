@@ -208,10 +208,14 @@ export interface Incident {
   investigation_end?: string
   affected_systems?: string[]
   affected_departments?: string[]
+  // GRC linkage
+  risk_id?: string                    // linked risk register entry
+  control_id?: string                 // linked control library entry
   // ── Resolution fields (Pəncərə 3) ──────────────────────
   resolution_summary?: string
   corrective_actions?: CorrectiveAction[]
   lessons_learned?: string
+  reputation_impact?: string          // reputational effect
   resolved_at?: string
   closed_at?: string
   // ── Dates ──────────────────────────────────────────────

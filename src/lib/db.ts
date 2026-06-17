@@ -254,10 +254,26 @@ export const db = {
       const payload: any = {
         ...sanitized,
         assigned_to: sanitized.assigned_to || null,
-        reported_by: sanitized.reported_by || null
+        reported_by: sanitized.reported_by || null,
+        risk_id: sanitized.risk_id || null,
+        control_id: sanitized.control_id || null,
       }
-      delete payload.assigned_name
-      delete payload.reporter_name
+      // Only send columns that exist in the incidents table (priority is derived, not stored)
+      const dbColumns = [
+        'id', 'org_id', 'title', 'description', 'severity', 'status', 'workflow_stage',
+        'assigned_to', 'reported_by', 'reporter_email', 'reporter_structure',
+        'occurrence_datetime', 'discovery_datetime', 'likelihood', 'impact',
+        'loss_effect', 'loss_amount', 'loss_currency', 'attached_files',
+        'root_cause', 'root_cause_category', 'investigation_notes', 'investigation_lead',
+        'investigation_start', 'investigation_end', 'affected_systems', 'affected_departments',
+        'risk_id', 'control_id',
+        'resolution_summary', 'corrective_actions', 'lessons_learned', 'reputation_impact',
+        'resolved_at', 'closed_at', 'created_at', 'updated_at',
+        'jira_issue_key', 'jira_issue_status', 'jira_last_sync', 'jira_project_key',
+      ]
+      for (const key of Object.keys(payload)) {
+        if (!dbColumns.includes(key)) delete payload[key]
+      }
       const { data, error } = await supabase.from('incidents').upsert(payload).select().single()
       if (error) console.error('Supabase saveIncident error:', error)
       if (!error && data) return data as Incident

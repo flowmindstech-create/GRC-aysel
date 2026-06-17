@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { cn } from '@/lib/utils'
 import { db } from '@/lib/db'
-import type { Incident, OrgUnit } from '@/types'
+import type { Incident, OrgUnit, Risk, Control } from '@/types'
 import { MOCK_USERS } from '@/lib/seed-data'
 
 const ROOT_CAUSE_CATEGORIES = [
@@ -20,11 +20,15 @@ interface Props {
 
 export function IncidentInvestigationForm({ data, onChange }: Props) {
   const [departments, setDepartments] = useState<OrgUnit[]>([])
+  const [risks, setRisks] = useState<Risk[]>([])
+  const [controls, setControls] = useState<Control[]>([])
 
   useEffect(() => {
     db.getOrgUnits().then(units =>
       setDepartments(units.filter(u => u.type === 'department' || u.type === 'division'))
     )
+    db.getRisks().then(setRisks)
+    db.getControls().then(setControls)
   }, [])
 
   // Auto-set investigation start
@@ -73,6 +77,29 @@ export function IncidentInvestigationForm({ data, onChange }: Props) {
           <input type="date" value={data.investigation_end?.split('T')[0] ?? ''}
             onChange={e => onChange({ ...data, investigation_end: e.target.value })}
             className={fieldCls} style={inputStyle} onFocus={focus} onBlur={blur} />
+        </div>
+      </div>
+
+      {/* GRC linkage — incident ↔ risk / control */}
+      <p className="text-[11px] font-bold uppercase tracking-wide pt-1" style={{ color: 'var(--brand-500)' }}>
+        GRC Əlaqəsi
+      </p>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Əlaqəli Risk</label>
+          <select value={data.risk_id ?? ''} onChange={e => onChange({ ...data, risk_id: e.target.value || undefined })}
+            className={`${fieldCls} cursor-pointer`} style={inputStyle}>
+            <option value="">— Yoxdur —</option>
+            {risks.map(r => <option key={r.id} value={r.id}>{(r.risk_code ?? '—') + ' · ' + r.title}</option>)}
+          </select>
+        </div>
+        <div>
+          <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Əlaqəli Control</label>
+          <select value={data.control_id ?? ''} onChange={e => onChange({ ...data, control_id: e.target.value || undefined })}
+            className={`${fieldCls} cursor-pointer`} style={inputStyle}>
+            <option value="">— Yoxdur —</option>
+            {controls.map(c => <option key={c.id} value={c.id}>{c.control_id + ' · ' + c.title}</option>)}
+          </select>
         </div>
       </div>
 
