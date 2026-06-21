@@ -1,9 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { cn } from '@/lib/utils'
 import { db } from '@/lib/db'
-import type { Incident, OrgUnit, Risk, Control } from '@/types'
+import { calculateInherentLevel, calculateResidualLevel } from '@/lib/rcsa'
+import type { ControlRating } from '@/lib/rcsa'
+import { inherentLevelWord, residualLevelWord } from '@/lib/rcsa-methodology'
+import type { Incident, OrgUnit, Risk, Control, EffectivenessRating } from '@/types'
 import { MOCK_USERS } from '@/lib/seed-data'
 
 const ROOT_CAUSE_CATEGORIES = [
@@ -12,6 +15,17 @@ const ROOT_CAUSE_CATEGORIES = [
   { value: 'people',     label: 'İnsan amili', desc: 'Səhv / səhlənkarlıq' },
   { value: 'external',   label: 'Xarici', desc: 'Xarici təhdid / hadisə' },
 ] as const
+
+// Map a control's effectiveness rating to the RCSA control rating used by the
+// residual matrix (same engine as the risk register).
+function effToRating(eff: EffectivenessRating | undefined): ControlRating {
+  switch (eff) {
+    case 'effective': return 'strong'
+    case 'partially_effective': return 'adequate'
+    case 'ineffective': return 'weak'
+    default: return 'relatively_adequate'
+  }
+}
 
 interface Props {
   data: Partial<Incident>
@@ -22,6 +36,7 @@ export function IncidentInvestigationForm({ data, onChange }: Props) {
   const [departments, setDepartments] = useState<OrgUnit[]>([])
   const [risks, setRisks] = useState<Risk[]>([])
   const [controls, setControls] = useState<Control[]>([])
+  const [processControlIds, setProcessControlIds] = useState<string[] | null>(null)
 
   useEffect(() => {
     db.getOrgUnits().then(units =>
@@ -30,6 +45,38 @@ export function IncidentInvestigationForm({ data, onChange }: Props) {
     db.getRisks().then(setRisks)
     db.getControls().then(setControls)
   }, [])
+
+  // If the incident is tied to a process, controls can only come from that process
+  useEffect(() => {
+    if (!data.process_id) { setProcessControlIds(null); return }
+    let active = true
+    db.getProcessControlIds(data.process_id).then(ids => { if (active) setProcessControlIds(ids) })
+    return () => { active = false }
+  }, [data.process_id])
+
+  const selectableControls = useMemo(
+    () => processControlIds ? controls.filter(c => processControlIds.includes(c.id)) : controls,
+    [controls, processControlIds],
+  )
+
+  // Inherent (likelihood × impact) → current control → residual (risk-register engine)
+  const inherentLevel = useMemo(
+    () => calculateInherentLevel(data.likelihood ?? 3, data.impact ?? 3),
+    [data.likelihood, data.impact],
+  )
+  const currentControl = controls.find(c => c.id === data.control_id)
+  const residualLevel = useMemo(
+    () => currentControl ? calculateResidualLevel(inherentLevel, effToRating(currentControl.effectiveness_rating)) : inherentLevel,
+    [inherentLevel, currentControl],
+  )
+
+  // Persist the computed residual on the incident
+  useEffect(() => {
+    if (data.incident_residual_level !== residualLevel) {
+      onChange({ ...data, incident_residual_level: residualLevel })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [residualLevel])
 
   // Auto-set investigation start
   useEffect(() => {
@@ -118,12 +165,31 @@ export function IncidentInvestigationForm({ data, onChange }: Props) {
           </select>
         </div>
         <div>
-          <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Əlaqəli Control</label>
+          <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Cari Kontrol</label>
           <select value={data.control_id ?? ''} onChange={e => onChange({ ...data, control_id: e.target.value || undefined })}
             className={`${fieldCls} cursor-pointer`} style={inputStyle}>
             <option value="">— Yoxdur —</option>
-            {controls.map(c => <option key={c.id} value={c.id}>{c.control_id + ' · ' + c.title}</option>)}
+            {selectableControls.map(c => <option key={c.id} value={c.id}>{c.control_id + ' · ' + c.title}</option>)}
           </select>
+          {processControlIds && (
+            <p className="text-[10px] mt-0.5" style={{ color: 'var(--muted-fg)' }}>Yalnız seçilmiş prosesin kontrolları</p>
+          )}
+        </div>
+      </div>
+
+      {/* Inherent → Control → Residual (same engine as risk register) */}
+      <div className="grid grid-cols-3 gap-2">
+        <div className="rounded-lg px-2 py-1.5" style={{ background: 'var(--muted)' }}>
+          <p className="text-[9px] uppercase" style={{ color: 'var(--muted-fg)' }}>İlkin (Inherent)</p>
+          <p className="text-xs font-semibold" style={{ color: 'var(--foreground)' }}>{inherentLevelWord(inherentLevel)}</p>
+        </div>
+        <div className="rounded-lg px-2 py-1.5" style={{ background: 'var(--muted)' }}>
+          <p className="text-[9px] uppercase" style={{ color: 'var(--muted-fg)' }}>Kontrol effektivliyi</p>
+          <p className="text-xs font-semibold capitalize" style={{ color: 'var(--foreground)' }}>{currentControl?.effectiveness_rating ?? '—'}</p>
+        </div>
+        <div className="rounded-lg px-2 py-1.5" style={{ background: 'var(--muted)' }}>
+          <p className="text-[9px] uppercase" style={{ color: 'var(--muted-fg)' }}>Residual</p>
+          <p className="text-xs font-semibold" style={{ color: 'var(--brand-500)' }}>{residualLevelWord(residualLevel)}</p>
         </div>
       </div>
 

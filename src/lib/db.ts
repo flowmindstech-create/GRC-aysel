@@ -271,6 +271,7 @@ export const db = {
         'acknowledged_at', 'sla_due_date', 'forwarded_at', 'forwarded_to',
         'risk_id', 'control_id', 'process_id',
         'resolution_summary', 'corrective_actions', 'lessons_learned', 'reputation_impact',
+        'incident_residual_level',
         'resolved_at', 'closed_at', 'created_at', 'updated_at',
         'jira_issue_key', 'jira_issue_status', 'jira_last_sync', 'jira_project_key',
       ]
