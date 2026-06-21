@@ -9,7 +9,7 @@ import type {
   Risk, Incident, Control, Audit, AuditFinding, Vendor, Activity, DashboardStats,
   JiraConfig, JiraActivity, JiraComment, GRCIntakeItem, OrgUnit, UserProfile,
   ComplianceObligation, ObligationAuditLog, RegulatoryChange, InterestedParty, Process,
-  AppetiteEntry, FinancialRisk, StressTest
+  AppetiteEntry, FinancialRisk, StressTest, WhistleblowReport
 } from '@/types'
 import { RISK_CATEGORIES, normalizeCategory } from './risk-categories'
 import { normalizeStatus, ACTIVE_STATUSES } from './risk-status'
@@ -1529,6 +1529,37 @@ export const db = {
   async deleteStressTest(id: string): Promise<void> {
     if (isSupabaseConfigured()) { const { createClient } = await import('./supabase/client'); await createClient().from('stress_tests').delete().eq('id', id) }
     setLocalItem('stress_tests', getLocalItem<StressTest[]>('stress_tests', []).filter(x => x.id !== id))
+  },
+
+  // ─── WHISTLEBLOWING (phase 28) ───────────────────────────────────────────────
+  async getWhistleblowReports(): Promise<WhistleblowReport[]> {
+    if (isSupabaseConfigured()) {
+      const { createClient } = await import('./supabase/client')
+      const { data, error } = await createClient().from('whistleblow_reports').select('*').order('created_at', { ascending: false })
+      if (!error && data) return data as WhistleblowReport[]
+    }
+    return getLocalItem<WhistleblowReport[]>('whistleblow_reports', [])
+  },
+  async saveWhistleblowReport(item: WhistleblowReport): Promise<WhistleblowReport> {
+    const orgId = await getCurrentOrgId()
+    const now = new Date().toISOString()
+    const s: WhistleblowReport = { ...item, id: ensureUUID(item.id), org_id: orgId, updated_at: now }
+    if (!s.code) { const all = await this.getWhistleblowReports(); s.code = `WB-${new Date().getFullYear()}-${String(all.length + 1).padStart(3, '0')}` }
+    if (isSupabaseConfigured()) {
+      const { createClient } = await import('./supabase/client')
+      const cols = ['id','org_id','code','source','subject','body_iv','body_cipher','status','risk_id','received_at','created_at','updated_at']
+      const payload: any = { ...s }; for (const k of Object.keys(payload)) if (!cols.includes(k)) delete payload[k]
+      const { data, error } = await createClient().from('whistleblow_reports').upsert(payload).select().single()
+      if (error) console.error('saveWhistleblowReport error:', error)
+      if (!error && data) return data as WhistleblowReport
+    }
+    const cur = getLocalItem<WhistleblowReport[]>('whistleblow_reports', [])
+    const i = cur.findIndex(x => x.id === s.id); if (i >= 0) cur[i] = s; else cur.unshift(s)
+    setLocalItem('whistleblow_reports', cur); return s
+  },
+  async deleteWhistleblowReport(id: string): Promise<void> {
+    if (isSupabaseConfigured()) { const { createClient } = await import('./supabase/client'); await createClient().from('whistleblow_reports').delete().eq('id', id) }
+    setLocalItem('whistleblow_reports', getLocalItem<WhistleblowReport[]>('whistleblow_reports', []).filter(x => x.id !== id))
   },
 
   // ─── GRC INTAKE ITEMS ──────────────────────────────────────────────────────

@@ -1099,6 +1099,22 @@ export interface StressTest {
   updated_at: string
 }
 
+export type WhistleblowStatus = 'new' | 'under_review' | 'substantiated' | 'dismissed' | 'closed'
+export interface WhistleblowReport {
+  id: string
+  org_id: string
+  code: string // WB-YYYY-NNN
+  source: 'manual' | 'email'
+  subject?: string
+  body_iv?: string       // AES-GCM IV (base64)
+  body_cipher?: string   // encrypted complaint body (base64)
+  status: WhistleblowStatus
+  risk_id?: string
+  received_at?: string
+  created_at: string
+  updated_at: string
+}
+
 // ─── Business Process (Control Map) ──────────────────────────────────────────
 export interface Process {
   id: string
