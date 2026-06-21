@@ -1027,6 +1027,15 @@ export interface ObligationPolicyLink {
   created_at: string
 }
 
+// Many-to-many link: interested party ↔ obligation
+export interface PartyObligationLink {
+  id: string
+  org_id: string
+  party_id: string
+  obligation_id: string
+  created_at: string
+}
+
 // ISO 37301 traceability — change history of an obligation
 export interface ObligationAuditLog {
   id: string

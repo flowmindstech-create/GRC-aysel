@@ -3,9 +3,9 @@
 import { useState, useEffect, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { db } from '@/lib/db'
-import type { InterestedParty, PartyType, PartyInfluence } from '@/types'
+import type { InterestedParty, PartyType, PartyInfluence, ComplianceObligation } from '@/types'
 import { cn } from '@/lib/utils'
-import { Plus, Search, MoreHorizontal, Edit, Trash2, Users, X, Save } from 'lucide-react'
+import { Plus, Search, MoreHorizontal, Edit, Trash2, Users, X, Save, Link2 } from 'lucide-react'
 import { toast } from 'sonner'
 
 const PARTY_TYPES: { value: PartyType; label: string }[] = [
@@ -40,7 +40,27 @@ function PartyFormDialog({ party, onClose, onSave }: { party: InterestedParty | 
   const [needs, setNeeds] = useState(party?.needs_expectations ?? '')
   const [owner, setOwner] = useState(party?.owner ?? '')
   const [notes, setNotes] = useState(party?.notes ?? '')
+  const [obligations, setObligations] = useState<ComplianceObligation[]>([])
+  const [linkedObligationIds, setLinkedObl] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    let active = true
+    ;(async () => {
+      const list = await db.getObligations()
+      if (!active) return
+      setObligations(list)
+      if (party?.id) {
+        const ids = await db.getPartyObligationIds(party.id)
+        if (active) setLinkedObl(ids)
+      }
+    })()
+    return () => { active = false }
+  }, [party?.id])
+
+  function toggleObl(id: string) {
+    setLinkedObl(prev => prev.includes(id) ? prev.filter(v => v !== id) : [...prev, id])
+  }
 
   const inputStyle = { background: 'var(--muted)', border: '1px solid var(--border)', color: 'var(--foreground)' }
   const labelCls = 'block text-xs font-medium mb-1.5'
@@ -51,8 +71,9 @@ function PartyFormDialog({ party, onClose, onSave }: { party: InterestedParty | 
     if (!name.trim()) return
     setLoading(true)
     const now = new Date().toISOString()
+    const id = party?.id ?? crypto.randomUUID()
     await onSave({
-      id: party?.id ?? crypto.randomUUID(),
+      id,
       org_id: party?.org_id ?? '',
       party_code: party?.party_code ?? '',
       name: name.trim(),
@@ -64,6 +85,7 @@ function PartyFormDialog({ party, onClose, onSave }: { party: InterestedParty | 
       created_at: party?.created_at ?? now,
       updated_at: now,
     })
+    await db.setPartyObligations(id, linkedObligationIds)
     setLoading(false)
   }
 
@@ -116,6 +138,21 @@ function PartyFormDialog({ party, onClose, onSave }: { party: InterestedParty | 
               <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Notes</label>
               <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={2} className={`${fieldCls} resize-none`} style={inputStyle} />
             </div>
+            <div>
+              <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Linked Obligations</label>
+              <p className="text-[10px] mb-1.5" style={{ color: 'var(--muted-fg)' }}>This party&apos;s expectations that became compliance obligations.</p>
+              <div className="rounded-lg border max-h-32 overflow-y-auto" style={{ borderColor: 'var(--border)' }}>
+                {obligations.length === 0 ? (
+                  <p className="text-xs px-3 py-2" style={{ color: 'var(--muted-fg)' }}>No obligations yet.</p>
+                ) : obligations.map(o => (
+                  <label key={o.id} className="flex items-center gap-2 px-3 py-1.5 text-xs cursor-pointer hover:bg-white/5" style={{ color: 'var(--foreground)' }}>
+                    <input type="checkbox" checked={linkedObligationIds.includes(o.id)} onChange={() => toggleObl(o.id)} />
+                    <span className="font-mono text-[10px]" style={{ color: 'var(--brand-500)' }}>{o.obligation_code}</span>
+                    <span className="truncate">{o.title}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
             <div className="flex items-center justify-between pt-2">
               <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg text-sm hover:bg-white/5" style={{ color: 'var(--muted-fg)' }}>Cancel</button>
               <button type="submit" disabled={!name.trim() || loading}
@@ -133,6 +170,7 @@ function PartyFormDialog({ party, onClose, onSave }: { party: InterestedParty | 
 // ── Main ──────────────────────────────────────────────────────────────────────
 export function InterestedPartiesClient() {
   const [parties, setParties] = useState<InterestedParty[]>([])
+  const [oblCounts, setOblCounts] = useState<Record<string, number>>({})
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [editItem, setEditItem] = useState<InterestedParty | null>(null)
@@ -146,8 +184,9 @@ export function InterestedPartiesClient() {
   }, [])
 
   async function reload() {
-    const data = await db.getInterestedParties()
+    const [data, counts] = await Promise.all([db.getInterestedParties(), db.getPartyObligationCounts()])
     setParties(data)
+    setOblCounts(counts)
     setLoading(false)
   }
   useEffect(() => { reload() }, [])
@@ -164,6 +203,7 @@ export function InterestedPartiesClient() {
       return [saved, ...prev]
     })
     setShowForm(false); setEditItem(null)
+    reload()
     toast.success(editItem ? 'Party updated' : 'Party created')
   }
 
@@ -194,16 +234,16 @@ export function InterestedPartiesClient() {
           <table className="w-full">
             <thead>
               <tr style={{ borderBottom: '1px solid var(--border)', background: 'var(--muted)' }}>
-                {['Code', 'Name', 'Type', 'Influence', 'Needs & Expectations', 'Owner', ''].map(h => (
+                {['Code', 'Name', 'Type', 'Influence', 'Needs & Expectations', 'Owner', 'Obligations', ''].map(h => (
                   <th key={h} className="text-left px-3 py-3 text-[11px] font-semibold uppercase tracking-wide whitespace-nowrap" style={{ color: 'var(--muted-fg)' }}>{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={7} className="py-16 text-center text-sm" style={{ color: 'var(--muted-fg)' }}>Loading…</td></tr>
+                <tr><td colSpan={8} className="py-16 text-center text-sm" style={{ color: 'var(--muted-fg)' }}>Loading…</td></tr>
               ) : filtered.length === 0 ? (
-                <tr><td colSpan={7} className="py-16 text-center" style={{ color: 'var(--muted-fg)' }}>
+                <tr><td colSpan={8} className="py-16 text-center" style={{ color: 'var(--muted-fg)' }}>
                   <div className="flex flex-col items-center gap-2"><Users className="w-8 h-8 opacity-30" /><p className="text-sm">No interested parties yet</p></div>
                 </td></tr>
               ) : (
@@ -218,6 +258,11 @@ export function InterestedPartiesClient() {
                       <td className="px-3 py-3.5"><span className={cn('inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold', inf.cls)}>{inf.label}</span></td>
                       <td className="px-3 py-3.5 max-w-xs"><span className="text-xs truncate block" style={{ color: p.needs_expectations ? 'var(--foreground)' : 'var(--muted-fg)' }}>{p.needs_expectations || '—'}</span></td>
                       <td className="px-3 py-3.5"><span className="text-xs whitespace-nowrap" style={{ color: p.owner ? 'var(--foreground)' : 'var(--muted-fg)' }}>{p.owner || '—'}</span></td>
+                      <td className="px-3 py-3.5">
+                        <span className="inline-flex items-center gap-1 text-[11px] font-medium whitespace-nowrap" style={{ color: oblCounts[p.id] ? 'var(--foreground)' : 'var(--muted-fg)' }}>
+                          <Link2 className="w-3 h-3" /> {oblCounts[p.id] ?? 0}
+                        </span>
+                      </td>
                       <td className="px-3 py-3.5" onClick={e => e.stopPropagation()}>
                         <div className="relative inline-block">
                           <button onClick={e => { e.stopPropagation(); setMenuOpen(menuOpen === p.id ? null : p.id) }} aria-label="Party actions"

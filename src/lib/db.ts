@@ -1265,7 +1265,16 @@ export const db = {
     if (isSupabaseConfigured()) {
       const { createClient } = await import('./supabase/client')
       const supabase = createClient()
-      const { data, error } = await supabase.from('interested_parties').upsert(sanitized).select().single()
+      const payload: any = { ...sanitized }
+      const dbColumns = [
+        'id', 'org_id', 'party_code', 'name', 'party_type',
+        'needs_expectations', 'influence', 'owner', 'notes',
+        'created_at', 'updated_at',
+      ]
+      for (const key of Object.keys(payload)) {
+        if (!dbColumns.includes(key)) delete payload[key]
+      }
+      const { data, error } = await supabase.from('interested_parties').upsert(payload).select().single()
       if (error) console.error('Supabase saveInterestedParty error:', error)
       if (!error && data) return data as InterestedParty
     }
@@ -1285,6 +1294,50 @@ export const db = {
     }
     const current = getLocalItem<InterestedParty[]>('interested_parties', [])
     setLocalItem('interested_parties', current.filter(i => i.id !== id))
+    setLocalItem('party_obligation_links', getLocalItem<any[]>('party_obligation_links', []).filter(l => l.party_id !== id))
+  },
+
+  // ── Interested Party ↔ Obligation links (M:N) ────────────────────────────────
+  async getPartyObligationIds(partyId: string): Promise<string[]> {
+    if (isSupabaseConfigured()) {
+      const { createClient } = await import('./supabase/client')
+      const supabase = createClient()
+      const { data, error } = await supabase.from('party_obligation_links').select('obligation_id').eq('party_id', partyId)
+      if (!error && data) return (data as any[]).map(r => r.obligation_id)
+    }
+    return getLocalItem<any[]>('party_obligation_links', []).filter(l => l.party_id === partyId).map(l => l.obligation_id)
+  },
+
+  async setPartyObligations(partyId: string, obligationIds: string[]): Promise<void> {
+    const orgId = await getCurrentOrgId()
+    const now = new Date().toISOString()
+    if (isSupabaseConfigured()) {
+      const { createClient } = await import('./supabase/client')
+      const supabase = createClient()
+      await supabase.from('party_obligation_links').delete().eq('party_id', partyId)
+      if (obligationIds.length > 0) {
+        const rows = obligationIds.map(oid => ({ id: ensureUUID(), org_id: orgId, party_id: partyId, obligation_id: oid, created_at: now }))
+        const { error } = await supabase.from('party_obligation_links').insert(rows)
+        if (error) console.error('Supabase setPartyObligations error:', error)
+      }
+      return
+    }
+    const all = getLocalItem<any[]>('party_obligation_links', []).filter(l => l.party_id !== partyId)
+    obligationIds.forEach(oid => all.push({ id: ensureUUID(), org_id: orgId, party_id: partyId, obligation_id: oid, created_at: now }))
+    setLocalItem('party_obligation_links', all)
+  },
+
+  async getPartyObligationCounts(): Promise<Record<string, number>> {
+    const counts: Record<string, number> = {}
+    if (isSupabaseConfigured()) {
+      const { createClient } = await import('./supabase/client')
+      const supabase = createClient()
+      const { data } = await supabase.from('party_obligation_links').select('party_id')
+      ;((data as any[]) ?? []).forEach(r => { counts[r.party_id] = (counts[r.party_id] ?? 0) + 1 })
+      return counts
+    }
+    getLocalItem<any[]>('party_obligation_links', []).forEach(l => { counts[l.party_id] = (counts[l.party_id] ?? 0) + 1 })
+    return counts
   },
 
   // ─── GRC INTAKE ITEMS ──────────────────────────────────────────────────────
