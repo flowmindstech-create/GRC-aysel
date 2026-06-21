@@ -1,12 +1,14 @@
 'use client'
 
 import { useState, useMemo, useEffect } from 'react'
-import { Upload, X, Calendar, AlertTriangle, Lock } from 'lucide-react'
+import { Upload, X, Calendar, AlertTriangle, Lock, Workflow, Link2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { db } from '@/lib/db'
 import { calculateInherentLevel } from '@/lib/rcsa'
-import type { Incident, IncidentPriority, IncidentSeverity, AttachedFile, OrgUnit } from '@/types'
+import type { Incident, IncidentPriority, IncidentSeverity, AttachedFile, OrgUnit, Process, Risk, Control } from '@/types'
 import { MOCK_USERS } from '@/lib/seed-data'
+
+const THREE_MONTHS_MS = 90 * 24 * 60 * 60 * 1000
 
 // ── Priority calculator ─────────────────────────────────────────────────────
 export function calcPriority(likelihood: number, impact: number): IncidentPriority {
@@ -89,12 +91,40 @@ interface Props {
 
 export function IncidentIntakeForm({ data, onChange }: Props) {
   const [departments, setDepartments] = useState<OrgUnit[]>([])
+  const [processes, setProcesses] = useState<Process[]>([])
+  const [processControlIds, setProcessControlIds] = useState<string[]>([])
+  const [allIncidents, setAllIncidents] = useState<Incident[]>([])
+  const [allRisks, setAllRisks] = useState<Risk[]>([])
+  const [allControls, setAllControls] = useState<Control[]>([])
 
   useEffect(() => {
     db.getOrgUnits().then(units =>
       setDepartments(units.filter(u => u.type === 'department' || u.type === 'division'))
     )
+    db.getProcesses().then(setProcesses)
+    db.getIncidents().then(setAllIncidents)
+    db.getRisks().then(setAllRisks)
+    db.getControls().then(setAllControls)
   }, [])
+
+  // When a process is chosen, load its controls (incidents can only use these)
+  useEffect(() => {
+    if (!data.process_id) { setProcessControlIds([]); return }
+    let active = true
+    db.getProcessControlIds(data.process_id).then(ids => { if (active) setProcessControlIds(ids) })
+    return () => { active = false }
+  }, [data.process_id])
+
+  // Related items surfaced from the selected process (rule-based, no AI)
+  const related = useMemo(() => {
+    if (!data.process_id) return null
+    const controls = allControls.filter(c => processControlIds.includes(c.id))
+    const incidentsOnProcess = allIncidents.filter(i => i.process_id === data.process_id && i.id !== data.id)
+    const cutoff = Date.now() - THREE_MONTHS_MS
+    const recent = incidentsOnProcess.filter(i => new Date(i.occurrence_datetime || i.created_at).getTime() >= cutoff)
+    const risks = allRisks.filter(r => (r.control_mapped_ids ?? []).some(cid => processControlIds.includes(cid)))
+    return { controls, incidentsOnProcess, recent, risks }
+  }, [data.process_id, data.id, processControlIds, allControls, allIncidents, allRisks])
 
   // Auto-fill discovery datetime on mount
   useEffect(() => {
@@ -193,6 +223,50 @@ export function IncidentIntakeForm({ data, onChange }: Props) {
         </select>
         <p className="text-[10px] mt-0.5" style={{ color: 'var(--muted-fg)' }}>Mail əsasında avtomatik doldurulur</p>
       </div>
+
+      {/* Business Process linkage */}
+      <p className="text-[11px] font-bold uppercase tracking-wide pt-1" style={{ color: 'var(--brand-500)' }}>
+        Business Process
+      </p>
+      <div>
+        <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>
+          <Workflow className="w-3 h-3 inline mr-1" />Əlaqəli Proses
+        </label>
+        <select value={data.process_id ?? ''} onChange={e => onChange({ ...data, process_id: e.target.value || undefined })}
+          className={`${fieldCls} cursor-pointer`} style={inputStyle}>
+          <option value="">— Seçin —</option>
+          {processes.map(p => <option key={p.id} value={p.id}>{p.code} · {p.name}</option>)}
+        </select>
+        <p className="text-[10px] mt-0.5" style={{ color: 'var(--muted-fg)' }}>Kontrollar yalnız bu prosesin siyahısından seçilə bilər</p>
+      </div>
+
+      {related && (
+        <div className="space-y-2">
+          {related.recent.length > 0 && (
+            <div className="flex items-start gap-2 p-3 rounded-xl border border-amber-500/25 bg-amber-500/10">
+              <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0 text-amber-400" />
+              <p className="text-xs text-amber-300">
+                Diqqət: bu proses üzrə son 3 ayda <b>{related.recent.length}</b> insident qeydə alınıb
+                {related.incidentsOnProcess.length > related.recent.length ? ` (ümumilikdə ${related.incidentsOnProcess.length})` : ''}.
+              </p>
+            </div>
+          )}
+          <div className="grid grid-cols-3 gap-2">
+            <div className="rounded-lg px-2 py-1.5" style={{ background: 'var(--muted)' }}>
+              <p className="text-[9px] uppercase flex items-center gap-1" style={{ color: 'var(--muted-fg)' }}><Link2 className="w-2.5 h-2.5" /> Kontrollar</p>
+              <p className="text-xs font-semibold" style={{ color: 'var(--foreground)' }}>{related.controls.length}</p>
+            </div>
+            <div className="rounded-lg px-2 py-1.5" style={{ background: 'var(--muted)' }}>
+              <p className="text-[9px] uppercase" style={{ color: 'var(--muted-fg)' }}>Əlaqəli risk</p>
+              <p className="text-xs font-semibold" style={{ color: 'var(--foreground)' }}>{related.risks.length}</p>
+            </div>
+            <div className="rounded-lg px-2 py-1.5" style={{ background: 'var(--muted)' }}>
+              <p className="text-[9px] uppercase" style={{ color: 'var(--muted-fg)' }}>Əlaqəli insident</p>
+              <p className="text-xs font-semibold" style={{ color: 'var(--foreground)' }}>{related.incidentsOnProcess.length}</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Likelihood & Impact */}
       <p className="text-[11px] font-bold uppercase tracking-wide pt-1" style={{ color: 'var(--brand-500)' }}>

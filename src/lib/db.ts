@@ -257,6 +257,7 @@ export const db = {
         reported_by: sanitized.reported_by || null,
         risk_id: sanitized.risk_id || null,
         control_id: sanitized.control_id || null,
+        process_id: sanitized.process_id || null,
       }
       // Only send columns that exist in the incidents table (priority is derived, not stored)
       const dbColumns = [
@@ -266,7 +267,7 @@ export const db = {
         'loss_effect', 'loss_amount', 'loss_currency', 'attached_files',
         'root_cause', 'root_cause_category', 'investigation_notes', 'investigation_lead',
         'investigation_start', 'investigation_end', 'affected_systems', 'affected_departments',
-        'risk_id', 'control_id',
+        'risk_id', 'control_id', 'process_id',
         'resolution_summary', 'corrective_actions', 'lessons_learned', 'reputation_impact',
         'resolved_at', 'closed_at', 'created_at', 'updated_at',
         'jira_issue_key', 'jira_issue_status', 'jira_last_sync', 'jira_project_key',

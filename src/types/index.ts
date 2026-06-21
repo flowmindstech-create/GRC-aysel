@@ -211,6 +211,7 @@ export interface Incident {
   // GRC linkage
   risk_id?: string                    // linked risk register entry
   control_id?: string                 // linked control library entry
+  process_id?: string                 // linked business process (control map, phase 24)
   // ── Resolution fields (Pəncərə 3) ──────────────────────
   resolution_summary?: string
   corrective_actions?: CorrectiveAction[]
