@@ -45,6 +45,10 @@ const navGroups = [
   },
 ]
 
+// Routes a plain employee may see — everything else is risk-team only.
+// Employees get a focused "my work" view (their own risks/incidents).
+const EMPLOYEE_ALLOWED = new Set(['/dashboard', '/risks', '/incidents'])
+
 interface SidebarProps {
   onMobileClose?: () => void
 }
@@ -64,6 +68,13 @@ export function Sidebar({ onMobileClose }: SidebarProps) {
   useEffect(() => {
     getCurrentProfile().then(setProfile)
   }, [])
+
+  // Risk team (admin / risk_manager / auditor) sees the full platform;
+  // a plain employee only sees their own work surfaces.
+  const isRiskTeam = profile?.role === 'admin' || profile?.role === 'risk_manager' || profile?.role === 'auditor'
+  const visibleGroups = navGroups
+    .map(g => ({ ...g, items: g.items.filter(it => isRiskTeam || EMPLOYEE_ALLOWED.has(it.href)) }))
+    .filter(g => g.items.length > 0)
 
   const handleSignOut = async () => {
     deleteMockSessionCookie()
@@ -123,7 +134,7 @@ export function Sidebar({ onMobileClose }: SidebarProps) {
 
       {/* Nav */}
       <nav className="flex-1 px-2 py-4 overflow-y-auto space-y-4">
-        {navGroups.map((group, gi) => (
+        {visibleGroups.map((group, gi) => (
           <div key={group.label}>
             {!collapsed && (
               <p
