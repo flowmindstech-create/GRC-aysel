@@ -218,7 +218,7 @@ export function ComplianceWorkflowClient() {
           <table className="w-full">
             <thead>
               <tr style={{ borderBottom: '1px solid var(--border)', background: 'var(--muted)' }}>
-                {['Code', 'Requirement', 'Source', 'Regulator', 'Scope', 'Compliance Article', 'Status', 'Type', 'Criticality', 'Resp. Structure', 'Resp. Person', 'Related Risk', 'Degree', 'Likelihood', 'Initial', 'Related Control', 'Related Policy', 'Evidence', 'Links', ''].map(h => (
+                {['Code', 'Requirement', 'Source', 'Regulator', 'Scope', 'Compliance Article', 'Status', 'Type', 'Criticality', 'Resp. Structure', 'Resp. Person', 'Related Risk', 'Degree', 'Likelihood', 'Initial', 'Related Control', 'Related Policy', 'Evidence', 'Risk of N/C', 'Links', ''].map(h => (
                   <th key={h} className="text-left px-3 py-3 text-[11px] font-semibold uppercase tracking-wide whitespace-nowrap" style={{ color: 'var(--muted-fg)' }}>
                     {h}
                   </th>
@@ -227,10 +227,10 @@ export function ComplianceWorkflowClient() {
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={20} className="py-16 text-center text-sm" style={{ color: 'var(--muted-fg)' }}>Loading…</td></tr>
+                <tr><td colSpan={21} className="py-16 text-center text-sm" style={{ color: 'var(--muted-fg)' }}>Loading…</td></tr>
               ) : filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={20} className="py-16 text-center" style={{ color: 'var(--muted-fg)' }}>
+                  <td colSpan={21} className="py-16 text-center" style={{ color: 'var(--muted-fg)' }}>
                     <div className="flex flex-col items-center gap-2">
                       <ScrollText className="w-8 h-8 opacity-30" />
                       <p className="text-sm">No obligations found</p>
@@ -422,6 +422,19 @@ export function ComplianceWorkflowClient() {
                           </span>
                         </td>
 
+                        {/* Risk of non-compliance */}
+                        <td className="px-3 py-3.5 max-w-[160px]">
+                          {item.materialized_risk_id ? (
+                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold bg-orange-500/15 text-orange-400 whitespace-nowrap" title="Materialized into an active risk">
+                              <AlertCircle className="w-2.5 h-2.5" /> {risksById[item.materialized_risk_id]?.risk_code ?? 'Active risk'}
+                            </span>
+                          ) : (
+                            <span className="text-xs truncate block" style={{ color: item.noncompliance_risk ? 'var(--foreground)' : 'var(--muted-fg)' }} title={item.noncompliance_risk || undefined}>
+                              {item.noncompliance_risk || '—'}
+                            </span>
+                          )}
+                        </td>
+
                         {/* Links */}
                         <td className="px-3 py-3.5">
                           <span className="inline-flex items-center gap-1 text-[11px] font-medium whitespace-nowrap" style={{ color: (lc.risks || lc.controls || lc.policies) ? 'var(--foreground)' : 'var(--muted-fg)' }}>
@@ -481,6 +494,7 @@ export function ComplianceWorkflowClient() {
           obligation={detailItem}
           onClose={() => setDetailItem(null)}
           onEdit={() => { setEditItem(detailItem); setDetailItem(null); setShowForm(true) }}
+          onSaved={reload}
         />
       )}
     </div>

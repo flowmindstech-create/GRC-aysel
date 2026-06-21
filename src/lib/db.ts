@@ -893,7 +893,8 @@ export const db = {
         'source', 'source_type', 'obligation_type', 'source_reference', 'source_url', 'regulator',
         'accountable_owner', 'responsible_party', 'responsible_role', 'responsible_structure',
         'applicable_depts', 'evidence',
-        'status', 'criticality', 'primary_risk_id', 'effective_date', 'next_review_date',
+        'status', 'criticality', 'primary_risk_id', 'noncompliance_risk', 'materialized_risk_id',
+        'effective_date', 'next_review_date',
         'created_at', 'updated_at'
       ]
       for (const key of Object.keys(payload)) {

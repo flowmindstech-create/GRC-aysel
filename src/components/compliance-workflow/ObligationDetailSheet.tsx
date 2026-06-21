@@ -2,15 +2,22 @@
 
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Edit, ExternalLink, ShieldAlert, BookOpen, History, Building2 } from 'lucide-react'
+import { X, Edit, ExternalLink, ShieldAlert, BookOpen, History, Building2, AlertTriangle, Zap } from 'lucide-react'
+import { toast } from 'sonner'
 import { db } from '@/lib/db'
 import { dbExt } from '@/lib/db-extensions'
 import type {
   ComplianceObligation, ObligationStatus, ObligationCriticality,
-  Risk, Control, Policy, ObligationAuditLog,
+  Risk, Control, Policy, ObligationAuditLog, OrgUnit,
 } from '@/types'
 import { residualLevelWord, inherentLevelWord } from '@/lib/rcsa-methodology'
+import { calculateInherentLevel } from '@/lib/rcsa'
+import { generateRiskCode, orgUnitCode } from '@/lib/risk-id'
 import { formatDistanceToNow } from 'date-fns'
+
+const CRITICALITY_TO_IMPACT: Record<ObligationCriticality, number> = {
+  minimal: 1, low: 2, medium: 3, high: 4, critical: 5,
+}
 
 const STATUS_LABEL: Record<ObligationStatus, { label: string; classes: string }> = {
   compliant:      { label: 'Compliant',      classes: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/25' },
@@ -31,6 +38,7 @@ interface Props {
   obligation: ComplianceObligation
   onClose: () => void
   onEdit: () => void
+  onSaved?: () => void
 }
 
 function auditSummary(log: ObligationAuditLog): string {
@@ -43,33 +51,78 @@ function auditSummary(log: ObligationAuditLog): string {
   return keys.length ? `Updated: ${keys.join(', ')}` : 'Updated'
 }
 
-export function ObligationDetailSheet({ obligation, onClose, onEdit }: Props) {
+export function ObligationDetailSheet({ obligation, onClose, onEdit, onSaved }: Props) {
   const [primaryRisk, setPrimaryRisk] = useState<Risk | null>(null)
+  const [materializedRisk, setMaterializedRisk] = useState<Risk | null>(null)
+  const [allRisks, setAllRisks] = useState<Risk[]>([])
+  const [orgUnits, setOrgUnits] = useState<OrgUnit[]>([])
   const [controls, setControls] = useState<Control[]>([])
   const [policies, setPolicies] = useState<Policy[]>([])
   const [audit, setAudit] = useState<ObligationAuditLog[]>([])
   const [loading, setLoading] = useState(true)
+  const [materializing, setMaterializing] = useState(false)
 
   useEffect(() => {
     let active = true
     ;(async () => {
-      const [controlIds, policyIds, allRisks, allControls, allPolicies, auditLog] = await Promise.all([
+      const [controlIds, policyIds, risks, allControls, allPolicies, units, auditLog] = await Promise.all([
         db.getObligationControlIds(obligation.id),
         db.getObligationPolicyIds(obligation.id),
         db.getRisks(),
         db.getControls(),
         dbExt.getPolicies(),
+        db.getOrgUnits(),
         db.getObligationAuditLog(obligation.id),
       ])
       if (!active) return
-      setPrimaryRisk(allRisks.find(r => r.id === obligation.primary_risk_id) ?? null)
+      setAllRisks(risks)
+      setOrgUnits(units)
+      setPrimaryRisk(risks.find(r => r.id === obligation.primary_risk_id) ?? null)
+      setMaterializedRisk(risks.find(r => r.id === obligation.materialized_risk_id) ?? null)
       setControls(allControls.filter(c => controlIds.includes(c.id)))
       setPolicies(allPolicies.filter(p => policyIds.includes(p.id)))
       setAudit(auditLog)
       setLoading(false)
     })()
     return () => { active = false }
-  }, [obligation.id, obligation.primary_risk_id])
+  }, [obligation.id, obligation.primary_risk_id, obligation.materialized_risk_id])
+
+  // "Did it materialize?" — create an active risk in the register from this obligation
+  async function handleMaterialize() {
+    if (obligation.materialized_risk_id || materializing) return
+    setMaterializing(true)
+    try {
+      const unit = orgUnits.find(u => u.name === obligation.responsible_structure)
+      const likelihood = 3
+      const impact = CRITICALITY_TO_IMPACT[obligation.criticality]
+      const now = new Date().toISOString()
+      const risk: Risk = {
+        id: crypto.randomUUID(),
+        org_id: obligation.org_id,
+        risk_code: generateRiskCode(orgUnitCode(unit), allRisks),
+        title: `Uyğunsuzluq riski: ${obligation.title}`,
+        description: obligation.noncompliance_risk || obligation.description || obligation.title,
+        category: 'legal_compliance',
+        level: calculateInherentLevel(likelihood, impact),
+        status: 'open',
+        likelihood,
+        impact,
+        owner_name: obligation.responsible_party,
+        created_at: now,
+        updated_at: now,
+      }
+      const savedRisk = await db.saveRisk(risk)
+      await db.saveObligation({ ...obligation, materialized_risk_id: savedRisk.id })
+      toast.success(`Aktiv risk yaradıldı: ${savedRisk.risk_code}`)
+      onSaved?.()
+      onClose()
+    } catch (err) {
+      console.error('Materialize risk failed:', err)
+      toast.error('Risk yaradıla bilmədi')
+    } finally {
+      setMaterializing(false)
+    }
+  }
 
   const sc = STATUS_LABEL[obligation.status]
   const Field = ({ label, value }: { label: string; value?: string | null }) => (
@@ -175,6 +228,33 @@ export function ObligationDetailSheet({ obligation, onClose, onEdit }: Props) {
                   </div>
                 )}
             </div>
+
+            {/* Risk of Non-Compliance */}
+            {(obligation.noncompliance_risk || materializedRisk) && (
+              <div>
+                <p className="text-[11px] font-bold uppercase tracking-wide mb-2 flex items-center gap-1.5" style={{ color: 'var(--brand-500)' }}>
+                  <AlertTriangle className="w-3.5 h-3.5" /> Risk of Non-Compliance
+                </p>
+                {obligation.noncompliance_risk && (
+                  <p className="text-sm leading-relaxed mb-2" style={{ color: 'var(--foreground)' }}>{obligation.noncompliance_risk}</p>
+                )}
+                {materializedRisk ? (
+                  <div className="rounded-lg px-3 py-2.5 border border-orange-500/25 bg-orange-500/10">
+                    <p className="text-[10px] uppercase mb-1 text-orange-400">Materialized — active risk created</p>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-mono font-bold" style={{ color: 'var(--brand-500)' }}>{materializedRisk.risk_code ?? '—'}</span>
+                      <span className="text-xs truncate" style={{ color: 'var(--foreground)' }}>{materializedRisk.title}</span>
+                    </div>
+                  </div>
+                ) : (
+                  <button onClick={handleMaterialize} disabled={materializing}
+                    className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold text-white transition-colors disabled:opacity-50"
+                    style={{ background: 'rgb(234,88,12)' }}>
+                    <Zap className="w-3.5 h-3.5" /> {materializing ? 'Yaradılır…' : 'Reallaşdı? Aktiv risk yarat'}
+                  </button>
+                )}
+              </div>
+            )}
 
             {/* Linked Controls */}
             <div>

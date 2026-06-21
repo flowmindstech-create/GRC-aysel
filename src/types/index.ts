@@ -939,6 +939,8 @@ export interface ComplianceObligation {
   status: ObligationStatus
   criticality: ObligationCriticality
   primary_risk_id?: string // related risk (risk register) — drives degree/likelihood/initial
+  noncompliance_risk?: string // the risk of NOT fulfilling this obligation
+  materialized_risk_id?: string // active risk created when the non-compliance risk materialized
   // Dates
   effective_date?: string
   next_review_date?: string

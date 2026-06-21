@@ -71,6 +71,7 @@ export function ObligationFormDialog({ obligation, onClose, onSave, onSaved }: P
   const [obligationType, setObligationType] = useState<ObligationType>(obligation?.obligation_type ?? 'requirement')
   const [criticality, setCriticality]     = useState<ObligationCriticality>(obligation?.criticality ?? 'medium')
   const [primaryRiskId, setPrimaryRisk]   = useState(obligation?.primary_risk_id ?? '')
+  const [noncomplianceRisk, setNoncompRisk] = useState(obligation?.noncompliance_risk ?? '')
   const [effectiveDate, setEffective]     = useState(obligation?.effective_date ?? '')
   const [nextReviewDate, setNextReview]   = useState(obligation?.next_review_date ?? '')
   const [linkedControlIds, setLinkedCtrl] = useState<string[]>([])
@@ -151,6 +152,8 @@ export function ObligationFormDialog({ obligation, onClose, onSave, onSaved }: P
       status,
       criticality,
       primary_risk_id:  primaryRiskId || undefined,
+      noncompliance_risk: noncomplianceRisk.trim() || undefined,
+      materialized_risk_id: obligation?.materialized_risk_id,
       effective_date:   effectiveDate || undefined,
       next_review_date: nextReviewDate || undefined,
       created_at:       obligation?.created_at ?? now,
@@ -383,6 +386,17 @@ export function ObligationFormDialog({ obligation, onClose, onSave, onSaved }: P
                   </div>
                 )
               })()}
+            </div>
+
+            {/* Risk of non-compliance */}
+            <div>
+              <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Risk of Non-Compliance</label>
+              <textarea value={noncomplianceRisk} onChange={e => setNoncompRisk(e.target.value)} rows={2}
+                placeholder="What risk arises if this obligation is NOT met? (e.g. fines from the labour inspectorate)"
+                className={`${fieldCls} resize-none`} style={inputStyle} onFocus={focus} onBlur={blur} />
+              {obligation?.materialized_risk_id && (
+                <p className="text-[10px] mt-1 text-orange-400">This risk has materialized — an active risk exists in the register.</p>
+              )}
             </div>
 
             {sectionTitle('Linked Controls')}
