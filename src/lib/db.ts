@@ -8,7 +8,7 @@ import {
 import type {
   Risk, Incident, Control, Audit, AuditFinding, Vendor, Activity, DashboardStats,
   JiraConfig, JiraActivity, JiraComment, GRCIntakeItem, OrgUnit, UserProfile,
-  ComplianceObligation, ObligationAuditLog, RegulatoryChange, InterestedParty
+  ComplianceObligation, ObligationAuditLog, RegulatoryChange, InterestedParty, Process
 } from '@/types'
 import { RISK_CATEGORIES, normalizeCategory } from './risk-categories'
 import { normalizeStatus, ACTIVE_STATUSES } from './risk-status'
@@ -1337,6 +1337,99 @@ export const db = {
       return counts
     }
     getLocalItem<any[]>('party_obligation_links', []).forEach(l => { counts[l.party_id] = (counts[l.party_id] ?? 0) + 1 })
+    return counts
+  },
+
+  // ─── BUSINESS PROCESSES (Control Map) ────────────────────────────────────────
+  async getProcesses(): Promise<Process[]> {
+    if (isSupabaseConfigured()) {
+      const { createClient } = await import('./supabase/client')
+      const supabase = createClient()
+      const { data, error } = await supabase.from('processes').select('*').order('created_at', { ascending: false })
+      if (error) console.error('Supabase getProcesses error:', error)
+      if (!error && data) return data as Process[]
+    }
+    return getLocalItem<Process[]>('processes', [])
+  },
+
+  async saveProcess(item: Process): Promise<Process> {
+    const orgId = await getCurrentOrgId()
+    const now = new Date().toISOString()
+    const sanitized: Process = { ...item, id: ensureUUID(item.id), org_id: orgId, updated_at: now }
+    if (!sanitized.code) {
+      const existing = await this.getProcesses()
+      const year = new Date().getFullYear()
+      sanitized.code = `PRC-${year}-${String(existing.length + 1).padStart(3, '0')}`
+    }
+    if (isSupabaseConfigured()) {
+      const { createClient } = await import('./supabase/client')
+      const supabase = createClient()
+      const payload: any = { ...sanitized }
+      const dbColumns = ['id', 'org_id', 'code', 'name', 'owner_dept', 'description', 'created_at', 'updated_at']
+      for (const key of Object.keys(payload)) {
+        if (!dbColumns.includes(key)) delete payload[key]
+      }
+      const { data, error } = await supabase.from('processes').upsert(payload).select().single()
+      if (error) console.error('Supabase saveProcess error:', error)
+      if (!error && data) return data as Process
+    }
+    const current = getLocalItem<Process[]>('processes', [])
+    const idx = current.findIndex(p => p.id === sanitized.id)
+    if (idx >= 0) current[idx] = sanitized
+    else current.unshift(sanitized)
+    setLocalItem('processes', current)
+    return sanitized
+  },
+
+  async deleteProcess(id: string): Promise<void> {
+    if (isSupabaseConfigured()) {
+      const { createClient } = await import('./supabase/client')
+      const supabase = createClient()
+      await supabase.from('processes').delete().eq('id', id)
+    }
+    setLocalItem('processes', getLocalItem<Process[]>('processes', []).filter(p => p.id !== id))
+    setLocalItem('process_control_links', getLocalItem<any[]>('process_control_links', []).filter(l => l.process_id !== id))
+  },
+
+  async getProcessControlIds(processId: string): Promise<string[]> {
+    if (isSupabaseConfigured()) {
+      const { createClient } = await import('./supabase/client')
+      const supabase = createClient()
+      const { data, error } = await supabase.from('process_control_links').select('control_id').eq('process_id', processId)
+      if (!error && data) return (data as any[]).map(r => r.control_id)
+    }
+    return getLocalItem<any[]>('process_control_links', []).filter(l => l.process_id === processId).map(l => l.control_id)
+  },
+
+  async setProcessControls(processId: string, controlIds: string[]): Promise<void> {
+    const orgId = await getCurrentOrgId()
+    const now = new Date().toISOString()
+    if (isSupabaseConfigured()) {
+      const { createClient } = await import('./supabase/client')
+      const supabase = createClient()
+      await supabase.from('process_control_links').delete().eq('process_id', processId)
+      if (controlIds.length > 0) {
+        const rows = controlIds.map(cid => ({ id: ensureUUID(), org_id: orgId, process_id: processId, control_id: cid, created_at: now }))
+        const { error } = await supabase.from('process_control_links').insert(rows)
+        if (error) console.error('Supabase setProcessControls error:', error)
+      }
+      return
+    }
+    const all = getLocalItem<any[]>('process_control_links', []).filter(l => l.process_id !== processId)
+    controlIds.forEach(cid => all.push({ id: ensureUUID(), org_id: orgId, process_id: processId, control_id: cid, created_at: now }))
+    setLocalItem('process_control_links', all)
+  },
+
+  async getProcessControlCounts(): Promise<Record<string, number>> {
+    const counts: Record<string, number> = {}
+    if (isSupabaseConfigured()) {
+      const { createClient } = await import('./supabase/client')
+      const supabase = createClient()
+      const { data } = await supabase.from('process_control_links').select('process_id')
+      ;((data as any[]) ?? []).forEach(r => { counts[r.process_id] = (counts[r.process_id] ?? 0) + 1 })
+      return counts
+    }
+    getLocalItem<any[]>('process_control_links', []).forEach(l => { counts[l.process_id] = (counts[l.process_id] ?? 0) + 1 })
     return counts
   },
 

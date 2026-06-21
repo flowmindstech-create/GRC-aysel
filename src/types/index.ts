@@ -1036,6 +1036,27 @@ export interface PartyObligationLink {
   created_at: string
 }
 
+// ─── Business Process (Control Map) ──────────────────────────────────────────
+export interface Process {
+  id: string
+  org_id: string
+  code: string // PRC-YYYY-NNN
+  name: string
+  owner_dept?: string
+  description?: string
+  created_at: string
+  updated_at: string
+}
+
+// Many-to-many link: process ↔ control
+export interface ProcessControlLink {
+  id: string
+  org_id: string
+  process_id: string
+  control_id: string
+  created_at: string
+}
+
 // ISO 37301 traceability — change history of an obligation
 export interface ObligationAuditLog {
   id: string
