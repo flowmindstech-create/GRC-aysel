@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { db } from '@/lib/db'
+import { dbExt } from '@/lib/db-extensions'
 import type { ComplianceObligation, ObligationStatus, ObligationSource, ObligationCriticality, ObligationType, Risk } from '@/types'
 import { residualLevelWord, inherentLevelWord } from '@/lib/rcsa-methodology'
 import { cn } from '@/lib/utils'
@@ -67,7 +68,10 @@ const ALL_SOURCES: ObligationSource[] = [
 export function ComplianceWorkflowClient() {
   const [obligations, setObligations] = useState<ComplianceObligation[]>([])
   const [risksById, setRisksById]     = useState<Record<string, Risk>>({})
-  const [linkCounts, setLinkCounts]   = useState<Record<string, { risks: number; controls: number }>>({})
+  const [linkCounts, setLinkCounts]   = useState<Record<string, { risks: number; controls: number; policies: number }>>({})
+  const [linkMaps, setLinkMaps]       = useState<Record<string, { controlIds: string[]; policyIds: string[] }>>({})
+  const [controlCodeById, setControlCode] = useState<Record<string, string>>({})
+  const [policyCodeById, setPolicyCode]   = useState<Record<string, string>>({})
   const [loading, setLoading]         = useState(true)
   const [showForm, setShowForm]       = useState(false)
   const [editItem, setEditItem]       = useState<ComplianceObligation | null>(null)
@@ -85,10 +89,16 @@ export function ComplianceWorkflowClient() {
   }, [])
 
   async function reload() {
-    const [data, counts, riskList] = await Promise.all([db.getObligations(), db.getObligationLinkCounts(), db.getRisks()])
+    const [data, counts, maps, riskList, controlList, policyList] = await Promise.all([
+      db.getObligations(), db.getObligationLinkCounts(), db.getObligationLinkMaps(),
+      db.getRisks(), db.getControls(), dbExt.getPolicies(),
+    ])
     setObligations(data)
     setLinkCounts(counts)
+    setLinkMaps(maps)
     setRisksById(Object.fromEntries(riskList.map(r => [r.id, r])))
+    setControlCode(Object.fromEntries(controlList.map(c => [c.id, c.control_id])))
+    setPolicyCode(Object.fromEntries(policyList.map(p => [p.id, p.policy_id])))
     setLoading(false)
   }
 
@@ -208,7 +218,7 @@ export function ComplianceWorkflowClient() {
           <table className="w-full">
             <thead>
               <tr style={{ borderBottom: '1px solid var(--border)', background: 'var(--muted)' }}>
-                {['Code', 'Requirement', 'Source', 'Scope', 'Compliance Article', 'Status', 'Type', 'Criticality', 'Resp. Structure', 'Resp. Person', 'Related Risk', 'Degree', 'Likelihood', 'Initial', 'Links', ''].map(h => (
+                {['Code', 'Requirement', 'Source', 'Regulator', 'Scope', 'Compliance Article', 'Status', 'Type', 'Criticality', 'Resp. Structure', 'Resp. Person', 'Related Risk', 'Degree', 'Likelihood', 'Initial', 'Related Control', 'Related Policy', 'Evidence', 'Links', ''].map(h => (
                   <th key={h} className="text-left px-3 py-3 text-[11px] font-semibold uppercase tracking-wide whitespace-nowrap" style={{ color: 'var(--muted-fg)' }}>
                     {h}
                   </th>
@@ -217,10 +227,10 @@ export function ComplianceWorkflowClient() {
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={16} className="py-16 text-center text-sm" style={{ color: 'var(--muted-fg)' }}>Loading…</td></tr>
+                <tr><td colSpan={20} className="py-16 text-center text-sm" style={{ color: 'var(--muted-fg)' }}>Loading…</td></tr>
               ) : filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={16} className="py-16 text-center" style={{ color: 'var(--muted-fg)' }}>
+                  <td colSpan={20} className="py-16 text-center" style={{ color: 'var(--muted-fg)' }}>
                     <div className="flex flex-col items-center gap-2">
                       <ScrollText className="w-8 h-8 opacity-30" />
                       <p className="text-sm">No obligations found</p>
@@ -235,7 +245,10 @@ export function ComplianceWorkflowClient() {
                     const isNearBottom = filtered.length > 2 && i >= filtered.length - 2
                     const sc = STATUS_CONFIG[item.status]
                     const cc = CRITICALITY_CONFIG[item.criticality]
-                    const lc = linkCounts[item.id] ?? { risks: 0, controls: 0 }
+                    const lc = linkCounts[item.id] ?? { risks: 0, controls: 0, policies: 0 }
+                    const lm = linkMaps[item.id] ?? { controlIds: [], policyIds: [] }
+                    const ctrlCodes = lm.controlIds.map(id => controlCodeById[id]).filter(Boolean)
+                    const polCodes  = lm.policyIds.map(id => policyCodeById[id]).filter(Boolean)
                     const relatedRisk = item.primary_risk_id ? risksById[item.primary_risk_id] : undefined
                     return (
                       <motion.tr
@@ -266,6 +279,13 @@ export function ComplianceWorkflowClient() {
                             {item.source}
                           </span>
                           <p className="text-[10px] mt-0.5 capitalize" style={{ color: 'var(--muted-fg)' }}>{item.source_type}</p>
+                        </td>
+
+                        {/* Regulator */}
+                        <td className="px-3 py-3.5 max-w-[140px]">
+                          <span className="text-xs truncate block" style={{ color: item.regulator ? 'var(--foreground)' : 'var(--muted-fg)' }}>
+                            {item.regulator || '—'}
+                          </span>
                         </td>
 
                         {/* Compliance condition */}
@@ -367,10 +387,45 @@ export function ComplianceWorkflowClient() {
                           </span>
                         </td>
 
+                        {/* Related Control */}
+                        <td className="px-3 py-3.5 max-w-[150px]">
+                          {ctrlCodes.length === 0 ? (
+                            <span className="text-xs" style={{ color: 'var(--muted-fg)' }}>—</span>
+                          ) : (
+                            <span className="inline-flex flex-wrap gap-1">
+                              {ctrlCodes.slice(0, 2).map(code => (
+                                <span key={code} className="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-sky-500/12 text-sky-400 whitespace-nowrap">{code}</span>
+                              ))}
+                              {ctrlCodes.length > 2 && <span className="text-[10px]" style={{ color: 'var(--muted-fg)' }}>+{ctrlCodes.length - 2}</span>}
+                            </span>
+                          )}
+                        </td>
+
+                        {/* Related Policy */}
+                        <td className="px-3 py-3.5 max-w-[150px]">
+                          {polCodes.length === 0 ? (
+                            <span className="text-xs" style={{ color: 'var(--muted-fg)' }}>—</span>
+                          ) : (
+                            <span className="inline-flex flex-wrap gap-1">
+                              {polCodes.slice(0, 2).map(code => (
+                                <span key={code} className="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-indigo-500/12 text-indigo-400 whitespace-nowrap">{code}</span>
+                              ))}
+                              {polCodes.length > 2 && <span className="text-[10px]" style={{ color: 'var(--muted-fg)' }}>+{polCodes.length - 2}</span>}
+                            </span>
+                          )}
+                        </td>
+
+                        {/* Evidence */}
+                        <td className="px-3 py-3.5 max-w-[150px]">
+                          <span className="text-xs truncate block" style={{ color: item.evidence ? 'var(--foreground)' : 'var(--muted-fg)' }} title={item.evidence || undefined}>
+                            {item.evidence || '—'}
+                          </span>
+                        </td>
+
                         {/* Links */}
                         <td className="px-3 py-3.5">
-                          <span className="inline-flex items-center gap-1 text-[11px] font-medium whitespace-nowrap" style={{ color: (lc.risks || lc.controls) ? 'var(--foreground)' : 'var(--muted-fg)' }}>
-                            <Link2 className="w-3 h-3" /> {lc.risks}R · {lc.controls}C
+                          <span className="inline-flex items-center gap-1 text-[11px] font-medium whitespace-nowrap" style={{ color: (lc.risks || lc.controls || lc.policies) ? 'var(--foreground)' : 'var(--muted-fg)' }}>
+                            <Link2 className="w-3 h-3" /> {lc.risks}R · {lc.controls}C · {lc.policies}P
                           </span>
                         </td>
 

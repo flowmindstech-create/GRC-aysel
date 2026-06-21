@@ -4,9 +4,10 @@ import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Edit, ExternalLink, ShieldAlert, BookOpen, History, Building2 } from 'lucide-react'
 import { db } from '@/lib/db'
+import { dbExt } from '@/lib/db-extensions'
 import type {
   ComplianceObligation, ObligationStatus, ObligationCriticality,
-  Risk, Control, ObligationAuditLog,
+  Risk, Control, Policy, ObligationAuditLog,
 } from '@/types'
 import { residualLevelWord, inherentLevelWord } from '@/lib/rcsa-methodology'
 import { formatDistanceToNow } from 'date-fns'
@@ -45,21 +46,25 @@ function auditSummary(log: ObligationAuditLog): string {
 export function ObligationDetailSheet({ obligation, onClose, onEdit }: Props) {
   const [primaryRisk, setPrimaryRisk] = useState<Risk | null>(null)
   const [controls, setControls] = useState<Control[]>([])
+  const [policies, setPolicies] = useState<Policy[]>([])
   const [audit, setAudit] = useState<ObligationAuditLog[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     let active = true
     ;(async () => {
-      const [controlIds, allRisks, allControls, auditLog] = await Promise.all([
+      const [controlIds, policyIds, allRisks, allControls, allPolicies, auditLog] = await Promise.all([
         db.getObligationControlIds(obligation.id),
+        db.getObligationPolicyIds(obligation.id),
         db.getRisks(),
         db.getControls(),
+        dbExt.getPolicies(),
         db.getObligationAuditLog(obligation.id),
       ])
       if (!active) return
       setPrimaryRisk(allRisks.find(r => r.id === obligation.primary_risk_id) ?? null)
       setControls(allControls.filter(c => controlIds.includes(c.id)))
+      setPolicies(allPolicies.filter(p => policyIds.includes(p.id)))
       setAudit(auditLog)
       setLoading(false)
     })()
@@ -184,6 +189,25 @@ export function ObligationDetailSheet({ obligation, onClose, onEdit }: Props) {
                       <div key={c.id} className="flex items-center gap-2 px-3 py-2 rounded-lg" style={{ background: 'var(--muted)' }}>
                         <span className="text-[10px] font-mono font-bold" style={{ color: 'var(--brand-500)' }}>{c.control_id}</span>
                         <span className="text-xs truncate" style={{ color: 'var(--foreground)' }}>{c.title}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+            </div>
+
+            {/* Linked Policies */}
+            <div>
+              <p className="text-[11px] font-bold uppercase tracking-wide mb-2 flex items-center gap-1.5" style={{ color: 'var(--brand-500)' }}>
+                <BookOpen className="w-3.5 h-3.5" /> Related Policies ({policies.length})
+              </p>
+              {loading ? <p className="text-xs" style={{ color: 'var(--muted-fg)' }}>Loading…</p>
+                : policies.length === 0 ? <p className="text-xs" style={{ color: 'var(--muted-fg)' }}>No related policies.</p>
+                : (
+                  <div className="space-y-1.5">
+                    {policies.map(p => (
+                      <div key={p.id} className="flex items-center gap-2 px-3 py-2 rounded-lg" style={{ background: 'var(--muted)' }}>
+                        <span className="text-[10px] font-mono font-bold" style={{ color: 'var(--brand-500)' }}>{p.policy_id}</span>
+                        <span className="text-xs truncate" style={{ color: 'var(--foreground)' }}>{p.title}</span>
                       </div>
                     ))}
                   </div>

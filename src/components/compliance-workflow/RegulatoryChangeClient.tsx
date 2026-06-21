@@ -140,17 +140,17 @@ export function RegulatoryChangeClient() {
           <table className="w-full">
             <thead>
               <tr style={{ borderBottom: '1px solid var(--border)', background: 'var(--muted)' }}>
-                {['Code', 'Change', 'Source', 'Regulator', 'Change Date', 'Status', 'Affected', ''].map(h => (
+                {['Code', 'Change', 'Source', 'Regulator', 'Change Date', 'Effective Date', 'Status', 'Affected', ''].map(h => (
                   <th key={h} className="text-left px-3 py-3 text-[11px] font-semibold uppercase tracking-wide whitespace-nowrap" style={{ color: 'var(--muted-fg)' }}>{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={8} className="py-16 text-center text-sm" style={{ color: 'var(--muted-fg)' }}>Loading…</td></tr>
+                <tr><td colSpan={9} className="py-16 text-center text-sm" style={{ color: 'var(--muted-fg)' }}>Loading…</td></tr>
               ) : filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="py-16 text-center" style={{ color: 'var(--muted-fg)' }}>
+                  <td colSpan={9} className="py-16 text-center" style={{ color: 'var(--muted-fg)' }}>
                     <div className="flex flex-col items-center gap-2">
                       <Archive className="w-8 h-8 opacity-30" />
                       <p className="text-sm">No regulatory changes</p>
@@ -176,6 +176,7 @@ export function RegulatoryChangeClient() {
                         <td className="px-3 py-3.5"><span className="text-xs" style={{ color: 'var(--muted-fg)' }}>{item.source}</span></td>
                         <td className="px-3 py-3.5"><span className="text-xs whitespace-nowrap" style={{ color: item.regulator ? 'var(--foreground)' : 'var(--muted-fg)' }}>{item.regulator ?? '—'}</span></td>
                         <td className="px-3 py-3.5"><span className="text-xs whitespace-nowrap" style={{ color: 'var(--muted-fg)' }}>{item.change_date ? format(new Date(item.change_date), 'd MMM yyyy') : '—'}</span></td>
+                        <td className="px-3 py-3.5"><span className="text-xs whitespace-nowrap" style={{ color: item.effective_date ? 'var(--foreground)' : 'var(--muted-fg)' }}>{item.effective_date ? format(new Date(item.effective_date), 'd MMM yyyy') : '—'}</span></td>
                         <td className="px-3 py-3.5">
                           <span className={cn('inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-semibold border', sc.classes)}>{sc.label}</span>
                         </td>

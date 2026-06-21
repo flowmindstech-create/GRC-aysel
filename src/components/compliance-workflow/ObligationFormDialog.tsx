@@ -4,11 +4,12 @@ import { useState, useEffect } from 'react'
 import { X, Plus, Save } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { db } from '@/lib/db'
+import { dbExt } from '@/lib/db-extensions'
 import { residualLevelWord, inherentLevelWord } from '@/lib/rcsa-methodology'
 import { resolveOwnerFromUnit } from '@/lib/org'
 import type {
   ComplianceObligation, ObligationStatus, ObligationSource,
-  ObligationSourceType, ObligationCriticality, ObligationType, OrgUnit, Risk, Control, UserProfile,
+  ObligationSourceType, ObligationCriticality, ObligationType, OrgUnit, Risk, Control, Policy, UserProfile,
 } from '@/types'
 
 const SOURCES: ObligationSource[] = [
@@ -73,28 +74,35 @@ export function ObligationFormDialog({ obligation, onClose, onSave, onSaved }: P
   const [effectiveDate, setEffective]     = useState(obligation?.effective_date ?? '')
   const [nextReviewDate, setNextReview]   = useState(obligation?.next_review_date ?? '')
   const [linkedControlIds, setLinkedCtrl] = useState<string[]>([])
+  const [linkedPolicyIds, setLinkedPolicy] = useState<string[]>([])
   const [loading, setLoading]             = useState(false)
 
   const [departments, setDepartments] = useState<OrgUnit[]>([])
   const [profiles, setProfiles]       = useState<UserProfile[]>([])
   const [risks, setRisks]             = useState<Risk[]>([])
   const [controls, setControls]       = useState<Control[]>([])
+  const [policies, setPolicies]       = useState<Policy[]>([])
 
   useEffect(() => {
     let active = true
     ;(async () => {
-      const [units, people, riskList, controlList] = await Promise.all([
-        db.getOrgUnits(), db.getProfiles(), db.getRisks(), db.getControls(),
+      const [units, people, riskList, controlList, policyList] = await Promise.all([
+        db.getOrgUnits(), db.getProfiles(), db.getRisks(), db.getControls(), dbExt.getPolicies(),
       ])
       if (!active) return
       setDepartments(units.filter(u => u.type === 'department' || u.type === 'division'))
       setProfiles(people)
       setRisks(riskList)
       setControls(controlList)
+      setPolicies(policyList)
       if (obligation?.id) {
-        const cids = await db.getObligationControlIds(obligation.id)
+        const [cids, pids] = await Promise.all([
+          db.getObligationControlIds(obligation.id),
+          db.getObligationPolicyIds(obligation.id),
+        ])
         if (!active) return
         setLinkedCtrl(cids)
+        setLinkedPolicy(pids)
       }
     })()
     return () => { active = false }
@@ -150,8 +158,11 @@ export function ObligationFormDialog({ obligation, onClose, onSave, onSaved }: P
     }
 
     await onSave(item)
-    // Persist control links (obligation id is stable — db keeps the passed UUID)
-    await db.setObligationControls(item.id, linkedControlIds)
+    // Persist control + policy links (obligation id is stable — db keeps the passed UUID)
+    await Promise.all([
+      db.setObligationControls(item.id, linkedControlIds),
+      db.setObligationPolicies(item.id, linkedPolicyIds),
+    ])
     onSaved?.()
     setLoading(false)
   }
@@ -387,9 +398,22 @@ export function ObligationFormDialog({ obligation, onClose, onSave, onSaved }: P
               ))}
             </div>
 
+            {sectionTitle('Related Policies')}
+            <div className="rounded-lg border max-h-32 overflow-y-auto" style={{ borderColor: 'var(--border)' }}>
+              {policies.length === 0 ? (
+                <p className="text-xs px-3 py-2" style={{ color: 'var(--muted-fg)' }}>No internal policies yet.</p>
+              ) : policies.map(p => (
+                <label key={p.id} className="flex items-center gap-2 px-3 py-1.5 text-xs cursor-pointer hover:bg-white/5" style={{ color: 'var(--foreground)' }}>
+                  <input type="checkbox" checked={linkedPolicyIds.includes(p.id)} onChange={() => toggle(linkedPolicyIds, p.id, setLinkedPolicy)} />
+                  <span className="font-mono text-[10px]" style={{ color: 'var(--brand-500)' }}>{p.policy_id}</span>
+                  <span className="truncate">{p.title}</span>
+                </label>
+              ))}
+            </div>
+
             {/* Evidence */}
             <div>
-              <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Evidence</label>
+              <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Evidence (document names)</label>
               <textarea value={evidence} onChange={e => setEvidence(e.target.value)} rows={2}
                 placeholder="Documentation / proof of compliance (reports, records, links)…"
                 className={`${fieldCls} resize-none`} style={inputStyle} onFocus={focus} onBlur={blur} />

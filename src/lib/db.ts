@@ -1066,27 +1066,79 @@ export const db = {
     setLocalItem('obligation_control_links', all)
   },
 
-  // Risk/control link counts per obligation (for the register table)
-  async getObligationLinkCounts(): Promise<Record<string, { risks: number; controls: number }>> {
-    const counts: Record<string, { risks: number; controls: number }> = {}
-    const bump = (id: string, key: 'risks' | 'controls') => {
-      if (!counts[id]) counts[id] = { risks: 0, controls: 0 }
+  async getObligationPolicyIds(obligationId: string): Promise<string[]> {
+    if (isSupabaseConfigured()) {
+      const { createClient } = await import('./supabase/client')
+      const supabase = createClient()
+      const { data, error } = await supabase.from('obligation_policy_links').select('policy_id').eq('obligation_id', obligationId)
+      if (!error && data) return (data as any[]).map(r => r.policy_id)
+    }
+    return getLocalItem<any[]>('obligation_policy_links', []).filter(l => l.obligation_id === obligationId).map(l => l.policy_id)
+  },
+
+  async setObligationPolicies(obligationId: string, policyIds: string[]): Promise<void> {
+    const orgId = await getCurrentOrgId()
+    const now = new Date().toISOString()
+    if (isSupabaseConfigured()) {
+      const { createClient } = await import('./supabase/client')
+      const supabase = createClient()
+      await supabase.from('obligation_policy_links').delete().eq('obligation_id', obligationId)
+      if (policyIds.length > 0) {
+        const rows = policyIds.map(pid => ({ id: ensureUUID(), org_id: orgId, obligation_id: obligationId, policy_id: pid, created_at: now }))
+        const { error } = await supabase.from('obligation_policy_links').insert(rows)
+        if (error) console.error('Supabase setObligationPolicies error:', error)
+      }
+      return
+    }
+    const all = getLocalItem<any[]>('obligation_policy_links', []).filter(l => l.obligation_id !== obligationId)
+    policyIds.forEach(pid => all.push({ id: ensureUUID(), org_id: orgId, obligation_id: obligationId, policy_id: pid, created_at: now }))
+    setLocalItem('obligation_policy_links', all)
+  },
+
+  // Risk/control/policy link counts per obligation (for the register table)
+  async getObligationLinkCounts(): Promise<Record<string, { risks: number; controls: number; policies: number }>> {
+    const counts: Record<string, { risks: number; controls: number; policies: number }> = {}
+    const bump = (id: string, key: 'risks' | 'controls' | 'policies') => {
+      if (!counts[id]) counts[id] = { risks: 0, controls: 0, policies: 0 }
       counts[id][key]++
     }
     if (isSupabaseConfigured()) {
       const { createClient } = await import('./supabase/client')
       const supabase = createClient()
-      const [{ data: rl }, { data: cl }] = await Promise.all([
+      const [{ data: rl }, { data: cl }, { data: pl }] = await Promise.all([
         supabase.from('obligation_risk_links').select('obligation_id'),
         supabase.from('obligation_control_links').select('obligation_id'),
+        supabase.from('obligation_policy_links').select('obligation_id'),
       ])
       ;((rl as any[]) ?? []).forEach(r => bump(r.obligation_id, 'risks'))
       ;((cl as any[]) ?? []).forEach(c => bump(c.obligation_id, 'controls'))
+      ;((pl as any[]) ?? []).forEach(p => bump(p.obligation_id, 'policies'))
       return counts
     }
     getLocalItem<any[]>('obligation_risk_links', []).forEach(l => bump(l.obligation_id, 'risks'))
     getLocalItem<any[]>('obligation_control_links', []).forEach(l => bump(l.obligation_id, 'controls'))
+    getLocalItem<any[]>('obligation_policy_links', []).forEach(l => bump(l.obligation_id, 'policies'))
     return counts
+  },
+
+  // Per-obligation control + policy id arrays (for showing codes in the register)
+  async getObligationLinkMaps(): Promise<Record<string, { controlIds: string[]; policyIds: string[] }>> {
+    const maps: Record<string, { controlIds: string[]; policyIds: string[] }> = {}
+    const ensure = (id: string) => { if (!maps[id]) maps[id] = { controlIds: [], policyIds: [] }; return maps[id] }
+    if (isSupabaseConfigured()) {
+      const { createClient } = await import('./supabase/client')
+      const supabase = createClient()
+      const [{ data: cl }, { data: pl }] = await Promise.all([
+        supabase.from('obligation_control_links').select('obligation_id, control_id'),
+        supabase.from('obligation_policy_links').select('obligation_id, policy_id'),
+      ])
+      ;((cl as any[]) ?? []).forEach(c => ensure(c.obligation_id).controlIds.push(c.control_id))
+      ;((pl as any[]) ?? []).forEach(p => ensure(p.obligation_id).policyIds.push(p.policy_id))
+      return maps
+    }
+    getLocalItem<any[]>('obligation_control_links', []).forEach(l => ensure(l.obligation_id).controlIds.push(l.control_id))
+    getLocalItem<any[]>('obligation_policy_links', []).forEach(l => ensure(l.obligation_id).policyIds.push(l.policy_id))
+    return maps
   },
 
   // ─── REGULATORY CHANGE MANAGEMENT ────────────────────────────────────────────
