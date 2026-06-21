@@ -8,6 +8,7 @@ import {
   Search, Users, Settings, ChevronLeft, ChevronRight,
   Shield, GitBranch, FileSearch, Activity,
   BookOpen, Network, ScrollText, LogOut,
+  Target, Landmark, FlaskConical,
 } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { getCurrentProfile } from '@/lib/db'
@@ -31,6 +32,14 @@ const navGroups = [
       { href: '/incidents',                 label: 'Incidents',            icon: AlertTriangle },
       { href: '/compliance',           label: 'Compliance',          icon: ClipboardCheck },
       { href: '/audits',               label: 'Audits',              icon: Search },
+    ],
+  },
+  {
+    label: 'Risk Modules',
+    items: [
+      { href: '/risk-appetite',   label: 'Risk Appetite',   icon: Target },
+      { href: '/financial-risks', label: 'Financial Risks', icon: Landmark },
+      { href: '/stress-tests',    label: 'Stress Tests',    icon: FlaskConical },
     ],
   },
   {

@@ -8,7 +8,8 @@ import {
 import type {
   Risk, Incident, Control, Audit, AuditFinding, Vendor, Activity, DashboardStats,
   JiraConfig, JiraActivity, JiraComment, GRCIntakeItem, OrgUnit, UserProfile,
-  ComplianceObligation, ObligationAuditLog, RegulatoryChange, InterestedParty, Process
+  ComplianceObligation, ObligationAuditLog, RegulatoryChange, InterestedParty, Process,
+  AppetiteEntry, FinancialRisk, StressTest
 } from '@/types'
 import { RISK_CATEGORIES, normalizeCategory } from './risk-categories'
 import { normalizeStatus, ACTIVE_STATUSES } from './risk-status'
@@ -1435,6 +1436,99 @@ export const db = {
     }
     getLocalItem<any[]>('process_control_links', []).forEach(l => { counts[l.process_id] = (counts[l.process_id] ?? 0) + 1 })
     return counts
+  },
+
+  // ─── RISK APPETITE STATEMENTS (phase 30) ─────────────────────────────────────
+  async getRiskAppetite(): Promise<AppetiteEntry[]> {
+    if (isSupabaseConfigured()) {
+      const { createClient } = await import('./supabase/client')
+      const { data, error } = await createClient().from('risk_appetite_statements').select('*').order('created_at', { ascending: false })
+      if (!error && data) return data as AppetiteEntry[]
+    }
+    return getLocalItem<AppetiteEntry[]>('risk_appetite_statements', [])
+  },
+  async saveRiskAppetite(item: AppetiteEntry): Promise<AppetiteEntry> {
+    const orgId = await getCurrentOrgId()
+    const now = new Date().toISOString()
+    const s: AppetiteEntry = { ...item, id: ensureUUID(item.id), org_id: orgId, updated_at: now }
+    if (!s.code) { const all = await this.getRiskAppetite(); s.code = `RA-${new Date().getFullYear()}-${String(all.length + 1).padStart(3, '0')}` }
+    if (isSupabaseConfigured()) {
+      const { createClient } = await import('./supabase/client')
+      const cols = ['id','org_id','code','category','statement','tolerance','measure','status','owner','created_at','updated_at']
+      const payload: any = { ...s }; for (const k of Object.keys(payload)) if (!cols.includes(k)) delete payload[k]
+      const { data, error } = await createClient().from('risk_appetite_statements').upsert(payload).select().single()
+      if (error) console.error('saveRiskAppetite error:', error)
+      if (!error && data) return data as AppetiteEntry
+    }
+    const cur = getLocalItem<AppetiteEntry[]>('risk_appetite_statements', [])
+    const i = cur.findIndex(x => x.id === s.id); if (i >= 0) cur[i] = s; else cur.unshift(s)
+    setLocalItem('risk_appetite_statements', cur); return s
+  },
+  async deleteRiskAppetite(id: string): Promise<void> {
+    if (isSupabaseConfigured()) { const { createClient } = await import('./supabase/client'); await createClient().from('risk_appetite_statements').delete().eq('id', id) }
+    setLocalItem('risk_appetite_statements', getLocalItem<AppetiteEntry[]>('risk_appetite_statements', []).filter(x => x.id !== id))
+  },
+
+  // ─── FINANCIAL RISKS (phase 30) ──────────────────────────────────────────────
+  async getFinancialRisks(): Promise<FinancialRisk[]> {
+    if (isSupabaseConfigured()) {
+      const { createClient } = await import('./supabase/client')
+      const { data, error } = await createClient().from('financial_risks').select('*').order('created_at', { ascending: false })
+      if (!error && data) return data as FinancialRisk[]
+    }
+    return getLocalItem<FinancialRisk[]>('financial_risks', [])
+  },
+  async saveFinancialRisk(item: FinancialRisk): Promise<FinancialRisk> {
+    const orgId = await getCurrentOrgId()
+    const now = new Date().toISOString()
+    const s: FinancialRisk = { ...item, id: ensureUUID(item.id), org_id: orgId, updated_at: now }
+    if (!s.code) { const all = await this.getFinancialRisks(); s.code = `FR-${new Date().getFullYear()}-${String(all.length + 1).padStart(3, '0')}` }
+    if (isSupabaseConfigured()) {
+      const { createClient } = await import('./supabase/client')
+      const cols = ['id','org_id','code','title','kind','exposure_amount','currency','likelihood','impact','level','notes','owner','created_at','updated_at']
+      const payload: any = { ...s }; for (const k of Object.keys(payload)) if (!cols.includes(k)) delete payload[k]
+      const { data, error } = await createClient().from('financial_risks').upsert(payload).select().single()
+      if (error) console.error('saveFinancialRisk error:', error)
+      if (!error && data) return data as FinancialRisk
+    }
+    const cur = getLocalItem<FinancialRisk[]>('financial_risks', [])
+    const i = cur.findIndex(x => x.id === s.id); if (i >= 0) cur[i] = s; else cur.unshift(s)
+    setLocalItem('financial_risks', cur); return s
+  },
+  async deleteFinancialRisk(id: string): Promise<void> {
+    if (isSupabaseConfigured()) { const { createClient } = await import('./supabase/client'); await createClient().from('financial_risks').delete().eq('id', id) }
+    setLocalItem('financial_risks', getLocalItem<FinancialRisk[]>('financial_risks', []).filter(x => x.id !== id))
+  },
+
+  // ─── STRESS TESTS (phase 30) ─────────────────────────────────────────────────
+  async getStressTests(): Promise<StressTest[]> {
+    if (isSupabaseConfigured()) {
+      const { createClient } = await import('./supabase/client')
+      const { data, error } = await createClient().from('stress_tests').select('*').order('created_at', { ascending: false })
+      if (!error && data) return data as StressTest[]
+    }
+    return getLocalItem<StressTest[]>('stress_tests', [])
+  },
+  async saveStressTest(item: StressTest): Promise<StressTest> {
+    const orgId = await getCurrentOrgId()
+    const now = new Date().toISOString()
+    const s: StressTest = { ...item, id: ensureUUID(item.id), org_id: orgId, updated_at: now }
+    if (!s.code) { const all = await this.getStressTests(); s.code = `ST-${new Date().getFullYear()}-${String(all.length + 1).padStart(3, '0')}` }
+    if (isSupabaseConfigured()) {
+      const { createClient } = await import('./supabase/client')
+      const cols = ['id','org_id','code','scenario','description','assumption','result_impact','outcome','tested_at','owner','created_at','updated_at']
+      const payload: any = { ...s }; for (const k of Object.keys(payload)) if (!cols.includes(k)) delete payload[k]
+      const { data, error } = await createClient().from('stress_tests').upsert(payload).select().single()
+      if (error) console.error('saveStressTest error:', error)
+      if (!error && data) return data as StressTest
+    }
+    const cur = getLocalItem<StressTest[]>('stress_tests', [])
+    const i = cur.findIndex(x => x.id === s.id); if (i >= 0) cur[i] = s; else cur.unshift(s)
+    setLocalItem('stress_tests', cur); return s
+  },
+  async deleteStressTest(id: string): Promise<void> {
+    if (isSupabaseConfigured()) { const { createClient } = await import('./supabase/client'); await createClient().from('stress_tests').delete().eq('id', id) }
+    setLocalItem('stress_tests', getLocalItem<StressTest[]>('stress_tests', []).filter(x => x.id !== id))
   },
 
   // ─── GRC INTAKE ITEMS ──────────────────────────────────────────────────────

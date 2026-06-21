@@ -1049,6 +1049,56 @@ export interface PartyObligationLink {
   created_at: string
 }
 
+// ─── New dashboard modules (phase 30) ────────────────────────────────────────
+export type AppetiteEntryStatus = 'within' | 'warning' | 'breached'
+export interface AppetiteEntry {
+  id: string
+  org_id: string
+  code: string // RA-YYYY-NNN
+  category?: string
+  statement: string
+  tolerance?: string
+  measure?: string
+  status: AppetiteEntryStatus
+  owner?: string
+  created_at: string
+  updated_at: string
+}
+
+export type FinancialRiskKind = 'portfolio' | 'investment'
+export interface FinancialRisk {
+  id: string
+  org_id: string
+  code: string // FR-YYYY-NNN
+  title: string
+  kind: FinancialRiskKind
+  exposure_amount?: number
+  currency?: string
+  likelihood: number
+  impact: number
+  level?: RiskLevel
+  notes?: string
+  owner?: string
+  created_at: string
+  updated_at: string
+}
+
+export type StressTestOutcome = 'pass' | 'attention' | 'fail'
+export interface StressTest {
+  id: string
+  org_id: string
+  code: string // ST-YYYY-NNN
+  scenario: string
+  description?: string
+  assumption?: string
+  result_impact?: string
+  outcome: StressTestOutcome
+  tested_at?: string
+  owner?: string
+  created_at: string
+  updated_at: string
+}
+
 // ─── Business Process (Control Map) ──────────────────────────────────────────
 export interface Process {
   id: string
