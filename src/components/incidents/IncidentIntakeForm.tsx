@@ -1,10 +1,11 @@
 'use client'
 
 import { useState, useMemo, useEffect } from 'react'
-import { Upload, X, Calendar, AlertTriangle } from 'lucide-react'
+import { Upload, X, Calendar, AlertTriangle, Lock } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { db } from '@/lib/db'
-import type { Incident, IncidentPriority, AttachedFile, OrgUnit } from '@/types'
+import { calculateInherentLevel } from '@/lib/rcsa'
+import type { Incident, IncidentPriority, IncidentSeverity, AttachedFile, OrgUnit } from '@/types'
 import { MOCK_USERS } from '@/lib/seed-data'
 
 // ── Priority calculator ─────────────────────────────────────────────────────
@@ -15,6 +16,26 @@ export function calcPriority(likelihood: number, impact: number): IncidentPriori
   if (score >= 10) return 'P3_medium'
   if (score >= 5) return 'P4_low'
   return 'P5_minimal'
+}
+
+// Severity is derived from likelihood × impact (same 5×5 matrix as the risk
+// register) — never selected manually, so incident and risk stay consistent.
+export function calcSeverity(likelihood: number, impact: number): IncidentSeverity {
+  return calculateInherentLevel(likelihood, impact)
+}
+
+const SEVERITY_CONFIG: Record<IncidentSeverity, { label: string; classes: string }> = {
+  minimal:  { label: 'Minimal',  classes: 'bg-slate-500/15 text-slate-400 border-slate-500/25' },
+  low:      { label: 'Low',      classes: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/25' },
+  medium:   { label: 'Medium',   classes: 'bg-amber-500/15 text-amber-400 border-amber-500/25' },
+  high:     { label: 'High',     classes: 'bg-orange-500/15 text-orange-400 border-orange-500/25' },
+  critical: { label: 'Critical', classes: 'bg-red-500/15 text-red-400 border-red-500/25' },
+}
+
+// Local datetime-local string for "now" (used to block future occurrence dates)
+function nowLocalValue(): string {
+  const d = new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
+  return d.toISOString().slice(0, 16)
 }
 
 export const PRIORITY_CONFIG: Record<IncidentPriority, { label: string; classes: string }> = {
@@ -86,7 +107,17 @@ export function IncidentIntakeForm({ data, onChange }: Props) {
   const likelihood = data.likelihood ?? 3
   const impact = data.impact ?? 3
   const priority = useMemo(() => calcPriority(likelihood, impact), [likelihood, impact])
+  const severity = useMemo(() => calcSeverity(likelihood, impact), [likelihood, impact])
   const pCfg = PRIORITY_CONFIG[priority]
+  const sCfg = SEVERITY_CONFIG[severity]
+
+  // Keep derived severity/priority in sync on the persisted record
+  useEffect(() => {
+    if (data.severity !== severity || data.priority !== priority) {
+      onChange({ ...data, severity, priority })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [severity, priority])
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     if (!e.target.files) return
@@ -134,9 +165,14 @@ export function IncidentIntakeForm({ data, onChange }: Props) {
           <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>
             <Calendar className="w-3 h-3 inline mr-1" />Baş Vermə Tarixi (manual)
           </label>
-          <input type="datetime-local" value={data.occurrence_datetime ?? ''}
-            onChange={e => onChange({ ...data, occurrence_datetime: e.target.value })}
+          <input type="datetime-local" value={data.occurrence_datetime ?? ''} max={nowLocalValue()}
+            onChange={e => {
+              const v = e.target.value
+              const max = nowLocalValue()
+              onChange({ ...data, occurrence_datetime: v && v > max ? max : v })
+            }}
             className={fieldCls} style={inputStyle} onFocus={focus} onBlur={blur} />
+          <p className="text-[10px] mt-0.5" style={{ color: 'var(--muted-fg)' }}>Gələcək tarix seçmək olmaz</p>
         </div>
         <div>
           <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Aşkarlanma Vaxtı (avtomatik)</label>
@@ -158,43 +194,27 @@ export function IncidentIntakeForm({ data, onChange }: Props) {
         <p className="text-[10px] mt-0.5" style={{ color: 'var(--muted-fg)' }}>Mail əsasında avtomatik doldurulur</p>
       </div>
 
-      {/* Severity (5-level) */}
-      <div>
-        <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Severity</label>
-        <div className="flex gap-1 p-1 rounded-xl" style={{ background: 'var(--muted)' }}>
-          {(['minimal', 'low', 'medium', 'high', 'critical'] as const).map(s => (
-            <button key={s} type="button" onClick={() => onChange({ ...data, severity: s })}
-              className={cn('flex-1 py-1.5 rounded-lg text-[11px] font-semibold capitalize transition-all')}
-              style={data.severity === s
-                ? { background: 'var(--brand-500)', color: '#fff' }
-                : { color: 'var(--muted-fg)' }
-              }>{s}</button>
-          ))}
-        </div>
-      </div>
-
       {/* Likelihood & Impact */}
       <p className="text-[11px] font-bold uppercase tracking-wide pt-1" style={{ color: 'var(--brand-500)' }}>
-        Priority (Auto-Calculated)
+        Severity & Priority (Auto-Calculated)
       </p>
       <div className="grid grid-cols-2 gap-4">
         <RatingScale label="Likelihood (1-5)" value={likelihood}
-          onChange={v => onChange({ ...data, likelihood: v, priority: calcPriority(v, impact) })}
+          onChange={v => onChange({ ...data, likelihood: v })}
           descriptions={LIKELIHOOD_DESC} />
         <RatingScale label="Impact (1-5)" value={impact}
-          onChange={v => onChange({ ...data, impact: v, priority: calcPriority(likelihood, v) })}
+          onChange={v => onChange({ ...data, impact: v })}
           descriptions={IMPACT_DESC} />
       </div>
 
-      {/* Auto Priority Badge */}
-      <div className="flex items-center gap-2 p-3 rounded-xl" style={{ background: 'var(--muted)' }}>
-        <AlertTriangle className="w-4 h-4" style={{ color: 'var(--brand-500)' }} />
-        <span className="text-xs font-medium" style={{ color: 'var(--foreground)' }}>
-          Calculated Priority:
-        </span>
-        <span className={cn('px-2.5 py-0.5 rounded-full text-[11px] font-bold border', pCfg.classes)}>
-          {pCfg.label}
-        </span>
+      {/* Auto Severity + Priority Badges (derived from likelihood × impact) */}
+      <div className="flex items-center gap-2 p-3 rounded-xl flex-wrap" style={{ background: 'var(--muted)' }}>
+        <Lock className="w-3.5 h-3.5" style={{ color: 'var(--muted-fg)' }} />
+        <span className="text-xs font-medium" style={{ color: 'var(--foreground)' }}>Severity:</span>
+        <span className={cn('px-2.5 py-0.5 rounded-full text-[11px] font-bold border', sCfg.classes)}>{sCfg.label}</span>
+        <AlertTriangle className="w-4 h-4 ml-2" style={{ color: 'var(--brand-500)' }} />
+        <span className="text-xs font-medium" style={{ color: 'var(--foreground)' }}>Priority:</span>
+        <span className={cn('px-2.5 py-0.5 rounded-full text-[11px] font-bold border', pCfg.classes)}>{pCfg.label}</span>
         <span className="text-[10px] ml-auto" style={{ color: 'var(--muted-fg)' }}>
           Score: {likelihood} × {impact} = {likelihood * impact}
         </span>

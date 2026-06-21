@@ -216,6 +216,7 @@ export interface Incident {
   corrective_actions?: CorrectiveAction[]
   lessons_learned?: string
   reputation_impact?: string          // reputational effect
+  incident_residual_level?: RiskLevel // residual after current controls (phase 26)
   resolved_at?: string
   closed_at?: string
   // ── Dates ──────────────────────────────────────────────
