@@ -1,9 +1,13 @@
 'use client'
 
-import { Plus, X, Trash2 } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Plus, Trash2, ShieldPlus } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import type { Incident, CorrectiveAction } from '@/types'
+import { db } from '@/lib/db'
+import { generateControlCode } from '@/lib/control-id'
+import type { Incident, CorrectiveAction, Control } from '@/types'
 import { MOCK_USERS } from '@/lib/seed-data'
+import { toast } from 'sonner'
 
 interface Props {
   data: Partial<Incident>
@@ -12,14 +16,62 @@ interface Props {
 
 export function IncidentResolutionForm({ data, onChange }: Props) {
   const actions = data.corrective_actions ?? []
+  const [controls, setControls] = useState<Control[]>([])
+  const [processControlIds, setProcessControlIds] = useState<string[] | null>(null)
+  const [creatingFor, setCreatingFor] = useState<string | null>(null)
 
-  function addAction() {
+  useEffect(() => { db.getControls().then(setControls) }, [])
+  useEffect(() => {
+    if (!data.process_id) { setProcessControlIds(null); return }
+    let active = true
+    db.getProcessControlIds(data.process_id).then(ids => { if (active) setProcessControlIds(ids) })
+    return () => { active = false }
+  }, [data.process_id])
+
+  const selectableControls = processControlIds ? controls.filter(c => processControlIds.includes(c.id)) : controls
+
+  function addAction(kind: 'collective' | 'preventive') {
     const newAction: CorrectiveAction = {
       id: crypto.randomUUID(),
       title: '',
       status: 'pending',
+      kind,
+      control_mode: kind === 'collective' ? 'improve_existing' : undefined,
     }
     onChange({ ...data, corrective_actions: [...actions, newAction] })
+  }
+
+  // Create a NEW control in "pending" state (library + process map) from a CAPA action
+  async function createPendingControl(action: CorrectiveAction) {
+    if (!action.title.trim()) { toast.error('Əvvəlcə tədbirin adını yaz'); return }
+    setCreatingFor(action.id)
+    try {
+      const now = new Date().toISOString()
+      const created = await db.saveControl({
+        id: crypto.randomUUID(),
+        org_id: '',
+        framework: 'custom',
+        control_id: generateControlCode(controls),
+        title: action.title.trim(),
+        description: `Insidentdən yaradılan kontrol (CAPA). ${data.title ?? ''}`.trim(),
+        status: 'partial',
+        approval_status: 'pending_review',
+        control_type: 'corrective',
+        created_at: now,
+      } as Control)
+      // link to the incident's process if there is one
+      if (data.process_id) {
+        const existing = await db.getProcessControlIds(data.process_id)
+        await db.setProcessControls(data.process_id, [...existing, created.id])
+      }
+      setControls(prev => [created, ...prev])
+      updateAction(action.id, { created_control_id: created.id, control_id: created.id })
+      toast.success(`Pending kontrol yaradıldı: ${created.control_id} — Library-də təsdiq gözləyir`)
+    } catch {
+      toast.error('Kontrol yaradıla bilmədi')
+    } finally {
+      setCreatingFor(null)
+    }
   }
 
   function updateAction(id: string, updates: Partial<CorrectiveAction>) {
@@ -58,27 +110,33 @@ export function IncidentResolutionForm({ data, onChange }: Props) {
           className={`${fieldCls} resize-none`} style={inputStyle} onFocus={focus} onBlur={blur} />
       </div>
 
-      {/* Corrective Actions */}
+      {/* CAPA — Collective & Preventive measures */}
       <div>
         <div className="flex items-center justify-between mb-2">
           <p className="text-[11px] font-bold uppercase tracking-wide" style={{ color: 'var(--brand-500)' }}>
-            Korrektiv Tədbirlər
+            Tədbirlər (CAPA)
           </p>
-          <button type="button" onClick={addAction}
-            className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-colors hover:bg-sky-500/10"
-            style={{ color: 'var(--brand-500)' }}>
-            <Plus className="w-3 h-3" /> Əlavə et
-          </button>
+          <div className="flex items-center gap-1.5">
+            <button type="button" onClick={() => addAction('collective')}
+              className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-colors hover:bg-sky-500/10"
+              style={{ color: 'var(--brand-500)' }}>
+              <Plus className="w-3 h-3" /> Kollektiv
+            </button>
+            <button type="button" onClick={() => addAction('preventive')}
+              className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-colors hover:bg-violet-500/10"
+              style={{ color: 'rgb(139,92,246)' }}>
+              <Plus className="w-3 h-3" /> Preventiv
+            </button>
+          </div>
         </div>
+        <p className="text-[10px] mb-2" style={{ color: 'var(--muted-fg)' }}>
+          Kollektiv = hadisənin həlli · Preventiv = root cause ilə bağlı qarşılayıcı tədbir
+        </p>
 
         {actions.length === 0 && (
           <div className="text-center py-6 rounded-xl border border-dashed"
             style={{ borderColor: 'var(--border)', color: 'var(--muted-fg)' }}>
-            <p className="text-xs">Hələ ki korrektiv tədbir yoxdur</p>
-            <button type="button" onClick={addAction}
-              className="mt-2 text-[11px] font-semibold" style={{ color: 'var(--brand-500)' }}>
-              + İlk tədbiri əlavə edin
-            </button>
+            <p className="text-xs">Hələ ki tədbir yoxdur</p>
           </div>
         )}
 
@@ -86,7 +144,10 @@ export function IncidentResolutionForm({ data, onChange }: Props) {
           {actions.map((action, idx) => (
             <div key={action.id} className="rounded-xl border p-3 space-y-2" style={{ borderColor: 'var(--border)', background: 'var(--muted)' }}>
               <div className="flex items-center justify-between gap-2">
-                <span className="text-[10px] font-bold" style={{ color: 'var(--brand-500)' }}>#{idx + 1}</span>
+                <span className={cn('text-[10px] font-bold px-1.5 py-0.5 rounded',
+                  action.kind === 'preventive' ? 'bg-violet-500/15 text-violet-400' : 'bg-sky-500/15 text-sky-400')}>
+                  #{idx + 1} {action.kind === 'preventive' ? 'Preventiv' : 'Kollektiv'}
+                </span>
                 <div className="flex items-center gap-1">
                   {(['pending', 'in_progress', 'done'] as const).map(s => {
                     const badge = STATUS_BADGES[s]
@@ -107,6 +168,40 @@ export function IncidentResolutionForm({ data, onChange }: Props) {
                 placeholder="Tədbirin adı..."
                 className="w-full px-2.5 py-1.5 rounded-lg text-xs outline-none"
                 style={{ background: 'var(--card)', border: '1px solid var(--border)', color: 'var(--foreground)' }} />
+
+              {/* Collective measure → improve existing control OR create new (pending) control */}
+              {action.kind === 'collective' && (
+                <div className="space-y-2">
+                  <div className="flex gap-1 p-1 rounded-lg" style={{ background: 'var(--card)' }}>
+                    {(['improve_existing', 'new_control'] as const).map(m => (
+                      <button key={m} type="button" onClick={() => updateAction(action.id, { control_mode: m })}
+                        className="flex-1 py-1 rounded text-[10px] font-semibold transition-all"
+                        style={action.control_mode === m ? { background: 'var(--brand-500)', color: '#fff' } : { color: 'var(--muted-fg)' }}>
+                        {m === 'improve_existing' ? 'Mövcud kontrolu təkmilləşdir' : 'Yeni kontrol'}
+                      </button>
+                    ))}
+                  </div>
+                  {action.control_mode === 'improve_existing' ? (
+                    <select value={action.control_id ?? ''} onChange={e => updateAction(action.id, { control_id: e.target.value || undefined })}
+                      className="w-full px-2 py-1.5 rounded-lg text-xs outline-none cursor-pointer"
+                      style={{ background: 'var(--card)', border: '1px solid var(--border)', color: 'var(--foreground)' }}>
+                      <option value="">Kontrol seç...</option>
+                      {selectableControls.map(c => <option key={c.id} value={c.id}>{c.control_id} · {c.title}</option>)}
+                    </select>
+                  ) : action.created_control_id ? (
+                    <p className="text-[10px] text-emerald-400 flex items-center gap-1">
+                      <ShieldPlus className="w-3 h-3" /> Pending kontrol yaradıldı — Control Library-də təsdiq gözləyir
+                    </p>
+                  ) : (
+                    <button type="button" onClick={() => createPendingControl(action)} disabled={creatingFor === action.id}
+                      className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold text-white transition-colors disabled:opacity-50"
+                      style={{ background: 'var(--brand-500)' }}>
+                      <ShieldPlus className="w-3.5 h-3.5" /> {creatingFor === action.id ? 'Yaradılır…' : 'Pending kontrol yarat'}
+                    </button>
+                  )}
+                </div>
+              )}
+
               <div className="grid grid-cols-2 gap-2">
                 <select value={action.assignee ?? ''}
                   onChange={e => updateAction(action.id, { assignee: e.target.value })}

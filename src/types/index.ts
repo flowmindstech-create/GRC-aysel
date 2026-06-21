@@ -173,6 +173,11 @@ export interface CorrectiveAction {
   assignee?: string
   due_date?: string
   status: 'pending' | 'in_progress' | 'done'
+  // CAPA branching (phase 27)
+  kind?: 'collective' | 'preventive'        // immediate fix vs root-cause prevention
+  control_mode?: 'improve_existing' | 'new_control'
+  control_id?: string                       // existing control being improved
+  created_control_id?: string               // pending control created from this action
 }
 
 export interface Incident {

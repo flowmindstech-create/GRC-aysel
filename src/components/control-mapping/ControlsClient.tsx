@@ -35,7 +35,8 @@ function EffBadge({ rating }: { rating?: EffectivenessRating }) {
   )
 }
 
-function ControlCard({ ctrl, mappings, index, onEdit }: { ctrl: Control; mappings: ControlMapping[]; index: number; onEdit: () => void }) {
+function ControlCard({ ctrl, mappings, index, onEdit, onApprove }: { ctrl: Control; mappings: ControlMapping[]; index: number; onEdit: () => void; onApprove: () => void }) {
+  const isPending = ctrl.approval_status === 'pending_review'
   const [expanded, setExpanded] = useState(false)
   const myMappings = mappings.filter(m => m.control_id === ctrl.id)
   const eff = ctrl.effectiveness_rating as EffectivenessRating | undefined
@@ -76,11 +77,20 @@ function ControlCard({ ctrl, mappings, index, onEdit }: { ctrl: Control; mapping
               </span>
             )}
             <EffBadge rating={eff} />
+            {isPending && (
+              <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-500/15 text-amber-400">Gözləmədə</span>
+            )}
           </div>
           <p className="text-sm font-semibold truncate" style={{ color: 'var(--foreground)' }}>{ctrl.title}</p>
         </div>
 
         <div className="flex items-center gap-3 shrink-0">
+          {isPending && (
+            <button onClick={(e) => { e.stopPropagation(); onApprove() }}
+              className="px-2.5 py-1 rounded-lg text-[11px] font-semibold text-white bg-emerald-600 hover:bg-emerald-700 transition-colors">
+              Təsdiqlə
+            </button>
+          )}
           {myMappings.length > 0 && (
             <span className="text-[10px] font-medium px-2 py-0.5 rounded-full"
               style={{ background: 'rgba(14,165,233,0.1)', color: 'var(--brand-500)' }}>
@@ -184,6 +194,13 @@ export function ControlsClient() {
     setEditControl(null)
   }
 
+  // Approve a pending control created from an incident CAPA
+  const handleApprove = async (ctrl: Control) => {
+    const saved = await db.saveControl({ ...ctrl, approval_status: 'approved' })
+    setControls(prev => prev.map(c => c.id === saved.id ? saved : c))
+    toast.success(`Kontrol təsdiqləndi: ${saved.control_id}`)
+  }
+
   const frameworks = ['all', ...Array.from(new Set(controls.map(c => c.framework)))]
 
   const filtered = controls.filter(c => {
@@ -248,7 +265,7 @@ export function ControlsClient() {
         <div className="flex items-center justify-center h-40" style={{ color: 'var(--muted-fg)' }}>Loading…</div>
       ) : (
         <div className="space-y-3">
-          {filtered.map((c, i) => <ControlCard key={c.id} ctrl={c} mappings={mappings} index={i} onEdit={() => { setEditControl(c); setShowForm(true) }} />)}
+          {filtered.map((c, i) => <ControlCard key={c.id} ctrl={c} mappings={mappings} index={i} onEdit={() => { setEditControl(c); setShowForm(true) }} onApprove={() => handleApprove(c)} />)}
         </div>
       )}
 
