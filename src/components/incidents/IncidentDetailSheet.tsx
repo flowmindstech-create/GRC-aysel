@@ -7,13 +7,18 @@ import {
   RefreshCw, Send, ExternalLink, FileText, Calendar, DollarSign,
   Layers, CheckSquare, MessageSquare, Clipboard, Search, Check
 } from 'lucide-react'
-import type { Incident } from '@/types'
+import type { Incident, IncidentPriority, UserProfile } from '@/types'
 import { RiskLevelBadge, IncidentStatusBadge } from '@/components/shared/Badges'
 import { PRIORITY_CONFIG } from './IncidentIntakeForm'
 import { format, formatDistanceToNow } from 'date-fns'
-import { db } from '@/lib/db'
+import { db, getCurrentProfile } from '@/lib/db'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
+
+// Priority → SLA resolution window (business days). Critical is tightest.
+const SLA_DAYS: Record<IncidentPriority, number> = {
+  P1_critical: 3, P2_high: 5, P3_medium: 7, P4_low: 10, P5_minimal: 14,
+}
 
 interface Props {
   incident: Incident
@@ -35,6 +40,11 @@ export function IncidentDetailSheet({ incident, onClose, onUpdate, onEdit }: Pro
   const [updatingStatus, setUpdatingStatus] = useState(false)
   const [linkedRisk, setLinkedRisk] = useState('')
   const [linkedControl, setLinkedControl] = useState('')
+  const [profile, setProfile] = useState<UserProfile | null>(null)
+
+  useEffect(() => { getCurrentProfile().then(setProfile) }, [])
+  // Only the risk owner (admin / risk_manager) can change status or run SLA handover
+  const isRiskOwner = profile?.role === 'admin' || profile?.role === 'risk_manager'
 
   useEffect(() => {
     let active = true
@@ -90,7 +100,34 @@ export function IncidentDetailSheet({ incident, onClose, onUpdate, onEdit }: Pro
     }
   }
 
+  // Risk team takes the incident on — starts the SLA clock based on priority
+  const handleAcknowledge = async () => {
+    const now = new Date()
+    const days = SLA_DAYS[incident.priority ?? 'P3_medium']
+    const due = new Date(now.getTime() + days * 24 * 60 * 60 * 1000)
+    const updated: Incident = {
+      ...incident, acknowledged_at: now.toISOString(), sla_due_date: due.toISOString(),
+      status: incident.status === 'open' ? 'investigating' : incident.status,
+      updated_at: now.toISOString(),
+    }
+    const saved = await db.saveIncident(updated)
+    if (onUpdate) onUpdate(saved)
+    toast.success(`Üzərinə götürüldü · SLA: ${days} gün`)
+  }
+
+  const handleForward = async () => {
+    const to = window.prompt('Kimə ötürülsün? (ad/struktur)')
+    if (!to) return
+    const updated: Incident = {
+      ...incident, forwarded_at: new Date().toISOString(), forwarded_to: to, updated_at: new Date().toISOString(),
+    }
+    const saved = await db.saveIncident(updated)
+    if (onUpdate) onUpdate(saved)
+    toast.success(`Ötürüldü: ${to}`)
+  }
+
   const pCfg = incident.priority ? PRIORITY_CONFIG[incident.priority] : null
+  const slaOverdue = incident.sla_due_date && !incident.resolved_at && new Date(incident.sla_due_date) < new Date()
 
   return (
     <AnimatePresence>
@@ -612,6 +649,31 @@ export function IncidentDetailSheet({ incident, onClose, onUpdate, onEdit }: Pro
             </AnimatePresence>
           </div>
 
+          {/* SLA bar (risk owner only) */}
+          {isRiskOwner && (
+            <div className="px-6 pt-3 flex flex-wrap items-center gap-2">
+              {incident.acknowledged_at ? (
+                <span className={cn('inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold', slaOverdue ? 'bg-red-500/15 text-red-400' : 'bg-emerald-500/15 text-emerald-400')}>
+                  <Clock className="w-3 h-3" />
+                  {slaOverdue ? 'SLA keçib' : 'SLA'}: {incident.sla_due_date ? format(new Date(incident.sla_due_date), 'd MMM yyyy') : '—'}
+                </span>
+              ) : (
+                <button onClick={handleAcknowledge}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-semibold text-white bg-sky-600 hover:bg-sky-700 transition-colors">
+                  <Check className="w-3.5 h-3.5" /> Üzərimə götür (SLA başlat)
+                </button>
+              )}
+              <button onClick={handleForward}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-semibold border hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+                style={{ borderColor: 'var(--border)', color: 'var(--foreground)' }}>
+                <Send className="w-3.5 h-3.5" /> Ötür
+              </button>
+              {incident.forwarded_to && (
+                <span className="text-[10px]" style={{ color: 'var(--muted-fg)' }}>→ {incident.forwarded_to}</span>
+              )}
+            </div>
+          )}
+
           {/* Footer with Edit and Update actions */}
           <div className="px-6 py-4 border-t flex items-center justify-between gap-3" style={{ borderColor: 'var(--border)' }}>
             <button
@@ -621,22 +683,28 @@ export function IncidentDetailSheet({ incident, onClose, onUpdate, onEdit }: Pro
             >
               Hadisəni Redaktə Et
             </button>
-            
-            {/* Quick status updater */}
-            <div className="relative">
-              <select
-                disabled={updatingStatus}
-                value={incident.status}
-                onChange={(e) => handleStatusChange(e.target.value as Incident['status'])}
-                className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-orange-600 hover:bg-orange-700 transition-colors shadow-lg shadow-orange-600/20 outline-none cursor-pointer border-none"
-              >
-                <option value="open" className="text-slate-800 bg-white dark:bg-slate-900">Açıq (Open)</option>
-                <option value="investigating" className="text-slate-800 bg-white dark:bg-slate-900">Araşdırılır (Investigating)</option>
-                <option value="contained" className="text-slate-800 bg-white dark:bg-slate-900">Məhdudlaşdırılıb (Contained)</option>
-                <option value="resolved" className="text-slate-800 bg-white dark:bg-slate-900">Həll edilib (Resolved)</option>
-                <option value="closed" className="text-slate-800 bg-white dark:bg-slate-900">Bağlanıb (Closed)</option>
-              </select>
-            </div>
+
+            {/* Quick status updater — only the risk owner can change status */}
+            {isRiskOwner ? (
+              <div className="relative">
+                <select
+                  disabled={updatingStatus}
+                  value={incident.status}
+                  onChange={(e) => handleStatusChange(e.target.value as Incident['status'])}
+                  className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-orange-600 hover:bg-orange-700 transition-colors shadow-lg shadow-orange-600/20 outline-none cursor-pointer border-none"
+                >
+                  <option value="open" className="text-slate-800 bg-white dark:bg-slate-900">Açıq (Open)</option>
+                  <option value="investigating" className="text-slate-800 bg-white dark:bg-slate-900">Araşdırılır (Investigating)</option>
+                  <option value="contained" className="text-slate-800 bg-white dark:bg-slate-900">Məhdudlaşdırılıb (Contained)</option>
+                  <option value="resolved" className="text-slate-800 bg-white dark:bg-slate-900">Həll edilib (Resolved)</option>
+                  <option value="closed" className="text-slate-800 bg-white dark:bg-slate-900">Bağlanıb (Closed)</option>
+                </select>
+              </div>
+            ) : (
+              <span className="px-4 py-2 rounded-xl text-xs font-semibold" style={{ background: 'var(--muted)', color: 'var(--muted-fg)' }}>
+                Statusu yalnız risk owner dəyişə bilər
+              </span>
+            )}
           </div>
         </motion.aside>
       </div>

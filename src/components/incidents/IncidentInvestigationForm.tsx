@@ -64,6 +64,30 @@ export function IncidentInvestigationForm({ data, onChange }: Props) {
         </select>
       </div>
 
+      {/* Investigation Members (team) */}
+      <div>
+        <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Araşdırma Üzvləri</label>
+        <div className="flex flex-wrap gap-1.5">
+          {MOCK_USERS.map(u => {
+            const on = (data.investigation_members ?? []).includes(u.full_name)
+            return (
+              <button key={u.id} type="button"
+                onClick={() => {
+                  const cur = data.investigation_members ?? []
+                  const next = on ? cur.filter(m => m !== u.full_name) : [...cur, u.full_name]
+                  onChange({ ...data, investigation_members: next })
+                }}
+                className="px-2.5 py-1 rounded-full text-[11px] font-medium border transition-colors"
+                style={on
+                  ? { background: 'var(--brand-500)', color: '#fff', borderColor: 'var(--brand-500)' }
+                  : { background: 'var(--muted)', color: 'var(--muted-fg)', borderColor: 'var(--border)' }}>
+                {u.full_name}
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
       {/* Investigation Dates */}
       <div className="grid grid-cols-2 gap-3">
         <div>

@@ -204,10 +204,16 @@ export interface Incident {
   root_cause_category?: 'process' | 'technology' | 'people' | 'external'
   investigation_notes?: string
   investigation_lead?: string
+  investigation_members?: string[]    // investigation team members (phase 25)
   investigation_start?: string
   investigation_end?: string
   affected_systems?: string[]
   affected_departments?: string[]
+  // ── SLA / handover (phase 25) ──────────────────────────
+  acknowledged_at?: string            // when the risk team took it on (SLA clock start)
+  sla_due_date?: string               // auto from priority on acknowledge
+  forwarded_at?: string               // when the risk owner forwarded it
+  forwarded_to?: string               // who it was forwarded to
   // GRC linkage
   risk_id?: string                    // linked risk register entry
   control_id?: string                 // linked control library entry
