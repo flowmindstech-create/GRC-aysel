@@ -248,13 +248,13 @@ export function IncidentResolutionForm({ data, onChange }: Props) {
       <div>
         <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Final Status</label>
         <div className="flex gap-1 p-1 rounded-xl" style={{ background: 'var(--muted)' }}>
-          {(['resolved', 'closed'] as const).map(s => (
+          {(['done', 'closed'] as const).map(s => (
             <button key={s} type="button" onClick={() => onChange({ ...data, status: s })}
               className={cn('flex-1 py-2 rounded-lg text-xs font-semibold capitalize transition-all')}
               style={data.status === s
                 ? { background: 'rgb(5,150,105)', color: '#fff' }
                 : { color: 'var(--muted-fg)' }
-              }>{s === 'resolved' ? 'Həll edildi' : 'Bağlandı'}</button>
+              }>{s === 'done' ? 'İcra olundu (Done)' : 'Bağlandı (Closed)'}</button>
           ))}
         </div>
       </div>

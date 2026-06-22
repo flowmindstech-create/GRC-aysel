@@ -120,7 +120,7 @@ export const MOCK_INCIDENTS: Incident[] = [
   {
     id: 'i1', org_id: 'org1', title: 'Phishing Attack — Finance Team',
     description: '3 finance team members clicked a credential-harvesting phishing link. One credential was compromised before MFA blocked access.',
-    severity: 'high', status: 'investigating', workflow_stage: 'investigation',
+    severity: 'high', status: 'review_by_risk_manager', workflow_stage: 'investigation',
     assigned_to: 'u2', assigned_name: 'Leyla Mammadova',
     reported_by: 'u4', reporter_name: 'Nigar Aliyeva',
     created_at: '2025-01-18T08:30:00Z', updated_at: '2025-01-18T12:00:00Z',
@@ -128,7 +128,7 @@ export const MOCK_INCIDENTS: Incident[] = [
   {
     id: 'i2', org_id: 'org1', title: 'Production Database Outage — 2.5 Hours',
     description: 'Primary PostgreSQL database became unresponsive due to a runaway query from a recent deployment. Caused 2.5 hour service outage.',
-    severity: 'critical', status: 'resolved', workflow_stage: 'resolution',
+    severity: 'critical', status: 'done', workflow_stage: 'resolution',
     assigned_to: 'u3', assigned_name: 'Rauf Quliyev',
     reported_by: 'u1', reporter_name: 'Ali Hasanov',
     created_at: '2025-01-10T02:15:00Z',
@@ -138,7 +138,7 @@ export const MOCK_INCIDENTS: Incident[] = [
   {
     id: 'i3', org_id: 'org1', title: 'Unauthorized Data Access by Former Employee',
     description: 'IT audit revealed a terminated employee retained active VPN credentials and accessed the customer database 11 days post-termination.',
-    severity: 'critical', status: 'investigating', workflow_stage: 'investigation',
+    severity: 'critical', status: 'review_by_risk_manager', workflow_stage: 'investigation',
     assigned_to: 'u2', assigned_name: 'Leyla Mammadova',
     reported_by: 'u3', reporter_name: 'Rauf Quliyev',
     created_at: '2025-01-15T11:00:00Z', updated_at: '2025-01-16T09:00:00Z',
@@ -146,7 +146,7 @@ export const MOCK_INCIDENTS: Incident[] = [
   {
     id: 'i4', org_id: 'org1', title: 'DDoS Attack on Web Application',
     description: 'Volumetric DDoS attack at 28 Gbps targeting public API. Cloudflare WAF mitigated in 18 minutes. No data exfiltration detected.',
-    severity: 'medium', status: 'resolved', workflow_stage: 'resolution',
+    severity: 'medium', status: 'done', workflow_stage: 'resolution',
     assigned_to: 'u1', assigned_name: 'Ali Hasanov',
     reported_by: 'u2', reporter_name: 'Leyla Mammadova',
     created_at: '2025-01-07T19:00:00Z',

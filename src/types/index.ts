@@ -153,7 +153,7 @@ export interface Risk {
 // ─── Incidents ───────────────────────────────────────────────────────────────
 
 export type IncidentSeverity = 'minimal' | 'low' | 'medium' | 'high' | 'critical'
-export type IncidentStatus = 'open' | 'investigating' | 'contained' | 'resolved' | 'closed'
+export type IncidentStatus = 'open' | 'review_by_risk_manager' | 'root_cause_analysis' | 'resolution' | 'done' | 'closed'
 export type IncidentWorkflowStage = 'intake' | 'investigation' | 'resolution'
 export type IncidentPriority = 'P1_critical' | 'P2_high' | 'P3_medium' | 'P4_low' | 'P5_minimal'
 

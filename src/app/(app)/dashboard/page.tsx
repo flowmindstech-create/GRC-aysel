@@ -11,7 +11,7 @@ export const metadata: Metadata = { title: 'Dashboard | RiskShield IRM' }
 export default function DashboardPage() {
   const stats = MOCK_DASHBOARD_STATS
   const openRisks = MOCK_RISKS.filter(r => r.status === 'open' || r.status === 'in_progress')
-  const openIncidents = MOCK_INCIDENTS.filter(i => i.status !== 'resolved' && i.status !== 'closed')
+  const openIncidents = MOCK_INCIDENTS.filter(i => i.status !== 'done' && i.status !== 'closed')
 
   return (
     <>

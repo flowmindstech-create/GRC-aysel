@@ -105,8 +105,8 @@ export function IncidentTable() {
         <select value={status} onChange={e => setStatus(e.target.value as IncidentStatus | 'all')}
           className="px-3 py-2 rounded-xl text-xs font-medium outline-none cursor-pointer"
           style={{ background: 'var(--card)', border: '1px solid var(--border)', color: 'var(--foreground)' }}>
-          {['all','open','investigating','contained','resolved','closed'].map(s => (
-            <option key={s} value={s}>{s === 'all' ? 'All Status' : s.replace('_',' ')}</option>
+          {['all','open','review_by_risk_manager','root_cause_analysis','resolution','done','closed'].map(s => (
+            <option key={s} value={s}>{s === 'all' ? 'All Status' : s.replace(/_/g, ' ')}</option>
           ))}
         </select>
         <div className="flex items-center gap-1 p-1 rounded-xl" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>

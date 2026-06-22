@@ -94,8 +94,8 @@ export function IncidentFormDialog({ incident, onClose, onSave }: Props) {
       return !!(formData.title?.trim() && formData.description?.trim())
     }
     if (step === 2) {
-      // If status is set to resolved/closed, require resolution summary
-      if (formData.status === 'resolved' || formData.status === 'closed') {
+      // If status is set to done/closed, require resolution summary
+      if (formData.status === 'done' || formData.status === 'closed') {
         return !!formData.resolution_summary?.trim()
       }
     }
@@ -172,10 +172,10 @@ export function IncidentFormDialog({ incident, onClose, onSave }: Props) {
 
     const investigator = MOCK_USERS.find(u => u.id === formData.assigned_to)
     
-    // Automatically set status to resolved if completed in step 2 (unless closed)
+    // Automatically advance to 'done' if completed in step 2 (unless already further)
     let finalStatus = formData.status || 'open'
     if (activeStep === 2 && finalStatus === 'open') {
-      finalStatus = 'resolved'
+      finalStatus = 'done'
     }
 
     const saved: Incident = {

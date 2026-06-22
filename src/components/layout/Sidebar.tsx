@@ -79,7 +79,7 @@ export function Sidebar({ onMobileClose }: SidebarProps) {
 
   useEffect(() => {
     getCurrentProfile().then(setProfile)
-    db.getIncidents().then(list => setOpenIncidents(list.filter(i => i.status !== 'resolved' && i.status !== 'closed').length))
+    db.getIncidents().then(list => setOpenIncidents(list.filter(i => i.status !== 'done' && i.status !== 'closed').length))
   }, [])
 
   // Risk team (admin / risk_manager / auditor) sees the full platform;

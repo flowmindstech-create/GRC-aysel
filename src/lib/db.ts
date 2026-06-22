@@ -596,8 +596,8 @@ export const db = {
 
     const openRisks = risks.filter(r => ACTIVE_STATUSES.includes(normalizeStatus(r.status)))
     const criticalRisks = openRisks.filter(r => r.level === 'critical').length
-    const openIncidents = incidents.filter(i => i.status !== 'resolved' && i.status !== 'closed').length
-    const incidentsInvestigating = incidents.filter(i => i.status === 'investigating').length
+    const openIncidents = incidents.filter(i => i.status !== 'done' && i.status !== 'closed').length
+    const incidentsInvestigating = incidents.filter(i => i.status === 'review_by_risk_manager' || i.status === 'root_cause_analysis').length
 
     const passedControls = controls.filter(c => c.status === 'pass').length
     const failingControls = controls.filter(c => c.status === 'fail').length
@@ -838,10 +838,10 @@ export const db = {
       
       // Map Jira statuses to Incident status
       if (newStatus === 'Done' || newStatus === 'Resolved') {
-        incident.status = 'resolved'
+        incident.status = 'done'
         incident.resolved_at = new Date().toISOString()
       } else if (newStatus === 'In Progress') {
-        incident.status = 'investigating'
+        incident.status = 'review_by_risk_manager'
       }
       
       await this.saveIncident(incident)

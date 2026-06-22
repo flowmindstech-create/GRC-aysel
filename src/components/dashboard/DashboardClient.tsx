@@ -47,7 +47,7 @@ export function DashboardClient({
     setStats(s)
     setActivities(a)
     setOpenRisks(r.filter(x => x.status === 'open' || x.status === 'in_progress'))
-    setOpenIncidents(i.filter(x => x.status !== 'resolved' && x.status !== 'closed'))
+    setOpenIncidents(i.filter(x => x.status !== 'done' && x.status !== 'closed'))
     setJiraConfig(jira)
 
     if (jira.connected) {

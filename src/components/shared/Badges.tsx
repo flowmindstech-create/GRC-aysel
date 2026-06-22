@@ -48,18 +48,27 @@ export function SeverityBadge({ severity }: { severity: IncidentSeverity | Findi
 
 // ─── Incident Status Badge ────────────────────────────────────────────────────
 const incidentStatusStyles: Record<IncidentStatus, string> = {
-  open:          'bg-red-500/10 text-red-500',
-  investigating: 'bg-orange-500/10 text-orange-500',
-  contained:     'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400',
-  resolved:      'bg-green-500/10 text-green-500',
-  closed:        'bg-slate-500/10 text-slate-500',
+  open:                   'bg-red-500/10 text-red-500',
+  review_by_risk_manager: 'bg-amber-500/10 text-amber-500',
+  root_cause_analysis:    'bg-purple-500/10 text-purple-400',
+  resolution:             'bg-blue-500/10 text-blue-500',
+  done:                   'bg-emerald-500/10 text-emerald-500',
+  closed:                 'bg-slate-500/10 text-slate-500',
+}
+
+const incidentStatusLabels: Record<IncidentStatus, string> = {
+  open: 'Open',
+  review_by_risk_manager: 'Review by Risk Manager',
+  root_cause_analysis: 'Root Cause Analysis',
+  resolution: 'Resolution',
+  done: 'Done',
+  closed: 'Closed',
 }
 
 export function IncidentStatusBadge({ status }: { status: IncidentStatus }) {
-  const label = status.replace('_', ' ')
   return (
-    <span className={cn('inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize', incidentStatusStyles[status])}>
-      {label}
+    <span className={cn('inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium', incidentStatusStyles[status])}>
+      {incidentStatusLabels[status] ?? status}
     </span>
   )
 }

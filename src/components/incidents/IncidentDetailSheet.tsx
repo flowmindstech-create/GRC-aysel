@@ -43,9 +43,13 @@ export function IncidentDetailSheet({ incident, onClose, onUpdate, onEdit }: Pro
   const [brokenObligations, setBrokenObligations] = useState<string[]>([])
   const [profile, setProfile] = useState<UserProfile | null>(null)
 
+  // Role simulator (demo): preview the screen as Risk Manager / ERO / User
+  const [simRole, setSimRole] = useState<'risk_manager' | 'ero' | 'user' | null>(null)
+
   useEffect(() => { getCurrentProfile().then(setProfile) }, [])
-  // Only the risk owner (admin / risk_manager) can change status or run SLA handover
-  const isRiskOwner = profile?.role === 'admin' || profile?.role === 'risk_manager'
+  const realRiskOwner = profile?.role === 'admin' || profile?.role === 'risk_manager'
+  // Only the risk owner can change status / run SLA handover (simulator overrides for preview)
+  const isRiskOwner = simRole ? simRole === 'risk_manager' : realRiskOwner
 
   useEffect(() => {
     let active = true
@@ -97,7 +101,7 @@ export function IncidentDetailSheet({ incident, onClose, onUpdate, onEdit }: Pro
         status: newStatus,
         updated_at: new Date().toISOString(),
       }
-      if (newStatus === 'resolved' && !updated.resolved_at) {
+      if (newStatus === 'done' && !updated.resolved_at) {
         updated.resolved_at = new Date().toISOString()
       }
       if (newStatus === 'closed' && !updated.closed_at) {
@@ -121,7 +125,7 @@ export function IncidentDetailSheet({ incident, onClose, onUpdate, onEdit }: Pro
     const due = new Date(now.getTime() + days * 24 * 60 * 60 * 1000)
     const updated: Incident = {
       ...incident, acknowledged_at: now.toISOString(), sla_due_date: due.toISOString(),
-      status: incident.status === 'open' ? 'investigating' : incident.status,
+      status: incident.status === 'open' ? 'review_by_risk_manager' : incident.status,
       updated_at: now.toISOString(),
     }
     const saved = await db.saveIncident(updated)
@@ -162,6 +166,26 @@ export function IncidentDetailSheet({ incident, onClose, onUpdate, onEdit }: Pro
           className="relative w-full max-w-lg h-full shadow-2xl flex flex-col"
           style={{ background: 'var(--card)', borderLeft: '1px solid var(--border)' }}
         >
+          {/* Role simulator (demo) — preview as Risk Manager / ERO / User */}
+          {realRiskOwner && (
+            <div className="flex items-center gap-2 px-6 py-2 border-b text-[10px]" style={{ borderColor: 'var(--border)', background: 'var(--muted)' }}>
+              <span className="font-semibold uppercase tracking-wide" style={{ color: 'var(--muted-fg)' }}>Simulyasiya:</span>
+              {([['risk_manager', 'Risk Manager'], ['ero', 'ERO'], ['user', 'User'], [null, 'Real']] as const).map(([r, label]) => {
+                const on = simRole === r || (r === null && simRole === null)
+                return (
+                  <button key={label} onClick={() => setSimRole(r)}
+                    className="px-2 py-1 rounded-md font-semibold transition-all"
+                    style={on ? { background: 'var(--brand-500)', color: '#fff' } : { color: 'var(--muted-fg)' }}>
+                    {label}
+                  </button>
+                )
+              })}
+              {simRole && simRole !== 'risk_manager' && (
+                <span className="ml-auto text-amber-400">🔒 {simRole === 'ero' ? 'ERO: yalnız resolution + qeyd, status yox' : 'User: yalnız öz intake-i'}</span>
+              )}
+            </div>
+          )}
+
           {/* Header */}
           <div className="px-6 py-5 border-b" style={{ borderColor: 'var(--border)' }}>
             <div className="flex items-start justify-between gap-3">
@@ -721,11 +745,12 @@ export function IncidentDetailSheet({ incident, onClose, onUpdate, onEdit }: Pro
                   onChange={(e) => handleStatusChange(e.target.value as Incident['status'])}
                   className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-orange-600 hover:bg-orange-700 transition-colors shadow-lg shadow-orange-600/20 outline-none cursor-pointer border-none"
                 >
-                  <option value="open" className="text-slate-800 bg-white dark:bg-slate-900">Açıq (Open)</option>
-                  <option value="investigating" className="text-slate-800 bg-white dark:bg-slate-900">Araşdırılır (Investigating)</option>
-                  <option value="contained" className="text-slate-800 bg-white dark:bg-slate-900">Məhdudlaşdırılıb (Contained)</option>
-                  <option value="resolved" className="text-slate-800 bg-white dark:bg-slate-900">Həll edilib (Resolved)</option>
-                  <option value="closed" className="text-slate-800 bg-white dark:bg-slate-900">Bağlanıb (Closed)</option>
+                  <option value="open" className="text-slate-800 bg-white dark:bg-slate-900">Open</option>
+                  <option value="review_by_risk_manager" className="text-slate-800 bg-white dark:bg-slate-900">Review by Risk Manager</option>
+                  <option value="root_cause_analysis" className="text-slate-800 bg-white dark:bg-slate-900">Root Cause Analysis</option>
+                  <option value="resolution" className="text-slate-800 bg-white dark:bg-slate-900">Resolution</option>
+                  <option value="done" className="text-slate-800 bg-white dark:bg-slate-900">Done</option>
+                  <option value="closed" className="text-slate-800 bg-white dark:bg-slate-900">Closed</option>
                 </select>
               </div>
             ) : (
