@@ -1,188 +1,40 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
+import { useState, useEffect, useMemo } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { db } from '@/lib/db'
-import { dbExt } from '@/lib/db-extensions'
-import type { Control, ControlMapping, EffectivenessRating, ControlType } from '@/types'
+import type { Control, ComplianceObligation, Incident } from '@/types'
 import { cn } from '@/lib/utils'
-import { Search, Shield, Plus, ChevronDown, ChevronUp, Pencil } from 'lucide-react'
+import { Search, Plus, Edit, Zap, AlertTriangle, X, Check } from 'lucide-react'
 import { toast } from 'sonner'
 import { ControlFormDialog } from './ControlFormDialog'
 
 const TYPE_COLOR: Record<string, string> = {
-  preventive: 'text-blue-400 bg-blue-400/10',
-  detective:  'text-yellow-400 bg-yellow-400/10',
-  corrective: 'text-red-400 bg-red-400/10',
-  directive:  'text-purple-400 bg-purple-400/10',
+  preventive: 'bg-blue-500/12 text-blue-400',
+  detective:  'bg-yellow-500/12 text-yellow-400',
+  corrective: 'bg-red-500/12 text-red-400',
+  directive:  'bg-purple-500/12 text-purple-400',
 }
-
-const EFF_COLOR: Record<EffectivenessRating, { text: string; bg: string }> = {
-  effective:           { text: '#059669', bg: 'rgba(5,150,105,0.1)' },
-  partially_effective: { text: '#d97706', bg: 'rgba(217,119,6,0.1)' },
-  ineffective:         { text: '#e11d48', bg: 'rgba(225,29,72,0.1)' },
-  na:                  { text: 'var(--muted-fg)', bg: 'var(--muted)' },
-}
-
-function EffBadge({ rating }: { rating?: EffectivenessRating }) {
-  if (!rating) return null
-  const c = EFF_COLOR[rating]
-  return (
-    <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold capitalize"
-      style={{ background: c.bg, color: c.text }}>
-      {rating.replace('_', ' ')}
-    </span>
-  )
-}
-
-function ControlCard({ ctrl, mappings, index, onEdit, onApprove }: { ctrl: Control; mappings: ControlMapping[]; index: number; onEdit: () => void; onApprove: () => void }) {
-  const isPending = ctrl.approval_status === 'pending_review'
-  const [expanded, setExpanded] = useState(false)
-  const myMappings = mappings.filter(m => m.control_id === ctrl.id)
-  const eff = ctrl.effectiveness_rating as EffectivenessRating | undefined
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.03 }}
-      className="card overflow-hidden"
-    >
-      {/* Top accent */}
-      <div className="absolute top-0 left-0 right-0 h-px"
-        style={{ background: eff && EFF_COLOR[eff] ? `linear-gradient(90deg,transparent,${EFF_COLOR[eff].text},transparent)` : 'linear-gradient(90deg,transparent,rgba(14,165,233,0.4),transparent)' }} />
-
-      {/* Header row */}
-      <div
-        className="flex items-start gap-3 p-4 cursor-pointer"
-        onClick={() => setExpanded(e => !e)}
-      >
-        <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
-          style={{ background: 'rgba(14,165,233,0.1)' }}>
-          <Shield className="w-4 h-4" style={{ color: 'var(--brand-500)' }} />
-        </div>
-
-        <div className="flex-1 min-w-0">
-          <div className="flex flex-wrap items-center gap-2 mb-0.5">
-            <span className="text-xs font-mono font-semibold" style={{ color: 'var(--brand-500)' }}>
-              {ctrl.control_id}
-            </span>
-            <span className="text-[10px] uppercase px-1.5 py-0.5 rounded font-semibold"
-              style={{ background: 'rgba(14,165,233,0.1)', color: 'var(--brand-500)' }}>
-              {ctrl.framework}
-            </span>
-            {ctrl.control_type && (
-              <span className={cn('px-1.5 py-0.5 rounded text-[10px] font-semibold capitalize', TYPE_COLOR[ctrl.control_type])}>
-                {ctrl.control_type}
-              </span>
-            )}
-            <EffBadge rating={eff} />
-            {isPending && (
-              <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-500/15 text-amber-400">Gözləmədə</span>
-            )}
-          </div>
-          <p className="text-sm font-semibold truncate" style={{ color: 'var(--foreground)' }}>{ctrl.title}</p>
-        </div>
-
-        <div className="flex items-center gap-3 shrink-0">
-          {isPending && (
-            <button onClick={(e) => { e.stopPropagation(); onApprove() }}
-              className="px-2.5 py-1 rounded-lg text-[11px] font-semibold text-white bg-emerald-600 hover:bg-emerald-700 transition-colors">
-              Təsdiqlə
-            </button>
-          )}
-          {myMappings.length > 0 && (
-            <span className="text-[10px] font-medium px-2 py-0.5 rounded-full"
-              style={{ background: 'rgba(14,165,233,0.1)', color: 'var(--brand-500)' }}>
-              {myMappings.length} mapped
-            </span>
-          )}
-          <button onClick={(e) => { e.stopPropagation(); onEdit() }} aria-label="Edit control"
-            className="p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer">
-            <Pencil className="w-3.5 h-3.5" style={{ color: 'var(--muted-fg)' }} />
-          </button>
-          {expanded ? <ChevronUp className="w-4 h-4" style={{ color: 'var(--muted-fg)' }} /> : <ChevronDown className="w-4 h-4" style={{ color: 'var(--muted-fg)' }} />}
-        </div>
-      </div>
-
-      {/* Expanded detail */}
-      {expanded && (
-        <div className="px-4 pb-4 space-y-3 border-t" style={{ borderColor: 'var(--border)' }}>
-          {ctrl.description && (
-            <p className="text-xs pt-3" style={{ color: 'var(--muted-fg)' }}>{ctrl.description}</p>
-          )}
-
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 pt-1">
-            {[
-              { label: 'Classification',    value: ctrl.classification },
-              { label: 'Frequency',         value: ctrl.execution_frequency },
-              { label: 'Approval Status',   value: ctrl.approval_status },
-              { label: 'Design Effect.',    value: ctrl.design_effectiveness },
-              { label: 'Operating Effect.', value: ctrl.operating_effectiveness },
-              { label: 'Last Tested',       value: ctrl.last_tested_at ? ctrl.last_tested_at.slice(0, 10) : undefined },
-              { label: 'Next Test',         value: ctrl.next_test_date },
-              { label: 'Version',           value: ctrl.version ? `v${ctrl.version}` : undefined },
-              { label: 'Live',              value: ctrl.is_live ? 'Yes' : 'No' },
-            ].filter(f => f.value).map(f => (
-              <div key={f.label}>
-                <p className="text-[9px] uppercase tracking-widest mb-0.5" style={{ color: 'var(--muted-fg)', opacity: 0.5 }}>{f.label}</p>
-                <p className="text-xs font-medium capitalize" style={{ color: 'var(--foreground)' }}>{f.value}</p>
-              </div>
-            ))}
-          </div>
-
-          {ctrl.objective && (
-            <div>
-              <p className="text-[9px] uppercase tracking-widest mb-1" style={{ color: 'var(--muted-fg)', opacity: 0.5 }}>Objective</p>
-              <p className="text-xs" style={{ color: 'var(--muted-fg)' }}>{ctrl.objective}</p>
-            </div>
-          )}
-
-          {ctrl.kci_definition && (
-            <div>
-              <p className="text-[9px] uppercase tracking-widest mb-1" style={{ color: 'var(--muted-fg)', opacity: 0.5 }}>KCI Definition</p>
-              <p className="text-xs" style={{ color: 'var(--muted-fg)' }}>{ctrl.kci_definition}</p>
-            </div>
-          )}
-
-          {/* Mappings */}
-          {myMappings.length > 0 && (
-            <div>
-              <p className="text-[9px] uppercase tracking-widest mb-2" style={{ color: 'var(--muted-fg)', opacity: 0.5 }}>Mappings</p>
-              <div className="flex flex-wrap gap-1.5">
-                {myMappings.map(m => (
-                  <span key={m.id} className="px-2 py-0.5 rounded text-[10px] font-medium capitalize"
-                    style={{
-                      background: m.mapping_type === 'dual_purpose' ? 'rgba(14,165,233,0.1)' : m.mapping_type === 'compliance_only' ? 'rgba(168,85,247,0.1)' : 'rgba(234,88,12,0.1)',
-                      color: m.mapping_type === 'dual_purpose' ? 'var(--brand-500)' : m.mapping_type === 'compliance_only' ? '#a855f7' : '#ea580c',
-                    }}>
-                    {m.mapping_type.replace(/_/g, ' ')} · {m.entity_type}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-    </motion.div>
-  )
-}
+const EFF_DOT = (e?: string) =>
+  e === 'effective' ? '#34d399' : e === 'partially_effective' ? '#fbbf24' : e === 'ineffective' ? '#f87171' : 'var(--muted-fg)'
 
 export function ControlsClient() {
   const [controls, setControls]   = useState<Control[]>([])
-  const [mappings, setMappings]   = useState<ControlMapping[]>([])
+  const [obligations, setObligations] = useState<ComplianceObligation[]>([])
+  const [linkMaps, setLinkMaps]   = useState<Record<string, { controlIds: string[]; policyIds: string[] }>>({})
   const [search, setSearch]       = useState('')
   const [fwFilter, setFwFilter]   = useState<string>('all')
   const [loading, setLoading]     = useState(true)
   const [showForm, setShowForm]   = useState(false)
   const [editControl, setEditControl] = useState<Control | null>(null)
+  const [simCtrl, setSimCtrl]     = useState<Control | null>(null)   // simulator target
+  const [creatingInc, setCreatingInc] = useState(false)
 
-  useEffect(() => {
-    Promise.all([db.getControls(), dbExt.getControlMappings()])
-      .then(([c, m]) => { setControls(c); setMappings(m) })
-      .catch(() => toast.error('Nəzarətlər yüklənmədi'))
-      .finally(() => setLoading(false))
-  }, [])
+  async function reload() {
+    const [c, o, maps] = await Promise.all([db.getControls(), db.getObligations(), db.getObligationLinkMaps()])
+    setControls(c); setObligations(o); setLinkMaps(maps); setLoading(false)
+  }
+  useEffect(() => { reload().catch(() => { toast.error('Nəzarətlər yüklənmədi'); setLoading(false) }) }, [])
 
   const handleSaveControl = (saved: Control) => {
     setControls(prev => {
@@ -190,46 +42,69 @@ export function ControlsClient() {
       if (idx >= 0) { const next = [...prev]; next[idx] = saved; return next }
       return [saved, ...prev]
     })
-    setShowForm(false)
-    setEditControl(null)
+    setShowForm(false); setEditControl(null)
   }
 
-  // Approve a pending control created from an incident CAPA
   const handleApprove = async (ctrl: Control) => {
     const saved = await db.saveControl({ ...ctrl, approval_status: 'approved' })
     setControls(prev => prev.map(c => c.id === saved.id ? saved : c))
     toast.success(`Kontrol təsdiqləndi: ${saved.control_id}`)
   }
 
-  const frameworks = ['all', ...Array.from(new Set(controls.map(c => c.framework)))]
+  // Obligations reachable from a control (reverse of obligation_control_links)
+  const brokenObligations = useMemo(() => {
+    if (!simCtrl) return [] as ComplianceObligation[]
+    const ids = Object.entries(linkMaps).filter(([, m]) => m.controlIds.includes(simCtrl.id)).map(([oid]) => oid)
+    return obligations.filter(o => ids.includes(o.id))
+  }, [simCtrl, linkMaps, obligations])
 
+  // Simulate a control failure → optionally raise a real incident
+  async function raiseIncidentFromSim() {
+    if (!simCtrl || creatingInc) return
+    setCreatingInc(true)
+    try {
+      const now = new Date().toISOString()
+      const broken = brokenObligations.map(o => o.obligation_code).join(', ')
+      await db.saveIncident({
+        id: crypto.randomUUID(), org_id: '',
+        title: `Control failure: ${simCtrl.control_id}`,
+        description: `${simCtrl.title} nəzarəti sıradan çıxdı.${broken ? ` Pozulan öhdəliklər: ${broken}.` : ''}`,
+        severity: 'high', status: 'open', workflow_stage: 'intake',
+        incident_category: 'Control failure', control_id: simCtrl.id,
+        compliance_obligation_id: brokenObligations[0]?.id,
+        created_at: now, updated_at: now,
+      } as Incident)
+      toast.success('İnsident yaradıldı (Incidents modulunda)')
+      setSimCtrl(null)
+    } catch { toast.error('İnsident yaradıla bilmədi') } finally { setCreatingInc(false) }
+  }
+
+  const frameworks = ['all', ...Array.from(new Set(controls.map(c => c.framework)))]
   const filtered = controls.filter(c => {
     const matchSearch = !search || c.title.toLowerCase().includes(search.toLowerCase()) || c.control_id.toLowerCase().includes(search.toLowerCase())
-    const matchFw     = fwFilter === 'all' || c.framework === fwFilter
-    return matchSearch && matchFw
+    return (fwFilter === 'all' || c.framework === fwFilter) && matchSearch
   })
 
   const stats = {
-    total:     controls.length,
-    effective: controls.filter(c => c.effectiveness_rating === 'effective').length,
-    partial:   controls.filter(c => c.effectiveness_rating === 'partially_effective').length,
-    ineffect:  controls.filter(c => c.effectiveness_rating === 'ineffective').length,
+    total:      controls.length,
+    preventive: controls.filter(c => c.control_type === 'preventive').length,
+    detective:  controls.filter(c => c.control_type === 'detective').length,
+    failures:   controls.filter(c => c.status === 'fail' || c.effectiveness_rating === 'ineffective').length,
   }
 
   return (
     <div className="space-y-5">
-      {/* Stats */}
+      {/* Stats — Gemini layout */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label: 'Total Controls',        value: stats.total,     rgb: '14,165,233' },
-          { label: 'Effective',             value: stats.effective, rgb: '5,150,105' },
-          { label: 'Partially Effective',   value: stats.partial,   rgb: '217,119,6' },
-          { label: 'Ineffective',           value: stats.ineffect,  rgb: '225,29,72' },
+          { label: 'Ümumi Nəzarətlər',          value: stats.total,      rgb: '14,165,233' },
+          { label: 'Preventive (Önləyici)',     value: stats.preventive, rgb: '59,130,246' },
+          { label: 'Detective (Aşkarlayıcı)',   value: stats.detective,  rgb: '234,179,8' },
+          { label: 'Sıradan çıxanlar (Failures)', value: stats.failures, rgb: '225,29,72' },
         ].map((s, i) => (
           <motion.div key={s.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
-            className="card p-4 overflow-hidden">
-            <div className="absolute top-0 left-0 right-0 h-px"
-              style={{ background: `linear-gradient(90deg,transparent,rgba(${s.rgb},0.7),transparent)` }} />
+            className="card p-4 overflow-hidden relative">
+            <div className="absolute top-0 left-0 right-0 h-px" style={{ background: `linear-gradient(90deg,transparent,rgba(${s.rgb},0.7),transparent)` }} />
             <p className="text-2xl font-bold tracking-tight" style={{ color: `rgb(${s.rgb})` }}>{s.value}</p>
             <p className="text-xs mt-0.5" style={{ color: 'var(--muted-fg)' }}>{s.label}</p>
           </motion.div>
@@ -238,14 +113,11 @@ export function ControlsClient() {
 
       {/* Toolbar */}
       <div className="flex flex-wrap items-center gap-3">
-        <div className="flex items-center gap-2 px-3 py-2 rounded-lg flex-1 min-w-48"
-          style={{ background: 'var(--muted)', border: '1px solid var(--border)' }}>
+        <div className="flex items-center gap-2 px-3 py-2 rounded-lg flex-1 min-w-48" style={{ background: 'var(--muted)', border: '1px solid var(--border)' }}>
           <Search className="w-3.5 h-3.5 shrink-0" style={{ color: 'var(--muted-fg)' }} />
-          <input value={search} onChange={e => setSearch(e.target.value)}
-            placeholder="Search controls…" className="bg-transparent text-sm outline-none flex-1"
-            style={{ color: 'var(--foreground)' }} />
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search controls…" className="bg-transparent text-sm outline-none flex-1" style={{ color: 'var(--foreground)' }} />
         </div>
-        <div className="flex gap-1 p-1 rounded-lg" style={{ background: 'var(--muted)', border: '1px solid var(--border)' }}>
+        <div className="flex gap-1 p-1 rounded-lg flex-wrap" style={{ background: 'var(--muted)', border: '1px solid var(--border)' }}>
           {frameworks.map(fw => (
             <button key={fw} onClick={() => setFwFilter(fw)}
               className="px-3 py-1.5 rounded-md text-xs font-medium uppercase transition-all cursor-pointer"
@@ -256,28 +128,108 @@ export function ControlsClient() {
         </div>
         <button onClick={() => { setEditControl(null); setShowForm(true) }}
           className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold text-white bg-sky-500 hover:bg-sky-600 cursor-pointer">
-          <Plus className="w-4 h-4" /> New Control
+          <Plus className="w-4 h-4" /> Yeni Nəzarət Əlavə Et
         </button>
       </div>
 
-      {/* Cards */}
-      {loading ? (
-        <div className="flex items-center justify-center h-40" style={{ color: 'var(--muted-fg)' }}>Loading…</div>
-      ) : (
-        <div className="space-y-3">
-          {filtered.map((c, i) => <ControlCard key={c.id} ctrl={c} mappings={mappings} index={i} onEdit={() => { setEditControl(c); setShowForm(true) }} onApprove={() => handleApprove(c)} />)}
-        </div>
-      )}
+      {/* Table */}
+      <div className="card overflow-hidden"><div className="overflow-x-auto"><table className="w-full">
+        <thead><tr style={{ borderBottom: '1px solid var(--border)', background: 'var(--muted)' }}>
+          {['Kod', 'Nəzarət Adı', 'Tip', 'Metod / Tezlik', 'Sahib / Şöbə', 'Status', 'Simulyator', ''].map(h => (
+            <th key={h} className="text-left px-3 py-3 text-[11px] font-semibold uppercase tracking-wide whitespace-nowrap" style={{ color: 'var(--muted-fg)' }}>{h}</th>))}
+        </tr></thead>
+        <tbody>
+          {loading ? (<tr><td colSpan={8} className="py-16 text-center text-sm" style={{ color: 'var(--muted-fg)' }}>Loading…</td></tr>)
+          : filtered.length === 0 ? (<tr><td colSpan={8} className="py-16 text-center text-sm" style={{ color: 'var(--muted-fg)' }}>No controls found</td></tr>)
+          : filtered.map((c, i) => {
+            const pending = c.approval_status === 'pending_review'
+            return (
+            <motion.tr key={c.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.02 }} className="group hover:bg-black/[0.02] dark:hover:bg-white/[0.02] align-top" style={{ borderBottom: '1px solid var(--border)' }}>
+              <td className="px-3 py-3.5"><span className="text-[11px] font-mono font-bold whitespace-nowrap" style={{ color: 'var(--brand-500)' }}>{c.control_id}</span>
+                <p className="text-[9px] uppercase mt-0.5" style={{ color: 'var(--muted-fg)' }}>{c.framework}</p>
+              </td>
+              <td className="px-3 py-3.5 max-w-[240px]">
+                <span className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>{c.title}</span>
+                {c.description && <p className="text-xs mt-0.5 line-clamp-2" style={{ color: 'var(--muted-fg)' }} title={c.description}>{c.description}</p>}
+              </td>
+              <td className="px-3 py-3.5">{c.control_type ? <span className={cn('inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold capitalize', TYPE_COLOR[c.control_type])}>{c.control_type}</span> : <span className="text-xs" style={{ color: 'var(--muted-fg)' }}>—</span>}</td>
+              <td className="px-3 py-3.5">
+                <span className="text-xs capitalize" style={{ color: 'var(--foreground)' }}>{c.classification || '—'}</span>
+                <p className="text-[10px] capitalize" style={{ color: 'var(--muted-fg)' }}>{c.execution_frequency || '—'}</p>
+              </td>
+              <td className="px-3 py-3.5"><span className="text-xs whitespace-nowrap" style={{ color: c.owner_dept ? 'var(--foreground)' : 'var(--muted-fg)' }}>{c.owner_dept || '—'}</span></td>
+              <td className="px-3 py-3.5">
+                {pending ? (
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/15 text-amber-400">Gözləmədə</span>
+                ) : (
+                  <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/15 text-emerald-400">
+                    <span className="w-1.5 h-1.5 rounded-full" style={{ background: EFF_DOT(c.effectiveness_rating) }} /> Aktiv
+                  </span>
+                )}
+              </td>
+              <td className="px-3 py-3.5">
+                <button onClick={() => setSimCtrl(c)}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold border transition-colors hover:bg-red-500/10"
+                  style={{ borderColor: 'rgba(225,29,72,0.3)', color: '#f87171' }}>
+                  <Zap className="w-3.5 h-3.5" /> İnsident Simulyasiya Et
+                </button>
+              </td>
+              <td className="px-3 py-3.5"><div className="flex items-center gap-1">
+                {pending && (
+                  <button onClick={() => handleApprove(c)} title="Təsdiqlə" className="px-2.5 py-1 rounded-lg text-[11px] font-semibold text-white bg-emerald-600 hover:bg-emerald-700"><Check className="w-3.5 h-3.5" /></button>
+                )}
+                <button onClick={() => { setEditControl(c); setShowForm(true) }} className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-black/10 dark:hover:bg-white/10"><Edit className="w-3.5 h-3.5" style={{ color: 'var(--muted-fg)' }} /></button>
+              </div></td>
+            </motion.tr>
+            )
+          })}
+        </tbody>
+      </table></div></div>
 
       {showForm && (
-        <ControlFormDialog
-          key={editControl?.id ?? 'new'}
-          control={editControl}
-          existing={controls}
-          onClose={() => { setShowForm(false); setEditControl(null) }}
-          onSave={handleSaveControl}
-        />
+        <ControlFormDialog key={editControl?.id ?? 'new'} control={editControl} existing={controls}
+          onClose={() => { setShowForm(false); setEditControl(null) }} onSave={handleSaveControl} />
       )}
+
+      {/* Incident Simulator modal (dependency scan) */}
+      <AnimatePresence>
+        {simCtrl && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setSimCtrl(null)} />
+            <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.96 }}
+              className="relative w-full max-w-md rounded-2xl border shadow-2xl" style={{ background: 'var(--card)', borderColor: 'var(--border)' }}>
+              <div className="flex items-center justify-between px-6 py-4 border-b" style={{ borderColor: 'var(--border)' }}>
+                <h2 className="text-sm font-semibold flex items-center gap-2 text-red-400"><AlertTriangle className="w-4 h-4" /> Dependency Scan — {simCtrl.control_id}</h2>
+                <button onClick={() => setSimCtrl(null)} className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/5"><X className="w-4 h-4" style={{ color: 'var(--muted-fg)' }} /></button>
+              </div>
+              <div className="px-6 py-5 space-y-3">
+                <p className="text-xs" style={{ color: 'var(--muted-fg)' }}>
+                  <b style={{ color: 'var(--foreground)' }}>{simCtrl.title}</b> nəzarəti sıradan çıxsa, aşağıdakı compliance öhdəlikləri pozulur:
+                </p>
+                {brokenObligations.length === 0 ? (
+                  <p className="text-xs" style={{ color: 'var(--muted-fg)' }}>Bu nəzarət heç bir öhdəliyə bağlı deyil (Control Mapping-də map olunmayıb).</p>
+                ) : (
+                  <ul className="space-y-1.5">
+                    {brokenObligations.map(o => (
+                      <li key={o.id} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-red-500/10 border border-red-500/20">
+                        <span className="text-[10px] font-mono font-bold text-red-400">{o.obligation_code}</span>
+                        <span className="text-xs" style={{ color: 'var(--foreground)' }}>{o.title}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                <div className="flex items-center justify-between pt-2">
+                  <button onClick={() => setSimCtrl(null)} className="px-4 py-2 rounded-lg text-sm hover:bg-white/5" style={{ color: 'var(--muted-fg)' }}>Bağla</button>
+                  <button onClick={raiseIncidentFromSim} disabled={creatingInc}
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-white disabled:opacity-50" style={{ background: 'rgb(225,29,72)' }}>
+                    <Zap className="w-3.5 h-3.5" /> {creatingInc ? 'Yaradılır…' : 'Real İnsident Yarat'}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }
