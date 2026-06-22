@@ -2,8 +2,8 @@
 
 import { useState, useEffect, Fragment } from 'react'
 import { motion } from 'framer-motion'
-import { db } from '@/lib/db'
-import type { Risk, RiskLevel } from '@/types'
+import { db, getCurrentProfile } from '@/lib/db'
+import type { Risk, RiskLevel, UserProfile } from '@/types'
 import { RISK_CATEGORIES, RISK_CATEGORY_VALUES, CATEGORY_LABELS, type RiskCategory } from '@/lib/risk-categories'
 import { RISK_STATUSES, STATUS_CLASSES, RISK_STATUS_VALUES, STATUS_LABELS, normalizeStatus, type RiskStatus } from '@/lib/risk-status'
 import { residualLevelWord, CONTROL_RATING_INFO } from '@/lib/rcsa-methodology'
@@ -33,6 +33,7 @@ export function RiskTable() {
   const [menuOpen, setMenuOpen] = useState<string | null>(null)
   const [openStatusRiskId, setOpenStatusRiskId] = useState<string | null>(null)
   const [jiraConfig, setJiraConfig] = useState<any>(null)
+  const [profile, setProfile] = useState<UserProfile | null>(null)
 
   useEffect(() => {
     const handleOutsideClick = () => {
@@ -49,18 +50,25 @@ export function RiskTable() {
       setRisks(data)
       const config = await db.getJiraConfig()
       setJiraConfig(config)
+      setProfile(await getCurrentProfile())
     }
     load()
   }, [])
 
+  // Risk team (admin / risk_manager / auditor) sees every risk;
+  // a plain employee only sees risks they own / reported.
+  const isManager = profile?.role === 'admin' || profile?.role === 'risk_manager' || profile?.role === 'auditor'
+  const myId = profile?.id
+  const myName = profile?.full_name
 
   const filtered = risks.filter(r => {
+    const matchTier = isManager || r.owner_id === myId || (!!myName && r.owner_name === myName)
     const matchSearch = r.title.toLowerCase().includes(search.toLowerCase()) ||
       r.description.toLowerCase().includes(search.toLowerCase())
     const matchLevel = levelFilter === 'all' || r.level === levelFilter
     const matchCat = categoryFilter === 'all' || r.category === categoryFilter
     const matchStatus = statusFilter === 'all' || normalizeStatus(r.status) === statusFilter
-    return matchSearch && matchLevel && matchCat && matchStatus
+    return matchTier && matchSearch && matchLevel && matchCat && matchStatus
   })
 
   // Group by category (registry view): RISK_CATEGORIES order, newest/updated on top

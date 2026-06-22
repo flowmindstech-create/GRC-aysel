@@ -10,10 +10,11 @@ import {
   ShieldAlert, AlertTriangle, ClipboardCheck, Users, Clock, RefreshCw, Database
 } from 'lucide-react'
 import Link from 'next/link'
+import { cn } from '@/lib/utils'
 import { formatDistanceToNow } from 'date-fns'
-import type { DashboardStats, Activity, Risk, Incident, JiraConfig } from '@/types'
+import type { DashboardStats, Activity, Risk, Incident, JiraConfig, UserProfile } from '@/types'
 import { useState, useEffect } from 'react'
-import { db } from '@/lib/db'
+import { db, getCurrentProfile } from '@/lib/db'
 import { toast } from 'sonner'
 
 interface DashboardClientProps {
@@ -36,6 +37,7 @@ export function DashboardClient({
   const [jiraConfig, setJiraConfig] = useState<JiraConfig | null>(null)
   const [syncedStats, setSyncedStats] = useState({ total: 0, done: 0 })
   const [syncing, setSyncing] = useState(false)
+  const [profile, setProfile] = useState<UserProfile | null>(null)
 
   async function loadData() {
     const s = await db.getDashboardStats()
@@ -43,11 +45,18 @@ export function DashboardClient({
     const r = await db.getRisks()
     const i = await db.getIncidents()
     const jira = await db.getJiraConfig()
-    
+    const p = await getCurrentProfile()
+    setProfile(p)
+
+    // Risk team sees the whole org; a plain employee only their own work.
+    const manager = p?.role === 'admin' || p?.role === 'risk_manager' || p?.role === 'auditor'
+    const mineRisks = (x: Risk) => manager || x.owner_id === p?.id || (!!p?.full_name && x.owner_name === p.full_name)
+    const mineIncidents = (x: Incident) => manager || x.reported_by === p?.id || x.assigned_to === p?.id || x.resolution_assignee === p?.id
+
     setStats(s)
     setActivities(a)
-    setOpenRisks(r.filter(x => x.status === 'open' || x.status === 'in_progress'))
-    setOpenIncidents(i.filter(x => x.status !== 'done' && x.status !== 'closed'))
+    setOpenRisks(r.filter(x => (x.status === 'open' || x.status === 'in_progress') && mineRisks(x)))
+    setOpenIncidents(i.filter(x => x.status !== 'done' && x.status !== 'closed' && mineIncidents(x)))
     setJiraConfig(jira)
 
     if (jira.connected) {
@@ -71,6 +80,8 @@ export function DashboardClient({
     setSyncing(false)
     toast.success('Bidirectional sync with Jira completed successfully!')
   }
+
+  const isManager = profile?.role === 'admin' || profile?.role === 'risk_manager' || profile?.role === 'auditor'
 
   return (
     <main className="flex-1 overflow-y-auto p-6">
@@ -106,60 +117,89 @@ export function DashboardClient({
         </div>
       )}
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <StatsCard
-          index={0}
-          title="Total Risks"
-          value={stats.total_risks}
-          subtitle={`${stats.critical_risks} critical`}
-          icon={ShieldAlert}
-          iconColor="text-sky-500"
-          iconBg="bg-sky-500/10"
-        />
-        <StatsCard
-          index={1}
-          title="Open Incidents"
-          value={stats.open_incidents}
-          subtitle={`${stats.incidents_investigating} under investigation`}
-          icon={AlertTriangle}
-          iconColor="text-orange-500"
-          iconBg="bg-orange-500/10"
-        />
-        <StatsCard
-          index={2}
-          title="Compliance Score"
-          value={`${stats.compliance_score}%`}
-          subtitle={`${stats.controls_failing} controls failing`}
-          icon={ClipboardCheck}
-          iconColor="text-green-500"
-          iconBg="bg-green-500/10"
-        />
-        <StatsCard
-          index={3}
-          title="Active Vendors"
-          value={stats.active_vendors}
-          subtitle={`${stats.vendors_under_review} under review`}
-          icon={Users}
-          iconColor="text-blue-500"
-          iconBg="bg-blue-500/10"
-        />
-      </div>
+      {/* KPI Cards — org-wide stats are risk-team only */}
+      {isManager ? (
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <StatsCard
+            index={0}
+            title="Total Risks"
+            value={stats.total_risks}
+            subtitle={`${stats.critical_risks} critical`}
+            icon={ShieldAlert}
+            iconColor="text-sky-500"
+            iconBg="bg-sky-500/10"
+          />
+          <StatsCard
+            index={1}
+            title="Open Incidents"
+            value={stats.open_incidents}
+            subtitle={`${stats.incidents_investigating} under investigation`}
+            icon={AlertTriangle}
+            iconColor="text-orange-500"
+            iconBg="bg-orange-500/10"
+          />
+          <StatsCard
+            index={2}
+            title="Compliance Score"
+            value={`${stats.compliance_score}%`}
+            subtitle={`${stats.controls_failing} controls failing`}
+            icon={ClipboardCheck}
+            iconColor="text-green-500"
+            iconBg="bg-green-500/10"
+          />
+          <StatsCard
+            index={3}
+            title="Active Vendors"
+            value={stats.active_vendors}
+            subtitle={`${stats.vendors_under_review} under review`}
+            icon={Users}
+            iconColor="text-blue-500"
+            iconBg="bg-blue-500/10"
+          />
+        </div>
+      ) : (
+        /* Employee view — only "my work" counts */
+        <div className="grid grid-cols-2 gap-4 mb-6">
+          <StatsCard
+            index={0}
+            title="Mənim Risklərim"
+            value={openRisks.length}
+            subtitle="açıq / icrada"
+            icon={ShieldAlert}
+            iconColor="text-sky-500"
+            iconBg="bg-sky-500/10"
+          />
+          <StatsCard
+            index={1}
+            title="Mənim İnsidentlərim"
+            value={openIncidents.length}
+            subtitle="aktiv"
+            icon={AlertTriangle}
+            iconColor="text-orange-500"
+            iconBg="bg-orange-500/10"
+          />
+        </div>
+      )}
 
-      {/* Row 2 — Heatmap + Gauge */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
-        <div className="lg:col-span-1"><RiskHeatmap stats={stats} /></div>
-        <div className="lg:col-span-1"><ComplianceGauge score={stats.compliance_score} /></div>
-      </div>
+      {/* Org-wide visuals — risk team only */}
+      {isManager && (
+        <>
+          {/* Row 2 — Heatmap + Gauge */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+            <div className="lg:col-span-1"><RiskHeatmap stats={stats} /></div>
+            <div className="lg:col-span-1"><ComplianceGauge score={stats.compliance_score} /></div>
+          </div>
 
-      {/* Row 3 — Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
-        <RiskTrendChart stats={stats} />
-        <RiskCategoryChart stats={stats} />
-      </div>
+          {/* Row 3 — Charts */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+            <RiskTrendChart stats={stats} />
+            <RiskCategoryChart stats={stats} />
+          </div>
+        </>
+      )}
 
       {/* Row 4 — Open Risks + Open Incidents + Activity */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className={cn('grid grid-cols-1 gap-4', isManager ? 'lg:grid-cols-3' : 'lg:grid-cols-2')}>
         {/* Open Risks */}
         <div className="card p-5">
           <div className="flex items-center justify-between mb-4">
@@ -224,8 +264,8 @@ export function DashboardClient({
           </div>
         </div>
 
-        {/* Activity Feed */}
-        <ActivityFeed activities={activities} />
+        {/* Activity Feed — org-wide, risk team only */}
+        {isManager && <ActivityFeed activities={activities} />}
       </div>
     </main>
   )
