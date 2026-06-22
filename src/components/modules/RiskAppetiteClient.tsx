@@ -122,7 +122,7 @@ export function RiskAppetiteClient() {
               <td className="px-3 py-3.5 max-w-xs"><span className="text-sm truncate block" style={{ color: 'var(--foreground)' }}>{it.statement}</span></td>
               <td className="px-3 py-3.5"><span className="text-xs" style={{ color: it.tolerance ? 'var(--foreground)' : 'var(--muted-fg)' }}>{it.tolerance || '—'}</span></td>
               <td className="px-3 py-3.5"><span className="text-xs" style={{ color: it.measure ? 'var(--foreground)' : 'var(--muted-fg)' }}>{it.measure || '—'}</span></td>
-              <td className="px-3 py-3.5"><span className={cn('inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold', STATUS[it.status].cls)}>{STATUS[it.status].label}</span></td>
+              <td className="px-3 py-3.5">{(() => { const s = STATUS[it.status] ?? { label: String(it.status ?? '—'), cls: 'bg-zinc-500/15 text-zinc-400' }; return <span className={cn('inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold', s.cls)}>{s.label}</span> })()}</td>
               <td className="px-3 py-3.5"><span className="text-xs" style={{ color: it.owner ? 'var(--foreground)' : 'var(--muted-fg)' }}>{it.owner || '—'}</span></td>
               <td className="px-3 py-3.5"><div className="flex items-center gap-1">
                 <button onClick={() => { setEditItem(it); setShowForm(true) }} className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-black/10 dark:hover:bg-white/10"><Edit className="w-3.5 h-3.5" style={{ color: 'var(--muted-fg)' }} /></button>

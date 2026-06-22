@@ -167,7 +167,7 @@ export function WhistleblowingClient() {
                     {ALL_STATUS.map(s => <option key={s} value={s}>{STATUS[s].label}</option>)}
                   </select>
                 ) : (
-                  <span className={cn('inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold', STATUS[r.status].cls)}>{STATUS[r.status].label}</span>
+                  <span className={cn('inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold', (STATUS[r.status] ?? { cls: 'bg-zinc-500/15 text-zinc-400' }).cls)}>{(STATUS[r.status] ?? { label: String(r.status ?? '—') }).label}</span>
                 )}
               </td>
               <td className="px-3 py-3.5"><span className="text-[11px] whitespace-nowrap" style={{ color: 'var(--muted-fg)' }}>{r.received_at ? format(new Date(r.received_at), 'd MMM yyyy') : '—'}</span></td>

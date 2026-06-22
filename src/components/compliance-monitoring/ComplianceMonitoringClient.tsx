@@ -280,7 +280,7 @@ function AssessmentRegister() {
               <td className="px-3 py-3.5"><span className="text-[11px] font-mono" style={{ color: a.obligation_id ? 'var(--brand-500)' : 'var(--muted-fg)' }}>{oblCode(a.obligation_id) || '—'}</span></td>
               <td className="px-3 py-3.5"><span className="text-xs capitalize" style={{ color: 'var(--muted-fg)' }}>{a.frequency}</span></td>
               <td className="px-3 py-3.5"><span className="text-xs" style={{ color: a.owner ? 'var(--foreground)' : 'var(--muted-fg)' }}>{a.owner || '—'}</span></td>
-              <td className="px-3 py-3.5"><span className={cn('inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold', RESULT_CFG[a.result].cls)}>{RESULT_CFG[a.result].label}</span></td>
+              <td className="px-3 py-3.5">{(() => { const rc = RESULT_CFG[a.result] ?? { label: String(a.result ?? '—'), cls: 'bg-zinc-500/15 text-zinc-400' }; return <span className={cn('inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold', rc.cls)}>{rc.label}</span> })()}</td>
               <td className="px-3 py-3.5"><span className={cn('text-xs whitespace-nowrap font-medium', overdue && 'text-red-400')} style={!overdue ? { color: a.next_review_date ? 'var(--foreground)' : 'var(--muted-fg)' } : undefined}>{a.next_review_date ? format(new Date(a.next_review_date), 'd MMM yyyy') : '—'}{overdue && ' ⚠'}</span></td>
               <td className="px-3 py-3.5 max-w-[120px]"><span className="text-xs truncate block" style={{ color: (a.evidence_url || a.evidence_file_name) ? 'var(--foreground)' : 'var(--muted-fg)' }}>{a.evidence_file_name || a.evidence_url || '—'}</span></td>
               <td className="px-3 py-3.5"><div className="flex items-center gap-1">

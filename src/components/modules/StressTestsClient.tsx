@@ -120,7 +120,7 @@ export function StressTestsClient() {
               <td className="px-3 py-3.5 max-w-xs"><span className="text-sm font-medium truncate block" style={{ color: 'var(--foreground)' }}>{it.scenario}</span></td>
               <td className="px-3 py-3.5 max-w-[160px]"><span className="text-xs truncate block" style={{ color: it.assumption ? 'var(--foreground)' : 'var(--muted-fg)' }}>{it.assumption || '—'}</span></td>
               <td className="px-3 py-3.5 max-w-[160px]"><span className="text-xs truncate block" style={{ color: it.result_impact ? 'var(--foreground)' : 'var(--muted-fg)' }}>{it.result_impact || '—'}</span></td>
-              <td className="px-3 py-3.5"><span className={cn('inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold', OUTCOME[it.outcome].cls)}>{OUTCOME[it.outcome].label}</span></td>
+              <td className="px-3 py-3.5">{(() => { const o = OUTCOME[it.outcome] ?? { label: String(it.outcome ?? '—'), cls: 'bg-zinc-500/15 text-zinc-400' }; return <span className={cn('inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold', o.cls)}>{o.label}</span> })()}</td>
               <td className="px-3 py-3.5"><span className="text-xs whitespace-nowrap" style={{ color: it.tested_at ? 'var(--foreground)' : 'var(--muted-fg)' }}>{it.tested_at ? format(new Date(it.tested_at), 'd MMM yyyy') : '—'}</span></td>
               <td className="px-3 py-3.5"><span className="text-xs" style={{ color: it.owner ? 'var(--foreground)' : 'var(--muted-fg)' }}>{it.owner || '—'}</span></td>
               <td className="px-3 py-3.5"><div className="flex items-center gap-1">
