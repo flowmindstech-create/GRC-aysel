@@ -129,7 +129,7 @@ export function RegulatoryChangeDetailSheet({ change, onClose, onSaved, onEdit }
               <div className="p-3 rounded-xl" style={{ background: 'var(--muted)' }}>
                 <div className="flex items-center gap-1.5 mb-1 text-[10px] font-semibold uppercase tracking-wide" style={{ color: 'var(--muted-fg)' }}>
                   <Calendar className="w-3.5 h-3.5" />
-                  <span>Change Date</span>
+                  <span>Issue Date</span>
                 </div>
                 <p className="text-xs font-semibold" style={{ color: 'var(--foreground)' }}>
                   {change.change_date ? format(new Date(change.change_date), 'd MMM yyyy') : '—'}

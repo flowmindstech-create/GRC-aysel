@@ -140,7 +140,7 @@ export function RegulatoryChangeClient() {
           <table className="w-full">
             <thead>
               <tr style={{ borderBottom: '1px solid var(--border)', background: 'var(--muted)' }}>
-                {['Code', 'Change', 'Source', 'Regulator', 'Change Date', 'Effective Date', 'Status', 'Affected', ''].map(h => (
+                {['Code', 'Change', 'Source', 'Regulator', 'Issue Date', 'Effective Date', 'Status', 'Affected', ''].map(h => (
                   <th key={h} className="text-left px-3 py-3 text-[11px] font-semibold uppercase tracking-wide whitespace-nowrap" style={{ color: 'var(--muted-fg)' }}>{h}</th>
                 ))}
               </tr>

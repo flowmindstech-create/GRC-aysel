@@ -159,7 +159,7 @@ export function RegulatoryChangeFormDialog({ change, onClose, onSave, onSaved }:
                   className={fieldCls} style={inputStyle} onFocus={focus} onBlur={blur} />
               </div>
               <div>
-                <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Change Date</label>
+                <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Issue Date (Buraxılma)</label>
                 <input type="date" value={changeDate} onChange={e => setDate(e.target.value)}
                   className={fieldCls} style={inputStyle} onFocus={focus} onBlur={blur} />
               </div>
@@ -167,7 +167,7 @@ export function RegulatoryChangeFormDialog({ change, onClose, onSave, onSaved }:
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Effective Date <span className="text-red-400">*</span></label>
+                <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Effective Date (Qüvvəyə minmə) <span className="text-red-400">*</span></label>
                 <input type="date" value={effectiveDate} onChange={e => setEffective(e.target.value)}
                   className={fieldCls} style={inputStyle} onFocus={focus} onBlur={blur} required />
               </div>
