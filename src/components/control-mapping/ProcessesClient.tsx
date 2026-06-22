@@ -3,40 +3,81 @@
 import { useState, useEffect, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { db } from '@/lib/db'
-import type { Process, Control, OrgUnit } from '@/types'
+import { dbExt } from '@/lib/db-extensions'
+import { resolveOwnerFromUnit } from '@/lib/org'
+import type { Process, ProcessStatus, Control, OrgUnit, UserProfile, Policy, Risk, ComplianceObligation, ObligationCriticality } from '@/types'
 import { cn } from '@/lib/utils'
 import { Plus, Search, MoreHorizontal, Edit, Trash2, Workflow, X, Save, Link2 } from 'lucide-react'
 import { toast } from 'sonner'
 
-// ── Form dialog ───────────────────────────────────────────────────────────────
-function ProcessFormDialog({ process, controls, departments, onClose, onSave }: {
+const STATUS_CFG: Record<ProcessStatus, { label: string; cls: string }> = {
+  active:   { label: 'Active',   cls: 'bg-emerald-500/15 text-emerald-400' },
+  draft:    { label: 'Draft',    cls: 'bg-amber-500/15 text-amber-400' },
+  archived: { label: 'Archived', cls: 'bg-zinc-500/15 text-zinc-400' },
+}
+const CRIT_CFG: Record<ObligationCriticality, { label: string; cls: string }> = {
+  minimal:  { label: 'Minimal',  cls: 'bg-slate-500/15 text-slate-400' },
+  low:      { label: 'Low',      cls: 'bg-emerald-500/15 text-emerald-400' },
+  medium:   { label: 'Medium',   cls: 'bg-amber-500/15 text-amber-400' },
+  high:     { label: 'High',     cls: 'bg-orange-500/15 text-orange-400' },
+  critical: { label: 'Critical', cls: 'bg-red-500/15 text-red-400' },
+}
+
+interface SaveLinks { controlIds: string[]; policyIds: string[]; riskIds: string[]; obligationIds: string[] }
+
+function ProcessFormDialog({ process, controls, departments, profiles, policies, risks, obligations, onClose, onSave }: {
   process: Process | null
   controls: Control[]
   departments: OrgUnit[]
+  profiles: UserProfile[]
+  policies: Policy[]
+  risks: Risk[]
+  obligations: ComplianceObligation[]
   onClose: () => void
-  onSave: (p: Process, controlIds: string[]) => Promise<void>
+  onSave: (p: Process, links: SaveLinks) => Promise<void>
 }) {
   const isEdit = !!process
   const [name, setName] = useState(process?.name ?? '')
   const [ownerDept, setOwnerDept] = useState(process?.owner_dept ?? '')
+  const [ownerName, setOwnerName] = useState(process?.owner_name ?? '')
+  const [ownerId, setOwnerId] = useState(process?.owner_id ?? '')
+  const [status, setStatus] = useState<ProcessStatus>(process?.status ?? 'active')
+  const [criticality, setCriticality] = useState<ObligationCriticality>(process?.criticality ?? 'medium')
   const [description, setDescription] = useState(process?.description ?? '')
   const [linkedControlIds, setLinkedCtrl] = useState<string[]>([])
+  const [linkedPolicyIds, setLinkedPol] = useState<string[]>([])
+  const [linkedRiskIds, setLinkedRisk] = useState<string[]>([])
+  const [linkedObligationIds, setLinkedObl] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     let active = true
     ;(async () => {
       if (process?.id) {
-        const ids = await db.getProcessControlIds(process.id)
-        if (active) setLinkedCtrl(ids)
+        const [c, p, r, o] = await Promise.all([
+          db.getProcessControlIds(process.id), db.getProcessPolicyIds(process.id),
+          db.getProcessRiskIds(process.id), db.getProcessObligationIds(process.id),
+        ])
+        if (!active) return
+        setLinkedCtrl(c); setLinkedPol(p); setLinkedRisk(r); setLinkedObl(o)
       }
     })()
     return () => { active = false }
   }, [process?.id])
 
-  function toggleCtrl(id: string) {
-    setLinkedCtrl(prev => prev.includes(id) ? prev.filter(v => v !== id) : [...prev, id])
+  // Owner dependency: dept selected → auto-fill owner person (head)
+  function handleDeptChange(deptName: string) {
+    setOwnerDept(deptName)
+    const unit = departments.find(u => u.name === deptName)
+    if (unit) {
+      const resolved = resolveOwnerFromUnit(unit, profiles)
+      setOwnerName(resolved.owner_name || '')
+      setOwnerId(resolved.owner_id || '')
+    } else { setOwnerName(''); setOwnerId('') }
   }
+
+  const toggle = (list: string[], v: string, set: (x: string[]) => void) =>
+    set(list.includes(v) ? list.filter(x => x !== v) : [...list, v])
 
   const inputStyle = { background: 'var(--muted)', border: '1px solid var(--border)', color: 'var(--foreground)' }
   const labelCls = 'block text-xs font-medium mb-1.5'
@@ -53,12 +94,34 @@ function ProcessFormDialog({ process, controls, departments, onClose, onSave }: 
       code: process?.code ?? '',
       name: name.trim(),
       owner_dept: ownerDept.trim() || undefined,
+      owner_id: ownerId || undefined,
+      owner_name: ownerName.trim() || undefined,
+      status,
+      criticality,
       description: description.trim() || undefined,
       created_at: process?.created_at ?? now,
       updated_at: now,
-    }, linkedControlIds)
+    }, { controlIds: linkedControlIds, policyIds: linkedPolicyIds, riskIds: linkedRiskIds, obligationIds: linkedObligationIds })
     setLoading(false)
   }
+
+  const multiBox = (label: string, hint: string, items: { id: string; code: string; title: string }[], selected: string[], set: (x: string[]) => void) => (
+    <div>
+      <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>{label}</label>
+      {hint && <p className="text-[10px] mb-1.5" style={{ color: 'var(--muted-fg)' }}>{hint}</p>}
+      <div className="rounded-lg border max-h-32 overflow-y-auto" style={{ borderColor: 'var(--border)' }}>
+        {items.length === 0 ? (
+          <p className="text-xs px-3 py-2" style={{ color: 'var(--muted-fg)' }}>None available.</p>
+        ) : items.map(it => (
+          <label key={it.id} className="flex items-center gap-2 px-3 py-1.5 text-xs cursor-pointer hover:bg-white/5" style={{ color: 'var(--foreground)' }}>
+            <input type="checkbox" checked={selected.includes(it.id)} onChange={() => toggle(selected, it.id, set)} />
+            <span className="font-mono text-[10px]" style={{ color: 'var(--brand-500)' }}>{it.code}</span>
+            <span className="truncate">{it.title}</span>
+          </label>
+        ))}
+      </div>
+    </div>
+  )
 
   return (
     <AnimatePresence>
@@ -82,33 +145,43 @@ function ProcessFormDialog({ process, controls, departments, onClose, onSave }: 
               <input autoFocus value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Financial Payments / Procurement / Onboarding"
                 className={fieldCls} style={inputStyle} required />
             </div>
-            <div>
-              <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Owner Department</label>
-              <select value={ownerDept} onChange={e => setOwnerDept(e.target.value)} className={`${fieldCls} cursor-pointer`} style={inputStyle}>
-                <option value="">— None —</option>
-                {departments.map(d => <option key={d.id} value={d.name}>{d.name}</option>)}
-              </select>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Owner Department</label>
+                <select value={ownerDept} onChange={e => handleDeptChange(e.target.value)} className={`${fieldCls} cursor-pointer`} style={inputStyle}>
+                  <option value="">— None —</option>
+                  {departments.map(d => <option key={d.id} value={d.name}>{d.name}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Owner (auto)</label>
+                <input value={ownerName} onChange={e => setOwnerName(e.target.value)} placeholder="Auto from department head" className={fieldCls} style={inputStyle} />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Status</label>
+                <select value={status} onChange={e => setStatus(e.target.value as ProcessStatus)} className={`${fieldCls} cursor-pointer`} style={inputStyle}>
+                  {(Object.keys(STATUS_CFG) as ProcessStatus[]).map(s => <option key={s} value={s}>{STATUS_CFG[s].label}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Criticality (Tier)</label>
+                <select value={criticality} onChange={e => setCriticality(e.target.value as ObligationCriticality)} className={`${fieldCls} cursor-pointer`} style={inputStyle}>
+                  {(Object.keys(CRIT_CFG) as ObligationCriticality[]).map(c => <option key={c} value={c}>{CRIT_CFG[c].label}</option>)}
+                </select>
+              </div>
             </div>
             <div>
               <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Description</label>
               <textarea value={description} onChange={e => setDescription(e.target.value)} rows={2} placeholder="What this process covers…"
                 className={`${fieldCls} resize-none`} style={inputStyle} />
             </div>
-            <div>
-              <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Controls in this Process</label>
-              <p className="text-[10px] mb-1.5" style={{ color: 'var(--muted-fg)' }}>Incidents on this process can only select from these controls.</p>
-              <div className="rounded-lg border max-h-40 overflow-y-auto" style={{ borderColor: 'var(--border)' }}>
-                {controls.length === 0 ? (
-                  <p className="text-xs px-3 py-2" style={{ color: 'var(--muted-fg)' }}>No controls in the library yet.</p>
-                ) : controls.map(c => (
-                  <label key={c.id} className="flex items-center gap-2 px-3 py-1.5 text-xs cursor-pointer hover:bg-white/5" style={{ color: 'var(--foreground)' }}>
-                    <input type="checkbox" checked={linkedControlIds.includes(c.id)} onChange={() => toggleCtrl(c.id)} />
-                    <span className="font-mono text-[10px]" style={{ color: 'var(--brand-500)' }}>{c.control_id}</span>
-                    <span className="truncate">{c.title}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
+            {multiBox('Controls in this Process', 'Incidents on this process can only select from these controls.',
+              controls.map(c => ({ id: c.id, code: c.control_id, title: c.title })), linkedControlIds, setLinkedCtrl)}
+            {multiBox('Related Risks', '', risks.map(r => ({ id: r.id, code: r.risk_code ?? '—', title: r.title })), linkedRiskIds, setLinkedRisk)}
+            {multiBox('Related Obligations', '', obligations.map(o => ({ id: o.id, code: o.obligation_code, title: o.title })), linkedObligationIds, setLinkedObl)}
+            {multiBox('Related Policies', '', policies.map(p => ({ id: p.id, code: p.policy_id, title: p.title })), linkedPolicyIds, setLinkedPol)}
             <div className="flex items-center justify-between pt-2">
               <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg text-sm hover:bg-white/5" style={{ color: 'var(--muted-fg)' }}>Cancel</button>
               <button type="submit" disabled={!name.trim() || loading}
@@ -128,7 +201,12 @@ export function ProcessesClient() {
   const [processes, setProcesses] = useState<Process[]>([])
   const [controls, setControls] = useState<Control[]>([])
   const [departments, setDepartments] = useState<OrgUnit[]>([])
+  const [profiles, setProfiles] = useState<UserProfile[]>([])
+  const [policies, setPolicies] = useState<Policy[]>([])
+  const [risks, setRisks] = useState<Risk[]>([])
+  const [obligations, setObligations] = useState<ComplianceObligation[]>([])
   const [ctrlCounts, setCtrlCounts] = useState<Record<string, number>>({})
+  const [linkCounts, setLinkCounts] = useState<Record<string, { policies: number; risks: number; obligations: number }>>({})
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [editItem, setEditItem] = useState<Process | null>(null)
@@ -142,13 +220,19 @@ export function ProcessesClient() {
   }, [])
 
   async function reload() {
-    const [data, counts, controlList, units] = await Promise.all([
-      db.getProcesses(), db.getProcessControlCounts(), db.getControls(), db.getOrgUnits(),
+    const [data, counts, lc, controlList, units, people, policyList, riskList, oblList] = await Promise.all([
+      db.getProcesses(), db.getProcessControlCounts(), db.getProcessLinkCounts(), db.getControls(),
+      db.getOrgUnits(), db.getProfiles(), dbExt.getPolicies(), db.getRisks(), db.getObligations(),
     ])
     setProcesses(data)
     setCtrlCounts(counts)
+    setLinkCounts(lc)
     setControls(controlList)
     setDepartments(units.filter(u => u.type === 'department' || u.type === 'division'))
+    setProfiles(people)
+    setPolicies(policyList)
+    setRisks(riskList)
+    setObligations(oblList)
     setLoading(false)
   }
   useEffect(() => { reload() }, [])
@@ -157,9 +241,14 @@ export function ProcessesClient() {
     !search || p.name.toLowerCase().includes(search.toLowerCase()) || (p.code ?? '').toLowerCase().includes(search.toLowerCase())
   ), [processes, search])
 
-  async function handleSave(item: Process, controlIds: string[]) {
+  async function handleSave(item: Process, links: SaveLinks) {
     const saved = await db.saveProcess(item)
-    await db.setProcessControls(saved.id, controlIds)
+    await Promise.all([
+      db.setProcessControls(saved.id, links.controlIds),
+      db.setProcessPolicies(saved.id, links.policyIds),
+      db.setProcessRisks(saved.id, links.riskIds),
+      db.setProcessObligations(saved.id, links.obligationIds),
+    ])
     setShowForm(false); setEditItem(null)
     reload()
     toast.success(editItem ? 'Process updated' : 'Process created')
@@ -192,31 +281,37 @@ export function ProcessesClient() {
           <table className="w-full">
             <thead>
               <tr style={{ borderBottom: '1px solid var(--border)', background: 'var(--muted)' }}>
-                {['Code', 'Name', 'Owner Dept', 'Description', 'Controls', ''].map(h => (
+                {['Code', 'Name', 'Owner', 'Status', 'Criticality', 'Controls', 'Risks', 'Obligations', 'Policies', ''].map(h => (
                   <th key={h} className="text-left px-3 py-3 text-[11px] font-semibold uppercase tracking-wide whitespace-nowrap" style={{ color: 'var(--muted-fg)' }}>{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={6} className="py-16 text-center text-sm" style={{ color: 'var(--muted-fg)' }}>Loading…</td></tr>
+                <tr><td colSpan={10} className="py-16 text-center text-sm" style={{ color: 'var(--muted-fg)' }}>Loading…</td></tr>
               ) : filtered.length === 0 ? (
-                <tr><td colSpan={6} className="py-16 text-center" style={{ color: 'var(--muted-fg)' }}>
+                <tr><td colSpan={10} className="py-16 text-center" style={{ color: 'var(--muted-fg)' }}>
                   <div className="flex flex-col items-center gap-2"><Workflow className="w-8 h-8 opacity-30" /><p className="text-sm">No business processes yet</p><p className="text-xs opacity-60">Add a process and attach its controls</p></div>
                 </td></tr>
               ) : (
-                filtered.map((p, i) => (
+                filtered.map((p, i) => {
+                  const lc = linkCounts[p.id] ?? { policies: 0, risks: 0, obligations: 0 }
+                  const st = STATUS_CFG[p.status ?? 'active']
+                  const cr = CRIT_CFG[p.criticality ?? 'medium']
+                  return (
                   <motion.tr key={p.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.03 }}
                     className="group hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors" style={{ borderBottom: '1px solid var(--border)' }}>
                     <td className="px-3 py-3.5"><span className="text-[11px] font-mono font-bold whitespace-nowrap" style={{ color: 'var(--brand-500)' }}>{p.code}</span></td>
-                    <td className="px-3 py-3.5"><span className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>{p.name}</span></td>
-                    <td className="px-3 py-3.5"><span className="text-xs whitespace-nowrap" style={{ color: p.owner_dept ? 'var(--foreground)' : 'var(--muted-fg)' }}>{p.owner_dept || '—'}</span></td>
-                    <td className="px-3 py-3.5 max-w-xs"><span className="text-xs truncate block" style={{ color: p.description ? 'var(--foreground)' : 'var(--muted-fg)' }}>{p.description || '—'}</span></td>
-                    <td className="px-3 py-3.5">
-                      <span className="inline-flex items-center gap-1 text-[11px] font-medium whitespace-nowrap" style={{ color: ctrlCounts[p.id] ? 'var(--foreground)' : 'var(--muted-fg)' }}>
-                        <Link2 className="w-3 h-3" /> {ctrlCounts[p.id] ?? 0}
-                      </span>
+                    <td className="px-3 py-3.5"><span className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>{p.name}</span>
+                      {p.owner_dept && <p className="text-[10px]" style={{ color: 'var(--muted-fg)' }}>{p.owner_dept}</p>}
                     </td>
+                    <td className="px-3 py-3.5"><span className="text-xs whitespace-nowrap" style={{ color: p.owner_name ? 'var(--foreground)' : 'var(--muted-fg)' }}>{p.owner_name || '—'}</span></td>
+                    <td className="px-3 py-3.5"><span className={cn('inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold', st.cls)}>{st.label}</span></td>
+                    <td className="px-3 py-3.5"><span className={cn('inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold', cr.cls)}>{cr.label}</span></td>
+                    <td className="px-3 py-3.5"><span className="inline-flex items-center gap-1 text-[11px] font-medium" style={{ color: ctrlCounts[p.id] ? 'var(--foreground)' : 'var(--muted-fg)' }}><Link2 className="w-3 h-3" /> {ctrlCounts[p.id] ?? 0}</span></td>
+                    <td className="px-3 py-3.5"><span className="text-[11px]" style={{ color: lc.risks ? 'var(--foreground)' : 'var(--muted-fg)' }}>{lc.risks}</span></td>
+                    <td className="px-3 py-3.5"><span className="text-[11px]" style={{ color: lc.obligations ? 'var(--foreground)' : 'var(--muted-fg)' }}>{lc.obligations}</span></td>
+                    <td className="px-3 py-3.5"><span className="text-[11px]" style={{ color: lc.policies ? 'var(--foreground)' : 'var(--muted-fg)' }}>{lc.policies}</span></td>
                     <td className="px-3 py-3.5" onClick={e => e.stopPropagation()}>
                       <div className="relative inline-block">
                         <button onClick={e => { e.stopPropagation(); setMenuOpen(menuOpen === p.id ? null : p.id) }} aria-label="Process actions"
@@ -237,7 +332,8 @@ export function ProcessesClient() {
                       </div>
                     </td>
                   </motion.tr>
-                ))
+                  )
+                })
               )}
             </tbody>
           </table>
@@ -246,6 +342,7 @@ export function ProcessesClient() {
 
       {showForm && (
         <ProcessFormDialog key={editItem?.id ?? 'new'} process={editItem} controls={controls} departments={departments}
+          profiles={profiles} policies={policies} risks={risks} obligations={obligations}
           onClose={() => { setShowForm(false); setEditItem(null) }} onSave={handleSave} />
       )}
     </div>

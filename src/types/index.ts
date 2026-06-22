@@ -1116,12 +1116,18 @@ export interface WhistleblowReport {
 }
 
 // ─── Business Process (Control Map) ──────────────────────────────────────────
+export type ProcessStatus = 'active' | 'draft' | 'archived'
+
 export interface Process {
   id: string
   org_id: string
   code: string // PRC-YYYY-NNN
   name: string
   owner_dept?: string
+  owner_id?: string          // process owner person (auto from owner_dept head)
+  owner_name?: string
+  status?: ProcessStatus
+  criticality?: ObligationCriticality // tier: minimal..critical
   description?: string
   created_at: string
   updated_at: string
@@ -1134,6 +1140,17 @@ export interface ProcessControlLink {
   process_id: string
   control_id: string
   created_at: string
+}
+
+// Many-to-many links: process ↔ policy / risk / obligation
+export interface ProcessPolicyLink {
+  id: string; org_id: string; process_id: string; policy_id: string; created_at: string
+}
+export interface ProcessRiskLink {
+  id: string; org_id: string; process_id: string; risk_id: string; created_at: string
+}
+export interface ProcessObligationLink {
+  id: string; org_id: string; process_id: string; obligation_id: string; created_at: string
 }
 
 // ISO 37301 traceability — change history of an obligation

@@ -1370,7 +1370,7 @@ export const db = {
       const { createClient } = await import('./supabase/client')
       const supabase = createClient()
       const payload: any = { ...sanitized }
-      const dbColumns = ['id', 'org_id', 'code', 'name', 'owner_dept', 'description', 'created_at', 'updated_at']
+      const dbColumns = ['id', 'org_id', 'code', 'name', 'owner_dept', 'owner_id', 'owner_name', 'status', 'criticality', 'description', 'created_at', 'updated_at']
       for (const key of Object.keys(payload)) {
         if (!dbColumns.includes(key)) delete payload[key]
       }
@@ -1393,7 +1393,9 @@ export const db = {
       await supabase.from('processes').delete().eq('id', id)
     }
     setLocalItem('processes', getLocalItem<Process[]>('processes', []).filter(p => p.id !== id))
-    setLocalItem('process_control_links', getLocalItem<any[]>('process_control_links', []).filter(l => l.process_id !== id))
+    for (const t of ['process_control_links', 'process_policy_links', 'process_risk_links', 'process_obligation_links']) {
+      setLocalItem(t, getLocalItem<any[]>(t, []).filter(l => l.process_id !== id))
+    }
   },
 
   async getProcessControlIds(processId: string): Promise<string[]> {
@@ -1435,6 +1437,62 @@ export const db = {
       return counts
     }
     getLocalItem<any[]>('process_control_links', []).forEach(l => { counts[l.process_id] = (counts[l.process_id] ?? 0) + 1 })
+    return counts
+  },
+
+  // ── Process ↔ policy / risk / obligation links (phase 31) ────────────────────
+  async _getProcessLinkIds(table: string, col: string, processId: string): Promise<string[]> {
+    if (isSupabaseConfigured()) {
+      const { createClient } = await import('./supabase/client')
+      const { data, error } = await createClient().from(table).select(col).eq('process_id', processId)
+      if (!error && data) return (data as any[]).map(r => r[col])
+    }
+    return getLocalItem<any[]>(table, []).filter(l => l.process_id === processId).map(l => l[col])
+  },
+  async _setProcessLinks(table: string, col: string, processId: string, ids: string[]): Promise<void> {
+    const orgId = await getCurrentOrgId()
+    const now = new Date().toISOString()
+    if (isSupabaseConfigured()) {
+      const { createClient } = await import('./supabase/client')
+      const supabase = createClient()
+      await supabase.from(table).delete().eq('process_id', processId)
+      if (ids.length > 0) {
+        const rows = ids.map(v => ({ id: ensureUUID(), org_id: orgId, process_id: processId, [col]: v, created_at: now }))
+        const { error } = await supabase.from(table).insert(rows)
+        if (error) console.error(`Supabase set ${table} error:`, error)
+      }
+      return
+    }
+    const all = getLocalItem<any[]>(table, []).filter(l => l.process_id !== processId)
+    ids.forEach(v => all.push({ id: ensureUUID(), org_id: orgId, process_id: processId, [col]: v, created_at: now }))
+    setLocalItem(table, all)
+  },
+  async getProcessPolicyIds(id: string): Promise<string[]> { return this._getProcessLinkIds('process_policy_links', 'policy_id', id) },
+  async setProcessPolicies(id: string, ids: string[]): Promise<void> { return this._setProcessLinks('process_policy_links', 'policy_id', id, ids) },
+  async getProcessRiskIds(id: string): Promise<string[]> { return this._getProcessLinkIds('process_risk_links', 'risk_id', id) },
+  async setProcessRisks(id: string, ids: string[]): Promise<void> { return this._setProcessLinks('process_risk_links', 'risk_id', id, ids) },
+  async getProcessObligationIds(id: string): Promise<string[]> { return this._getProcessLinkIds('process_obligation_links', 'obligation_id', id) },
+  async setProcessObligations(id: string, ids: string[]): Promise<void> { return this._setProcessLinks('process_obligation_links', 'obligation_id', id, ids) },
+
+  async getProcessLinkCounts(): Promise<Record<string, { policies: number; risks: number; obligations: number }>> {
+    const counts: Record<string, { policies: number; risks: number; obligations: number }> = {}
+    const ensure = (id: string) => { if (!counts[id]) counts[id] = { policies: 0, risks: 0, obligations: 0 }; return counts[id] }
+    if (isSupabaseConfigured()) {
+      const { createClient } = await import('./supabase/client')
+      const supabase = createClient()
+      const [{ data: pl }, { data: rl }, { data: ol }] = await Promise.all([
+        supabase.from('process_policy_links').select('process_id'),
+        supabase.from('process_risk_links').select('process_id'),
+        supabase.from('process_obligation_links').select('process_id'),
+      ])
+      ;((pl as any[]) ?? []).forEach(r => ensure(r.process_id).policies++)
+      ;((rl as any[]) ?? []).forEach(r => ensure(r.process_id).risks++)
+      ;((ol as any[]) ?? []).forEach(r => ensure(r.process_id).obligations++)
+      return counts
+    }
+    getLocalItem<any[]>('process_policy_links', []).forEach(l => ensure(l.process_id).policies++)
+    getLocalItem<any[]>('process_risk_links', []).forEach(l => ensure(l.process_id).risks++)
+    getLocalItem<any[]>('process_obligation_links', []).forEach(l => ensure(l.process_id).obligations++)
     return counts
   },
 
