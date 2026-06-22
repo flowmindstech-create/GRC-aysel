@@ -40,6 +40,7 @@ export function IncidentDetailSheet({ incident, onClose, onUpdate, onEdit }: Pro
   const [updatingStatus, setUpdatingStatus] = useState(false)
   const [linkedRisk, setLinkedRisk] = useState('')
   const [linkedControl, setLinkedControl] = useState('')
+  const [brokenObligations, setBrokenObligations] = useState<string[]>([])
   const [profile, setProfile] = useState<UserProfile | null>(null)
 
   useEffect(() => { getCurrentProfile().then(setProfile) }, [])
@@ -57,9 +58,22 @@ export function IncidentDetailSheet({ incident, onClose, onUpdate, onEdit }: Pro
         const c = (await db.getControls()).find(x => x.id === incident.control_id)
         if (active && c) setLinkedControl(`${c.control_id} · ${c.title}`)
       }
+      // Broken-compliance chain: obligations reached via the linked control + the direct link
+      if (incident.control_id || incident.compliance_obligation_id) {
+        const [obls, maps] = await Promise.all([db.getObligations(), db.getObligationLinkMaps()])
+        const ids = new Set<string>()
+        if (incident.compliance_obligation_id) ids.add(incident.compliance_obligation_id)
+        if (incident.control_id) {
+          for (const [oid, m] of Object.entries(maps)) {
+            if (m.controlIds.includes(incident.control_id)) ids.add(oid)
+          }
+        }
+        const codes = obls.filter(o => ids.has(o.id)).map(o => `${o.obligation_code} · ${o.title}`)
+        if (active) setBrokenObligations(codes)
+      }
     })()
     return () => { active = false }
-  }, [incident.risk_id, incident.control_id])
+  }, [incident.risk_id, incident.control_id, incident.compliance_obligation_id])
 
   useEffect(() => {
     async function loadJiraData() {
@@ -382,6 +396,20 @@ export function IncidentDetailSheet({ incident, onClose, onUpdate, onEdit }: Pro
                         <p className="text-xs" style={{ color: linkedControl ? 'var(--brand-500)' : 'var(--muted-fg)' }}>{linkedControl || '—'}</p>
                       </div>
                     </div>
+
+                    {/* Broken compliance chain */}
+                    {brokenObligations.length > 0 && (
+                      <div className="rounded-xl border border-red-500/25 bg-red-500/10 p-3">
+                        <p className="text-[11px] font-bold text-red-400 flex items-center gap-1.5 mb-1.5">
+                          <AlertTriangle className="w-3.5 h-3.5" /> Bu insident bu öhdəlikləri poza bilər
+                        </p>
+                        <ul className="space-y-1">
+                          {brokenObligations.map(o => (
+                            <li key={o} className="text-xs" style={{ color: 'var(--foreground)' }}>• {o}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
 
                     {/* Impacted Systems and Departments */}
                     <div className="grid grid-cols-2 gap-4">
