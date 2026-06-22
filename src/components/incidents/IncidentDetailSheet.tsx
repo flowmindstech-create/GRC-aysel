@@ -532,13 +532,7 @@ export function IncidentDetailSheet({ incident, onClose, onUpdate, onEdit }: Pro
                       </div>
                     </div>
 
-                    {/* Reputation Impact */}
-                    <div className="space-y-2">
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Reputasiya Təsiri</p>
-                      <div className="p-3.5 rounded-xl border text-xs leading-relaxed whitespace-pre-line" style={{ borderColor: 'var(--border)' }}>
-                        {incident.reputation_impact || 'Reputasiya təsiri qeyd olunmayıb.'}
-                      </div>
-                    </div>
+                    {/* Reputation impact removed — reputational risk lives in the Risk Register */}
 
                     {/* Jira Section */}
                     {jiraConfig && jiraConfig.connected && (

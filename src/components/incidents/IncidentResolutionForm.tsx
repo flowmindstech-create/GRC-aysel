@@ -236,13 +236,7 @@ export function IncidentResolutionForm({ data, onChange }: Props) {
           className={`${fieldCls} resize-none`} style={inputStyle} onFocus={focus} onBlur={blur} />
       </div>
 
-      {/* Reputation Impact */}
-      <div>
-        <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Reputasiya Təsiri</label>
-        <textarea value={data.reputation_impact ?? ''} onChange={e => onChange({ ...data, reputation_impact: e.target.value })} rows={2}
-          placeholder="Hadisənin reputasiyaya təsiri (varsa)..."
-          className={`${fieldCls} resize-none`} style={inputStyle} onFocus={focus} onBlur={blur} />
-      </div>
+      {/* Reputation impact removed — reputational risk is tracked in the Risk Register, not per-incident */}
 
       {/* Status */}
       <div>
