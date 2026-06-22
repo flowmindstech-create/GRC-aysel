@@ -7,7 +7,7 @@ import { dbExt } from '@/lib/db-extensions'
 import { resolveOwnerFromUnit } from '@/lib/org'
 import type { Process, ProcessStatus, Control, OrgUnit, UserProfile, Policy, Risk, ComplianceObligation, ObligationCriticality } from '@/types'
 import { cn } from '@/lib/utils'
-import { Plus, Search, MoreHorizontal, Edit, Trash2, Workflow, X, Save, Link2 } from 'lucide-react'
+import { Plus, Search, MoreHorizontal, Edit, Trash2, Workflow, X, Save } from 'lucide-react'
 import { toast } from 'sonner'
 
 const STATUS_CFG: Record<ProcessStatus, { label: string; cls: string }> = {
@@ -205,8 +205,7 @@ export function ProcessesClient() {
   const [policies, setPolicies] = useState<Policy[]>([])
   const [risks, setRisks] = useState<Risk[]>([])
   const [obligations, setObligations] = useState<ComplianceObligation[]>([])
-  const [ctrlCounts, setCtrlCounts] = useState<Record<string, number>>({})
-  const [linkCounts, setLinkCounts] = useState<Record<string, { policies: number; risks: number; obligations: number }>>({})
+  const [linkMaps, setLinkMaps] = useState<Record<string, { controlIds: string[]; riskIds: string[]; obligationIds: string[]; policyIds: string[] }>>({})
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [editItem, setEditItem] = useState<Process | null>(null)
@@ -220,13 +219,12 @@ export function ProcessesClient() {
   }, [])
 
   async function reload() {
-    const [data, counts, lc, controlList, units, people, policyList, riskList, oblList] = await Promise.all([
-      db.getProcesses(), db.getProcessControlCounts(), db.getProcessLinkCounts(), db.getControls(),
+    const [data, maps, controlList, units, people, policyList, riskList, oblList] = await Promise.all([
+      db.getProcesses(), db.getProcessLinkMaps(), db.getControls(),
       db.getOrgUnits(), db.getProfiles(), dbExt.getPolicies(), db.getRisks(), db.getObligations(),
     ])
     setProcesses(data)
-    setCtrlCounts(counts)
-    setLinkCounts(lc)
+    setLinkMaps(maps)
     setControls(controlList)
     setDepartments(units.filter(u => u.type === 'department' || u.type === 'division'))
     setProfiles(people)
@@ -240,6 +238,25 @@ export function ProcessesClient() {
   const filtered = useMemo(() => processes.filter(p =>
     !search || p.name.toLowerCase().includes(search.toLowerCase()) || (p.code ?? '').toLowerCase().includes(search.toLowerCase())
   ), [processes, search])
+
+  // Code lookups for chips
+  const ctrlById = useMemo(() => Object.fromEntries(controls.map(c => [c.id, c])), [controls])
+  const riskById = useMemo(() => Object.fromEntries(risks.map(r => [r.id, r])), [risks])
+  const oblById = useMemo(() => Object.fromEntries(obligations.map(o => [o.id, o])), [obligations])
+  const polById = useMemo(() => Object.fromEntries(policies.map(p => [p.id, p])), [policies])
+
+  // Generic chip cell: up to 2 codes + "+N"
+  function chipCell(codes: string[], cls: string) {
+    if (codes.length === 0) return <span className="text-xs" style={{ color: 'var(--muted-fg)' }}>—</span>
+    return (
+      <span className="inline-flex flex-wrap gap-1">
+        {codes.slice(0, 2).map(c => (
+          <span key={c} className={cn('px-1.5 py-0.5 rounded text-[9px] font-mono font-bold whitespace-nowrap', cls)}>{c}</span>
+        ))}
+        {codes.length > 2 && <span className="text-[10px]" style={{ color: 'var(--muted-fg)' }}>+{codes.length - 2}</span>}
+      </span>
+    )
+  }
 
   async function handleSave(item: Process, links: SaveLinks) {
     const saved = await db.saveProcess(item)
@@ -295,7 +312,11 @@ export function ProcessesClient() {
                 </td></tr>
               ) : (
                 filtered.map((p, i) => {
-                  const lc = linkCounts[p.id] ?? { policies: 0, risks: 0, obligations: 0 }
+                  const lm = linkMaps[p.id] ?? { controlIds: [], riskIds: [], obligationIds: [], policyIds: [] }
+                  const ctrlCodes = lm.controlIds.map(id => ctrlById[id]?.control_id).filter(Boolean) as string[]
+                  const riskCodes = lm.riskIds.map(id => riskById[id]?.risk_code).filter(Boolean) as string[]
+                  const oblCodes = lm.obligationIds.map(id => oblById[id]?.obligation_code).filter(Boolean) as string[]
+                  const polCodes = lm.policyIds.map(id => polById[id]?.policy_id).filter(Boolean) as string[]
                   const st = STATUS_CFG[p.status ?? 'active']
                   const cr = CRIT_CFG[p.criticality ?? 'medium']
                   return (
@@ -308,10 +329,10 @@ export function ProcessesClient() {
                     <td className="px-3 py-3.5"><span className="text-xs whitespace-nowrap" style={{ color: p.owner_name ? 'var(--foreground)' : 'var(--muted-fg)' }}>{p.owner_name || '—'}</span></td>
                     <td className="px-3 py-3.5"><span className={cn('inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold', st.cls)}>{st.label}</span></td>
                     <td className="px-3 py-3.5"><span className={cn('inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold', cr.cls)}>{cr.label}</span></td>
-                    <td className="px-3 py-3.5"><span className="inline-flex items-center gap-1 text-[11px] font-medium" style={{ color: ctrlCounts[p.id] ? 'var(--foreground)' : 'var(--muted-fg)' }}><Link2 className="w-3 h-3" /> {ctrlCounts[p.id] ?? 0}</span></td>
-                    <td className="px-3 py-3.5"><span className="text-[11px]" style={{ color: lc.risks ? 'var(--foreground)' : 'var(--muted-fg)' }}>{lc.risks}</span></td>
-                    <td className="px-3 py-3.5"><span className="text-[11px]" style={{ color: lc.obligations ? 'var(--foreground)' : 'var(--muted-fg)' }}>{lc.obligations}</span></td>
-                    <td className="px-3 py-3.5"><span className="text-[11px]" style={{ color: lc.policies ? 'var(--foreground)' : 'var(--muted-fg)' }}>{lc.policies}</span></td>
+                    <td className="px-3 py-3.5 max-w-[150px]">{chipCell(ctrlCodes, 'bg-sky-500/12 text-sky-400')}</td>
+                    <td className="px-3 py-3.5 max-w-[130px]">{chipCell(riskCodes, 'bg-rose-500/12 text-rose-400')}</td>
+                    <td className="px-3 py-3.5 max-w-[150px]">{chipCell(oblCodes, 'bg-violet-500/12 text-violet-400')}</td>
+                    <td className="px-3 py-3.5 max-w-[150px]">{chipCell(polCodes, 'bg-indigo-500/12 text-indigo-400')}</td>
                     <td className="px-3 py-3.5" onClick={e => e.stopPropagation()}>
                       <div className="relative inline-block">
                         <button onClick={e => { e.stopPropagation(); setMenuOpen(menuOpen === p.id ? null : p.id) }} aria-label="Process actions"
