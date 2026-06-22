@@ -1108,6 +1108,31 @@ export interface StressTest {
   updated_at: string
 }
 
+// ─── Compliance Assessment & Monitoring (phase 34) ───────────────────────────
+export type AssessmentResult = 'compliant' | 'partially_compliant' | 'non_compliant' | 'not_tested'
+export type AssessmentFrequency = 'monthly' | 'quarterly' | 'semiannual' | 'annual' | 'adhoc'
+export interface ComplianceAssessment {
+  id: string
+  org_id: string
+  code: string // CMP-YYYY-NNN
+  title?: string
+  control_id?: string
+  obligation_id?: string
+  frequency: AssessmentFrequency
+  owner?: string            // assessor
+  last_review_date?: string
+  next_review_date?: string
+  result: AssessmentResult
+  observed_state?: string
+  evidence_url?: string
+  evidence_file_name?: string
+  findings?: string
+  remediation_plan?: string
+  created_incident_id?: string // auto-created incident on non-compliance (dedup)
+  created_at: string
+  updated_at: string
+}
+
 export type WhistleblowStatus = 'new' | 'under_review' | 'substantiated' | 'dismissed' | 'closed'
 export interface WhistleblowReport {
   id: string

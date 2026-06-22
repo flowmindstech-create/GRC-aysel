@@ -30,7 +30,7 @@ const navGroups = [
       { href: '/audit-findings-workflow',   label: 'Findings Workflow',    icon: FileSearch },
       { href: '/monitoring',                label: 'Monitoring',           icon: Activity },
       { href: '/incidents',                 label: 'Incidents',            icon: AlertTriangle },
-      { href: '/compliance',           label: 'Compliance',          icon: ClipboardCheck },
+      { href: '/compliance-monitoring', label: 'Compliance Monitoring', icon: ClipboardCheck },
       { href: '/audits',               label: 'Audits',              icon: Search },
     ],
   },

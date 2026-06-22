@@ -9,7 +9,7 @@ import type {
   Risk, Incident, Control, Audit, AuditFinding, Vendor, Activity, DashboardStats,
   JiraConfig, JiraActivity, JiraComment, GRCIntakeItem, OrgUnit, UserProfile,
   ComplianceObligation, ObligationAuditLog, RegulatoryChange, InterestedParty, Process,
-  AppetiteEntry, FinancialRisk, StressTest, WhistleblowReport
+  AppetiteEntry, FinancialRisk, StressTest, WhistleblowReport, ComplianceAssessment
 } from '@/types'
 import { RISK_CATEGORIES, normalizeCategory } from './risk-categories'
 import { normalizeStatus, ACTIVE_STATUSES } from './risk-status'
@@ -1622,6 +1622,63 @@ export const db = {
   async deleteWhistleblowReport(id: string): Promise<void> {
     if (isSupabaseConfigured()) { const { createClient } = await import('./supabase/client'); await createClient().from('whistleblow_reports').delete().eq('id', id) }
     setLocalItem('whistleblow_reports', getLocalItem<WhistleblowReport[]>('whistleblow_reports', []).filter(x => x.id !== id))
+  },
+
+  // ─── COMPLIANCE MONITORING & ASSESSMENT (phase 34) ───────────────────────────
+  async getComplianceAssessments(): Promise<ComplianceAssessment[]> {
+    if (isSupabaseConfigured()) {
+      const { createClient } = await import('./supabase/client')
+      const { data, error } = await createClient().from('compliance_assessments').select('*').order('created_at', { ascending: false })
+      if (!error && data) return data as ComplianceAssessment[]
+    }
+    return getLocalItem<ComplianceAssessment[]>('compliance_assessments', [])
+  },
+  async saveComplianceAssessment(item: ComplianceAssessment): Promise<ComplianceAssessment> {
+    const orgId = await getCurrentOrgId()
+    const now = new Date().toISOString()
+    const s: ComplianceAssessment = { ...item, id: ensureUUID(item.id), org_id: orgId, updated_at: now }
+    if (!s.code) { const all = await this.getComplianceAssessments(); s.code = `CMP-${new Date().getFullYear()}-${String(all.length + 1).padStart(3, '0')}` }
+
+    // Compliant → roll next review date forward by frequency
+    if (s.result === 'compliant') {
+      const months: Record<string, number> = { monthly: 1, quarterly: 3, semiannual: 6, annual: 12, adhoc: 0 }
+      const base = s.last_review_date ? new Date(s.last_review_date) : new Date()
+      const add = months[s.frequency] ?? 3
+      if (add > 0) { const d = new Date(base); d.setMonth(d.getMonth() + add); s.next_review_date = d.toISOString().slice(0, 10) }
+    }
+
+    // Non-compliant → auto-create an incident once (dedup via created_incident_id)
+    if (s.result === 'non_compliant' && !s.created_incident_id) {
+      try {
+        const inc = await this.saveIncident({
+          id: crypto.randomUUID(), org_id: orgId,
+          title: `Uyğunsuzluq: ${s.title || s.code}`,
+          description: s.findings || s.observed_state || 'Compliance monitoring uyğunsuzluğu',
+          severity: 'high', status: 'open', workflow_stage: 'intake',
+          incident_category: 'Compliance breach',
+          control_id: s.control_id, compliance_obligation_id: s.obligation_id,
+          created_at: now, updated_at: now,
+        } as Incident)
+        s.created_incident_id = inc.id
+      } catch (e) { console.error('auto-incident from assessment failed:', e) }
+    }
+
+    if (isSupabaseConfigured()) {
+      const { createClient } = await import('./supabase/client')
+      const cols = ['id','org_id','code','title','control_id','obligation_id','frequency','owner','last_review_date','next_review_date','result','observed_state','evidence_url','evidence_file_name','findings','remediation_plan','created_incident_id','created_at','updated_at']
+      const payload: any = { ...s, control_id: s.control_id || null, obligation_id: s.obligation_id || null, created_incident_id: s.created_incident_id || null }
+      for (const k of Object.keys(payload)) if (!cols.includes(k)) delete payload[k]
+      const { data, error } = await createClient().from('compliance_assessments').upsert(payload).select().single()
+      if (error) console.error('saveComplianceAssessment error:', error)
+      if (!error && data) return data as ComplianceAssessment
+    }
+    const cur = getLocalItem<ComplianceAssessment[]>('compliance_assessments', [])
+    const i = cur.findIndex(x => x.id === s.id); if (i >= 0) cur[i] = s; else cur.unshift(s)
+    setLocalItem('compliance_assessments', cur); return s
+  },
+  async deleteComplianceAssessment(id: string): Promise<void> {
+    if (isSupabaseConfigured()) { const { createClient } = await import('./supabase/client'); await createClient().from('compliance_assessments').delete().eq('id', id) }
+    setLocalItem('compliance_assessments', getLocalItem<ComplianceAssessment[]>('compliance_assessments', []).filter(x => x.id !== id))
   },
 
   // ─── GRC INTAKE ITEMS ──────────────────────────────────────────────────────
