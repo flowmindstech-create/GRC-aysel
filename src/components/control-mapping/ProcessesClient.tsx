@@ -335,16 +335,16 @@ export function ProcessesClient() {
           <table className="w-full">
             <thead>
               <tr style={{ borderBottom: '1px solid var(--border)', background: 'var(--muted)' }}>
-                {['Code', 'Name', 'Owner', 'Status', 'Criticality', 'Controls', 'Risks', 'Obligations', 'Policies', ''].map(h => (
+                {['Code', 'Name', 'Owner Dept', 'Description', 'Associated Policy', 'Controls', 'Risks', 'Obligations', 'Criticality', 'Status', ''].map(h => (
                   <th key={h} className="text-left px-3 py-3 text-[11px] font-semibold uppercase tracking-wide whitespace-nowrap" style={{ color: 'var(--muted-fg)' }}>{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={10} className="py-16 text-center text-sm" style={{ color: 'var(--muted-fg)' }}>Loading…</td></tr>
+                <tr><td colSpan={11} className="py-16 text-center text-sm" style={{ color: 'var(--muted-fg)' }}>Loading…</td></tr>
               ) : filtered.length === 0 ? (
-                <tr><td colSpan={10} className="py-16 text-center" style={{ color: 'var(--muted-fg)' }}>
+                <tr><td colSpan={11} className="py-16 text-center" style={{ color: 'var(--muted-fg)' }}>
                   <div className="flex flex-col items-center gap-2"><Workflow className="w-8 h-8 opacity-30" /><p className="text-sm">No business processes yet</p><p className="text-xs opacity-60">Add a process and attach its controls</p></div>
                 </td></tr>
               ) : (
@@ -358,16 +358,18 @@ export function ProcessesClient() {
                   <motion.tr key={p.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.03 }}
                     className="group hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors" style={{ borderBottom: '1px solid var(--border)' }}>
                     <td className="px-3 py-3.5"><span className="text-[11px] font-mono font-bold whitespace-nowrap" style={{ color: 'var(--brand-500)' }}>{p.code}</span></td>
-                    <td className="px-3 py-3.5"><span className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>{p.name}</span>
-                      {p.owner_dept && <p className="text-[10px]" style={{ color: 'var(--muted-fg)' }}>{p.owner_dept}</p>}
+                    <td className="px-3 py-3.5 max-w-[180px]"><span className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>{p.name}</span></td>
+                    <td className="px-3 py-3.5">
+                      <span className="text-xs whitespace-nowrap" style={{ color: p.owner_dept ? 'var(--foreground)' : 'var(--muted-fg)' }}>{p.owner_dept || '—'}</span>
+                      {p.owner_name && <p className="text-[10px]" style={{ color: 'var(--muted-fg)' }}>{p.owner_name}</p>}
                     </td>
-                    <td className="px-3 py-3.5"><span className="text-xs whitespace-nowrap" style={{ color: p.owner_name ? 'var(--foreground)' : 'var(--muted-fg)' }}>{p.owner_name || '—'}</span></td>
-                    <td className="px-3 py-3.5"><span className={cn('inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold', st.cls)}>{st.label}</span></td>
-                    <td className="px-3 py-3.5"><span className={cn('inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold', cr.cls)}>{cr.label}</span></td>
+                    <td className="px-3 py-3.5 max-w-[220px]"><span className="text-xs line-clamp-2" style={{ color: p.description ? 'var(--muted-fg)' : 'var(--muted-fg)' }} title={p.description || undefined}>{p.description || '—'}</span></td>
+                    <td className="px-3 py-3.5 max-w-[160px]">{policyChipCell(lm.policyIds)}</td>
                     <td className="px-3 py-3.5 max-w-[160px]">{controlChipCell(lm.controlIds)}</td>
                     <td className="px-3 py-3.5 max-w-[130px]">{chipCell(riskCodes, 'bg-rose-500/12 text-rose-400')}</td>
                     <td className="px-3 py-3.5 max-w-[150px]">{chipCell(oblCodes, 'bg-violet-500/12 text-violet-400')}</td>
-                    <td className="px-3 py-3.5 max-w-[160px]">{policyChipCell(lm.policyIds)}</td>
+                    <td className="px-3 py-3.5"><span className={cn('inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold', cr.cls)}>{cr.label}</span></td>
+                    <td className="px-3 py-3.5"><span className={cn('inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold', st.cls)}>{st.label}</span></td>
                     <td className="px-3 py-3.5" onClick={e => e.stopPropagation()}>
                       <div className="relative inline-block">
                         <button onClick={e => { e.stopPropagation(); setMenuOpen(menuOpen === p.id ? null : p.id) }} aria-label="Process actions"
