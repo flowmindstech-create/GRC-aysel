@@ -258,6 +258,43 @@ export function ProcessesClient() {
     )
   }
 
+  // Control effectiveness → status dot colour
+  const ctrlDot = (s?: string) =>
+    s === 'pass' ? '#34d399' : s === 'fail' ? '#f87171' : s === 'partial' ? '#fbbf24' : 'var(--muted-fg)'
+
+  // Control chips with a status dot (Gemini-style)
+  function controlChipCell(ids: string[]) {
+    const items = ids.map(id => ctrlById[id]).filter(Boolean)
+    if (items.length === 0) return <span className="text-xs" style={{ color: 'var(--muted-fg)' }}>—</span>
+    return (
+      <span className="inline-flex flex-wrap gap-1">
+        {items.slice(0, 2).map(c => (
+          <span key={c.id} className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-mono font-bold whitespace-nowrap bg-sky-500/12 text-sky-400">
+            <span className="w-1.5 h-1.5 rounded-full" style={{ background: ctrlDot(c.status) }} />
+            {c.control_id}
+          </span>
+        ))}
+        {items.length > 2 && <span className="text-[10px]" style={{ color: 'var(--muted-fg)' }}>+{items.length - 2}</span>}
+      </span>
+    )
+  }
+
+  // Policy chips with version (Gemini-style: POL-HR-01 v1.4)
+  function policyChipCell(ids: string[]) {
+    const items = ids.map(id => polById[id]).filter(Boolean)
+    if (items.length === 0) return <span className="text-xs" style={{ color: 'var(--muted-fg)' }}>—</span>
+    return (
+      <span className="inline-flex flex-wrap gap-1">
+        {items.slice(0, 2).map(p => (
+          <span key={p.id} className="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold whitespace-nowrap bg-indigo-500/12 text-indigo-400">
+            {p.policy_id}{p.version ? ` v${p.version}` : ''}
+          </span>
+        ))}
+        {items.length > 2 && <span className="text-[10px]" style={{ color: 'var(--muted-fg)' }}>+{items.length - 2}</span>}
+      </span>
+    )
+  }
+
   async function handleSave(item: Process, links: SaveLinks) {
     const saved = await db.saveProcess(item)
     await Promise.all([
@@ -313,10 +350,8 @@ export function ProcessesClient() {
               ) : (
                 filtered.map((p, i) => {
                   const lm = linkMaps[p.id] ?? { controlIds: [], riskIds: [], obligationIds: [], policyIds: [] }
-                  const ctrlCodes = lm.controlIds.map(id => ctrlById[id]?.control_id).filter(Boolean) as string[]
                   const riskCodes = lm.riskIds.map(id => riskById[id]?.risk_code).filter(Boolean) as string[]
                   const oblCodes = lm.obligationIds.map(id => oblById[id]?.obligation_code).filter(Boolean) as string[]
-                  const polCodes = lm.policyIds.map(id => polById[id]?.policy_id).filter(Boolean) as string[]
                   const st = STATUS_CFG[p.status ?? 'active']
                   const cr = CRIT_CFG[p.criticality ?? 'medium']
                   return (
@@ -329,10 +364,10 @@ export function ProcessesClient() {
                     <td className="px-3 py-3.5"><span className="text-xs whitespace-nowrap" style={{ color: p.owner_name ? 'var(--foreground)' : 'var(--muted-fg)' }}>{p.owner_name || '—'}</span></td>
                     <td className="px-3 py-3.5"><span className={cn('inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold', st.cls)}>{st.label}</span></td>
                     <td className="px-3 py-3.5"><span className={cn('inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold', cr.cls)}>{cr.label}</span></td>
-                    <td className="px-3 py-3.5 max-w-[150px]">{chipCell(ctrlCodes, 'bg-sky-500/12 text-sky-400')}</td>
+                    <td className="px-3 py-3.5 max-w-[160px]">{controlChipCell(lm.controlIds)}</td>
                     <td className="px-3 py-3.5 max-w-[130px]">{chipCell(riskCodes, 'bg-rose-500/12 text-rose-400')}</td>
                     <td className="px-3 py-3.5 max-w-[150px]">{chipCell(oblCodes, 'bg-violet-500/12 text-violet-400')}</td>
-                    <td className="px-3 py-3.5 max-w-[150px]">{chipCell(polCodes, 'bg-indigo-500/12 text-indigo-400')}</td>
+                    <td className="px-3 py-3.5 max-w-[160px]">{policyChipCell(lm.policyIds)}</td>
                     <td className="px-3 py-3.5" onClick={e => e.stopPropagation()}>
                       <div className="relative inline-block">
                         <button onClick={e => { e.stopPropagation(); setMenuOpen(menuOpen === p.id ? null : p.id) }} aria-label="Process actions"
