@@ -50,7 +50,7 @@ export function IncidentTable() {
     const matchS = i.title.toLowerCase().includes(search.toLowerCase())
     const matchSev = severity === 'all' || i.severity === severity
     const matchSt = status === 'all' || i.status === status
-    const matchTier = isManager || i.reported_by === myId || i.assigned_to === myId
+    const matchTier = isManager || i.reported_by === myId || i.assigned_to === myId || i.resolution_assignee === myId
     return matchS && matchSev && matchSt && matchTier
   })
 
@@ -164,7 +164,7 @@ export function IncidentTable() {
                           {menuOpen === inc.id && (
                             <div className={cn('absolute right-0 w-36 rounded-xl shadow-xl z-20 border py-1', isNearBottom ? 'bottom-full mb-1' : 'top-full mt-1')} style={{ background: 'var(--card)', borderColor: 'var(--border)' }}>
                               <button onClick={() => { setDetailIncident(inc); setMenuOpen(null) }} className="w-full flex items-center gap-2 px-3 py-2 text-sm text-left hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer" style={{ color: 'var(--foreground)' }}><Eye className="w-3.5 h-3.5" /> View</button>
-                              {(isManager || inc.assigned_to === myId) && (
+                              {(isManager || inc.assigned_to === myId || inc.resolution_assignee === myId) && (
                                 <button onClick={() => { setEditIncident(inc); setShowForm(true); setMenuOpen(null) }} className="w-full flex items-center gap-2 px-3 py-2 text-sm text-left hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer" style={{ color: 'var(--foreground)' }}><Edit className="w-3.5 h-3.5" /> Edit</button>
                               )}
                               {isManager && (
@@ -244,7 +244,7 @@ export function IncidentTable() {
                             style={{ color: 'var(--foreground)' }}>
                             <Eye className="w-3.5 h-3.5" /> View Details
                           </button>
-                          {(isManager || inc.assigned_to === myId) && (
+                          {(isManager || inc.assigned_to === myId || inc.resolution_assignee === myId) && (
                             <button onClick={() => { setEditIncident(inc); setShowForm(true); setMenuOpen(null) }}
                               className="w-full flex items-center gap-2 px-3 py-2 text-sm text-left hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer"
                               style={{ color: 'var(--foreground)' }}>

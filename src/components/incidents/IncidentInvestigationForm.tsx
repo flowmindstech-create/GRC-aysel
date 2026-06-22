@@ -6,7 +6,8 @@ import { db } from '@/lib/db'
 import { calculateInherentLevel, calculateResidualLevel } from '@/lib/rcsa'
 import type { ControlRating } from '@/lib/rcsa'
 import { inherentLevelWord, residualLevelWord } from '@/lib/rcsa-methodology'
-import type { Incident, OrgUnit, Risk, Control, EffectivenessRating, ComplianceObligation } from '@/types'
+import { resolveOwnerFromUnit } from '@/lib/org'
+import type { Incident, OrgUnit, Risk, Control, EffectivenessRating, ComplianceObligation, UserProfile } from '@/types'
 import { toast } from 'sonner'
 import { MOCK_USERS } from '@/lib/seed-data'
 
@@ -39,6 +40,7 @@ export function IncidentInvestigationForm({ data, onChange }: Props) {
   const [risks, setRisks] = useState<Risk[]>([])
   const [controls, setControls] = useState<Control[]>([])
   const [obligations, setObligations] = useState<ComplianceObligation[]>([])
+  const [profiles, setProfiles] = useState<UserProfile[]>([])
   const [processControlIds, setProcessControlIds] = useState<string[] | null>(null)
   const [flagging, setFlagging] = useState(false)
 
@@ -49,7 +51,20 @@ export function IncidentInvestigationForm({ data, onChange }: Props) {
     db.getRisks().then(setRisks)
     db.getControls().then(setControls)
     db.getObligations().then(setObligations)
+    db.getProfiles().then(setProfiles)
   }, [])
+
+  // Assign resolution to a department's ERO (head) — dependent dropdown
+  function handleAssignDept(deptName: string) {
+    const unit = departments.find(u => u.name === deptName)
+    const resolved = unit ? resolveOwnerFromUnit(unit, profiles) : null
+    onChange({
+      ...data,
+      assigned_dept: deptName || undefined,
+      resolution_assignee: resolved?.owner_id || undefined,
+      resolution_assignee_name: resolved?.owner_name || undefined,
+    })
+  }
 
   // Flag the linked obligation as non-compliant (rule-based, explicit)
   async function flagNonCompliance() {
@@ -313,6 +328,29 @@ export function IncidentInvestigationForm({ data, onChange }: Props) {
           })}
         </div>
       </div>
+
+      {/* Assign resolution → ERO (Dept → head) */}
+      <p className="text-[11px] font-bold uppercase tracking-wide pt-1" style={{ color: 'var(--brand-500)' }}>
+        Resolution Təyinatı (ERO)
+      </p>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Assign Department</label>
+          <select value={data.assigned_dept ?? ''} onChange={e => handleAssignDept(e.target.value)}
+            className={`${fieldCls} cursor-pointer`} style={inputStyle}>
+            <option value="">— Seçin —</option>
+            {departments.map(d => <option key={d.id} value={d.name}>{d.name}</option>)}
+          </select>
+        </div>
+        <div>
+          <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>ERO (auto)</label>
+          <input value={data.resolution_assignee_name ?? ''} readOnly placeholder="Departament rəhbəri"
+            className={`${fieldCls} opacity-70`} style={inputStyle} />
+        </div>
+      </div>
+      <p className="text-[10px]" style={{ color: 'var(--muted-fg)' }}>
+        Təyinatdan sonra risk owner statusu "Resolution"-a keçirir; resolution yalnız bu ERO-da açılır.
+      </p>
     </div>
   )
 }

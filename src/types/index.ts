@@ -219,6 +219,11 @@ export interface Incident {
   sla_due_date?: string               // auto from priority on acknowledge
   forwarded_at?: string               // when the risk owner forwarded it
   forwarded_to?: string               // who it was forwarded to
+  // ── ERO resolution routing (phase 33) ──────────────────
+  assigned_dept?: string              // department the resolution is routed to
+  resolution_assignee?: string        // ERO user id who owns the resolution
+  resolution_assignee_name?: string
+  ero_note?: string                   // ERO's note / change request back to risk owner
   // GRC linkage
   risk_id?: string                    // linked risk register entry
   control_id?: string                 // linked control library entry

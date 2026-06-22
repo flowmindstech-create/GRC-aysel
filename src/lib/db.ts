@@ -260,6 +260,7 @@ export const db = {
         control_id: sanitized.control_id || null,
         process_id: sanitized.process_id || null,
         compliance_obligation_id: sanitized.compliance_obligation_id || null,
+        resolution_assignee: sanitized.resolution_assignee || null,
       }
       // Only send columns that exist in the incidents table (priority is derived, not stored)
       const dbColumns = [
@@ -271,6 +272,7 @@ export const db = {
         'investigation_members', 'investigation_start', 'investigation_end',
         'affected_systems', 'affected_departments',
         'acknowledged_at', 'sla_due_date', 'forwarded_at', 'forwarded_to',
+        'assigned_dept', 'resolution_assignee', 'resolution_assignee_name', 'ero_note',
         'risk_id', 'control_id', 'process_id',
         'reporter_person', 'incident_category', 'compliance_obligation_id', 'root_cause_whys',
         'resolution_summary', 'corrective_actions', 'lessons_learned', 'reputation_impact',

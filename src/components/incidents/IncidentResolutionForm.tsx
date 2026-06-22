@@ -110,6 +110,14 @@ export function IncidentResolutionForm({ data, onChange }: Props) {
           className={`${fieldCls} resize-none`} style={inputStyle} onFocus={focus} onBlur={blur} />
       </div>
 
+      {/* ERO note / change request back to the risk owner */}
+      <div>
+        <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Əlavə Qeyd (risk owner-ə)</label>
+        <textarea value={data.ero_note ?? ''} onChange={e => onChange({ ...data, ero_note: e.target.value })} rows={2}
+          placeholder="Dəyişiklik tələbi və ya əlavə qeyd — risk owner görəcək…"
+          className={`${fieldCls} resize-none`} style={inputStyle} onFocus={focus} onBlur={blur} />
+      </div>
+
       {/* CAPA — Collective & Preventive measures */}
       <div>
         <div className="flex items-center justify-between mb-2">
