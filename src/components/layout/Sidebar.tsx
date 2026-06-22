@@ -11,7 +11,7 @@ import {
   Target, Landmark, FlaskConical, Megaphone,
 } from 'lucide-react'
 import { useState, useEffect } from 'react'
-import { getCurrentProfile } from '@/lib/db'
+import { getCurrentProfile, db } from '@/lib/db'
 import type { UserProfile } from '@/types'
 
 const navGroups = [
@@ -75,8 +75,11 @@ export function Sidebar({ onMobileClose }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false)
   const [profile, setProfile] = useState<UserProfile | null>(null)
 
+  const [openIncidents, setOpenIncidents] = useState(0)
+
   useEffect(() => {
     getCurrentProfile().then(setProfile)
+    db.getIncidents().then(list => setOpenIncidents(list.filter(i => i.status !== 'resolved' && i.status !== 'closed').length))
   }, [])
 
   // Risk team (admin / risk_manager / auditor) sees the full platform;
@@ -166,7 +169,7 @@ export function Sidebar({ onMobileClose }: SidebarProps) {
                     href={href}
                     onClick={onMobileClose}
                     className={cn(
-                      'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 group',
+                      'relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 group',
                     )}
                     style={active ? {
                       boxShadow: 'inset 2px 0 0 var(--brand-500)',
@@ -192,7 +195,12 @@ export function Sidebar({ onMobileClose }: SidebarProps) {
                       className={cn('shrink-0 transition-colors', collapsed ? 'w-5 h-5' : 'w-4 h-4')}
                       style={{ color: active ? 'var(--brand-500)' : 'inherit' }}
                     />
-                    {!collapsed && <span>{label}</span>}
+                    {!collapsed && <span className="flex-1">{label}</span>}
+                    {href === '/incidents' && openIncidents > 0 && (
+                      <span className={cn('shrink-0 inline-flex items-center justify-center rounded-full text-[10px] font-bold text-white bg-red-500', collapsed ? 'absolute top-1 right-1 w-4 h-4' : 'min-w-[18px] h-[18px] px-1')}>
+                        {openIncidents}
+                      </span>
+                    )}
                   </Link>
                 )
               })}

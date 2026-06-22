@@ -3,11 +3,11 @@
 import { useState, useEffect, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { db } from '@/lib/db'
-import type { ComplianceAssessment, AssessmentResult, AssessmentFrequency, Control, ComplianceObligation } from '@/types'
+import type { ComplianceAssessment, AssessmentResult, AssessmentFrequency, Control, ComplianceObligation, ComplianceAssessmentHistory } from '@/types'
 import { cn } from '@/lib/utils'
 import { ControlChecklist } from '@/components/compliance/ControlChecklist'
-import { Plus, Search, Edit, Trash2, ClipboardCheck, X, Save, Upload, ListChecks, Gauge, AlertTriangle } from 'lucide-react'
-import { format } from 'date-fns'
+import { Plus, Search, Edit, Trash2, ClipboardCheck, X, Save, Upload, ListChecks, Gauge, AlertTriangle, History, Clock } from 'lucide-react'
+import { format, formatDistanceToNow } from 'date-fns'
 import { toast } from 'sonner'
 
 const RESULT_CFG: Record<AssessmentResult, { label: string; cls: string }> = {
@@ -53,6 +53,8 @@ function FormDialog({ item, controls, obligations, onClose, onSave }: {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
+    if (!observed.trim()) { toast.error('Müşahidə edilən vəziyyət (Observed State) məcburidir'); return }
+    if (result === 'compliant' && !evidenceUrl.trim() && !fileName) { toast.error('Compliant üçün evidence (link və ya fayl) məcburidir'); return }
     if (needsFindings && !findings.trim()) { toast.error('Uyğunsuzluq üçün "Findings" doldurulmalıdır'); return }
     setLoading(true)
     const now = new Date().toISOString()
@@ -122,8 +124,8 @@ function FormDialog({ item, controls, obligations, onClose, onSave }: {
               </div>
             </div>
             <div>
-              <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Observed State</label>
-              <textarea value={observed} onChange={e => setObserved(e.target.value)} rows={2} placeholder="Yoxlama zamanı real olaraq nə aşkarlandı…" className={`${fieldCls} resize-none`} style={inputStyle} />
+              <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Observed State <span className="text-red-400">*</span></label>
+              <textarea value={observed} onChange={e => setObserved(e.target.value)} rows={2} placeholder="Yoxlama zamanı real olaraq nə aşkarlandı… (məcburi)" className={`${fieldCls} resize-none`} style={inputStyle} />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
@@ -175,6 +177,15 @@ function AssessmentRegister() {
   const [showForm, setShowForm] = useState(false)
   const [editItem, setEditItem] = useState<ComplianceAssessment | null>(null)
   const [search, setSearch] = useState('')
+  const [statusFilter, setStatusFilter] = useState<AssessmentResult | 'all'>('all')
+  const [freqFilter, setFreqFilter] = useState<AssessmentFrequency | 'all'>('all')
+  const [historyFor, setHistoryFor] = useState<ComplianceAssessment | null>(null)
+  const [historyRows, setHistoryRows] = useState<ComplianceAssessmentHistory[]>([])
+
+  async function openHistory(a: ComplianceAssessment) {
+    setHistoryFor(a)
+    setHistoryRows(await db.getAssessmentHistory(a.id))
+  }
 
   async function reload() {
     const [a, c, o, lm] = await Promise.all([
@@ -199,7 +210,11 @@ function AssessmentRegister() {
     return Object.entries(by).map(([fw, v]) => ({ fw, ...v, pct: v.total ? Math.round((v.covered / v.total) * 100) : 0 }))
   }, [obligations, linkMaps])
 
-  const filtered = items.filter(i => !search || (i.title ?? '').toLowerCase().includes(search.toLowerCase()) || i.code.toLowerCase().includes(search.toLowerCase()))
+  const filtered = items.filter(i =>
+    (!search || (i.title ?? '').toLowerCase().includes(search.toLowerCase()) || i.code.toLowerCase().includes(search.toLowerCase()))
+    && (statusFilter === 'all' || i.result === statusFilter)
+    && (freqFilter === 'all' || i.frequency === freqFilter)
+  )
 
   async function handleSave(a: ComplianceAssessment) {
     const saved = await db.saveComplianceAssessment(a)
@@ -228,6 +243,20 @@ function AssessmentRegister() {
           <Search className="w-4 h-4 shrink-0" style={{ color: 'var(--muted-fg)' }} />
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search assessments…" className="flex-1 text-sm bg-transparent outline-none" style={{ color: 'var(--foreground)' }} />
         </div>
+        <div className="flex items-center gap-1 p-1 rounded-xl" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
+          {(['all', ...ALL_RESULTS] as const).map(s => (
+            <button key={s} onClick={() => setStatusFilter(s)} className="px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-all whitespace-nowrap"
+              style={statusFilter === s ? { background: 'var(--brand-500)', color: '#fff' } : { color: 'var(--muted-fg)' }}>
+              {s === 'all' ? 'All' : RESULT_CFG[s].label}
+            </button>
+          ))}
+        </div>
+        <select value={freqFilter} onChange={e => setFreqFilter(e.target.value as AssessmentFrequency | 'all')}
+          className="px-3 py-2 rounded-xl text-xs font-medium outline-none cursor-pointer capitalize"
+          style={{ background: 'var(--card)', border: '1px solid var(--border)', color: 'var(--foreground)' }}>
+          <option value="all">All Frequencies</option>
+          {FREQUENCIES.map(f => <option key={f} value={f} className="capitalize">{f}</option>)}
+        </select>
         <button onClick={() => { setEditItem(null); setShowForm(true) }} className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white shadow-lg" style={{ background: 'var(--brand-500)' }}>
           <Plus className="w-4 h-4" /> New Assessment
         </button>
@@ -255,6 +284,7 @@ function AssessmentRegister() {
               <td className="px-3 py-3.5"><span className={cn('text-xs whitespace-nowrap font-medium', overdue && 'text-red-400')} style={!overdue ? { color: a.next_review_date ? 'var(--foreground)' : 'var(--muted-fg)' } : undefined}>{a.next_review_date ? format(new Date(a.next_review_date), 'd MMM yyyy') : '—'}{overdue && ' ⚠'}</span></td>
               <td className="px-3 py-3.5 max-w-[120px]"><span className="text-xs truncate block" style={{ color: (a.evidence_url || a.evidence_file_name) ? 'var(--foreground)' : 'var(--muted-fg)' }}>{a.evidence_file_name || a.evidence_url || '—'}</span></td>
               <td className="px-3 py-3.5"><div className="flex items-center gap-1">
+                <button onClick={() => openHistory(a)} title="History" className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-black/10 dark:hover:bg-white/10"><History className="w-3.5 h-3.5" style={{ color: 'var(--muted-fg)' }} /></button>
                 <button onClick={() => { setEditItem(a); setShowForm(true) }} className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-black/10 dark:hover:bg-white/10"><Edit className="w-3.5 h-3.5" style={{ color: 'var(--muted-fg)' }} /></button>
                 <button onClick={() => handleDelete(a.id)} className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-red-500/10"><Trash2 className="w-3.5 h-3.5 text-red-400" /></button>
               </div></td>
@@ -265,6 +295,40 @@ function AssessmentRegister() {
       </table></div></div>
 
       {showForm && <FormDialog key={editItem?.id ?? 'new'} item={editItem} controls={controls} obligations={obligations} onClose={() => { setShowForm(false); setEditItem(null) }} onSave={handleSave} />}
+
+      {/* History Log (timeline) */}
+      <AnimatePresence>
+        {historyFor && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setHistoryFor(null)} />
+            <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.96 }}
+              className="relative w-full max-w-md rounded-2xl border shadow-2xl max-h-[80vh] overflow-y-auto" style={{ background: 'var(--card)', borderColor: 'var(--border)' }}>
+              <div className="flex items-center justify-between px-6 py-4 border-b" style={{ borderColor: 'var(--border)' }}>
+                <h2 className="text-sm font-semibold flex items-center gap-2" style={{ color: 'var(--foreground)' }}><Clock className="w-4 h-4" /> Tarixçə — {historyFor.code}</h2>
+                <button onClick={() => setHistoryFor(null)} className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/5"><X className="w-4 h-4" style={{ color: 'var(--muted-fg)' }} /></button>
+              </div>
+              <div className="px-6 py-5">
+                {historyRows.length === 0 ? (
+                  <p className="text-xs" style={{ color: 'var(--muted-fg)' }}>Hələ tarixçə yoxdur.</p>
+                ) : (
+                  <div className="space-y-3 border-l pl-3" style={{ borderColor: 'var(--border)' }}>
+                    {historyRows.map(h => (
+                      <div key={h.id} className="relative">
+                        <span className="absolute -left-[18px] top-1 w-2 h-2 rounded-full" style={{ background: 'var(--brand-500)' }} />
+                        <span className={cn('inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold', RESULT_CFG[(h.result as AssessmentResult) ?? 'not_tested'].cls)}>
+                          {RESULT_CFG[(h.result as AssessmentResult) ?? 'not_tested'].label}
+                        </span>
+                        {h.observed_state && <p className="text-xs mt-1" style={{ color: 'var(--foreground)' }}>{h.observed_state}</p>}
+                        <p className="text-[10px] mt-0.5" style={{ color: 'var(--muted-fg)' }}>{h.changed_by} · {formatDistanceToNow(new Date(h.created_at), { addSuffix: true })}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

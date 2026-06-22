@@ -9,7 +9,7 @@ import type {
   Risk, Incident, Control, Audit, AuditFinding, Vendor, Activity, DashboardStats,
   JiraConfig, JiraActivity, JiraComment, GRCIntakeItem, OrgUnit, UserProfile,
   ComplianceObligation, ObligationAuditLog, RegulatoryChange, InterestedParty, Process,
-  AppetiteEntry, FinancialRisk, StressTest, WhistleblowReport, ComplianceAssessment
+  AppetiteEntry, FinancialRisk, StressTest, WhistleblowReport, ComplianceAssessment, ComplianceAssessmentHistory
 } from '@/types'
 import { RISK_CATEGORIES, normalizeCategory } from './risk-categories'
 import { normalizeStatus, ACTIVE_STATUSES } from './risk-status'
@@ -1663,7 +1663,9 @@ export const db = {
     const orgId = await getCurrentOrgId()
     const now = new Date().toISOString()
     const s: ComplianceAssessment = { ...item, id: ensureUUID(item.id), org_id: orgId, updated_at: now }
-    if (!s.code) { const all = await this.getComplianceAssessments(); s.code = `CMP-${new Date().getFullYear()}-${String(all.length + 1).padStart(3, '0')}` }
+    const existing = await this.getComplianceAssessments()
+    const prior = existing.find(a => a.id === s.id) ?? null
+    if (!s.code) { s.code = `CMP-${new Date().getFullYear()}-${String(existing.length + 1).padStart(3, '0')}` }
 
     // Compliant → roll next review date forward by frequency
     if (s.result === 'compliant') {
@@ -1679,7 +1681,7 @@ export const db = {
         const inc = await this.saveIncident({
           id: crypto.randomUUID(), org_id: orgId,
           title: `Uyğunsuzluq: ${s.title || s.code}`,
-          description: s.findings || s.observed_state || 'Compliance monitoring uyğunsuzluğu',
+          description: s.observed_state || s.findings || 'Compliance monitoring uyğunsuzluğu',
           severity: 'high', status: 'open', workflow_stage: 'intake',
           incident_category: 'Compliance breach',
           control_id: s.control_id, compliance_obligation_id: s.obligation_id,
@@ -1696,11 +1698,39 @@ export const db = {
       for (const k of Object.keys(payload)) if (!cols.includes(k)) delete payload[k]
       const { data, error } = await createClient().from('compliance_assessments').upsert(payload).select().single()
       if (error) console.error('saveComplianceAssessment error:', error)
-      if (!error && data) return data as ComplianceAssessment
+      if (!error && data) { await this._logAssessmentHistory(s, prior); return data as ComplianceAssessment }
     }
     const cur = getLocalItem<ComplianceAssessment[]>('compliance_assessments', [])
     const i = cur.findIndex(x => x.id === s.id); if (i >= 0) cur[i] = s; else cur.unshift(s)
-    setLocalItem('compliance_assessments', cur); return s
+    setLocalItem('compliance_assessments', cur)
+    await this._logAssessmentHistory(s, prior)
+    return s
+  },
+  // Append a history snapshot when the result changes (or first assessment)
+  async _logAssessmentHistory(s: ComplianceAssessment, prior: ComplianceAssessment | null): Promise<void> {
+    if (prior && prior.result === s.result) return
+    const profile = await getCurrentProfile()
+    const row = {
+      id: ensureUUID(), org_id: s.org_id, assessment_id: s.id,
+      result: s.result, observed_state: s.observed_state ?? null,
+      changed_by: profile?.full_name ?? 'System', created_at: new Date().toISOString(),
+    }
+    if (isSupabaseConfigured()) {
+      const { createClient } = await import('./supabase/client')
+      const { error } = await createClient().from('compliance_assessment_history').insert(row)
+      if (error) console.error('logAssessmentHistory error:', error)
+      return
+    }
+    const all = getLocalItem<any[]>('compliance_assessment_history', [])
+    all.unshift(row); setLocalItem('compliance_assessment_history', all)
+  },
+  async getAssessmentHistory(assessmentId: string): Promise<ComplianceAssessmentHistory[]> {
+    if (isSupabaseConfigured()) {
+      const { createClient } = await import('./supabase/client')
+      const { data } = await createClient().from('compliance_assessment_history').select('*').eq('assessment_id', assessmentId).order('created_at', { ascending: false })
+      return (data ?? []) as ComplianceAssessmentHistory[]
+    }
+    return getLocalItem<ComplianceAssessmentHistory[]>('compliance_assessment_history', []).filter(h => h.assessment_id === assessmentId).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
   },
   async deleteComplianceAssessment(id: string): Promise<void> {
     if (isSupabaseConfigured()) { const { createClient } = await import('./supabase/client'); await createClient().from('compliance_assessments').delete().eq('id', id) }

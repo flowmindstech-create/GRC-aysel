@@ -1133,6 +1133,16 @@ export interface ComplianceAssessment {
   updated_at: string
 }
 
+export interface ComplianceAssessmentHistory {
+  id: string
+  org_id: string
+  assessment_id: string
+  result?: string
+  observed_state?: string
+  changed_by?: string
+  created_at: string
+}
+
 export type WhistleblowStatus = 'new' | 'under_review' | 'substantiated' | 'dismissed' | 'closed'
 export interface WhistleblowReport {
   id: string
