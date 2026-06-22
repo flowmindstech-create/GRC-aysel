@@ -5,10 +5,21 @@ import { Upload, X, Calendar, AlertTriangle, Lock, Workflow, Link2 } from 'lucid
 import { cn } from '@/lib/utils'
 import { db } from '@/lib/db'
 import { calculateInherentLevel } from '@/lib/rcsa'
-import type { Incident, IncidentPriority, IncidentSeverity, AttachedFile, OrgUnit, Process, Risk, Control } from '@/types'
+import { resolveOwnerFromUnit } from '@/lib/org'
+import type { Incident, IncidentPriority, IncidentSeverity, AttachedFile, OrgUnit, Process, Risk, Control, UserProfile } from '@/types'
 import { MOCK_USERS } from '@/lib/seed-data'
 
 const THREE_MONTHS_MS = 90 * 24 * 60 * 60 * 1000
+
+const INCIDENT_CATEGORIES = [
+  'Cybersecurity / Data breach',
+  'Operational error / Procedure breach',
+  'Internal fraud',
+  'Third-party / Vendor',
+  'Compliance breach',
+  'Financial loss',
+  'Other',
+]
 
 // ── Priority calculator ─────────────────────────────────────────────────────
 export function calcPriority(likelihood: number, impact: number): IncidentPriority {
@@ -91,6 +102,7 @@ interface Props {
 
 export function IncidentIntakeForm({ data, onChange }: Props) {
   const [departments, setDepartments] = useState<OrgUnit[]>([])
+  const [profiles, setProfiles] = useState<UserProfile[]>([])
   const [processes, setProcesses] = useState<Process[]>([])
   const [processControlIds, setProcessControlIds] = useState<string[]>([])
   const [allIncidents, setAllIncidents] = useState<Incident[]>([])
@@ -101,11 +113,19 @@ export function IncidentIntakeForm({ data, onChange }: Props) {
     db.getOrgUnits().then(units =>
       setDepartments(units.filter(u => u.type === 'department' || u.type === 'division'))
     )
+    db.getProfiles().then(setProfiles)
     db.getProcesses().then(setProcesses)
     db.getIncidents().then(setAllIncidents)
     db.getRisks().then(setAllRisks)
     db.getControls().then(setAllControls)
   }, [])
+
+  // Reporter structure → reporter person (auto-fill to dept head; editable)
+  function handleStructureChange(structureName: string) {
+    const unit = departments.find(u => u.name === structureName)
+    const head = unit ? resolveOwnerFromUnit(unit, profiles).owner_name : ''
+    onChange({ ...data, reporter_structure: structureName, reporter_person: head || data.reporter_person })
+  }
 
   // When a process is chosen, load its controls (incidents can only use these)
   useEffect(() => {
@@ -212,16 +232,37 @@ export function IncidentIntakeForm({ data, onChange }: Props) {
         </div>
       </div>
 
-      {/* Reporter Structure */}
+      {/* Reporter Structure → Person (dependent) */}
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Reporter Structure</label>
+          <select value={data.reporter_structure ?? ''}
+            onChange={e => handleStructureChange(e.target.value)}
+            className={`${fieldCls} cursor-pointer`} style={inputStyle}>
+            <option value="">— Seçin —</option>
+            {departments.map(d => <option key={d.id} value={d.name}>{d.name}</option>)}
+          </select>
+        </div>
+        <div>
+          <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Reporter Person</label>
+          <select value={data.reporter_person ?? ''}
+            onChange={e => onChange({ ...data, reporter_person: e.target.value })}
+            className={`${fieldCls} cursor-pointer`} style={inputStyle}>
+            <option value="">{data.reporter_structure ? 'Şəxs seçin…' : 'Əvvəlcə struktur'}</option>
+            {profiles.map(u => <option key={u.id} value={u.full_name}>{u.full_name}</option>)}
+          </select>
+        </div>
+      </div>
+
+      {/* Incident Category */}
       <div>
-        <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Reporter Structure (avtomatik)</label>
-        <select value={data.reporter_structure ?? ''}
-          onChange={e => onChange({ ...data, reporter_structure: e.target.value })}
+        <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>İnsident Kateqoriyası</label>
+        <select value={data.incident_category ?? ''}
+          onChange={e => onChange({ ...data, incident_category: e.target.value || undefined })}
           className={`${fieldCls} cursor-pointer`} style={inputStyle}>
           <option value="">— Seçin —</option>
-          {departments.map(d => <option key={d.id} value={d.name}>{d.name}</option>)}
+          {INCIDENT_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
         </select>
-        <p className="text-[10px] mt-0.5" style={{ color: 'var(--muted-fg)' }}>Mail əsasında avtomatik doldurulur</p>
       </div>
 
       {/* Business Process linkage */}

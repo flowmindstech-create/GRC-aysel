@@ -6,14 +6,16 @@ import { db } from '@/lib/db'
 import { calculateInherentLevel, calculateResidualLevel } from '@/lib/rcsa'
 import type { ControlRating } from '@/lib/rcsa'
 import { inherentLevelWord, residualLevelWord } from '@/lib/rcsa-methodology'
-import type { Incident, OrgUnit, Risk, Control, EffectivenessRating } from '@/types'
+import type { Incident, OrgUnit, Risk, Control, EffectivenessRating, ComplianceObligation } from '@/types'
+import { toast } from 'sonner'
 import { MOCK_USERS } from '@/lib/seed-data'
 
 const ROOT_CAUSE_CATEGORIES = [
-  { value: 'process',    label: 'Proses', desc: 'Proses çatışmazlığı / pozuntusu' },
-  { value: 'technology', label: 'Texnologiya', desc: 'Sistem / proqram xətası' },
-  { value: 'people',     label: 'İnsan amili', desc: 'Səhv / səhlənkarlıq' },
-  { value: 'external',   label: 'Xarici', desc: 'Xarici təhdid / hadisə' },
+  { value: 'process',       label: 'Proses (Process)' },
+  { value: 'human',         label: 'İnsan amili (Human factor)' },
+  { value: 'control_gap',   label: 'Kontrol boşluğu (Control gap)' },
+  { value: 'procedure_gap', label: 'Prosedur boşluğu (Procedure gap)' },
+  { value: 'third_party',   label: 'Üçüncü tərəf (Third party)' },
 ] as const
 
 // Map a control's effectiveness rating to the RCSA control rating used by the
@@ -36,7 +38,9 @@ export function IncidentInvestigationForm({ data, onChange }: Props) {
   const [departments, setDepartments] = useState<OrgUnit[]>([])
   const [risks, setRisks] = useState<Risk[]>([])
   const [controls, setControls] = useState<Control[]>([])
+  const [obligations, setObligations] = useState<ComplianceObligation[]>([])
   const [processControlIds, setProcessControlIds] = useState<string[] | null>(null)
+  const [flagging, setFlagging] = useState(false)
 
   useEffect(() => {
     db.getOrgUnits().then(units =>
@@ -44,7 +48,29 @@ export function IncidentInvestigationForm({ data, onChange }: Props) {
     )
     db.getRisks().then(setRisks)
     db.getControls().then(setControls)
+    db.getObligations().then(setObligations)
   }, [])
+
+  // Flag the linked obligation as non-compliant (rule-based, explicit)
+  async function flagNonCompliance() {
+    if (!data.compliance_obligation_id || flagging) return
+    setFlagging(true)
+    try {
+      const obl = obligations.find(o => o.id === data.compliance_obligation_id)
+      if (obl) {
+        await db.saveObligation({ ...obl, status: 'non_compliant' })
+        toast.success(`Uyğunsuzluq işarələndi: ${obl.obligation_code}`)
+      }
+    } catch { toast.error('İşarələnə bilmədi') } finally { setFlagging(false) }
+  }
+
+  // 5-Why helpers
+  const whys = data.root_cause_whys ?? ['', '', '', '', '']
+  function setWhy(i: number, v: string) {
+    const next = [...whys]; while (next.length < 5) next.push('')
+    next[i] = v
+    onChange({ ...data, root_cause_whys: next })
+  }
 
   // If the incident is tied to a process, controls can only come from that process
   useEffect(() => {
@@ -193,29 +219,61 @@ export function IncidentInvestigationForm({ data, onChange }: Props) {
         </div>
       </div>
 
-      {/* Root Cause Category */}
+      {/* Compliance linkage + non-compliance flag */}
+      <div>
+        <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Əlaqəli Compliance Öhdəliyi</label>
+        <div className="flex gap-2">
+          <select value={data.compliance_obligation_id ?? ''} onChange={e => onChange({ ...data, compliance_obligation_id: e.target.value || undefined })}
+            className={`${fieldCls} cursor-pointer`} style={inputStyle}>
+            <option value="">— Yoxdur —</option>
+            {obligations.map(o => <option key={o.id} value={o.id}>{o.obligation_code + ' · ' + o.title}</option>)}
+          </select>
+          {data.compliance_obligation_id && (
+            <button type="button" onClick={flagNonCompliance} disabled={flagging}
+              className="shrink-0 px-3 py-2 rounded-lg text-[11px] font-semibold text-white disabled:opacity-50" style={{ background: 'rgb(225,29,72)' }}>
+              {flagging ? '…' : 'Uyğunsuzluq işarələ'}
+            </button>
+          )}
+        </div>
+        {data.compliance_obligation_id && (
+          <p className="text-[10px] mt-0.5 text-red-400">Uyğunsuzluq aşkarlandı — öhdəlik "non_compliant" kimi işarələnəcək.</p>
+        )}
+      </div>
+
+      {/* Root Cause Category (5 ISO options) */}
       <p className="text-[11px] font-bold uppercase tracking-wide pt-1" style={{ color: 'var(--brand-500)' }}>
         Root Cause Analysis
       </p>
-      <div className="grid grid-cols-2 gap-2">
-        {ROOT_CAUSE_CATEGORIES.map(cat => (
-          <button key={cat.value} type="button"
-            onClick={() => onChange({ ...data, root_cause_category: cat.value })}
-            className={cn('p-3 rounded-xl text-left transition-all border')}
-            style={data.root_cause_category === cat.value
-              ? { background: 'rgba(14,165,233,0.1)', borderColor: 'var(--brand-500)', color: 'var(--foreground)' }
-              : { background: 'var(--muted)', borderColor: 'var(--border)', color: 'var(--muted-fg)' }
-            }>
-            <p className="text-xs font-semibold">{cat.label}</p>
-            <p className="text-[10px] mt-0.5 opacity-70">{cat.desc}</p>
-          </button>
-        ))}
+      <div>
+        <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Kök Səbəb Təsnifatı</label>
+        <select value={data.root_cause_category ?? ''} onChange={e => onChange({ ...data, root_cause_category: (e.target.value || undefined) as Incident['root_cause_category'] })}
+          className={`${fieldCls} cursor-pointer`} style={inputStyle}>
+          <option value="">— Seçin —</option>
+          {ROOT_CAUSE_CATEGORIES.map(cat => <option key={cat.value} value={cat.value}>{cat.label}</option>)}
+        </select>
       </div>
 
-      {/* Root Cause Detail */}
+      {/* 5-Why */}
+      <div>
+        <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>5 Niyə (5-Why)</label>
+        <div className="space-y-2 pl-2 border-l-2" style={{ borderColor: 'var(--border)' }}>
+          {[0, 1, 2, 3, 4].map(i => (
+            <div key={i}>
+              {i === 4 && <p className="text-[10px] text-amber-400 font-semibold mb-0.5">Yekun səbəb:</p>}
+              <input value={whys[i] ?? ''} onChange={e => setWhy(i, e.target.value)}
+                placeholder={i === 4 ? '5. Niyə? (yekun kök səbəb)' : `${i + 1}. Niyə?`}
+                className={cn(fieldCls, i === 4 && 'font-medium')}
+                style={i === 4 ? { background: 'rgba(234,179,8,0.08)', border: '1px solid rgba(234,179,8,0.3)', color: 'var(--foreground)' } : inputStyle}
+                onFocus={focus} onBlur={blur} />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Root Cause Detail (free text) */}
       <div>
         <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Root Cause Təfərrüatı</label>
-        <textarea value={data.root_cause ?? ''} onChange={e => onChange({ ...data, root_cause: e.target.value })} rows={3}
+        <textarea value={data.root_cause ?? ''} onChange={e => onChange({ ...data, root_cause: e.target.value })} rows={2}
           placeholder="Əsas səbəbi ətraflı izah edin..."
           className={`${fieldCls} resize-none`} style={inputStyle} onFocus={focus} onBlur={blur} />
       </div>

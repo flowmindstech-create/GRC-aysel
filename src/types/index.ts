@@ -206,7 +206,7 @@ export interface Incident {
   attached_files?: AttachedFile[]     // file attachments
   // ── Investigation fields (Pəncərə 2) ───────────────────
   root_cause?: string
-  root_cause_category?: 'process' | 'technology' | 'people' | 'external'
+  root_cause_category?: 'process' | 'human' | 'control_gap' | 'procedure_gap' | 'third_party'
   investigation_notes?: string
   investigation_lead?: string
   investigation_members?: string[]    // investigation team members (phase 25)
@@ -223,6 +223,10 @@ export interface Incident {
   risk_id?: string                    // linked risk register entry
   control_id?: string                 // linked control library entry
   process_id?: string                 // linked business process (control map, phase 24)
+  reporter_person?: string            // person reporting (dependent on reporter_structure, phase 32)
+  incident_category?: string          // incident category (control-aligned, phase 32)
+  compliance_obligation_id?: string   // linked compliance obligation (flagged non-compliant, phase 32)
+  root_cause_whys?: string[]          // 5-Why chain; last = final root cause (phase 32)
   // ── Resolution fields (Pəncərə 3) ──────────────────────
   resolution_summary?: string
   corrective_actions?: CorrectiveAction[]
