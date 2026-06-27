@@ -274,7 +274,7 @@ export const db = {
         'acknowledged_at', 'sla_due_date', 'forwarded_at', 'forwarded_to',
         'assigned_dept', 'resolution_assignee', 'resolution_assignee_name', 'ero_note',
         'risk_id', 'control_id', 'process_id',
-        'reporter_person', 'incident_category', 'compliance_obligation_id', 'root_cause_whys',
+        'reporter_person', 'risk_category', 'incident_category', 'compliance_obligation_id', 'root_cause_whys',
         'resolution_summary', 'corrective_actions', 'lessons_learned', 'reputation_impact',
         'incident_residual_level',
         'resolved_at', 'closed_at', 'created_at', 'updated_at',

@@ -3,11 +3,12 @@
 // derives its options and labels from this list.
 
 export const RISK_CATEGORIES = [
-  { value: 'cybersecurity', label: 'IT Risk' },
-  { value: 'financial', label: 'Financial' },
-  { value: 'operational', label: 'Operational' },
-  { value: 'legal_compliance', label: 'Legal & Compliance' },
-  { value: 'strategic', label: 'Strategic' },
+  { value: 'financial', label: 'Maliyyə' },
+  { value: 'operational', label: 'Əməliyyat' },
+  { value: 'reputation', label: 'Reputasiya' },
+  { value: 'information_security', label: 'İnformasiya Təhlükəsizliyi' },
+  { value: 'strategic', label: 'Strateji' },
+  { value: 'compliance', label: 'Komplayens' },
 ] as const
 
 export type RiskCategory = (typeof RISK_CATEGORIES)[number]['value']
@@ -21,8 +22,9 @@ export const CATEGORY_LABELS: Record<RiskCategory, string> = Object.fromEntries(
 // Maps removed/renamed legacy category values to the current set.
 // Used when reading old DB/localStorage rows so filters and charts never break.
 const LEGACY_CATEGORY_MAP: Record<string, RiskCategory> = {
-  legal: 'legal_compliance',
-  compliance: 'legal_compliance',
+  cybersecurity: 'information_security',
+  legal_compliance: 'compliance',
+  legal: 'compliance',
   hr: 'operational',
 }
 

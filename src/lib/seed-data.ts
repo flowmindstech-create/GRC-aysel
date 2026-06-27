@@ -398,8 +398,8 @@ export const MOCK_DASHBOARD_STATS: DashboardStats = {
   vendors_under_review: 1,
   risk_by_level: { minimal: 0, low: 1, medium: 2, high: 2, critical: 2 },
   risk_by_category: {
-    cybersecurity: 3, financial: 1, operational: 2,
-    legal_compliance: 2, strategic: 0,
+    financial: 1, operational: 2, reputation: 0,
+    information_security: 3, strategic: 0, compliance: 2,
   },
   monthly_risks: [
     { month: 'Aug', count: 2 }, { month: 'Sep', count: 3 },

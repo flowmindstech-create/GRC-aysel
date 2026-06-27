@@ -229,7 +229,8 @@ export interface Incident {
   control_id?: string                 // linked control library entry
   process_id?: string                 // linked business process (control map, phase 24)
   reporter_person?: string            // person reporting (dependent on reporter_structure, phase 32)
-  incident_category?: string          // incident category (control-aligned, phase 32)
+  risk_category?: RiskCategory        // parent risk category (phase 38)
+  incident_category?: string          // incident sub-category of risk_category (phase 38)
   compliance_obligation_id?: string   // linked compliance obligation (flagged non-compliant, phase 32)
   root_cause_whys?: string[]          // 5-Why chain; last = final root cause (phase 32)
   // ── Resolution fields (Pəncərə 3) ──────────────────────

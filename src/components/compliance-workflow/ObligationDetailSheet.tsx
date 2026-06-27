@@ -102,7 +102,7 @@ export function ObligationDetailSheet({ obligation, onClose, onEdit, onSaved }: 
         risk_code: generateRiskCode(orgUnitCode(unit), allRisks),
         title: `Uyğunsuzluq riski: ${obligation.title}`,
         description: obligation.noncompliance_risk || obligation.description || obligation.title,
-        category: 'legal_compliance',
+        category: 'compliance',
         level: calculateInherentLevel(likelihood, impact),
         status: 'open',
         likelihood,

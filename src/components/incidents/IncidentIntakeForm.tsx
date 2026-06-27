@@ -8,18 +8,10 @@ import { calculateInherentLevel } from '@/lib/rcsa'
 import { resolveOwnerFromUnit } from '@/lib/org'
 import type { Incident, IncidentPriority, IncidentSeverity, AttachedFile, OrgUnit, Process, Risk, Control, UserProfile } from '@/types'
 import { MOCK_USERS } from '@/lib/seed-data'
+import { RISK_CATEGORIES, type RiskCategory } from '@/lib/risk-categories'
+import { incidentSubcategories } from '@/lib/incident-categories'
 
 const THREE_MONTHS_MS = 90 * 24 * 60 * 60 * 1000
-
-const INCIDENT_CATEGORIES = [
-  'Cybersecurity / Data breach',
-  'Operational error / Procedure breach',
-  'Internal fraud',
-  'Third-party / Vendor',
-  'Compliance breach',
-  'Financial loss',
-  'Other',
-]
 
 // ── Priority calculator ─────────────────────────────────────────────────────
 export function calcPriority(likelihood: number, impact: number): IncidentPriority {
@@ -201,6 +193,32 @@ export function IncidentIntakeForm({ data, onChange }: Props) {
           className={fieldCls} style={inputStyle} onFocus={focus} onBlur={blur} />
       </div>
 
+      {/* Risk Category (parent) → Incident Category (dependent sub-category) */}
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Risk Kateqoriyası</label>
+          <select value={data.risk_category ?? ''}
+            onChange={e => {
+              const rc = (e.target.value || undefined) as RiskCategory | undefined
+              const stillValid = rc ? incidentSubcategories(rc).includes(data.incident_category ?? '') : false
+              onChange({ ...data, risk_category: rc, incident_category: stillValid ? data.incident_category : undefined })
+            }}
+            className={`${fieldCls} cursor-pointer`} style={inputStyle}>
+            <option value="">— Seçin —</option>
+            {RISK_CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
+          </select>
+        </div>
+        <div>
+          <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>İnsident Kateqoriyası</label>
+          <select value={data.incident_category ?? ''} disabled={!data.risk_category}
+            onChange={e => onChange({ ...data, incident_category: e.target.value || undefined })}
+            className={`${fieldCls} ${data.risk_category ? 'cursor-pointer' : 'opacity-60 cursor-not-allowed'}`} style={inputStyle}>
+            <option value="">{data.risk_category ? '— Seçin —' : 'Əvvəlcə risk kateqoriyası'}</option>
+            {incidentSubcategories(data.risk_category).map(c => <option key={c} value={c}>{c}</option>)}
+          </select>
+        </div>
+      </div>
+
       {/* Description */}
       <div>
         <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Description <span className="text-red-400">*</span></label>
@@ -252,17 +270,6 @@ export function IncidentIntakeForm({ data, onChange }: Props) {
             {profiles.map(u => <option key={u.id} value={u.full_name}>{u.full_name}</option>)}
           </select>
         </div>
-      </div>
-
-      {/* Incident Category */}
-      <div>
-        <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>İnsident Kateqoriyası</label>
-        <select value={data.incident_category ?? ''}
-          onChange={e => onChange({ ...data, incident_category: e.target.value || undefined })}
-          className={`${fieldCls} cursor-pointer`} style={inputStyle}>
-          <option value="">— Seçin —</option>
-          {INCIDENT_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
-        </select>
       </div>
 
       {/* Business Process linkage */}

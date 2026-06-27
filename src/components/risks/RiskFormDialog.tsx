@@ -142,7 +142,7 @@ export function RiskFormDialog({ risk, onClose, onSave }: Props) {
           target_residual_risk: risk.target_residual_risk || 'low',
         }
       : {
-          category: 'cybersecurity',
+          category: 'operational',
           level: 'medium',
           status: 'open',
           likelihood: 2,
