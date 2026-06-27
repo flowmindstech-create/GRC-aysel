@@ -236,7 +236,7 @@ export function ProcessesClient() {
   useEffect(() => { reload() }, [])
 
   const filtered = useMemo(() => processes.filter(p =>
-    !search || p.name.toLowerCase().includes(search.toLowerCase()) || (p.code ?? '').toLowerCase().includes(search.toLowerCase())
+    !search || (p.name ?? '').toLowerCase().includes(search.toLowerCase()) || (p.code ?? '').toLowerCase().includes(search.toLowerCase())
   ), [processes, search])
 
   // Code lookups for chips

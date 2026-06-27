@@ -89,7 +89,7 @@ export function RiskAppetiteClient() {
   async function reload() { setItems(await db.getRiskAppetite()); setLoading(false) }
   useEffect(() => { reload() }, [])
 
-  const filtered = items.filter(i => !search || i.statement.toLowerCase().includes(search.toLowerCase()) || (i.category ?? '').toLowerCase().includes(search.toLowerCase()))
+  const filtered = items.filter(i => !search || (i.statement ?? '').toLowerCase().includes(search.toLowerCase()) || (i.category ?? '').toLowerCase().includes(search.toLowerCase()))
 
   async function handleSave(i: AppetiteEntry) {
     await db.saveRiskAppetite(i); setShowForm(false); setEditItem(null); reload(); toast.success(editItem ? 'Updated' : 'Created')

@@ -42,7 +42,7 @@ export function AuditList() {
     load()
   }, [])
 
-  const filtered = audits.filter(a => a.title.toLowerCase().includes(search.toLowerCase()))
+  const filtered = audits.filter(a => (a.title ?? '').toLowerCase().includes(search.toLowerCase()))
 
   const handleSaveAudit = async (audit: Audit) => {
     const saved = await db.saveAudit(audit)

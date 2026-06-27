@@ -63,8 +63,8 @@ export function RiskTable() {
 
   const filtered = risks.filter(r => {
     const matchTier = isManager || r.owner_id === myId || (!!myName && r.owner_name === myName)
-    const matchSearch = r.title.toLowerCase().includes(search.toLowerCase()) ||
-      r.description.toLowerCase().includes(search.toLowerCase())
+    const matchSearch = (r.title ?? '').toLowerCase().includes(search.toLowerCase()) ||
+      (r.description ?? '').toLowerCase().includes(search.toLowerCase())
     const matchLevel = levelFilter === 'all' || r.level === levelFilter
     const matchCat = categoryFilter === 'all' || r.category === categoryFilter
     const matchStatus = statusFilter === 'all' || normalizeStatus(r.status) === statusFilter

@@ -93,7 +93,7 @@ export function FinancialRisksClient() {
   async function reload() { setItems(await db.getFinancialRisks()); setLoading(false) }
   useEffect(() => { reload() }, [])
 
-  const filtered = items.filter(i => i.kind === tab && (!search || i.title.toLowerCase().includes(search.toLowerCase())))
+  const filtered = items.filter(i => i.kind === tab && (!search || (i.title ?? '').toLowerCase().includes(search.toLowerCase())))
 
   async function handleSave(i: FinancialRisk) { await db.saveFinancialRisk(i); setShowForm(false); setEditItem(null); reload(); toast.success(editItem ? 'Updated' : 'Created') }
   async function handleDelete(id: string) { await db.deleteFinancialRisk(id); reload(); toast.success('Deleted') }

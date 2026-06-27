@@ -59,7 +59,7 @@ export function VendorTable() {
   }, [])
 
   const filtered = vendors.filter(v => {
-    const ms = v.name.toLowerCase().includes(search.toLowerCase())
+    const ms = (v.name ?? '').toLowerCase().includes(search.toLowerCase())
     const mst = statusFilter === 'all' || v.status === statusFilter
     return ms && mst
   })

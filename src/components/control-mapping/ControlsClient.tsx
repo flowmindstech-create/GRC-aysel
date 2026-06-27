@@ -81,7 +81,7 @@ export function ControlsClient() {
 
   const frameworks = ['all', ...Array.from(new Set(controls.map(c => c.framework)))]
   const filtered = controls.filter(c => {
-    const matchSearch = !search || c.title.toLowerCase().includes(search.toLowerCase()) || c.control_id.toLowerCase().includes(search.toLowerCase())
+    const matchSearch = !search || (c.title ?? '').toLowerCase().includes(search.toLowerCase()) || (c.control_id ?? '').toLowerCase().includes(search.toLowerCase())
     return (fwFilter === 'all' || c.framework === fwFilter) && matchSearch
   })
 

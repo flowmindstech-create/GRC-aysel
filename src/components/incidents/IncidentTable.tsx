@@ -17,6 +17,13 @@ const severities: (IncidentSeverity | 'all')[] = ['all', 'critical', 'high', 'me
 
 const WORKFLOW_LABELS: Record<string, string> = { intake: 'Intake', investigation: 'Investigation', resolution: 'Resolution' }
 
+// Safe relative time — drafts may have a missing/invalid created_at; never throw.
+function safeAgo(value: string | undefined): string {
+  if (!value) return '—'
+  const d = new Date(value)
+  return isNaN(d.getTime()) ? '—' : formatDistanceToNow(d, { addSuffix: true })
+}
+
 export function IncidentTable() {
   const [incidents, setIncidents] = useState<Incident[]>([])
   const [search, setSearch] = useState('')
@@ -47,7 +54,7 @@ export function IncidentTable() {
   const myId = profile?.id
 
   const filtered = incidents.filter(i => {
-    const matchS = i.title.toLowerCase().includes(search.toLowerCase())
+    const matchS = (i.title ?? '').toLowerCase().includes(search.toLowerCase())
     const matchSev = severity === 'all' || i.severity === severity
     const matchSt = status === 'all' || i.status === status
     const matchTier = isManager || i.reported_by === myId || i.assigned_to === myId || i.resolution_assignee === myId
@@ -154,7 +161,7 @@ export function IncidentTable() {
                       <td className="px-3 py-3.5" onClick={e => e.stopPropagation()}><IncidentStatusBadge status={inc.status} /></td>
                       <td className="px-3 py-3.5"><span className="text-xs whitespace-nowrap" style={{ color: inc.loss_amount !== undefined ? 'var(--foreground)' : 'var(--muted-fg)' }}>{inc.loss_amount !== undefined ? `${inc.loss_amount.toLocaleString()} ${inc.loss_currency || 'AZN'}` : '—'}</span></td>
                       <td className="px-3 py-3.5"><span className="text-xs whitespace-nowrap capitalize" style={{ color: inc.incident_residual_level ? 'var(--foreground)' : 'var(--muted-fg)' }}>{inc.incident_residual_level || '—'}</span></td>
-                      <td className="px-3 py-3.5"><span className="text-[11px] whitespace-nowrap" style={{ color: 'var(--muted-fg)' }}>{formatDistanceToNow(new Date(inc.created_at), { addSuffix: true })}</span></td>
+                      <td className="px-3 py-3.5"><span className="text-[11px] whitespace-nowrap" style={{ color: 'var(--muted-fg)' }}>{safeAgo(inc.created_at)}</span></td>
                       <td className="px-3 py-3.5" onClick={e => e.stopPropagation()}>
                         <div className="relative inline-block">
                           <button onClick={() => setMenuOpen(menuOpen === inc.id ? null : inc.id)} aria-label="Incident actions"
@@ -300,7 +307,7 @@ export function IncidentTable() {
                       </span>
                     )}
                   </div>
-                  <span>{formatDistanceToNow(new Date(inc.created_at), { addSuffix: true })}</span>
+                  <span>{safeAgo(inc.created_at)}</span>
                 </div>
 
                 {inc.assigned_name && (

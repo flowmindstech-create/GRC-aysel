@@ -50,8 +50,8 @@ export function RegulatoryChangeClient() {
 
   const filtered = useMemo(() => changes.filter(c => {
     const matchSearch = !search ||
-      c.title.toLowerCase().includes(search.toLowerCase()) ||
-      c.change_code.toLowerCase().includes(search.toLowerCase()) ||
+      (c.title ?? '').toLowerCase().includes(search.toLowerCase()) ||
+      (c.change_code ?? '').toLowerCase().includes(search.toLowerCase()) ||
       (c.regulator ?? '').toLowerCase().includes(search.toLowerCase())
     const matchStatus = statusFilter === 'all' || c.status === statusFilter
     return matchSearch && matchStatus

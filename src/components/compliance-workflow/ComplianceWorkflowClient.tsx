@@ -106,9 +106,9 @@ export function ComplianceWorkflowClient() {
 
   const filtered = useMemo(() => obligations.filter(o => {
     const matchSearch = !search ||
-      o.title.toLowerCase().includes(search.toLowerCase()) ||
-      o.obligation_code.toLowerCase().includes(search.toLowerCase()) ||
-      o.description.toLowerCase().includes(search.toLowerCase())
+      (o.title ?? '').toLowerCase().includes(search.toLowerCase()) ||
+      (o.obligation_code ?? '').toLowerCase().includes(search.toLowerCase()) ||
+      (o.description ?? '').toLowerCase().includes(search.toLowerCase())
     const matchStatus = statusFilter === 'all'
       || (statusFilter === 'overdue' ? isOverdue(o) : o.status === statusFilter)
     const matchSource = sourceFilter === 'all' || o.source === sourceFilter

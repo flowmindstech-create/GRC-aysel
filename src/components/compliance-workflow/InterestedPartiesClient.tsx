@@ -192,7 +192,7 @@ export function InterestedPartiesClient() {
   useEffect(() => { reload() }, [])
 
   const filtered = useMemo(() => parties.filter(p =>
-    !search || p.name.toLowerCase().includes(search.toLowerCase()) || (p.party_code ?? '').toLowerCase().includes(search.toLowerCase())
+    !search || (p.name ?? '').toLowerCase().includes(search.toLowerCase()) || (p.party_code ?? '').toLowerCase().includes(search.toLowerCase())
   ), [parties, search])
 
   async function handleSave(item: InterestedParty) {

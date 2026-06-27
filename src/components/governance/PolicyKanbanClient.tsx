@@ -513,8 +513,8 @@ export function PolicyKanbanClient() {
 
   // Filter policies based on Search & Category (T-3.2)
   const filteredPolicies = policies.filter(p => {
-    const matchesSearch = p.title.toLowerCase().includes(search.toLowerCase()) || 
-                         p.policy_id.toLowerCase().includes(search.toLowerCase()) ||
+    const matchesSearch = (p.title ?? '').toLowerCase().includes(search.toLowerCase()) ||
+                         (p.policy_id ?? '').toLowerCase().includes(search.toLowerCase()) ||
                          (p.description || '').toLowerCase().includes(search.toLowerCase())
     const matchesCategory = categoryFilter === 'all' || p.category === categoryFilter
     return matchesSearch && matchesCategory
