@@ -159,7 +159,7 @@ export function IncidentTable() {
                       <td className="px-3 py-3.5"><span className="text-xs whitespace-nowrap" style={{ color: inc.reporter_structure ? 'var(--foreground)' : 'var(--muted-fg)' }}>{inc.reporter_structure || '—'}</span></td>
                       <td className="px-3 py-3.5"><span className="text-xs whitespace-nowrap" style={{ color: inc.assigned_name ? 'var(--foreground)' : 'var(--muted-fg)' }}>{inc.assigned_name || '—'}</span></td>
                       <td className="px-3 py-3.5" onClick={e => e.stopPropagation()}><IncidentStatusBadge status={inc.status} /></td>
-                      <td className="px-3 py-3.5"><span className="text-xs whitespace-nowrap" style={{ color: inc.loss_amount !== undefined ? 'var(--foreground)' : 'var(--muted-fg)' }}>{inc.loss_amount !== undefined ? `${inc.loss_amount.toLocaleString()} ${inc.loss_currency || 'AZN'}` : '—'}</span></td>
+                      <td className="px-3 py-3.5"><span className="text-xs whitespace-nowrap" style={{ color: inc.loss_amount != null ? 'var(--foreground)' : 'var(--muted-fg)' }}>{inc.loss_amount != null ? `${Number(inc.loss_amount).toLocaleString()} ${inc.loss_currency || 'AZN'}` : '—'}</span></td>
                       <td className="px-3 py-3.5"><span className="text-xs whitespace-nowrap capitalize" style={{ color: inc.incident_residual_level ? 'var(--foreground)' : 'var(--muted-fg)' }}>{inc.incident_residual_level || '—'}</span></td>
                       <td className="px-3 py-3.5"><span className="text-[11px] whitespace-nowrap" style={{ color: 'var(--muted-fg)' }}>{safeAgo(inc.created_at)}</span></td>
                       <td className="px-3 py-3.5" onClick={e => e.stopPropagation()}>
@@ -289,10 +289,10 @@ export function IncidentTable() {
                     </span>
                   )}
                   
-                  {inc.loss_amount !== undefined && (
+                  {inc.loss_amount != null && (
                     <span className="flex items-center gap-0.5 px-2 py-0.5 rounded-full bg-red-500/10 text-red-400 border border-red-500/10 font-bold">
                       <Landmark className="w-2.5 h-2.5" />
-                      {inc.loss_amount.toLocaleString()} {inc.loss_currency || 'AZN'} Loss
+                      {Number(inc.loss_amount).toLocaleString()} {inc.loss_currency || 'AZN'} Loss
                     </span>
                   )}
                 </div>

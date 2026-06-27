@@ -327,10 +327,10 @@ export function IncidentDetailSheet({ incident, onClose, onUpdate, onEdit }: Pro
                         <p className="text-xs leading-relaxed" style={{ color: 'var(--foreground)' }}>
                           {incident.loss_effect || 'Hər hansı maliyyə itkisi qeyd olunmayıb.'}
                         </p>
-                        {incident.loss_amount !== undefined && (
+                        {incident.loss_amount != null && (
                           <div className="flex items-center gap-1 text-xs font-bold text-red-500 pt-1 border-t" style={{ borderColor: 'var(--border)' }}>
                             <DollarSign className="w-3.5 h-3.5" />
-                            İtki Məbləği: {incident.loss_amount.toLocaleString()} {incident.loss_currency || 'AZN'}
+                            İtki Məbləği: {Number(incident.loss_amount).toLocaleString()} {incident.loss_currency || 'AZN'}
                           </div>
                         )}
                       </div>
