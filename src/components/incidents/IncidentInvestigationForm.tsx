@@ -9,7 +9,6 @@ import { inherentLevelWord, residualLevelWord } from '@/lib/rcsa-methodology'
 import { resolveOwnerFromUnit } from '@/lib/org'
 import type { Incident, OrgUnit, Risk, Control, EffectivenessRating, ComplianceObligation, UserProfile } from '@/types'
 import { toast } from 'sonner'
-import { MOCK_USERS } from '@/lib/seed-data'
 
 const ROOT_CAUSE_CATEGORIES = [
   { value: 'process',       label: 'Proses (Process)' },
@@ -133,6 +132,9 @@ export function IncidentInvestigationForm({ data, onChange }: Props) {
     onChange({ ...data, affected_departments: next })
   }
 
+  // Risk management team — investigation lead & members are chosen from here only.
+  const riskTeam = useMemo(() => profiles.filter(p => p.role === 'admin' || p.role === 'risk_manager'), [profiles])
+
   const inputStyle = { background: 'var(--muted)', border: '1px solid var(--border)', color: 'var(--foreground)' }
   const fieldCls = 'w-full px-3 py-2 rounded-lg text-sm outline-none transition-colors'
   const labelCls = 'block text-xs font-medium mb-1.5'
@@ -141,39 +143,46 @@ export function IncidentInvestigationForm({ data, onChange }: Props) {
 
   return (
     <div className="space-y-4">
-      {/* Investigation Lead */}
+      {/* Investigation Lead — chosen from the risk management team (dept head) */}
       <div>
         <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Araşdırma Rəhbəri</label>
         <select value={data.investigation_lead ?? ''}
           onChange={e => onChange({ ...data, investigation_lead: e.target.value })}
           className={`${fieldCls} cursor-pointer`} style={inputStyle}>
-          <option value="">— Seçin —</option>
-          {MOCK_USERS.map(u => <option key={u.id} value={u.full_name}>{u.full_name}</option>)}
+          <option value="">— Seçin (risk komandası) —</option>
+          {riskTeam.map(u => <option key={u.id} value={u.full_name}>{u.full_name}</option>)}
         </select>
       </div>
 
-      {/* Investigation Members (team) */}
+      {/* Investigation Members — same risk team group; dropdown to add + chips */}
       <div>
         <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Araşdırma Üzvləri</label>
-        <div className="flex flex-wrap gap-1.5">
-          {MOCK_USERS.map(u => {
-            const on = (data.investigation_members ?? []).includes(u.full_name)
-            return (
-              <button key={u.id} type="button"
-                onClick={() => {
-                  const cur = data.investigation_members ?? []
-                  const next = on ? cur.filter(m => m !== u.full_name) : [...cur, u.full_name]
-                  onChange({ ...data, investigation_members: next })
-                }}
-                className="px-2.5 py-1 rounded-full text-[11px] font-medium border transition-colors"
-                style={on
-                  ? { background: 'var(--brand-500)', color: '#fff', borderColor: 'var(--brand-500)' }
-                  : { background: 'var(--muted)', color: 'var(--muted-fg)', borderColor: 'var(--border)' }}>
-                {u.full_name}
-              </button>
-            )
-          })}
-        </div>
+        <select value=""
+          onChange={e => {
+            const name = e.target.value
+            if (!name) return
+            const cur = data.investigation_members ?? []
+            if (!cur.includes(name)) onChange({ ...data, investigation_members: [...cur, name] })
+          }}
+          className={`${fieldCls} cursor-pointer`} style={inputStyle}>
+          <option value="">— Üzv əlavə et (risk komandası) —</option>
+          {riskTeam
+            .filter(u => u.full_name !== data.investigation_lead && !(data.investigation_members ?? []).includes(u.full_name))
+            .map(u => <option key={u.id} value={u.full_name}>{u.full_name}</option>)}
+        </select>
+        {(data.investigation_members ?? []).length > 0 && (
+          <div className="flex flex-wrap gap-1.5 mt-2">
+            {(data.investigation_members ?? []).map(m => (
+              <span key={m} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium"
+                style={{ background: 'var(--brand-500)', color: '#fff' }}>
+                {m}
+                <button type="button" aria-label={`${m} sil`}
+                  onClick={() => onChange({ ...data, investigation_members: (data.investigation_members ?? []).filter(x => x !== m) })}
+                  className="hover:opacity-80 font-bold leading-none">×</button>
+              </span>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Investigation Dates */}

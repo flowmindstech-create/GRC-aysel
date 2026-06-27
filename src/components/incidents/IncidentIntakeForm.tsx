@@ -10,23 +10,28 @@ import type { Incident, IncidentPriority, IncidentSeverity, AttachedFile, OrgUni
 import { MOCK_USERS } from '@/lib/seed-data'
 import { RISK_CATEGORIES, type RiskCategory } from '@/lib/risk-categories'
 import { incidentSubcategories } from '@/lib/incident-categories'
+import { RcsaDropdown } from '@/components/risks/RcsaDropdown'
+import { LIKELIHOOD_OPTIONS, IMPACT_LEVEL_LABELS, type ScaleOption } from '@/lib/rcsa-methodology'
 
 const THREE_MONTHS_MS = 90 * 24 * 60 * 60 * 1000
 
-// ── Priority calculator ─────────────────────────────────────────────────────
-export function calcPriority(likelihood: number, impact: number): IncidentPriority {
-  const score = likelihood * impact
-  if (score >= 20) return 'P1_critical'
-  if (score >= 15) return 'P2_high'
-  if (score >= 10) return 'P3_medium'
-  if (score >= 5) return 'P4_low'
-  return 'P5_minimal'
-}
-
-// Severity is derived from likelihood × impact (same 5×5 matrix as the risk
-// register) — never selected manually, so incident and risk stay consistent.
+// Severity is derived from the 5×5 inherent matrix (same as the risk register) —
+// never selected manually, so incident and risk stay consistent.
 export function calcSeverity(likelihood: number, impact: number): IncidentSeverity {
   return calculateInherentLevel(likelihood, impact)
+}
+
+// Priority is a direct relabel of severity — SAME single source (the 5×5 matrix),
+// so Severity and Priority can never disagree (e.g. Medium → P3-Medium).
+const SEVERITY_TO_PRIORITY: Record<IncidentSeverity, IncidentPriority> = {
+  critical: 'P1_critical',
+  high:     'P2_high',
+  medium:   'P3_medium',
+  low:      'P4_low',
+  minimal:  'P5_minimal',
+}
+export function calcPriority(likelihood: number, impact: number): IncidentPriority {
+  return SEVERITY_TO_PRIORITY[calcSeverity(likelihood, impact)]
 }
 
 const SEVERITY_CONFIG: Record<IncidentSeverity, { label: string; classes: string }> = {
@@ -51,40 +56,19 @@ export const PRIORITY_CONFIG: Record<IncidentPriority, { label: string; classes:
   P5_minimal: { label: 'P5 — Minimal', classes: 'bg-slate-500/15 text-slate-400 border-slate-500/25' },
 }
 
-const LIKELIHOOD_DESC = [
-  'Nadir (1-2%)', 'Az ehtimallı (3-10%)', 'Mümkün (11-20%)', 'Ehtimallı (21-50%)', 'Demək olar ki mütləq (>50%)',
-]
-const IMPACT_DESC = [
-  'Cüzi təsir', 'Kiçik təsir', 'Mülayim təsir', 'Əhəmiyyətli təsir', 'Fəlakətli təsir',
-]
-
-// ── Rating Scale Component ──────────────────────────────────────────────────
-function RatingScale({ label, value, onChange, descriptions }: {
-  label: string; value: number; onChange: (v: number) => void; descriptions: string[]
-}) {
-  return (
-    <div>
-      <label className="block text-xs font-semibold mb-2" style={{ color: 'var(--foreground)' }}>{label}</label>
-      <div className="flex gap-1.5">
-        {[1, 2, 3, 4, 5].map(n => (
-          <button key={n} type="button" onClick={() => onChange(n)}
-            className={cn(
-              'w-10 h-10 rounded-lg text-sm font-bold transition-all',
-              value === n
-                ? 'text-white scale-110 shadow-lg'
-                : 'hover:brightness-110'
-            )}
-            style={
-              value === n
-                ? { background: 'var(--brand-500)', boxShadow: '0 4px 12px rgba(14,165,233,0.3)' }
-                : { background: 'var(--muted)', color: 'var(--muted-fg)' }
-            }>{n}</button>
-        ))}
-      </div>
-      <p className="text-[10px] mt-1.5" style={{ color: 'var(--muted-fg)' }}>{descriptions[value - 1]}</p>
-    </div>
-  )
-}
+// Generic single-impact scale (5 levels) with per-level meaning — used in the
+// incident intake dropdown (same RcsaDropdown widget as the risk register).
+const IMPACT_OPTIONS: ScaleOption[] = IMPACT_LEVEL_LABELS.map((label, i) => ({
+  value: i + 1,
+  label,
+  desc: [
+    'Cüzi təsir — əməliyyata/maliyyəyə demək olar təsir yoxdur',
+    'Kiçik təsir — məhdud, asanlıqla aradan qaldırılan təsir',
+    'Mülayim təsir — nəzərəçarpan, idarə oluna bilən təsir',
+    'Əhəmiyyətli təsir — ciddi əməliyyat/maliyyə/nüfuz təsiri',
+    'Fəlakətli təsir — kritik, geniş miqyaslı təsir',
+  ][i],
+}))
 
 // ── Main Intake Form ────────────────────────────────────────────────────────
 interface Props {
@@ -321,12 +305,12 @@ export function IncidentIntakeForm({ data, onChange }: Props) {
         Severity & Priority (Auto-Calculated)
       </p>
       <div className="grid grid-cols-2 gap-4">
-        <RatingScale label="Likelihood (1-5)" value={likelihood}
-          onChange={v => onChange({ ...data, likelihood: v })}
-          descriptions={LIKELIHOOD_DESC} />
-        <RatingScale label="Impact (1-5)" value={impact}
-          onChange={v => onChange({ ...data, impact: v })}
-          descriptions={IMPACT_DESC} />
+        <RcsaDropdown label="Likelihood (1-5)" value={likelihood}
+          options={LIKELIHOOD_OPTIONS}
+          onChange={v => onChange({ ...data, likelihood: v })} />
+        <RcsaDropdown label="Impact (1-5)" value={impact}
+          options={IMPACT_OPTIONS}
+          onChange={v => onChange({ ...data, impact: v })} />
       </div>
 
       {/* Auto Severity + Priority Badges (derived from likelihood × impact) */}
@@ -341,6 +325,9 @@ export function IncidentIntakeForm({ data, onChange }: Props) {
           Score: {likelihood} × {impact} = {likelihood * impact}
         </span>
       </div>
+      <p className="text-[10px] -mt-2" style={{ color: 'var(--muted-fg)' }}>
+        Severity və Priority eyni 5×5 matrisdən (Likelihood × Impact) hesablanır — risk register ilə eyni metodologiya.
+      </p>
 
       {/* Loss Effect */}
       <p className="text-[11px] font-bold uppercase tracking-wide pt-1" style={{ color: 'var(--brand-500)' }}>
@@ -354,9 +341,14 @@ export function IncidentIntakeForm({ data, onChange }: Props) {
       </div>
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>İtki Məbləği</label>
-          <input type="number" value={data.loss_amount ?? ''} onChange={e => onChange({ ...data, loss_amount: Number(e.target.value) || undefined })}
-            placeholder="0.00" className={fieldCls} style={inputStyle} onFocus={focus} onBlur={blur} />
+          <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>İtki Məbləği <span className="text-red-400">*</span></label>
+          <input type="number" min={0} step="0.01" inputMode="decimal" value={data.loss_amount ?? ''}
+            onChange={e => {
+              const v = e.target.value
+              onChange({ ...data, loss_amount: v === '' ? undefined : Math.max(0, Number(v)) })
+            }}
+            placeholder="0.00 (məcburi — yalnız rəqəm)" className={fieldCls} style={inputStyle} onFocus={focus} onBlur={blur} />
+          <p className="text-[10px] mt-0.5" style={{ color: 'var(--muted-fg)' }}>İtki yoxdursa 0 yazın</p>
         </div>
         <div>
           <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Valyuta</label>

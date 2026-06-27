@@ -91,7 +91,8 @@ export function IncidentFormDialog({ incident, onClose, onSave }: Props) {
   // Basic validation per step
   const validateStep = (step: number): boolean => {
     if (step === 0) {
-      return !!(formData.title?.trim() && formData.description?.trim())
+      // Title + description + mandatory numeric loss amount (0 allowed)
+      return !!(formData.title?.trim() && formData.description?.trim()) && formData.loss_amount != null
     }
     if (step === 2) {
       // If status is set to done/closed, require resolution summary

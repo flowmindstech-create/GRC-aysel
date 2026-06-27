@@ -52,12 +52,21 @@ export function IncidentTable() {
   // incidents they reported or are assigned to (RLS enforces this server-side too).
   const isManager = profile?.role === 'admin' || profile?.role === 'risk_manager'
   const myId = profile?.id
+  const myName = profile?.full_name
 
+  // Confidentiality: an incident is visible only to the risk team (all), the
+  // reporter, the assigned investigation lead/member, and the resolution assignee.
   const filtered = incidents.filter(i => {
     const matchS = (i.title ?? '').toLowerCase().includes(search.toLowerCase())
     const matchSev = severity === 'all' || i.severity === severity
     const matchSt = status === 'all' || i.status === status
-    const matchTier = isManager || i.reported_by === myId || i.assigned_to === myId || i.resolution_assignee === myId
+    const matchTier = isManager
+      || i.reported_by === myId || i.assigned_to === myId || i.resolution_assignee === myId
+      || (!!myName && (
+        i.reporter_person === myName
+        || i.investigation_lead === myName
+        || (i.investigation_members ?? []).includes(myName)
+      ))
     return matchS && matchSev && matchSt && matchTier
   })
 
