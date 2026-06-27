@@ -36,7 +36,9 @@ export function IncidentResolutionForm({ data, onChange }: Props) {
       title: '',
       status: 'pending',
       kind,
-      control_mode: kind === 'collective' ? 'improve_existing' : undefined,
+      // Preventive measure carries the control plan (optimize current / new control);
+      // corrective is just the immediate fix.
+      control_mode: kind === 'preventive' ? 'improve_existing' : undefined,
     }
     onChange({ ...data, corrective_actions: [...actions, newAction] })
   }
@@ -128,7 +130,7 @@ export function IncidentResolutionForm({ data, onChange }: Props) {
             <button type="button" onClick={() => addAction('collective')}
               className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-colors hover:bg-sky-500/10"
               style={{ color: 'var(--brand-500)' }}>
-              <Plus className="w-3 h-3" /> Kollektiv
+              <Plus className="w-3 h-3" /> Korrektiv
             </button>
             <button type="button" onClick={() => addAction('preventive')}
               className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-colors hover:bg-violet-500/10"
@@ -138,7 +140,7 @@ export function IncidentResolutionForm({ data, onChange }: Props) {
           </div>
         </div>
         <p className="text-[10px] mb-2" style={{ color: 'var(--muted-fg)' }}>
-          Kollektiv = hadisənin həlli · Preventiv = root cause ilə bağlı qarşılayıcı tədbir
+          Korrektiv = insidenti aradan qaldırmaq üçün dərhal görülən iş · Preventiv = kök səbəbə qarşı gələcək tədbir (kontrol)
         </p>
 
         {actions.length === 0 && (
@@ -154,7 +156,7 @@ export function IncidentResolutionForm({ data, onChange }: Props) {
               <div className="flex items-center justify-between gap-2">
                 <span className={cn('text-[10px] font-bold px-1.5 py-0.5 rounded',
                   action.kind === 'preventive' ? 'bg-violet-500/15 text-violet-400' : 'bg-sky-500/15 text-sky-400')}>
-                  #{idx + 1} {action.kind === 'preventive' ? 'Preventiv' : 'Kollektiv'}
+                  #{idx + 1} {action.kind === 'preventive' ? 'Preventiv' : 'Korrektiv'}
                 </span>
                 <div className="flex items-center gap-1">
                   {(['pending', 'in_progress', 'done'] as const).map(s => {
@@ -177,15 +179,15 @@ export function IncidentResolutionForm({ data, onChange }: Props) {
                 className="w-full px-2.5 py-1.5 rounded-lg text-xs outline-none"
                 style={{ background: 'var(--card)', border: '1px solid var(--border)', color: 'var(--foreground)' }} />
 
-              {/* Collective measure → improve existing control OR create new (pending) control */}
-              {action.kind === 'collective' && (
+              {/* Preventive measure → optimize current control OR apply a new (pending) control */}
+              {action.kind === 'preventive' && (
                 <div className="space-y-2">
                   <div className="flex gap-1 p-1 rounded-lg" style={{ background: 'var(--card)' }}>
                     {(['improve_existing', 'new_control'] as const).map(m => (
                       <button key={m} type="button" onClick={() => updateAction(action.id, { control_mode: m })}
                         className="flex-1 py-1 rounded text-[10px] font-semibold transition-all"
                         style={action.control_mode === m ? { background: 'var(--brand-500)', color: '#fff' } : { color: 'var(--muted-fg)' }}>
-                        {m === 'improve_existing' ? 'Mövcud kontrolu təkmilləşdir' : 'Yeni kontrol'}
+                        {m === 'improve_existing' ? 'Cari kontrolu optimallaşdır' : 'Yeni kontrol tətbiq et'}
                       </button>
                     ))}
                   </div>

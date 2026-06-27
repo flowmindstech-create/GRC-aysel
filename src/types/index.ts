@@ -231,6 +231,15 @@ export interface Incident {
   reporter_person?: string            // person reporting (dependent on reporter_structure, phase 32)
   risk_category?: RiskCategory        // parent risk category (phase 38)
   incident_category?: string          // incident sub-category of risk_category (phase 38)
+  incident_control_assessment?: {     // RCSA 6 sub-criteria for the current control (phase 39)
+    design_compliance?: number
+    design_strength?: number
+    design_timeliness?: number
+    impl_relevance?: number
+    impl_sustainability?: number
+    impl_traceability?: number
+  }
+  clarifying_qa?: Record<string, string>  // investigation clarifying questions → answers (phase 39)
   compliance_obligation_id?: string   // linked compliance obligation (flagged non-compliant, phase 32)
   root_cause_whys?: string[]          // 5-Why chain; last = final root cause (phase 32)
   // ── Resolution fields (Pəncərə 3) ──────────────────────

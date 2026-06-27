@@ -3,11 +3,12 @@
 import { useState, useEffect, useMemo } from 'react'
 import { cn } from '@/lib/utils'
 import { db } from '@/lib/db'
-import { calculateInherentLevel, calculateResidualLevel } from '@/lib/rcsa'
-import type { ControlRating } from '@/lib/rcsa'
-import { inherentLevelWord, residualLevelWord } from '@/lib/rcsa-methodology'
+import { calculateInherentLevel, calculateResidualLevel, evaluateControlEffectiveness } from '@/lib/rcsa'
+import { inherentLevelWord, residualLevelWord, CONTROL_SUBCRITERIA, CONTROL_RATING_INFO } from '@/lib/rcsa-methodology'
+import { RcsaDropdown } from '@/components/risks/RcsaDropdown'
+import { priorityFromLevel } from './IncidentIntakeForm'
 import { resolveOwnerFromUnit } from '@/lib/org'
-import type { Incident, OrgUnit, Risk, Control, EffectivenessRating, ComplianceObligation, UserProfile } from '@/types'
+import type { Incident, OrgUnit, Risk, Control, ComplianceObligation, UserProfile, Vendor, InterestedParty } from '@/types'
 import { toast } from 'sonner'
 
 const ROOT_CAUSE_CATEGORIES = [
@@ -18,16 +19,26 @@ const ROOT_CAUSE_CATEGORIES = [
   { value: 'third_party',   label: 'Üçüncü tərəf (Third party)' },
 ] as const
 
-// Map a control's effectiveness rating to the RCSA control rating used by the
-// residual matrix (same engine as the risk register).
-function effToRating(eff: EffectivenessRating | undefined): ControlRating {
-  switch (eff) {
-    case 'effective': return 'strong'
-    case 'partially_effective': return 'adequate'
-    case 'ineffective': return 'weak'
-    default: return 'relatively_adequate'
-  }
-}
+// 6-stage incident status (same as the detail sheet) — also editable in investigation.
+const STATUS_OPTIONS: { value: Incident['status']; label: string }[] = [
+  { value: 'open', label: 'Open' },
+  { value: 'review_by_risk_manager', label: 'Review by Risk Manager' },
+  { value: 'root_cause_analysis', label: 'Root Cause Analysis' },
+  { value: 'resolution', label: 'Resolution' },
+  { value: 'done', label: 'Done' },
+  { value: 'closed', label: 'Closed' },
+]
+
+// Fixed clarifying questions (replace the old free "investigation notes").
+const CLARIFYING_QUESTIONS = [
+  'Nə baş verdi?',
+  'Necə aşkarlandı?',
+  'Kim / nə təsirləndi?',
+  'Nə vaxt baş verdi / nə qədər davam etdi?',
+  'İlkin / ehtimal olunan səbəb nədir?',
+]
+
+const todayLocal = () => new Date().toISOString().slice(0, 10)
 
 interface Props {
   data: Partial<Incident>
@@ -40,6 +51,8 @@ export function IncidentInvestigationForm({ data, onChange }: Props) {
   const [controls, setControls] = useState<Control[]>([])
   const [obligations, setObligations] = useState<ComplianceObligation[]>([])
   const [profiles, setProfiles] = useState<UserProfile[]>([])
+  const [vendors, setVendors] = useState<Vendor[]>([])
+  const [parties, setParties] = useState<InterestedParty[]>([])
   const [processControlIds, setProcessControlIds] = useState<string[] | null>(null)
   const [flagging, setFlagging] = useState(false)
 
@@ -51,6 +64,8 @@ export function IncidentInvestigationForm({ data, onChange }: Props) {
     db.getControls().then(setControls)
     db.getObligations().then(setObligations)
     db.getProfiles().then(setProfiles)
+    db.getVendors().then(setVendors)
+    db.getInterestedParties().then(setParties)
   }, [])
 
   // Assign resolution to a department's ERO (head) — dependent dropdown
@@ -104,19 +119,35 @@ export function IncidentInvestigationForm({ data, onChange }: Props) {
     () => calculateInherentLevel(data.likelihood ?? 3, data.impact ?? 3),
     [data.likelihood, data.impact],
   )
-  const currentControl = controls.find(c => c.id === data.control_id)
+  // Control effectiveness from the 6-criteria RCSA assessment (same engine as the
+  // risk register). Only counts once a current control is selected.
+  const controlEval = useMemo(() => {
+    if (!data.control_id) return null
+    const a = data.incident_control_assessment ?? {}
+    return evaluateControlEffectiveness(
+      a.design_compliance ?? 3, a.design_strength ?? 3, a.design_timeliness ?? 3,
+      a.impl_relevance ?? 3, a.impl_sustainability ?? 3, a.impl_traceability ?? 3,
+    )
+  }, [data.control_id, data.incident_control_assessment])
+
   const residualLevel = useMemo(
-    () => currentControl ? calculateResidualLevel(inherentLevel, effToRating(currentControl.effectiveness_rating)) : inherentLevel,
-    [inherentLevel, currentControl],
+    () => controlEval ? calculateResidualLevel(inherentLevel, controlEval.rating) : inherentLevel,
+    [inherentLevel, controlEval],
   )
 
-  // Persist the computed residual on the incident
+  // Persist residual + derive priority FROM residual (residual → priority single source)
   useEffect(() => {
-    if (data.incident_residual_level !== residualLevel) {
-      onChange({ ...data, incident_residual_level: residualLevel })
+    const p = priorityFromLevel(residualLevel)
+    if (data.incident_residual_level !== residualLevel || data.priority !== p) {
+      onChange({ ...data, incident_residual_level: residualLevel, priority: p })
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [residualLevel])
+
+  // Patch a single RCSA control sub-criterion on the incident
+  function setControlCriterion(key: string, v: number) {
+    onChange({ ...data, incident_control_assessment: { ...(data.incident_control_assessment ?? {}), [key]: v } })
+  }
 
   // Auto-set investigation start
   useEffect(() => {
@@ -126,14 +157,18 @@ export function IncidentInvestigationForm({ data, onChange }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  function toggleDept(name: string) {
-    const current = data.affected_departments ?? []
-    const next = current.includes(name) ? current.filter(d => d !== name) : [...current, name]
-    onChange({ ...data, affected_departments: next })
-  }
-
   // Risk management team — investigation lead & members are chosen from here only.
   const riskTeam = useMemo(() => profiles.filter(p => p.role === 'admin' || p.role === 'risk_manager'), [profiles])
+
+  // Affected parties = all structures + vendors + interested/3rd parties (names, deduped).
+  const affectedPartyOptions = useMemo(() => {
+    const names = [
+      ...departments.map(d => d.name),
+      ...vendors.map(v => v.name),
+      ...parties.map(p => p.name),
+    ].filter(Boolean)
+    return Array.from(new Set(names))
+  }, [departments, vendors, parties])
 
   const inputStyle = { background: 'var(--muted)', border: '1px solid var(--border)', color: 'var(--foreground)' }
   const fieldCls = 'w-full px-3 py-2 rounded-lg text-sm outline-none transition-colors'
@@ -143,6 +178,47 @@ export function IncidentInvestigationForm({ data, onChange }: Props) {
 
   return (
     <div className="space-y-4">
+      {/* Status (6-stage) + SLA — top of investigation */}
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Status</label>
+          <select value={data.status ?? 'open'}
+            onChange={e => onChange({ ...data, status: e.target.value as Incident['status'] })}
+            className={`${fieldCls} cursor-pointer`} style={inputStyle}>
+            {STATUS_OPTIONS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
+          </select>
+        </div>
+        <div>
+          <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>SLA (son tarix)</label>
+          <input type="text" readOnly
+            value={data.sla_due_date ? new Date(data.sla_due_date).toLocaleDateString('az-AZ') : '— (prioritetə görə təyin olunur)'}
+            className={`${fieldCls} opacity-70`} style={inputStyle} />
+        </div>
+      </div>
+
+      {/* Resolution assignment — Department → responsible person (auto) */}
+      <p className="text-[11px] font-bold uppercase tracking-wide pt-1" style={{ color: 'var(--brand-500)' }}>
+        Həll üzrə Təyinat
+      </p>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Assign Department</label>
+          <select value={data.assigned_dept ?? ''} onChange={e => handleAssignDept(e.target.value)}
+            className={`${fieldCls} cursor-pointer`} style={inputStyle}>
+            <option value="">— Seçin —</option>
+            {departments.map(d => <option key={d.id} value={d.name}>{d.name}</option>)}
+          </select>
+        </div>
+        <div>
+          <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Məsul şəxs (avtomatik)</label>
+          <input value={data.resolution_assignee_name ?? ''} readOnly placeholder="Departament rəhbəri"
+            className={`${fieldCls} opacity-70`} style={inputStyle} />
+        </div>
+      </div>
+      <p className="text-[10px]" style={{ color: 'var(--muted-fg)' }}>
+        Departament seçiləndə məsul şəxs avtomatik gəlir; təyinatdan sonra həll yalnız bu şəxsdə açılır.
+      </p>
+
       {/* Investigation Lead — chosen from the risk management team (dept head) */}
       <div>
         <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Araşdırma Rəhbəri</label>
@@ -189,9 +265,10 @@ export function IncidentInvestigationForm({ data, onChange }: Props) {
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Başlanğıc Tarixi</label>
-          <input type="date" value={data.investigation_start?.split('T')[0] ?? ''}
-            onChange={e => onChange({ ...data, investigation_start: e.target.value })}
+          <input type="date" max={todayLocal()} value={data.investigation_start?.split('T')[0] ?? ''}
+            onChange={e => { const v = e.target.value; onChange({ ...data, investigation_start: v && v > todayLocal() ? todayLocal() : v }) }}
             className={fieldCls} style={inputStyle} onFocus={focus} onBlur={blur} />
+          <p className="text-[10px] mt-0.5" style={{ color: 'var(--muted-fg)' }}>Gələcək tarix seçmək olmaz</p>
         </div>
         <div>
           <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Bitmə Tarixi</label>
@@ -227,19 +304,49 @@ export function IncidentInvestigationForm({ data, onChange }: Props) {
         </div>
       </div>
 
-      {/* Inherent → Control → Residual (same engine as risk register) */}
+      {/* Control effectiveness — RCSA 6 sub-criteria (same as risk register) */}
+      {data.control_id && (
+        <div className="rounded-xl border p-3 space-y-3" style={{ borderColor: 'var(--border)', background: 'var(--muted)' }}>
+          <div className="flex items-center justify-between">
+            <p className="text-[11px] font-bold uppercase tracking-wide" style={{ color: 'var(--brand-500)' }}>Kontrol Effektivliyi (RCSA)</p>
+            {controlEval && (
+              <span className="text-[10px] font-black text-sky-400 uppercase">{CONTROL_RATING_INFO[controlEval.rating].label} · {controlEval.score.toFixed(2)}</span>
+            )}
+          </div>
+          <div className="space-y-1">
+            <span className="text-[10px] uppercase font-bold text-sky-400 tracking-wider">Nəzarətin dizaynı</span>
+            <div className="grid grid-cols-3 gap-2">
+              {CONTROL_SUBCRITERIA.filter(s => s.group === 'design').map(s => (
+                <RcsaDropdown key={s.key} label={s.label} value={(data.incident_control_assessment?.[s.key as keyof NonNullable<Incident['incident_control_assessment']>] as number) || 3}
+                  options={s.options} onChange={v => setControlCriterion(s.key, v)} />
+              ))}
+            </div>
+          </div>
+          <div className="space-y-1">
+            <span className="text-[10px] uppercase font-bold text-sky-400 tracking-wider">Nəzarətin tətbiqi</span>
+            <div className="grid grid-cols-3 gap-2">
+              {CONTROL_SUBCRITERIA.filter(s => s.group === 'implementation').map(s => (
+                <RcsaDropdown key={s.key} label={s.label} value={(data.incident_control_assessment?.[s.key as keyof NonNullable<Incident['incident_control_assessment']>] as number) || 3}
+                  options={s.options} onChange={v => setControlCriterion(s.key, v)} />
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Inherent → Residual → Priority (single source: 5×5 + RCSA) */}
       <div className="grid grid-cols-3 gap-2">
         <div className="rounded-lg px-2 py-1.5" style={{ background: 'var(--muted)' }}>
           <p className="text-[9px] uppercase" style={{ color: 'var(--muted-fg)' }}>İlkin (Inherent)</p>
           <p className="text-xs font-semibold" style={{ color: 'var(--foreground)' }}>{inherentLevelWord(inherentLevel)}</p>
         </div>
         <div className="rounded-lg px-2 py-1.5" style={{ background: 'var(--muted)' }}>
-          <p className="text-[9px] uppercase" style={{ color: 'var(--muted-fg)' }}>Kontrol effektivliyi</p>
-          <p className="text-xs font-semibold capitalize" style={{ color: 'var(--foreground)' }}>{currentControl?.effectiveness_rating ?? '—'}</p>
-        </div>
-        <div className="rounded-lg px-2 py-1.5" style={{ background: 'var(--muted)' }}>
           <p className="text-[9px] uppercase" style={{ color: 'var(--muted-fg)' }}>Residual</p>
           <p className="text-xs font-semibold" style={{ color: 'var(--brand-500)' }}>{residualLevelWord(residualLevel)}</p>
+        </div>
+        <div className="rounded-lg px-2 py-1.5" style={{ background: 'var(--muted)' }}>
+          <p className="text-[9px] uppercase" style={{ color: 'var(--muted-fg)' }}>Priority</p>
+          <p className="text-xs font-semibold capitalize" style={{ color: 'var(--foreground)' }}>{(data.priority ?? priorityFromLevel(residualLevel)).replace('_', ' — ')}</p>
         </div>
       </div>
 
@@ -302,64 +409,51 @@ export function IncidentInvestigationForm({ data, onChange }: Props) {
           className={`${fieldCls} resize-none`} style={inputStyle} onFocus={focus} onBlur={blur} />
       </div>
 
-      {/* Investigation Notes */}
+      {/* Clarifying questions (replaces free investigation notes) */}
       <div>
-        <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Araşdırma Qeydləri</label>
-        <textarea value={data.investigation_notes ?? ''} onChange={e => onChange({ ...data, investigation_notes: e.target.value })} rows={3}
-          placeholder="Araşdırma prosesi, tapıntılar, sübutlar..."
-          className={`${fieldCls} resize-none`} style={inputStyle} onFocus={focus} onBlur={blur} />
-      </div>
-
-      {/* Affected Systems */}
-      <div>
-        <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Təsirlənmiş Sistemlər</label>
-        <input value={(data.affected_systems ?? []).join(', ')}
-          onChange={e => onChange({ ...data, affected_systems: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
-          placeholder="CRM, ERP, Core Banking... (vergüllə ayırın)"
-          className={fieldCls} style={inputStyle} onFocus={focus} onBlur={blur} />
-      </div>
-
-      {/* Affected Departments */}
-      <div>
-        <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Təsirlənmiş Departamentlər</label>
-        <div className="flex flex-wrap gap-1.5">
-          {departments.map(d => {
-            const on = (data.affected_departments ?? []).includes(d.name)
-            return (
-              <button key={d.id} type="button" onClick={() => toggleDept(d.name)}
-                className="px-2.5 py-1 rounded-full text-[11px] font-medium border transition-colors"
-                style={on
-                  ? { background: 'var(--brand-500)', color: '#fff', borderColor: 'var(--brand-500)' }
-                  : { background: 'var(--muted)', color: 'var(--muted-fg)', borderColor: 'var(--border)' }}>
-                {d.name}
-              </button>
-            )
-          })}
+        <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Dəqiqləşdirmə sualları</label>
+        <div className="space-y-2">
+          {CLARIFYING_QUESTIONS.map((q, i) => (
+            <div key={i}>
+              <p className="text-[11px] font-medium mb-1" style={{ color: 'var(--foreground)' }}>{i + 1}. {q}</p>
+              <textarea rows={2}
+                value={data.clarifying_qa?.[String(i)] ?? ''}
+                onChange={e => onChange({ ...data, clarifying_qa: { ...(data.clarifying_qa ?? {}), [String(i)]: e.target.value } })}
+                placeholder="Cavab..."
+                className={`${fieldCls} resize-none`} style={inputStyle} onFocus={focus} onBlur={blur} />
+            </div>
+          ))}
         </div>
       </div>
 
-      {/* Assign resolution → ERO (Dept → head) */}
-      <p className="text-[11px] font-bold uppercase tracking-wide pt-1" style={{ color: 'var(--brand-500)' }}>
-        Resolution Təyinatı (ERO)
-      </p>
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Assign Department</label>
-          <select value={data.assigned_dept ?? ''} onChange={e => handleAssignDept(e.target.value)}
-            className={`${fieldCls} cursor-pointer`} style={inputStyle}>
-            <option value="">— Seçin —</option>
-            {departments.map(d => <option key={d.id} value={d.name}>{d.name}</option>)}
-          </select>
-        </div>
-        <div>
-          <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>ERO (auto)</label>
-          <input value={data.resolution_assignee_name ?? ''} readOnly placeholder="Departament rəhbəri"
-            className={`${fieldCls} opacity-70`} style={inputStyle} />
-        </div>
+      {/* Affected Parties — structures + vendors + interested/3rd parties (dropdown + chips) */}
+      <div>
+        <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Təsirlənmiş Tərəflər</label>
+        <select value=""
+          onChange={e => {
+            const name = e.target.value
+            if (!name) return
+            const cur = data.affected_departments ?? []
+            if (!cur.includes(name)) onChange({ ...data, affected_departments: [...cur, name] })
+          }}
+          className={`${fieldCls} cursor-pointer`} style={inputStyle}>
+          <option value="">— Tərəf əlavə et (struktur / vendor / 3-cü tərəf) —</option>
+          {affectedPartyOptions.filter(n => !(data.affected_departments ?? []).includes(n)).map(n => <option key={n} value={n}>{n}</option>)}
+        </select>
+        {(data.affected_departments ?? []).length > 0 && (
+          <div className="flex flex-wrap gap-1.5 mt-2">
+            {(data.affected_departments ?? []).map(n => (
+              <span key={n} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium"
+                style={{ background: 'var(--brand-500)', color: '#fff' }}>
+                {n}
+                <button type="button" aria-label={`${n} sil`}
+                  onClick={() => onChange({ ...data, affected_departments: (data.affected_departments ?? []).filter(x => x !== n) })}
+                  className="hover:opacity-80 font-bold leading-none">×</button>
+              </span>
+            ))}
+          </div>
+        )}
       </div>
-      <p className="text-[10px]" style={{ color: 'var(--muted-fg)' }}>
-        Təyinatdan sonra risk owner statusu "Resolution"-a keçirir; resolution yalnız bu ERO-da açılır.
-      </p>
     </div>
   )
 }

@@ -34,6 +34,18 @@ export function calcPriority(likelihood: number, impact: number): IncidentPriori
   return SEVERITY_TO_PRIORITY[calcSeverity(likelihood, impact)]
 }
 
+// Priority from an already-computed level (e.g. residual) — used in investigation.
+export function priorityFromLevel(level: IncidentSeverity): IncidentPriority {
+  return SEVERITY_TO_PRIORITY[level]
+}
+
+// Core systems list for the "Affected Systems" picker (intake). Editable here.
+export const INCIDENT_SYSTEMS = [
+  'Core Banking', 'CRM', 'ERP', 'Internet Banking', 'Mobile Banking',
+  'Kart sistemi', 'AML / Sanksiya', 'HR sistemi', 'AD / Şəbəkə', 'Email',
+  'EDMS (sənəd dövriyyəsi)', 'BI / Hesabatlıq', 'Digər',
+]
+
 const SEVERITY_CONFIG: Record<IncidentSeverity, { label: string; classes: string }> = {
   minimal:  { label: 'Minimal',  classes: 'bg-slate-500/15 text-slate-400 border-slate-500/25' },
   low:      { label: 'Low',      classes: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/25' },
@@ -299,6 +311,35 @@ export function IncidentIntakeForm({ data, onChange }: Props) {
           </div>
         </div>
       )}
+
+      {/* Affected Systems — dropdown (add) + chips */}
+      <div>
+        <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Təsirlənmiş Sistemlər</label>
+        <select value=""
+          onChange={e => {
+            const s = e.target.value
+            if (!s) return
+            const cur = data.affected_systems ?? []
+            if (!cur.includes(s)) onChange({ ...data, affected_systems: [...cur, s] })
+          }}
+          className={`${fieldCls} cursor-pointer`} style={inputStyle}>
+          <option value="">— Sistem əlavə et —</option>
+          {INCIDENT_SYSTEMS.filter(s => !(data.affected_systems ?? []).includes(s)).map(s => <option key={s} value={s}>{s}</option>)}
+        </select>
+        {(data.affected_systems ?? []).length > 0 && (
+          <div className="flex flex-wrap gap-1.5 mt-2">
+            {(data.affected_systems ?? []).map(s => (
+              <span key={s} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium"
+                style={{ background: 'var(--brand-500)', color: '#fff' }}>
+                {s}
+                <button type="button" aria-label={`${s} sil`}
+                  onClick={() => onChange({ ...data, affected_systems: (data.affected_systems ?? []).filter(x => x !== s) })}
+                  className="hover:opacity-80 font-bold leading-none">×</button>
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
 
       {/* Likelihood & Impact */}
       <p className="text-[11px] font-bold uppercase tracking-wide pt-1" style={{ color: 'var(--brand-500)' }}>
