@@ -43,9 +43,8 @@ export function IncidentResolutionForm({ data, onChange }: Props) {
     onChange({ ...data, corrective_actions: [...actions, newAction] })
   }
 
-  // Create a NEW control in "pending" state (library + process map) from a CAPA action
-  async function createPendingControl(action: CorrectiveAction) {
-    if (!action.title.trim()) { toast.error('Əvvəlcə tədbirin adını yaz'); return }
+  // Shared: create a pending control (library + process map) and link to the action
+  async function createPendingControlEntry(action: CorrectiveAction, opts: { title: string; description: string }) {
     setCreatingFor(action.id)
     try {
       const now = new Date().toISOString()
@@ -54,26 +53,46 @@ export function IncidentResolutionForm({ data, onChange }: Props) {
         org_id: '',
         framework: 'custom',
         control_id: generateControlCode(controls),
-        title: action.title.trim(),
-        description: `Insidentdən yaradılan kontrol (CAPA). ${data.title ?? ''}`.trim(),
+        title: opts.title,
+        description: opts.description,
         status: 'partial',
         approval_status: 'pending_review',
         control_type: 'corrective',
         created_at: now,
       } as Control)
-      // link to the incident's process if there is one
       if (data.process_id) {
         const existing = await db.getProcessControlIds(data.process_id)
         await db.setProcessControls(data.process_id, [...existing, created.id])
       }
       setControls(prev => [created, ...prev])
-      updateAction(action.id, { created_control_id: created.id, control_id: created.id })
-      toast.success(`Pending kontrol yaradıldı: ${created.control_id} — Library-də təsdiq gözləyir`)
+      updateAction(action.id, { created_control_id: created.id })
+      toast.success(`Sorğu göndərildi: ${created.control_id} — Control Library-də təsdiq gözləyir`)
     } catch {
-      toast.error('Kontrol yaradıla bilmədi')
+      toast.error('Sorğu göndərilə bilmədi')
     } finally {
       setCreatingFor(null)
     }
+  }
+
+  // NEW control request (new_control)
+  async function createPendingControl(action: CorrectiveAction) {
+    if (!action.title.trim()) { toast.error('Əvvəlcə tədbirin adını yaz'); return }
+    await createPendingControlEntry(action, {
+      title: action.title.trim(),
+      description: `${action.description?.trim() || 'Insidentdən yaradılan kontrol (CAPA).'} · İnsident: ${data.title ?? ''}`.trim(),
+    })
+  }
+
+  // OPTIMIZATION request for an existing control (improve_existing) — parent stays
+  // untouched; a separate pending control carries the proposal for risk approval.
+  async function createOptimizationRequest(action: CorrectiveAction) {
+    const parent = controls.find(c => c.id === action.control_id)
+    if (!parent) { toast.error('Əvvəlcə optimallaşdırılacaq kontrolu seç'); return }
+    if (!action.optimization_proposal?.trim()) { toast.error('Optimallaşdırma təklifini yaz'); return }
+    await createPendingControlEntry(action, {
+      title: `Optimizasiya: ${parent.control_id} · ${parent.title}`,
+      description: `Optimallaşdırma təklifi (insident: ${data.title ?? '—'}): ${action.optimization_proposal.trim()}`,
+    })
   }
 
   function updateAction(id: string, updates: Partial<CorrectiveAction>) {
@@ -191,24 +210,59 @@ export function IncidentResolutionForm({ data, onChange }: Props) {
                       </button>
                     ))}
                   </div>
-                  {action.control_mode === 'improve_existing' ? (
-                    <select value={action.control_id ?? ''} onChange={e => updateAction(action.id, { control_id: e.target.value || undefined })}
-                      className="w-full px-2 py-1.5 rounded-lg text-xs outline-none cursor-pointer"
-                      style={{ background: 'var(--card)', border: '1px solid var(--border)', color: 'var(--foreground)' }}>
-                      <option value="">Kontrol seç...</option>
-                      {selectableControls.map(c => <option key={c.id} value={c.id}>{c.control_id} · {c.title}</option>)}
-                    </select>
-                  ) : action.created_control_id ? (
-                    <p className="text-[10px] text-emerald-400 flex items-center gap-1">
-                      <ShieldPlus className="w-3 h-3" /> Pending kontrol yaradıldı — Control Library-də təsdiq gözləyir
-                    </p>
-                  ) : (
-                    <button type="button" onClick={() => createPendingControl(action)} disabled={creatingFor === action.id}
-                      className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold text-white transition-colors disabled:opacity-50"
-                      style={{ background: 'var(--brand-500)' }}>
-                      <ShieldPlus className="w-3.5 h-3.5" /> {creatingFor === action.id ? 'Yaradılır…' : 'Pending kontrol yarat'}
-                    </button>
-                  )}
+                  {(() => {
+                    const linked = action.created_control_id ? controls.find(c => c.id === action.created_control_id) : null
+                    const sent = !!action.created_control_id
+                    const approved = linked?.approval_status === 'approved'
+                    // Reflection badge once a request has been sent
+                    const statusBadge = sent && (
+                      <p className={cn('text-[10px] flex items-center gap-1', approved ? 'text-emerald-400' : 'text-amber-400')}>
+                        <ShieldPlus className="w-3 h-3" />
+                        {approved ? '✅ Təsdiqləndi — kontrol əlavə olundu' : '🟡 Risk Management-də təsdiq gözləyir'}
+                      </p>
+                    )
+
+                    if (action.control_mode === 'improve_existing') {
+                      return (
+                        <div className="space-y-2">
+                          <select value={action.control_id ?? ''} onChange={e => updateAction(action.id, { control_id: e.target.value || undefined })}
+                            className="w-full px-2 py-1.5 rounded-lg text-xs outline-none cursor-pointer"
+                            style={{ background: 'var(--card)', border: '1px solid var(--border)', color: 'var(--foreground)' }}>
+                            <option value="">Optimallaşdırılacaq kontrolu seç...</option>
+                            {selectableControls.map(c => <option key={c.id} value={c.id}>{c.control_id} · {c.title}</option>)}
+                          </select>
+                          <textarea value={action.optimization_proposal ?? ''} onChange={e => updateAction(action.id, { optimization_proposal: e.target.value })}
+                            rows={2} placeholder="Optimallaşdırma təklifi — nə dəyişdirilməlidir..."
+                            className="w-full px-2.5 py-1.5 rounded-lg text-xs outline-none resize-none"
+                            style={{ background: 'var(--card)', border: '1px solid var(--border)', color: 'var(--foreground)' }} />
+                          {sent ? statusBadge : (
+                            <button type="button" onClick={() => createOptimizationRequest(action)} disabled={creatingFor === action.id}
+                              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold text-white transition-colors disabled:opacity-50"
+                              style={{ background: 'var(--brand-500)' }}>
+                              <ShieldPlus className="w-3.5 h-3.5" /> {creatingFor === action.id ? 'Göndərilir…' : 'Risk Management-ə optimizasiya sorğusu göndər'}
+                            </button>
+                          )}
+                        </div>
+                      )
+                    }
+
+                    // new_control
+                    return (
+                      <div className="space-y-2">
+                        <textarea value={action.description ?? ''} onChange={e => updateAction(action.id, { description: e.target.value })}
+                          rows={2} placeholder="Yeni kontrolun təsviri — nə tətbiq olunacaq..."
+                          className="w-full px-2.5 py-1.5 rounded-lg text-xs outline-none resize-none"
+                          style={{ background: 'var(--card)', border: '1px solid var(--border)', color: 'var(--foreground)' }} />
+                        {sent ? statusBadge : (
+                          <button type="button" onClick={() => createPendingControl(action)} disabled={creatingFor === action.id}
+                            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold text-white transition-colors disabled:opacity-50"
+                            style={{ background: 'var(--brand-500)' }}>
+                            <ShieldPlus className="w-3.5 h-3.5" /> {creatingFor === action.id ? 'Yaradılır…' : 'Risk Management-ə yeni kontrol sorğusu göndər'}
+                          </button>
+                        )}
+                      </div>
+                    )
+                  })()}
                 </div>
               )}
 

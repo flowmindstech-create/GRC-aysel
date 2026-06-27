@@ -178,6 +178,7 @@ export interface CorrectiveAction {
   control_mode?: 'improve_existing' | 'new_control'
   control_id?: string                       // existing control being improved
   created_control_id?: string               // pending control created from this action
+  optimization_proposal?: string            // proposal text for improve_existing (phase 40)
 }
 
 export interface Incident {
