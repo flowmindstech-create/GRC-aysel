@@ -370,16 +370,10 @@ export function IncidentIntakeForm({ data, onChange }: Props) {
         Severity və Priority eyni 5×5 matrisdən (Likelihood × Impact) hesablanır — risk register ilə eyni metodologiya.
       </p>
 
-      {/* Loss Effect */}
+      {/* Loss Effect — amount + currency only (free-text description removed: amount is enough) */}
       <p className="text-[11px] font-bold uppercase tracking-wide pt-1" style={{ color: 'var(--brand-500)' }}>
         Loss Effect
       </p>
-      <div>
-        <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Maliyyə İtkisi Təsviri</label>
-        <textarea value={data.loss_effect ?? ''} onChange={e => onChange({ ...data, loss_effect: e.target.value })} rows={2}
-          placeholder="Hansı itkilər baş verdi və ya gözlənilir..."
-          className={`${fieldCls} resize-none`} style={inputStyle} onFocus={focus} onBlur={blur} />
-      </div>
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>İtki Məbləği <span className="text-red-400">*</span></label>
