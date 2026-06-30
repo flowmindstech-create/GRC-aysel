@@ -24,6 +24,7 @@ export function ControlsClient() {
   const [linkMaps, setLinkMaps]   = useState<Record<string, { controlIds: string[]; policyIds: string[] }>>({})
   const [search, setSearch]       = useState('')
   const [fwFilter, setFwFilter]   = useState<string>('all')
+  const [statFilter, setStatFilter] = useState<'all' | 'preventive' | 'detective' | 'failures'>('all')
   const [loading, setLoading]     = useState(true)
   const [showForm, setShowForm]   = useState(false)
   const [editControl, setEditControl] = useState<Control | null>(null)
@@ -80,9 +81,14 @@ export function ControlsClient() {
   }
 
   const frameworks = ['all', ...Array.from(new Set(controls.map(c => c.framework)))]
+  const isFailure = (c: Control) => c.status === 'fail' || c.effectiveness_rating === 'ineffective'
   const filtered = controls.filter(c => {
     const matchSearch = !search || (c.title ?? '').toLowerCase().includes(search.toLowerCase()) || (c.control_id ?? '').toLowerCase().includes(search.toLowerCase())
-    return (fwFilter === 'all' || c.framework === fwFilter) && matchSearch
+    const matchStat =
+      statFilter === 'all' ? true
+      : statFilter === 'failures' ? isFailure(c)
+      : c.control_type === statFilter
+    return (fwFilter === 'all' || c.framework === fwFilter) && matchSearch && matchStat
   })
 
   const stats = {
@@ -94,22 +100,34 @@ export function ControlsClient() {
 
   return (
     <div className="space-y-5">
-      {/* Stats — Gemini layout */}
+      {/* Stats — clickable filters (click a card to show only those controls) */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {[
-          { label: 'Ümumi Nəzarətlər',          value: stats.total,      rgb: '14,165,233' },
-          { label: 'Preventive (Önləyici)',     value: stats.preventive, rgb: '59,130,246' },
-          { label: 'Detective (Aşkarlayıcı)',   value: stats.detective,  rgb: '234,179,8' },
-          { label: 'Sıradan çıxanlar (Failures)', value: stats.failures, rgb: '225,29,72' },
-        ].map((s, i) => (
-          <motion.div key={s.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
-            className="card p-4 overflow-hidden relative">
-            <div className="absolute top-0 left-0 right-0 h-px" style={{ background: `linear-gradient(90deg,transparent,rgba(${s.rgb},0.7),transparent)` }} />
-            <p className="text-2xl font-bold tracking-tight" style={{ color: `rgb(${s.rgb})` }}>{s.value}</p>
-            <p className="text-xs mt-0.5" style={{ color: 'var(--muted-fg)' }}>{s.label}</p>
-          </motion.div>
-        ))}
+        {([
+          { key: 'all',        label: 'Ümumi Nəzarətlər',           value: stats.total,      rgb: '14,165,233' },
+          { key: 'preventive', label: 'Preventive (Önləyici)',      value: stats.preventive, rgb: '59,130,246' },
+          { key: 'detective',  label: 'Detective (Aşkarlayıcı)',    value: stats.detective,  rgb: '234,179,8' },
+          { key: 'failures',   label: 'Sıradan çıxanlar (Failures)', value: stats.failures,  rgb: '225,29,72' },
+        ] as const).map((s, i) => {
+          const active = statFilter === s.key
+          return (
+            <motion.button key={s.label} type="button" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
+              onClick={() => setStatFilter(s.key)} aria-pressed={active}
+              className="card p-4 overflow-hidden relative text-left cursor-pointer transition-all hover:-translate-y-0.5"
+              style={active ? { boxShadow: `0 0 0 2px rgba(${s.rgb},0.7)` } : undefined}>
+              <div className="absolute top-0 left-0 right-0 h-px" style={{ background: `linear-gradient(90deg,transparent,rgba(${s.rgb},0.7),transparent)` }} />
+              <p className="text-2xl font-bold tracking-tight" style={{ color: `rgb(${s.rgb})` }}>{s.value}</p>
+              <p className="text-xs mt-0.5" style={{ color: 'var(--muted-fg)' }}>{s.label}</p>
+              {active && s.key !== 'all' && <p className="text-[10px] mt-1 font-semibold" style={{ color: `rgb(${s.rgb})` }}>● Filtr aktiv</p>}
+            </motion.button>
+          )
+        })}
       </div>
+      {statFilter !== 'all' && (
+        <button type="button" onClick={() => setStatFilter('all')}
+          className="text-[11px] font-medium -mt-2 hover:underline" style={{ color: 'var(--brand-500)' }}>
+          ✕ Filtri təmizlə (hamısını göstər)
+        </button>
+      )}
 
       {/* Toolbar */}
       <div className="flex flex-wrap items-center gap-3">
