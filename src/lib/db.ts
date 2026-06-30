@@ -1375,7 +1375,7 @@ export const db = {
       const { createClient } = await import('./supabase/client')
       const supabase = createClient()
       const payload: any = { ...sanitized }
-      const dbColumns = ['id', 'org_id', 'code', 'name', 'owner_dept', 'owner_id', 'owner_name', 'status', 'criticality', 'description', 'created_at', 'updated_at']
+      const dbColumns = ['id', 'org_id', 'code', 'name', 'owner_dept', 'owner_id', 'owner_name', 'status', 'criticality', 'automation', 'description', 'created_at', 'updated_at']
       for (const key of Object.keys(payload)) {
         if (!dbColumns.includes(key)) delete payload[key]
       }

@@ -1183,6 +1183,7 @@ export interface Process {
   owner_name?: string
   status?: ProcessStatus
   criticality?: ObligationCriticality // tier: minimal..critical
+  automation?: 'manual' | 'automated' | 'hybrid' // how the process runs (phase 40)
   description?: string
   created_at: string
   updated_at: string

@@ -9,6 +9,7 @@ import type { Process, ProcessStatus, Control, OrgUnit, UserProfile, Policy, Ris
 import { cn } from '@/lib/utils'
 import { Plus, Search, MoreHorizontal, Edit, Trash2, Workflow, X, Save } from 'lucide-react'
 import { toast } from 'sonner'
+import { ProcessDetailSheet } from './ProcessDetailSheet'
 
 const STATUS_CFG: Record<ProcessStatus, { label: string; cls: string }> = {
   active:   { label: 'Active',   cls: 'bg-emerald-500/15 text-emerald-400' },
@@ -21,6 +22,12 @@ const CRIT_CFG: Record<ObligationCriticality, { label: string; cls: string }> = 
   medium:   { label: 'Medium',   cls: 'bg-amber-500/15 text-amber-400' },
   high:     { label: 'High',     cls: 'bg-orange-500/15 text-orange-400' },
   critical: { label: 'Critical', cls: 'bg-red-500/15 text-red-400' },
+}
+type ProcessAutomation = 'manual' | 'automated' | 'hybrid'
+export const AUTO_CFG: Record<ProcessAutomation, { label: string; cls: string }> = {
+  manual:    { label: 'Manual',    cls: 'bg-zinc-500/15 text-zinc-400' },
+  automated: { label: 'Automated', cls: 'bg-emerald-500/15 text-emerald-400' },
+  hybrid:    { label: 'Hybrid',    cls: 'bg-sky-500/15 text-sky-400' },
 }
 
 interface SaveLinks { controlIds: string[]; policyIds: string[]; riskIds: string[]; obligationIds: string[] }
@@ -43,6 +50,7 @@ function ProcessFormDialog({ process, controls, departments, profiles, policies,
   const [ownerId, setOwnerId] = useState(process?.owner_id ?? '')
   const [status, setStatus] = useState<ProcessStatus>(process?.status ?? 'active')
   const [criticality, setCriticality] = useState<ObligationCriticality>(process?.criticality ?? 'medium')
+  const [automation, setAutomation] = useState<ProcessAutomation>(process?.automation ?? 'manual')
   const [description, setDescription] = useState(process?.description ?? '')
   const [linkedControlIds, setLinkedCtrl] = useState<string[]>([])
   const [linkedPolicyIds, setLinkedPol] = useState<string[]>([])
@@ -98,6 +106,7 @@ function ProcessFormDialog({ process, controls, departments, profiles, policies,
       owner_name: ownerName.trim() || undefined,
       status,
       criticality,
+      automation,
       description: description.trim() || undefined,
       created_at: process?.created_at ?? now,
       updated_at: now,
@@ -173,6 +182,12 @@ function ProcessFormDialog({ process, controls, departments, profiles, policies,
               </div>
             </div>
             <div>
+              <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Automation (avtomat / manual)</label>
+              <select value={automation} onChange={e => setAutomation(e.target.value as ProcessAutomation)} className={`${fieldCls} cursor-pointer`} style={inputStyle}>
+                {(Object.keys(AUTO_CFG) as ProcessAutomation[]).map(a => <option key={a} value={a}>{AUTO_CFG[a].label}</option>)}
+              </select>
+            </div>
+            <div>
               <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Description</label>
               <textarea value={description} onChange={e => setDescription(e.target.value)} rows={2} placeholder="What this process covers…"
                 className={`${fieldCls} resize-none`} style={inputStyle} />
@@ -209,6 +224,7 @@ export function ProcessesClient() {
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [editItem, setEditItem] = useState<Process | null>(null)
+  const [detailItem, setDetailItem] = useState<Process | null>(null)
   const [search, setSearch] = useState('')
   const [menuOpen, setMenuOpen] = useState<string | null>(null)
 
@@ -335,16 +351,16 @@ export function ProcessesClient() {
           <table className="w-full">
             <thead>
               <tr style={{ borderBottom: '1px solid var(--border)', background: 'var(--muted)' }}>
-                {['Code', 'Name', 'Owner Dept', 'Description', 'Associated Policy', 'Controls', 'Risks', 'Obligations', 'Criticality', 'Status', ''].map(h => (
+                {['Code', 'Name', 'Owner Dept', 'Automation', 'Description', 'Associated Policy', 'Controls', 'Risks', 'Obligations', 'Criticality', 'Status', ''].map(h => (
                   <th key={h} className="text-left px-3 py-3 text-[11px] font-semibold uppercase tracking-wide whitespace-nowrap" style={{ color: 'var(--muted-fg)' }}>{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={11} className="py-16 text-center text-sm" style={{ color: 'var(--muted-fg)' }}>Loading…</td></tr>
+                <tr><td colSpan={12} className="py-16 text-center text-sm" style={{ color: 'var(--muted-fg)' }}>Loading…</td></tr>
               ) : filtered.length === 0 ? (
-                <tr><td colSpan={11} className="py-16 text-center" style={{ color: 'var(--muted-fg)' }}>
+                <tr><td colSpan={12} className="py-16 text-center" style={{ color: 'var(--muted-fg)' }}>
                   <div className="flex flex-col items-center gap-2"><Workflow className="w-8 h-8 opacity-30" /><p className="text-sm">No business processes yet</p><p className="text-xs opacity-60">Add a process and attach its controls</p></div>
                 </td></tr>
               ) : (
@@ -354,15 +370,18 @@ export function ProcessesClient() {
                   const oblCodes = lm.obligationIds.map(id => oblById[id]?.obligation_code).filter(Boolean) as string[]
                   const st = STATUS_CFG[p.status ?? 'active']
                   const cr = CRIT_CFG[p.criticality ?? 'medium']
+                  const au = AUTO_CFG[p.automation ?? 'manual']
                   return (
                   <motion.tr key={p.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.03 }}
-                    className="group hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors" style={{ borderBottom: '1px solid var(--border)' }}>
+                    onClick={() => setDetailItem(p)}
+                    className="group cursor-pointer hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors" style={{ borderBottom: '1px solid var(--border)' }}>
                     <td className="px-3 py-3.5"><span className="text-[11px] font-mono font-bold whitespace-nowrap" style={{ color: 'var(--brand-500)' }}>{p.code}</span></td>
                     <td className="px-3 py-3.5 max-w-[180px]"><span className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>{p.name}</span></td>
                     <td className="px-3 py-3.5">
                       <span className="text-xs whitespace-nowrap" style={{ color: p.owner_dept ? 'var(--foreground)' : 'var(--muted-fg)' }}>{p.owner_dept || '—'}</span>
                       {p.owner_name && <p className="text-[10px]" style={{ color: 'var(--muted-fg)' }}>{p.owner_name}</p>}
                     </td>
+                    <td className="px-3 py-3.5"><span className={cn('inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold', au.cls)}>{au.label}</span></td>
                     <td className="px-3 py-3.5 max-w-[220px]"><span className="text-xs line-clamp-2" style={{ color: p.description ? 'var(--muted-fg)' : 'var(--muted-fg)' }} title={p.description || undefined}>{p.description || '—'}</span></td>
                     <td className="px-3 py-3.5 max-w-[160px]">{policyChipCell(lm.policyIds)}</td>
                     <td className="px-3 py-3.5 max-w-[160px]">{controlChipCell(lm.controlIds)}</td>
@@ -402,6 +421,15 @@ export function ProcessesClient() {
         <ProcessFormDialog key={editItem?.id ?? 'new'} process={editItem} controls={controls} departments={departments}
           profiles={profiles} policies={policies} risks={risks} obligations={obligations}
           onClose={() => { setShowForm(false); setEditItem(null) }} onSave={handleSave} />
+      )}
+
+      {detailItem && (
+        <ProcessDetailSheet
+          process={detailItem}
+          links={linkMaps[detailItem.id] ?? { controlIds: [], riskIds: [], obligationIds: [], policyIds: [] }}
+          ctrlById={ctrlById} riskById={riskById} oblById={oblById} polById={polById}
+          onEdit={() => { setEditItem(detailItem); setDetailItem(null); setShowForm(true) }}
+          onClose={() => setDetailItem(null)} />
       )}
     </div>
   )
