@@ -1375,7 +1375,7 @@ export const db = {
       const { createClient } = await import('./supabase/client')
       const supabase = createClient()
       const payload: any = { ...sanitized }
-      const dbColumns = ['id', 'org_id', 'code', 'name', 'owner_dept', 'owner_id', 'owner_name', 'status', 'criticality', 'automation', 'description', 'created_at', 'updated_at']
+      const dbColumns = ['id', 'org_id', 'code', 'name', 'owner_dept', 'owner_id', 'owner_name', 'status', 'criticality', 'automation', 'maturity', 'sub_processes', 'participant_depts', 'participant_people', 'description', 'created_at', 'updated_at']
       for (const key of Object.keys(payload)) {
         if (!dbColumns.includes(key)) delete payload[key]
       }
@@ -1478,30 +1478,35 @@ export const db = {
   async setProcessRisks(id: string, ids: string[]): Promise<void> { return this._setProcessLinks('process_risk_links', 'risk_id', id, ids) },
   async getProcessObligationIds(id: string): Promise<string[]> { return this._getProcessLinkIds('process_obligation_links', 'obligation_id', id) },
   async setProcessObligations(id: string, ids: string[]): Promise<void> { return this._setProcessLinks('process_obligation_links', 'obligation_id', id, ids) },
+  async getProcessDocumentIds(id: string): Promise<string[]> { return this._getProcessLinkIds('process_document_links', 'document_id', id) },
+  async setProcessDocuments(id: string, ids: string[]): Promise<void> { return this._setProcessLinks('process_document_links', 'document_id', id, ids) },
 
-  // Per-process id arrays for controls/risks/obligations/policies (for chips)
-  async getProcessLinkMaps(): Promise<Record<string, { controlIds: string[]; riskIds: string[]; obligationIds: string[]; policyIds: string[] }>> {
-    const maps: Record<string, { controlIds: string[]; riskIds: string[]; obligationIds: string[]; policyIds: string[] }> = {}
-    const ensure = (id: string) => { if (!maps[id]) maps[id] = { controlIds: [], riskIds: [], obligationIds: [], policyIds: [] }; return maps[id] }
+  // Per-process id arrays for controls/risks/obligations/policies/documents (for chips)
+  async getProcessLinkMaps(): Promise<Record<string, { controlIds: string[]; riskIds: string[]; obligationIds: string[]; policyIds: string[]; documentIds: string[] }>> {
+    const maps: Record<string, { controlIds: string[]; riskIds: string[]; obligationIds: string[]; policyIds: string[]; documentIds: string[] }> = {}
+    const ensure = (id: string) => { if (!maps[id]) maps[id] = { controlIds: [], riskIds: [], obligationIds: [], policyIds: [], documentIds: [] }; return maps[id] }
     if (isSupabaseConfigured()) {
       const { createClient } = await import('./supabase/client')
       const supabase = createClient()
-      const [{ data: cl }, { data: rl }, { data: ol }, { data: pl }] = await Promise.all([
+      const [{ data: cl }, { data: rl }, { data: ol }, { data: pl }, { data: dl }] = await Promise.all([
         supabase.from('process_control_links').select('process_id, control_id'),
         supabase.from('process_risk_links').select('process_id, risk_id'),
         supabase.from('process_obligation_links').select('process_id, obligation_id'),
         supabase.from('process_policy_links').select('process_id, policy_id'),
+        supabase.from('process_document_links').select('process_id, document_id'),
       ])
       ;((cl as any[]) ?? []).forEach(r => ensure(r.process_id).controlIds.push(r.control_id))
       ;((rl as any[]) ?? []).forEach(r => ensure(r.process_id).riskIds.push(r.risk_id))
       ;((ol as any[]) ?? []).forEach(r => ensure(r.process_id).obligationIds.push(r.obligation_id))
       ;((pl as any[]) ?? []).forEach(r => ensure(r.process_id).policyIds.push(r.policy_id))
+      ;((dl as any[]) ?? []).forEach(r => ensure(r.process_id).documentIds.push(r.document_id))
       return maps
     }
     getLocalItem<any[]>('process_control_links', []).forEach(l => ensure(l.process_id).controlIds.push(l.control_id))
     getLocalItem<any[]>('process_risk_links', []).forEach(l => ensure(l.process_id).riskIds.push(l.risk_id))
     getLocalItem<any[]>('process_obligation_links', []).forEach(l => ensure(l.process_id).obligationIds.push(l.obligation_id))
     getLocalItem<any[]>('process_policy_links', []).forEach(l => ensure(l.process_id).policyIds.push(l.policy_id))
+    getLocalItem<any[]>('process_document_links', []).forEach(l => ensure(l.process_id).documentIds.push(l.document_id))
     return maps
   },
 

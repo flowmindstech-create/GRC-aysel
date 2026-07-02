@@ -1,15 +1,16 @@
 'use client'
 
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Edit, Workflow, ShieldCheck, AlertTriangle, FileText, BookCheck } from 'lucide-react'
+import { X, Edit, Workflow, ShieldCheck, AlertTriangle, FileText, BookCheck, GitBranch, Users } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import type { Process, Control, Risk, Policy, ComplianceObligation } from '@/types'
+import type { Process, Control, Risk, Policy, ComplianceObligation, InternalDocument } from '@/types'
 
 interface ProcessLinks {
   controlIds: string[]
   riskIds: string[]
   obligationIds: string[]
   policyIds: string[]
+  documentIds: string[]
 }
 
 interface Props {
@@ -19,6 +20,7 @@ interface Props {
   riskById: Record<string, Risk>
   oblById: Record<string, ComplianceObligation>
   polById: Record<string, Policy>
+  docById: Record<string, InternalDocument>
   onEdit: () => void
   onClose: () => void
 }
@@ -41,6 +43,17 @@ const AUTO_LABEL: Record<string, { label: string; cls: string }> = {
   automated: { label: 'Automated', cls: 'bg-emerald-500/15 text-emerald-400' },
   hybrid:    { label: 'Hybrid',    cls: 'bg-sky-500/15 text-sky-400' },
 }
+const MATURITY_LABEL: Record<number, { label: string; cls: string }> = {
+  1: { label: '1 — Initial',    cls: 'bg-zinc-500/15 text-zinc-400' },
+  2: { label: '2 — Repeatable', cls: 'bg-amber-500/15 text-amber-400' },
+  3: { label: '3 — Defined',    cls: 'bg-sky-500/15 text-sky-400' },
+  4: { label: '4 — Managed',    cls: 'bg-blue-500/15 text-blue-400' },
+  5: { label: '5 — Optimized',  cls: 'bg-emerald-500/15 text-emerald-400' },
+}
+const DOC_TYPE_LABEL: Record<string, string> = {
+  policy: 'Siyasət', rule: 'Qayda', procedure: 'Prosedur', instruction: 'Təlimat',
+  charter: 'Əsasnamə', methodology: 'Metodologiya', other: 'Digər',
+}
 
 const ctrlDot = (s?: string) =>
   s === 'pass' || s === 'effective' ? '#34d399' : s === 'fail' ? '#f87171' : s === 'partial' ? '#fbbf24' : 'var(--muted-fg)'
@@ -49,15 +62,20 @@ function Badge({ label, cls }: { label: string; cls: string }) {
   return <span className={cn('inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold', cls)}>{label}</span>
 }
 
-export function ProcessDetailSheet({ process, links, ctrlById, riskById, oblById, polById, onEdit, onClose }: Props) {
+export function ProcessDetailSheet({ process, links, ctrlById, riskById, oblById, polById, docById, onEdit, onClose }: Props) {
   const st = STATUS_LABEL[process.status ?? 'active']
   const cr = CRIT_LABEL[process.criticality ?? 'medium']
   const au = AUTO_LABEL[process.automation ?? 'manual']
+  const mt = MATURITY_LABEL[process.maturity ?? 1]
 
   const controls = links.controlIds.map(id => ctrlById[id]).filter(Boolean)
   const risks = links.riskIds.map(id => riskById[id]).filter(Boolean)
   const policies = links.policyIds.map(id => polById[id]).filter(Boolean)
   const obligations = links.obligationIds.map(id => oblById[id]).filter(Boolean)
+  const documents = (links.documentIds ?? []).map(id => docById[id]).filter(Boolean)
+  const subProcesses = process.sub_processes ?? []
+  const participantDepts = process.participant_depts ?? []
+  const participantPeople = process.participant_people ?? []
 
   // One linked-entity row: code chip + full title + optional meta line. Hover-highlighted.
   const linkRow = (key: string, code: string, title: string, codeCls: string, meta?: React.ReactNode) => (
@@ -126,12 +144,60 @@ export function ProcessDetailSheet({ process, links, ctrlById, riskById, oblById
                 <p className={meta.label} style={{ color: 'var(--muted-fg)' }}>Criticality (Tier)</p>
                 <Badge label={cr.label} cls={cr.cls} />
               </div>
+              <div>
+                <p className={meta.label} style={{ color: 'var(--muted-fg)' }}>Maturity (CMMI)</p>
+                <Badge label={mt.label} cls={mt.cls} />
+              </div>
             </div>
 
             {process.description && (
               <div>
                 <p className={meta.label} style={{ color: 'var(--muted-fg)' }}>Description</p>
                 <p className="text-xs leading-relaxed" style={{ color: 'var(--foreground)' }}>{process.description}</p>
+              </div>
+            )}
+
+            {/* Sub-processes (phase 41) */}
+            {subProcesses.length > 0 && (
+              <div>
+                <p className="text-[11px] font-bold uppercase tracking-wide flex items-center gap-1.5 mb-1.5" style={{ color: 'var(--brand-500)' }}>
+                  <GitBranch className="w-3.5 h-3.5" /> Alt proseslər <span style={{ color: 'var(--muted-fg)' }}>({subProcesses.length})</span>
+                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  {subProcesses.map(sp => (
+                    <span key={sp} className="px-2.5 py-1 rounded-full text-[11px] font-medium"
+                      style={{ background: 'var(--muted)', border: '1px solid var(--border)', color: 'var(--foreground)' }}>{sp}</span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Participants — structures + people (phase 41) */}
+            {(participantDepts.length > 0 || participantPeople.length > 0) && (
+              <div>
+                <p className="text-[11px] font-bold uppercase tracking-wide flex items-center gap-1.5 mb-1.5" style={{ color: 'var(--brand-500)' }}>
+                  <Users className="w-3.5 h-3.5" /> İştirakçılar
+                </p>
+                {participantDepts.length > 0 && (
+                  <div className="mb-1.5">
+                    <p className={meta.label} style={{ color: 'var(--muted-fg)' }}>Strukturlar</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {participantDepts.map(n => (
+                        <span key={n} className="px-2 py-0.5 rounded text-[10px] font-medium bg-violet-500/12 text-violet-400">{n}</span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {participantPeople.length > 0 && (
+                  <div>
+                    <p className={meta.label} style={{ color: 'var(--muted-fg)' }}>Şəxslər</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {participantPeople.map(n => (
+                        <span key={n} className="px-2 py-0.5 rounded text-[10px] font-medium bg-sky-500/12 text-sky-400">{n}</span>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
@@ -156,6 +222,14 @@ export function ProcessDetailSheet({ process, links, ctrlById, riskById, oblById
                 <>
                   <span>{o.status}</span>
                   {o.obligation_type && <span>· {o.obligation_type}</span>}
+                </>)))}
+
+            {section(<FileText className="w-3.5 h-3.5" />, 'Internal Documents', documents.length,
+              documents.map(d => linkRow(d.id, d.doc_uid, d.name, 'bg-teal-500/12 text-teal-400',
+                <>
+                  <span>{DOC_TYPE_LABEL[d.doc_type ?? 'other']}</span>
+                  <span>· v{d.version}</span>
+                  {d.doc_number && <span>· №{d.doc_number}</span>}
                 </>)))}
           </div>
 

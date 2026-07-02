@@ -1184,7 +1184,29 @@ export interface Process {
   status?: ProcessStatus
   criticality?: ObligationCriticality // tier: minimal..critical
   automation?: 'manual' | 'automated' | 'hybrid' // how the process runs (phase 40)
+  maturity?: 1 | 2 | 3 | 4 | 5        // CMMI maturity level (phase 41)
+  sub_processes?: string[]            // alt proseslər (phase 41)
+  participant_depts?: string[]        // iştirakçı strukturlar (phase 41)
+  participant_people?: string[]       // iştirakçı şəxslər (phase 41)
   description?: string
+  created_at: string
+  updated_at: string
+}
+
+// Internal normative document register — Policy Governance "Internal Document List" (phase 41)
+export type InternalDocType = 'policy' | 'rule' | 'procedure' | 'instruction' | 'charter' | 'methodology' | 'other'
+export interface InternalDocument {
+  id: string
+  org_id: string
+  doc_uid: string              // unikal ID, auto: DOC-YYYY-NNN
+  name: string                 // sənədin adı
+  doc_type: InternalDocType    // sənəd növü
+  doc_number?: string          // sənəd nömrəsi
+  version: string              // sənədin versiyası (default '1.0')
+  effective_date?: string      // qüvvəyə minmə tarixi
+  approved_by?: string         // təsdiqləyən rəhbər
+  author_dept?: string         // sənədi tərtib edən struktur
+  participant_depts?: string[] // sənədin iştirakçı strukturları
   created_at: string
   updated_at: string
 }
@@ -1198,7 +1220,7 @@ export interface ProcessControlLink {
   created_at: string
 }
 
-// Many-to-many links: process ↔ policy / risk / obligation
+// Many-to-many links: process ↔ policy / risk / obligation / internal document
 export interface ProcessPolicyLink {
   id: string; org_id: string; process_id: string; policy_id: string; created_at: string
 }
@@ -1207,6 +1229,9 @@ export interface ProcessRiskLink {
 }
 export interface ProcessObligationLink {
   id: string; org_id: string; process_id: string; obligation_id: string; created_at: string
+}
+export interface ProcessDocumentLink {
+  id: string; org_id: string; process_id: string; document_id: string; created_at: string
 }
 
 // ISO 37301 traceability — change history of an obligation

@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { db } from '@/lib/db'
 import { dbExt } from '@/lib/db-extensions'
 import { resolveOwnerFromUnit } from '@/lib/org'
-import type { Process, ProcessStatus, Control, OrgUnit, UserProfile, Policy, Risk, ComplianceObligation, ObligationCriticality } from '@/types'
+import type { Process, ProcessStatus, Control, OrgUnit, UserProfile, Policy, Risk, ComplianceObligation, ObligationCriticality, InternalDocument } from '@/types'
 import { cn } from '@/lib/utils'
 import { Plus, Search, MoreHorizontal, Edit, Trash2, Workflow, X, Save } from 'lucide-react'
 import { toast } from 'sonner'
@@ -29,10 +29,19 @@ export const AUTO_CFG: Record<ProcessAutomation, { label: string; cls: string }>
   automated: { label: 'Automated', cls: 'bg-emerald-500/15 text-emerald-400' },
   hybrid:    { label: 'Hybrid',    cls: 'bg-sky-500/15 text-sky-400' },
 }
+// CMMI process maturity levels (phase 41)
+type ProcessMaturity = 1 | 2 | 3 | 4 | 5
+export const MATURITY_CFG: Record<ProcessMaturity, { label: string; cls: string }> = {
+  1: { label: '1 — Initial',    cls: 'bg-zinc-500/15 text-zinc-400' },
+  2: { label: '2 — Repeatable', cls: 'bg-amber-500/15 text-amber-400' },
+  3: { label: '3 — Defined',    cls: 'bg-sky-500/15 text-sky-400' },
+  4: { label: '4 — Managed',    cls: 'bg-blue-500/15 text-blue-400' },
+  5: { label: '5 — Optimized',  cls: 'bg-emerald-500/15 text-emerald-400' },
+}
 
-interface SaveLinks { controlIds: string[]; policyIds: string[]; riskIds: string[]; obligationIds: string[] }
+interface SaveLinks { controlIds: string[]; policyIds: string[]; riskIds: string[]; obligationIds: string[]; documentIds: string[] }
 
-function ProcessFormDialog({ process, controls, departments, profiles, policies, risks, obligations, onClose, onSave }: {
+function ProcessFormDialog({ process, controls, departments, profiles, policies, risks, obligations, documents, onClose, onSave }: {
   process: Process | null
   controls: Control[]
   departments: OrgUnit[]
@@ -40,6 +49,7 @@ function ProcessFormDialog({ process, controls, departments, profiles, policies,
   policies: Policy[]
   risks: Risk[]
   obligations: ComplianceObligation[]
+  documents: InternalDocument[]
   onClose: () => void
   onSave: (p: Process, links: SaveLinks) => Promise<void>
 }) {
@@ -51,27 +61,40 @@ function ProcessFormDialog({ process, controls, departments, profiles, policies,
   const [status, setStatus] = useState<ProcessStatus>(process?.status ?? 'active')
   const [criticality, setCriticality] = useState<ObligationCriticality>(process?.criticality ?? 'medium')
   const [automation, setAutomation] = useState<ProcessAutomation>(process?.automation ?? 'manual')
+  const [maturity, setMaturity] = useState<ProcessMaturity>(process?.maturity ?? 1)
+  const [subProcesses, setSubProcesses] = useState<string[]>(process?.sub_processes ?? [])
+  const [subProcessInput, setSubProcessInput] = useState('')
+  const [participantDepts, setParticipantDepts] = useState<string[]>(process?.participant_depts ?? [])
+  const [participantPeople, setParticipantPeople] = useState<string[]>(process?.participant_people ?? [])
   const [description, setDescription] = useState(process?.description ?? '')
   const [linkedControlIds, setLinkedCtrl] = useState<string[]>([])
   const [linkedPolicyIds, setLinkedPol] = useState<string[]>([])
   const [linkedRiskIds, setLinkedRisk] = useState<string[]>([])
   const [linkedObligationIds, setLinkedObl] = useState<string[]>([])
+  const [linkedDocumentIds, setLinkedDoc] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     let active = true
     ;(async () => {
       if (process?.id) {
-        const [c, p, r, o] = await Promise.all([
+        const [c, p, r, o, d] = await Promise.all([
           db.getProcessControlIds(process.id), db.getProcessPolicyIds(process.id),
           db.getProcessRiskIds(process.id), db.getProcessObligationIds(process.id),
+          db.getProcessDocumentIds(process.id),
         ])
         if (!active) return
-        setLinkedCtrl(c); setLinkedPol(p); setLinkedRisk(r); setLinkedObl(o)
+        setLinkedCtrl(c); setLinkedPol(p); setLinkedRisk(r); setLinkedObl(o); setLinkedDoc(d)
       }
     })()
     return () => { active = false }
   }, [process?.id])
+
+  function addSubProcess() {
+    const v = subProcessInput.trim()
+    if (v && !subProcesses.includes(v)) setSubProcesses([...subProcesses, v])
+    setSubProcessInput('')
+  }
 
   // Owner dependency: dept selected → auto-fill owner person (head)
   function handleDeptChange(deptName: string) {
@@ -107,12 +130,42 @@ function ProcessFormDialog({ process, controls, departments, profiles, policies,
       status,
       criticality,
       automation,
+      maturity,
+      sub_processes: subProcesses,
+      participant_depts: participantDepts,
+      participant_people: participantPeople,
       description: description.trim() || undefined,
       created_at: process?.created_at ?? now,
       updated_at: now,
-    }, { controlIds: linkedControlIds, policyIds: linkedPolicyIds, riskIds: linkedRiskIds, obligationIds: linkedObligationIds })
+    }, { controlIds: linkedControlIds, policyIds: linkedPolicyIds, riskIds: linkedRiskIds, obligationIds: linkedObligationIds, documentIds: linkedDocumentIds })
     setLoading(false)
   }
+
+  // Reusable dropdown+chips picker for participant structures / people
+  const chipPicker = (label: string, options: string[], selected: string[], set: (x: string[]) => void, addLabel: string) => (
+    <div>
+      <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>{label}</label>
+      <select value=""
+        onChange={e => { const v = e.target.value; if (v && !selected.includes(v)) set([...selected, v]) }}
+        className={`${fieldCls} cursor-pointer`} style={inputStyle}>
+        <option value="">{addLabel}</option>
+        {options.filter(o => !selected.includes(o)).map(o => <option key={o} value={o}>{o}</option>)}
+      </select>
+      {selected.length > 0 && (
+        <div className="flex flex-wrap gap-1.5 mt-2">
+          {selected.map(n => (
+            <span key={n} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium"
+              style={{ background: 'var(--brand-500)', color: '#fff' }}>
+              {n}
+              <button type="button" aria-label={`${n} sil`}
+                onClick={() => set(selected.filter(x => x !== n))}
+                className="hover:opacity-80 font-bold leading-none">×</button>
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
+  )
 
   const multiBox = (label: string, hint: string, items: { id: string; code: string; title: string }[], selected: string[], set: (x: string[]) => void) => (
     <div>
@@ -181,12 +234,48 @@ function ProcessFormDialog({ process, controls, departments, profiles, policies,
                 </select>
               </div>
             </div>
-            <div>
-              <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Automation (avtomat / manual)</label>
-              <select value={automation} onChange={e => setAutomation(e.target.value as ProcessAutomation)} className={`${fieldCls} cursor-pointer`} style={inputStyle}>
-                {(Object.keys(AUTO_CFG) as ProcessAutomation[]).map(a => <option key={a} value={a}>{AUTO_CFG[a].label}</option>)}
-              </select>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Automation (avtomat / manual)</label>
+                <select value={automation} onChange={e => setAutomation(e.target.value as ProcessAutomation)} className={`${fieldCls} cursor-pointer`} style={inputStyle}>
+                  {(Object.keys(AUTO_CFG) as ProcessAutomation[]).map(a => <option key={a} value={a}>{AUTO_CFG[a].label}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Maturity (yetkinlik)</label>
+                <select value={maturity} onChange={e => setMaturity(Number(e.target.value) as ProcessMaturity)} className={`${fieldCls} cursor-pointer`} style={inputStyle}>
+                  {([1, 2, 3, 4, 5] as ProcessMaturity[]).map(m => <option key={m} value={m}>{MATURITY_CFG[m].label}</option>)}
+                </select>
+              </div>
             </div>
+            {/* Sub-processes — free text + Enter → chips */}
+            <div>
+              <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Alt proseslər</label>
+              <div className="flex gap-2">
+                <input value={subProcessInput} onChange={e => setSubProcessInput(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addSubProcess() } }}
+                  placeholder="Alt proses yaz və Enter bas…" className={fieldCls} style={inputStyle} />
+                <button type="button" onClick={addSubProcess} disabled={!subProcessInput.trim()}
+                  className="shrink-0 px-3 py-2 rounded-lg text-sm font-semibold text-white disabled:opacity-40" style={{ background: 'var(--brand-500)' }}>
+                  <Plus className="w-4 h-4" />
+                </button>
+              </div>
+              {subProcesses.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 mt-2">
+                  {subProcesses.map(sp => (
+                    <span key={sp} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium"
+                      style={{ background: 'var(--muted)', border: '1px solid var(--border)', color: 'var(--foreground)' }}>
+                      {sp}
+                      <button type="button" aria-label={`${sp} sil`}
+                        onClick={() => setSubProcesses(subProcesses.filter(x => x !== sp))}
+                        className="hover:opacity-80 font-bold leading-none text-red-400">×</button>
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+            {chipPicker('İştirakçı strukturlar', departments.map(d => d.name), participantDepts, setParticipantDepts, '— Struktur əlavə et —')}
+            {chipPicker('İştirakçı şəxslər', profiles.map(p => p.full_name), participantPeople, setParticipantPeople, '— Şəxs əlavə et —')}
             <div>
               <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Description</label>
               <textarea value={description} onChange={e => setDescription(e.target.value)} rows={2} placeholder="What this process covers…"
@@ -197,6 +286,8 @@ function ProcessFormDialog({ process, controls, departments, profiles, policies,
             {multiBox('Related Risks', '', risks.map(r => ({ id: r.id, code: r.risk_code ?? '—', title: r.title })), linkedRiskIds, setLinkedRisk)}
             {multiBox('Related Obligations', '', obligations.map(o => ({ id: o.id, code: o.obligation_code, title: o.title })), linkedObligationIds, setLinkedObl)}
             {multiBox('Related Policies', '', policies.map(p => ({ id: p.id, code: p.policy_id, title: p.title })), linkedPolicyIds, setLinkedPol)}
+            {multiBox('Internal Documents (daxili sənədlər)', 'Mapping Matrix-də "Internal Policy" sütununda görünür.',
+              documents.map(d => ({ id: d.id, code: d.doc_uid, title: d.name })), linkedDocumentIds, setLinkedDoc)}
             <div className="flex items-center justify-between pt-2">
               <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg text-sm hover:bg-white/5" style={{ color: 'var(--muted-fg)' }}>Cancel</button>
               <button type="submit" disabled={!name.trim() || loading}
@@ -220,7 +311,8 @@ export function ProcessesClient() {
   const [policies, setPolicies] = useState<Policy[]>([])
   const [risks, setRisks] = useState<Risk[]>([])
   const [obligations, setObligations] = useState<ComplianceObligation[]>([])
-  const [linkMaps, setLinkMaps] = useState<Record<string, { controlIds: string[]; riskIds: string[]; obligationIds: string[]; policyIds: string[] }>>({})
+  const [documents, setDocuments] = useState<InternalDocument[]>([])
+  const [linkMaps, setLinkMaps] = useState<Record<string, { controlIds: string[]; riskIds: string[]; obligationIds: string[]; policyIds: string[]; documentIds: string[] }>>({})
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [editItem, setEditItem] = useState<Process | null>(null)
@@ -235,9 +327,10 @@ export function ProcessesClient() {
   }, [])
 
   async function reload() {
-    const [data, maps, controlList, units, people, policyList, riskList, oblList] = await Promise.all([
+    const [data, maps, controlList, units, people, policyList, riskList, oblList, docList] = await Promise.all([
       db.getProcesses(), db.getProcessLinkMaps(), db.getControls(),
       db.getOrgUnits(), db.getProfiles(), dbExt.getPolicies(), db.getRisks(), db.getObligations(),
+      dbExt.getInternalDocuments(),
     ])
     setProcesses(data)
     setLinkMaps(maps)
@@ -247,6 +340,7 @@ export function ProcessesClient() {
     setPolicies(policyList)
     setRisks(riskList)
     setObligations(oblList)
+    setDocuments(docList)
     setLoading(false)
   }
   useEffect(() => { reload() }, [])
@@ -260,6 +354,7 @@ export function ProcessesClient() {
   const riskById = useMemo(() => Object.fromEntries(risks.map(r => [r.id, r])), [risks])
   const oblById = useMemo(() => Object.fromEntries(obligations.map(o => [o.id, o])), [obligations])
   const polById = useMemo(() => Object.fromEntries(policies.map(p => [p.id, p])), [policies])
+  const docById = useMemo(() => Object.fromEntries(documents.map(d => [d.id, d])), [documents])
 
   // Generic chip cell: up to 2 codes + "+N"
   function chipCell(codes: string[], cls: string) {
@@ -318,6 +413,7 @@ export function ProcessesClient() {
       db.setProcessPolicies(saved.id, links.policyIds),
       db.setProcessRisks(saved.id, links.riskIds),
       db.setProcessObligations(saved.id, links.obligationIds),
+      db.setProcessDocuments(saved.id, links.documentIds),
     ])
     setShowForm(false); setEditItem(null)
     reload()
@@ -351,26 +447,28 @@ export function ProcessesClient() {
           <table className="w-full">
             <thead>
               <tr style={{ borderBottom: '1px solid var(--border)', background: 'var(--muted)' }}>
-                {['Code', 'Name', 'Owner Dept', 'Automation', 'Description', 'Associated Policy', 'Controls', 'Risks', 'Obligations', 'Criticality', 'Status', ''].map(h => (
+                {['Code', 'Name', 'Owner Dept', 'Automation', 'Maturity', 'Description', 'Associated Policy', 'Internal Policy', 'Controls', 'Risks', 'Obligations', 'Criticality', 'Status', ''].map(h => (
                   <th key={h} className="text-left px-3 py-3 text-[11px] font-semibold uppercase tracking-wide whitespace-nowrap" style={{ color: 'var(--muted-fg)' }}>{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={12} className="py-16 text-center text-sm" style={{ color: 'var(--muted-fg)' }}>Loading…</td></tr>
+                <tr><td colSpan={14} className="py-16 text-center text-sm" style={{ color: 'var(--muted-fg)' }}>Loading…</td></tr>
               ) : filtered.length === 0 ? (
-                <tr><td colSpan={12} className="py-16 text-center" style={{ color: 'var(--muted-fg)' }}>
+                <tr><td colSpan={14} className="py-16 text-center" style={{ color: 'var(--muted-fg)' }}>
                   <div className="flex flex-col items-center gap-2"><Workflow className="w-8 h-8 opacity-30" /><p className="text-sm">No business processes yet</p><p className="text-xs opacity-60">Add a process and attach its controls</p></div>
                 </td></tr>
               ) : (
                 filtered.map((p, i) => {
-                  const lm = linkMaps[p.id] ?? { controlIds: [], riskIds: [], obligationIds: [], policyIds: [] }
+                  const lm = linkMaps[p.id] ?? { controlIds: [], riskIds: [], obligationIds: [], policyIds: [], documentIds: [] }
                   const riskCodes = lm.riskIds.map(id => riskById[id]?.risk_code).filter(Boolean) as string[]
                   const oblCodes = lm.obligationIds.map(id => oblById[id]?.obligation_code).filter(Boolean) as string[]
+                  const docCodes = (lm.documentIds ?? []).map(id => docById[id]?.doc_uid).filter(Boolean) as string[]
                   const st = STATUS_CFG[p.status ?? 'active']
                   const cr = CRIT_CFG[p.criticality ?? 'medium']
                   const au = AUTO_CFG[p.automation ?? 'manual']
+                  const mt = MATURITY_CFG[(p.maturity ?? 1) as ProcessMaturity]
                   return (
                   <motion.tr key={p.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.03 }}
                     onClick={() => setDetailItem(p)}
@@ -382,8 +480,10 @@ export function ProcessesClient() {
                       {p.owner_name && <p className="text-[10px]" style={{ color: 'var(--muted-fg)' }}>{p.owner_name}</p>}
                     </td>
                     <td className="px-3 py-3.5"><span className={cn('inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold', au.cls)}>{au.label}</span></td>
+                    <td className="px-3 py-3.5"><span className={cn('inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold whitespace-nowrap', mt.cls)}>{mt.label}</span></td>
                     <td className="px-3 py-3.5 max-w-[220px]"><span className="text-xs line-clamp-2" style={{ color: p.description ? 'var(--muted-fg)' : 'var(--muted-fg)' }} title={p.description || undefined}>{p.description || '—'}</span></td>
                     <td className="px-3 py-3.5 max-w-[160px]">{policyChipCell(lm.policyIds)}</td>
+                    <td className="px-3 py-3.5 max-w-[160px]">{chipCell(docCodes, 'bg-teal-500/12 text-teal-400')}</td>
                     <td className="px-3 py-3.5 max-w-[160px]">{controlChipCell(lm.controlIds)}</td>
                     <td className="px-3 py-3.5 max-w-[130px]">{chipCell(riskCodes, 'bg-rose-500/12 text-rose-400')}</td>
                     <td className="px-3 py-3.5 max-w-[150px]">{chipCell(oblCodes, 'bg-violet-500/12 text-violet-400')}</td>
@@ -419,15 +519,15 @@ export function ProcessesClient() {
 
       {showForm && (
         <ProcessFormDialog key={editItem?.id ?? 'new'} process={editItem} controls={controls} departments={departments}
-          profiles={profiles} policies={policies} risks={risks} obligations={obligations}
+          profiles={profiles} policies={policies} risks={risks} obligations={obligations} documents={documents}
           onClose={() => { setShowForm(false); setEditItem(null) }} onSave={handleSave} />
       )}
 
       {detailItem && (
         <ProcessDetailSheet
           process={detailItem}
-          links={linkMaps[detailItem.id] ?? { controlIds: [], riskIds: [], obligationIds: [], policyIds: [] }}
-          ctrlById={ctrlById} riskById={riskById} oblById={oblById} polById={polById}
+          links={linkMaps[detailItem.id] ?? { controlIds: [], riskIds: [], obligationIds: [], policyIds: [], documentIds: [] }}
+          ctrlById={ctrlById} riskById={riskById} oblById={oblById} polById={polById} docById={docById}
           onEdit={() => { setEditItem(detailItem); setDetailItem(null); setShowForm(true) }}
           onClose={() => setDetailItem(null)} />
       )}

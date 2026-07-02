@@ -1,4 +1,4 @@
-import type { AuditFindingWorkflow, NIRAPItem, KRIItem, KCIItem, KPIItem, MonitoringAlert, Policy, PolicyApproval } from '@/types'
+import type { AuditFindingWorkflow, NIRAPItem, KRIItem, KCIItem, KPIItem, MonitoringAlert, Policy, PolicyApproval, InternalDocument } from '@/types'
 import { isUUID, ensureUUID } from './db'
 import { MOCK_POLICIES } from './seed-data'
 
@@ -351,6 +351,54 @@ export const dbExt = {
     if (idx >= 0) all[idx] = next; else all.unshift(next)
     setLocal('policies', all)
     return next
+  },
+
+  // ── Internal Documents (Policy Governance register, phase 41) ──────────────
+
+  async getInternalDocuments(): Promise<InternalDocument[]> {
+    if (isSupabase()) {
+      const { createClient } = await import('./supabase/client')
+      const { data } = await createClient().from('internal_documents').select('*').order('created_at', { ascending: false })
+      return (data ?? []) as InternalDocument[]
+    }
+    return getLocal<InternalDocument[]>('internal_documents', [])
+  },
+
+  async saveInternalDocument(item: InternalDocument): Promise<InternalDocument> {
+    const sanitized: InternalDocument = {
+      ...item,
+      id: ensureUUID(item.id),
+      org_id: ensureUUID(item.org_id),
+      updated_at: new Date().toISOString(),
+    }
+    if (!sanitized.doc_uid) {
+      const existing = await dbExt.getInternalDocuments()
+      const year = new Date().getFullYear()
+      sanitized.doc_uid = `DOC-${year}-${String(existing.length + 1).padStart(3, '0')}`
+    }
+    if (isSupabase()) {
+      const { createClient } = await import('./supabase/client')
+      const payload: any = { ...sanitized, effective_date: sanitized.effective_date || null }
+      const { data, error } = await createClient()
+        .from('internal_documents')
+        .upsert(payload)
+        .select().single()
+      if (error) console.error('Supabase saveInternalDocument error:', error)
+      if (!error && data) return data as InternalDocument
+    }
+    const all = getLocal<InternalDocument[]>('internal_documents', [])
+    const idx = all.findIndex(d => d.id === sanitized.id)
+    if (idx >= 0) all[idx] = sanitized; else all.unshift(sanitized)
+    setLocal('internal_documents', all)
+    return sanitized
+  },
+
+  async deleteInternalDocument(id: string): Promise<void> {
+    if (isSupabase()) {
+      const { createClient } = await import('./supabase/client')
+      await createClient().from('internal_documents').delete().eq('id', id)
+    }
+    setLocal('internal_documents', getLocal<InternalDocument[]>('internal_documents', []).filter(d => d.id !== id))
   },
 
   async getPolicyApprovals(policyId: string): Promise<PolicyApproval[]> {

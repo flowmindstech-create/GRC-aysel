@@ -1,5 +1,5 @@
 import { TopNav } from '@/components/layout/TopNav'
-import { PolicyKanbanClient } from '@/components/governance/PolicyKanbanClient'
+import { GovernanceTabs } from '@/components/governance/GovernanceTabs'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = { title: 'Governance — Policies | RiskShield IRM' }
@@ -7,9 +7,9 @@ export const metadata: Metadata = { title: 'Governance — Policies | RiskShield
 export default function PoliciesPage() {
   return (
     <>
-      <TopNav title="Policy Governance" subtitle="Draft · Review · Approval · Publication lifecycle management" />
+      <TopNav title="Policy Governance" subtitle="Policies lifecycle · Internal Document List (daxili sənəd reyestri)" />
       <main className="flex-1 overflow-y-auto p-6">
-        <PolicyKanbanClient />
+        <GovernanceTabs />
       </main>
     </>
   )
