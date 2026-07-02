@@ -22,6 +22,10 @@ function setMockSessionCookie() {
   }
 }
 
+// Demo bypass only exists when Supabase is not configured (local/demo builds).
+// In production (real auth) the direct-access button is never rendered.
+const IS_MOCK = !process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
 export default function LoginPage() {
   const [showPass, setShowPass] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -168,20 +172,22 @@ export default function LoginPage() {
             <Link href="/register" className="text-sky-500 hover:text-sky-400 font-medium">Create account</Link>
           </p>
 
-          {/* Demo hint */}
-          <button
-            type="button"
-            onClick={() => {
-              setMockSessionCookie()
-              router.push('/dashboard')
-            }}
-            className="w-full mt-6 p-3 rounded-xl text-center cursor-pointer hover:bg-white/5 transition-colors border"
-            style={{ background: 'var(--muted)', borderColor: 'var(--border)' }}
-          >
-            <p className="text-xs font-bold text-sky-400">
-              🚀 Access Demo Directly Without Registration →
-            </p>
-          </button>
+          {/* Demo bypass — only in local/demo builds (never in production auth) */}
+          {IS_MOCK && (
+            <button
+              type="button"
+              onClick={() => {
+                setMockSessionCookie()
+                router.push('/dashboard')
+              }}
+              className="w-full mt-6 p-3 rounded-xl text-center cursor-pointer hover:bg-white/5 transition-colors border"
+              style={{ background: 'var(--muted)', borderColor: 'var(--border)' }}
+            >
+              <p className="text-xs font-bold text-sky-400">
+                🚀 Access Demo Directly Without Registration →
+              </p>
+            </button>
+          )}
         </motion.div>
       </div>
     </div>

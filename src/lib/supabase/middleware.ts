@@ -15,20 +15,21 @@ export async function updateSession(request: NextRequest) {
     isRecoveryPage ||
     request.nextUrl.pathname === '/'
 
-  // ALWAYS check mock session cookie first to allow login-free demo
-  const mockSession = request.cookies.get('mock-session')?.value
-  if (mockSession) {
-    if (isAuthPage && request.nextUrl.pathname !== '/') {
-      const url = request.nextUrl.clone()
-      url.pathname = '/dashboard'
-      return NextResponse.redirect(url)
-    }
-    return supabaseResponse
-  }
-
-  // If no mock session, check if we are in mock mode
+  // The login-free "mock-session" cookie is a DEMO convenience and is honored
+  // ONLY when Supabase is not configured (genuine local/demo mode). When real
+  // Supabase auth is configured (production), the cookie is ignored so it cannot
+  // be used as an auth bypass — genuine sessions are required.
   const isMock = !process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   if (isMock) {
+    const mockSession = request.cookies.get('mock-session')?.value
+    if (mockSession) {
+      if (isAuthPage && request.nextUrl.pathname !== '/') {
+        const url = request.nextUrl.clone()
+        url.pathname = '/dashboard'
+        return NextResponse.redirect(url)
+      }
+      return supabaseResponse
+    }
     if (!isAuthPage) {
       const url = request.nextUrl.clone()
       url.pathname = '/login'
