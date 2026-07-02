@@ -14,7 +14,21 @@
 
 export const dynamic = 'force-dynamic'
 
-export async function POST(): Promise<Response> {
+// Reject anonymous callers when a CRON_SECRET is configured. The ingest route is
+// meant to be triggered only by the scheduler (Vercel Cron / manual op), so a
+// shared bearer secret keeps the public endpoint from being invoked by anyone.
+function isAuthorized(request: Request): boolean {
+  const secret = process.env.CRON_SECRET
+  if (!secret) return true // not configured yet → don't block the stub
+  const auth = request.headers.get('authorization') ?? ''
+  return auth === `Bearer ${secret}`
+}
+
+export async function POST(request: Request): Promise<Response> {
+  if (!isAuthorized(request)) {
+    return Response.json({ ok: false, message: 'Unauthorized' }, { status: 401 })
+  }
+
   const user = process.env.GMAIL_USER
   const pass = process.env.GMAIL_APP_PASSWORD
   const code = process.env.WHISTLEBLOW_ACCESS_CODE
