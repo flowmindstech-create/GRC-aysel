@@ -151,21 +151,27 @@ export function ComplianceWorkflowClient() {
 
   return (
     <div className="space-y-5">
-      {/* ── Stat Cards ────────────────────────────────────────────────── */}
+      {/* ── Stat Cards — clickable filters (click a card to filter the table) ── */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-        {[
-          { label: 'Total Obligations', value: stats.total,         icon: Layers,      color: '14,165,233' },
-          { label: 'Compliant',         value: stats.compliant,     icon: CheckCircle2, color: '5,150,105'  },
-          { label: 'Non-Compliant',     value: stats.non_compliant, icon: XCircle,      color: '225,29,72'  },
-          { label: 'Under Review',      value: stats.review,        icon: AlertCircle,  color: '234,179,8'  },
-          { label: 'Overdue Review',    value: stats.overdue,       icon: Clock,        color: '234,88,12'  },
-        ].map((s, i) => (
-          <motion.div
+        {([
+          { label: 'Total Obligations', value: stats.total,         icon: Layers,       color: '14,165,233', filter: 'all' },
+          { label: 'Compliant',         value: stats.compliant,     icon: CheckCircle2, color: '5,150,105',  filter: 'compliant' },
+          { label: 'Non-Compliant',     value: stats.non_compliant, icon: XCircle,      color: '225,29,72',  filter: 'non_compliant' },
+          { label: 'Under Review',      value: stats.review,        icon: AlertCircle,  color: '234,179,8',  filter: 'under_review' },
+          { label: 'Overdue Review',    value: stats.overdue,       icon: Clock,        color: '234,88,12',  filter: 'overdue' },
+        ] as const).map((s, i) => {
+          const active = statusFilter === s.filter
+          return (
+          <motion.button
             key={s.label}
+            type="button"
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.05 }}
-            className="card p-4 overflow-hidden relative"
+            onClick={() => setStatusFilter(s.filter)}
+            aria-pressed={active}
+            className="card p-4 overflow-hidden relative text-left cursor-pointer transition-all hover:-translate-y-0.5"
+            style={active ? { boxShadow: `0 0 0 2px rgba(${s.color},0.7)` } : undefined}
           >
             <div className="absolute top-0 left-0 right-0 h-px" style={{ background: `linear-gradient(90deg, transparent, rgba(${s.color},0.7), transparent)` }} />
             <div className="flex items-center justify-between mb-3">
@@ -175,8 +181,10 @@ export function ComplianceWorkflowClient() {
             </div>
             <p className="text-xl font-bold tracking-tight" style={{ color: 'var(--foreground)' }}>{s.value}</p>
             <p className="text-xs mt-0.5" style={{ color: 'var(--muted-fg)' }}>{s.label}</p>
-          </motion.div>
-        ))}
+            {active && s.filter !== 'all' && <p className="text-[10px] mt-1 font-semibold" style={{ color: `rgb(${s.color})` }}>● Filtr aktiv</p>}
+          </motion.button>
+          )
+        })}
       </div>
 
       {/* ── Toolbar ───────────────────────────────────────────────────── */}
