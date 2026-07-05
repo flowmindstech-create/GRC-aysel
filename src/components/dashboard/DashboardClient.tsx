@@ -123,6 +123,7 @@ export function DashboardClient({
           <StatsCard
             index={0}
             title="Total Risks"
+            href="/risks"
             value={stats.total_risks}
             subtitle={`${stats.critical_risks} critical`}
             icon={ShieldAlert}
@@ -132,6 +133,7 @@ export function DashboardClient({
           <StatsCard
             index={1}
             title="Open Incidents"
+            href="/incidents"
             value={stats.open_incidents}
             subtitle={`${stats.incidents_investigating} under investigation`}
             icon={AlertTriangle}
@@ -141,6 +143,7 @@ export function DashboardClient({
           <StatsCard
             index={2}
             title="Compliance Score"
+            href="/compliance-monitoring"
             value={`${stats.compliance_score}%`}
             subtitle={`${stats.controls_failing} controls failing`}
             icon={ClipboardCheck}
@@ -150,6 +153,7 @@ export function DashboardClient({
           <StatsCard
             index={3}
             title="Active Vendors"
+            href="/vendors"
             value={stats.active_vendors}
             subtitle={`${stats.vendors_under_review} under review`}
             icon={Users}
@@ -163,6 +167,7 @@ export function DashboardClient({
           <StatsCard
             index={0}
             title="Mənim Risklərim"
+            href="/risks"
             value={openRisks.length}
             subtitle="açıq / icrada"
             icon={ShieldAlert}
@@ -172,6 +177,7 @@ export function DashboardClient({
           <StatsCard
             index={1}
             title="Mənim İnsidentlərim"
+            href="/incidents"
             value={openIncidents.length}
             subtitle="aktiv"
             icon={AlertTriangle}

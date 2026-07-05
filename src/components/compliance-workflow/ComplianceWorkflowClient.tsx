@@ -5,7 +5,6 @@ import { motion } from 'framer-motion'
 import { db } from '@/lib/db'
 import { dbExt } from '@/lib/db-extensions'
 import type { ComplianceObligation, ObligationStatus, ObligationSource, ObligationCriticality, ObligationType, Risk } from '@/types'
-import { residualLevelWord, inherentLevelWord } from '@/lib/rcsa-methodology'
 import { cn } from '@/lib/utils'
 import { ObligationFormDialog } from './ObligationFormDialog'
 import { ObligationDetailSheet } from './ObligationDetailSheet'
@@ -218,7 +217,7 @@ export function ComplianceWorkflowClient() {
           <table className="w-full">
             <thead>
               <tr style={{ borderBottom: '1px solid var(--border)', background: 'var(--muted)' }}>
-                {['Code', 'Requirement', 'Source', 'Regulator', 'Scope', 'Compliance Article', 'Status', 'Type', 'Criticality', 'Resp. Structure', 'Resp. Person', 'Related Risk', 'Degree', 'Likelihood', 'Initial', 'Related Control', 'Related Policy', 'Evidence', 'Risk of N/C', 'Links', ''].map(h => (
+                {['Code', 'Requirement', 'Source', 'Regulator', 'Scope', 'Compliance Article', 'Status', 'Type', 'Criticality', 'Resp. Structure', 'Resp. Person', 'Related Risk', 'Related Control', 'Related Policy', 'Evidence', 'Risk of N/C', 'Links', ''].map(h => (
                   <th key={h} className="text-left px-3 py-3 text-[11px] font-semibold uppercase tracking-wide whitespace-nowrap" style={{ color: 'var(--muted-fg)' }}>
                     {h}
                   </th>
@@ -227,10 +226,10 @@ export function ComplianceWorkflowClient() {
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={21} className="py-16 text-center text-sm" style={{ color: 'var(--muted-fg)' }}>Loading…</td></tr>
+                <tr><td colSpan={18} className="py-16 text-center text-sm" style={{ color: 'var(--muted-fg)' }}>Loading…</td></tr>
               ) : filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={21} className="py-16 text-center" style={{ color: 'var(--muted-fg)' }}>
+                  <td colSpan={18} className="py-16 text-center" style={{ color: 'var(--muted-fg)' }}>
                     <div className="flex flex-col items-center gap-2">
                       <ScrollText className="w-8 h-8 opacity-30" />
                       <p className="text-sm">No obligations found</p>
@@ -363,27 +362,6 @@ export function ComplianceWorkflowClient() {
                         <td className="px-3 py-3.5">
                           <span className="text-[11px] font-mono font-bold whitespace-nowrap" style={{ color: relatedRisk ? 'var(--brand-500)' : 'var(--muted-fg)' }}>
                             {relatedRisk?.risk_code ?? '—'}
-                          </span>
-                        </td>
-
-                        {/* Risk degree (residual) */}
-                        <td className="px-3 py-3.5">
-                          <span className="text-xs whitespace-nowrap" style={{ color: 'var(--muted-fg)' }}>
-                            {relatedRisk?.residual_level ? residualLevelWord(relatedRisk.residual_level) : '—'}
-                          </span>
-                        </td>
-
-                        {/* Risk likelihood */}
-                        <td className="px-3 py-3.5">
-                          <span className="text-xs whitespace-nowrap" style={{ color: 'var(--muted-fg)' }}>
-                            {relatedRisk?.likelihood ? `${relatedRisk.likelihood}/5` : '—'}
-                          </span>
-                        </td>
-
-                        {/* Initial degree (inherent) */}
-                        <td className="px-3 py-3.5">
-                          <span className="text-xs whitespace-nowrap" style={{ color: 'var(--muted-fg)' }}>
-                            {relatedRisk ? inherentLevelWord(relatedRisk.level) : '—'}
                           </span>
                         </td>
 

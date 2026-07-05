@@ -220,11 +220,6 @@ export function ObligationDetailSheet({ obligation, onClose, onEdit, onSaved }: 
                       <span className="text-[10px] font-mono font-bold" style={{ color: 'var(--brand-500)' }}>{primaryRisk.risk_code ?? '—'}</span>
                       <span className="text-xs truncate" style={{ color: 'var(--foreground)' }}>{primaryRisk.title}</span>
                     </div>
-                    <div className="grid grid-cols-3 gap-2 mt-2">
-                      <div><p className="text-[9px] uppercase" style={{ color: 'var(--muted-fg)' }}>Degree</p><p className="text-xs font-semibold" style={{ color: 'var(--foreground)' }}>{primaryRisk.residual_level ? residualLevelWord(primaryRisk.residual_level) : '—'}</p></div>
-                      <div><p className="text-[9px] uppercase" style={{ color: 'var(--muted-fg)' }}>Likelihood</p><p className="text-xs font-semibold" style={{ color: 'var(--foreground)' }}>{primaryRisk.likelihood ?? '—'}/5</p></div>
-                      <div><p className="text-[9px] uppercase" style={{ color: 'var(--muted-fg)' }}>Initial</p><p className="text-xs font-semibold" style={{ color: 'var(--foreground)' }}>{inherentLevelWord(primaryRisk.level)}</p></div>
-                    </div>
                   </div>
                 )}
             </div>

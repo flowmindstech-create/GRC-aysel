@@ -366,26 +366,6 @@ export function ObligationFormDialog({ obligation, onClose, onSave, onSaved }: P
                 <option value="">— None —</option>
                 {risks.map(r => <option key={r.id} value={r.id}>{(r.risk_code ?? '—') + ' · ' + r.title}</option>)}
               </select>
-              {(() => {
-                const r = risks.find(x => x.id === primaryRiskId)
-                if (!r) return <p className="text-[10px] mt-1" style={{ color: 'var(--muted-fg)' }}>Degree, likelihood and initial degree auto-fill from the selected risk.</p>
-                return (
-                  <div className="grid grid-cols-3 gap-2 mt-2">
-                    <div className="rounded-lg px-2 py-1.5" style={{ background: 'var(--muted)' }}>
-                      <p className="text-[9px] uppercase" style={{ color: 'var(--muted-fg)' }}>Risk degree</p>
-                      <p className="text-xs font-semibold" style={{ color: 'var(--foreground)' }}>{r.residual_level ? residualLevelWord(r.residual_level) : '—'}</p>
-                    </div>
-                    <div className="rounded-lg px-2 py-1.5" style={{ background: 'var(--muted)' }}>
-                      <p className="text-[9px] uppercase" style={{ color: 'var(--muted-fg)' }}>Likelihood</p>
-                      <p className="text-xs font-semibold" style={{ color: 'var(--foreground)' }}>{r.likelihood ?? '—'}/5</p>
-                    </div>
-                    <div className="rounded-lg px-2 py-1.5" style={{ background: 'var(--muted)' }}>
-                      <p className="text-[9px] uppercase" style={{ color: 'var(--muted-fg)' }}>Initial degree</p>
-                      <p className="text-xs font-semibold" style={{ color: 'var(--foreground)' }}>{inherentLevelWord(r.level)}</p>
-                    </div>
-                  </div>
-                )
-              })()}
             </div>
 
             {/* Risk of non-compliance */}

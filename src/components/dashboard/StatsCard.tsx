@@ -1,6 +1,7 @@
 'use client'
 
 import { cn } from '@/lib/utils'
+import { useRouter } from 'next/navigation'
 import type { LucideIcon } from 'lucide-react'
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react'
 import { motion } from 'framer-motion'
@@ -15,6 +16,7 @@ interface StatsCardProps {
   trend?: { value: number; label: string }
   className?: string
   index?: number
+  href?: string // when set, the whole card navigates on click
 }
 
 const accentRgb: Record<string, string> = {
@@ -32,8 +34,9 @@ export function StatsCard({
   title, value, subtitle, icon: Icon,
   iconColor = 'text-sky-500',
   iconBg = 'bg-sky-500/10',
-  trend, className, index = 0,
+  trend, className, index = 0, href,
 }: StatsCardProps) {
+  const router = useRouter()
   const TrendIcon = trend
     ? trend.value > 0 ? TrendingUp : trend.value < 0 ? TrendingDown : Minus
     : null
@@ -45,7 +48,11 @@ export function StatsCard({
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay: index * 0.07 }}
-      className={cn('card p-5 overflow-hidden', className)}
+      onClick={href ? () => router.push(href) : undefined}
+      role={href ? 'link' : undefined}
+      tabIndex={href ? 0 : undefined}
+      onKeyDown={href ? (e => { if (e.key === 'Enter') router.push(href) }) : undefined}
+      className={cn('card p-5 overflow-hidden', href && 'cursor-pointer transition-transform hover:-translate-y-0.5', className)}
     >
       {/* Per-card color accent line */}
       <div
