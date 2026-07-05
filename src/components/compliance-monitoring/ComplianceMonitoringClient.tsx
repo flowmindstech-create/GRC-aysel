@@ -82,7 +82,7 @@ function FormDialog({ item, controls, obligations, onClose, onSave }: {
           className="relative w-full max-w-md rounded-2xl border shadow-2xl max-h-[90vh] overflow-y-auto" style={{ background: 'var(--card)', borderColor: 'var(--border)' }}>
           <div className="flex items-center justify-between px-6 py-4 border-b sticky top-0 z-10" style={{ borderColor: 'var(--border)', background: 'var(--card)' }}>
             <h2 className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>{isEdit ? 'Edit Assessment' : 'New Compliance Assessment'}</h2>
-            <button onClick={onClose} className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/5"><X className="w-4 h-4" style={{ color: 'var(--muted-fg)' }} /></button>
+            <button onClick={onClose} className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-black/[0.04]"><X className="w-4 h-4" style={{ color: 'var(--muted-fg)' }} /></button>
           </div>
           <form onSubmit={submit} className="px-6 py-5 space-y-4">
             <div>
@@ -156,7 +156,7 @@ function FormDialog({ item, controls, obligations, onClose, onSave }: {
               </>
             )}
             <div className="flex items-center justify-between pt-1">
-              <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg text-sm hover:bg-white/5" style={{ color: 'var(--muted-fg)' }}>Cancel</button>
+              <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg text-sm hover:bg-black/[0.04]" style={{ color: 'var(--muted-fg)' }}>Cancel</button>
               <button type="submit" disabled={loading} className="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold text-white disabled:opacity-50" style={{ background: 'var(--brand-500)' }}>
                 {loading ? 'Saving…' : (<>{isEdit ? <Save className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}{isEdit ? 'Update' : 'Create'}</>)}
               </button>
@@ -307,7 +307,7 @@ function AssessmentRegister() {
               className="relative w-full max-w-md rounded-2xl border shadow-2xl max-h-[80vh] overflow-y-auto" style={{ background: 'var(--card)', borderColor: 'var(--border)' }}>
               <div className="flex items-center justify-between px-6 py-4 border-b" style={{ borderColor: 'var(--border)' }}>
                 <h2 className="text-sm font-semibold flex items-center gap-2" style={{ color: 'var(--foreground)' }}><Clock className="w-4 h-4" /> Tarixçə — {historyFor.code}</h2>
-                <button onClick={() => setHistoryFor(null)} className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/5"><X className="w-4 h-4" style={{ color: 'var(--muted-fg)' }} /></button>
+                <button onClick={() => setHistoryFor(null)} className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-black/[0.04]"><X className="w-4 h-4" style={{ color: 'var(--muted-fg)' }} /></button>
               </div>
               <div className="px-6 py-5">
                 {historyRows.length === 0 ? (
@@ -352,7 +352,7 @@ function AssessmentRegister() {
                       {covered}/{fwObligations.length} · {pct}%
                     </span>
                   </div>
-                  <button onClick={() => setCoverageDetail(null)} className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/5"><X className="w-4 h-4" style={{ color: 'var(--muted-fg)' }} /></button>
+                  <button onClick={() => setCoverageDetail(null)} className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-black/[0.04]"><X className="w-4 h-4" style={{ color: 'var(--muted-fg)' }} /></button>
                 </div>
                 <div className="px-6 py-5 space-y-2">
                   {fwObligations.length === 0 ? (

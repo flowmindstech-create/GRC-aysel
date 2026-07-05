@@ -2,40 +2,44 @@
 
 /* ── Design Tokens ─────────────────────────────────────────────────────────── */
 :root {
-  --radius: 0.75rem;
+  --radius: 0.9rem;
 
-  /* Brand (Light Blue / Sky Blue Accent) */
-  --brand-50:  #f0f9ff;
-  --brand-100: #e0f2fe;
-  --brand-200: #bae6fd;
-  --brand-500: #0ea5e9; /* Sky Blue */
-  --brand-600: #0284c7;
-  --brand-700: #0369a1;
+  /* Brand — deep navy is the primary/action colour (GRC Sentinel light theme) */
+  --brand-50:  #eaeef7; /* light lavender tint — active nav / hover */
+  --brand-100: #dce3f1;
+  --brand-200: #c3cfe6;
+  --brand-500: #152744; /* Deep Navy — primary buttons, active state */
+  --brand-600: #0f1d34;
+  --brand-700: #0a1526;
 
-  /* Semantic (Premium Dark Navy & Cobalt Theme) */
-  --background:   #080e1a; /* Midnight Blue / Dark Navy */
-  --foreground:   #f0f5ff; /* Ice White / Light Blue tint */
-  --card:         #121e36; /* Cobalt Navy Card Surface */
-  --card-border:  #1f3050; /* Steel Blue border */
-  --muted:        #162237; /* Legible dark blue background for elements */
-  --muted-fg:     #8da2c0; /* Slate Gray-Blue for tags and secondary text */
-  --border:       #1f3050;
-  --input:        #1c2b42;
-  --ring:         #0ea5e9;
-  --sidebar-bg:   #060910;
-  --sidebar-fg:   #8da2c0;
-  --sidebar-active:#0ea5e9;
+  /* Secondary data accent (charts, readiness, positive trend) */
+  --accent-teal:   #0f766e;
+  --accent-teal-50:#d5f0ec;
+
+  /* Semantic (Airy Light — soft lavender canvas, white surfaces) */
+  --background:   #eef0f8; /* Soft cool lavender-gray page canvas */
+  --foreground:   #1e293b; /* Dark slate/navy text */
+  --card:         #ffffff; /* White surfaces */
+  --card-border:  #e4e7f1; /* Light cool border */
+  --muted:        #f1f3fa; /* Very light fill — inputs, chips */
+  --muted-fg:     #64748b; /* Muted slate — labels, secondary text */
+  --border:       #e4e7f1;
+  --input:        #f1f3fa;
+  --ring:         #152744;
+  --sidebar-bg:   #e9ebf6; /* Soft lavender sidebar panel */
+  --sidebar-fg:   #64748b;
+  --sidebar-active:#152744;
 
   /* Professional Alert Palette (Corporate, Non-Neon) */
-  --risk-critical: #e11d48;
+  --risk-critical: #dc2626;
   --risk-high:     #ea580c;
   --risk-medium:   #d97706;
-  --risk-low:      #059669;
+  --risk-low:      #0d9488;
 
   /* Status Colors */
-  --status-open:        #e11d48;
-  --status-in-progress: #0ea5e9; /* Light Blue status */
-  --status-resolved:    #059669;
+  --status-open:        #dc2626;
+  --status-in-progress: #152744;
+  --status-resolved:    #0d9488;
   --status-closed:      #64748b;
 }
 
@@ -63,6 +67,7 @@
   
   /* Brand Override */
   --color-brand-500: var(--brand-500);
+  --color-accent-teal: var(--accent-teal);
 
   /* Alert colors overrides so utility classes (e.g. text-red-400, bg-emerald-500) map to custom variables */
   --color-red-600: var(--risk-critical);
@@ -129,14 +134,14 @@ body {
   background: var(--card);
   border: 1px solid var(--card-border);
   border-radius: var(--radius);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.22), 0 1px 3px rgba(0,0,0,0.16);
+  box-shadow: 0 1px 2px rgba(16,24,40,0.04), 0 1px 3px rgba(16,24,40,0.06);
   position: relative;
   transition: box-shadow 0.25s ease, border-color 0.25s ease;
 }
 
 .card:hover {
-  box-shadow: 0 4px 24px rgba(0,0,0,0.30), 0 2px 8px rgba(0,0,0,0.20);
-  border-color: rgba(14,165,233,0.22);
+  box-shadow: 0 8px 24px rgba(21,39,68,0.08), 0 2px 6px rgba(21,39,68,0.06);
+  border-color: rgba(21,39,68,0.16);
 }
 
 /* ── Focus ring ────────────────────────────────────────────────────────────── */
@@ -165,17 +170,17 @@ input[type="range"] {
 
 /* Track styles */
 input[type="range"]::-webkit-slider-runnable-track {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(16, 24, 40, 0.10);
   height: 5px;
   border-radius: 9999px;
   transition: background 0.15s ease;
 }
 input[type="range"]:hover::-webkit-slider-runnable-track {
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(16, 24, 40, 0.16);
 }
 
 input[type="range"]::-moz-range-track {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(16, 24, 40, 0.10);
   height: 5px;
   border-radius: 9999px;
 }

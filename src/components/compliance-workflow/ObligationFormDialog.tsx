@@ -205,7 +205,7 @@ export function ObligationFormDialog({ obligation, onClose, onSave, onSaved }: P
                 {isEdit ? `Editing ${obligation.obligation_code}` : 'Code will be auto-generated (COMP-OBL-…)'}
               </p>
             </div>
-            <button onClick={onClose} className="w-7 h-7 rounded-lg flex items-center justify-center transition-colors hover:bg-white/5">
+            <button onClick={onClose} className="w-7 h-7 rounded-lg flex items-center justify-center transition-colors hover:bg-black/[0.04]">
               <X className="w-4 h-4" style={{ color: 'var(--muted-fg)' }} />
             </button>
           </div>
@@ -404,7 +404,7 @@ export function ObligationFormDialog({ obligation, onClose, onSave, onSaved }: P
               {controls.length === 0 ? (
                 <p className="text-xs px-3 py-2" style={{ color: 'var(--muted-fg)' }}>No controls in the library yet.</p>
               ) : controls.map(c => (
-                <label key={c.id} className="flex items-center gap-2 px-3 py-1.5 text-xs cursor-pointer hover:bg-white/5" style={{ color: 'var(--foreground)' }}>
+                <label key={c.id} className="flex items-center gap-2 px-3 py-1.5 text-xs cursor-pointer hover:bg-black/[0.04]" style={{ color: 'var(--foreground)' }}>
                   <input type="checkbox" checked={linkedControlIds.includes(c.id)} onChange={() => toggle(linkedControlIds, c.id, setLinkedCtrl)} />
                   <span className="font-mono text-[10px]" style={{ color: 'var(--brand-500)' }}>{c.control_id}</span>
                   <span className="truncate">{c.title}</span>
@@ -417,7 +417,7 @@ export function ObligationFormDialog({ obligation, onClose, onSave, onSaved }: P
               {policies.length === 0 ? (
                 <p className="text-xs px-3 py-2" style={{ color: 'var(--muted-fg)' }}>No internal policies yet.</p>
               ) : policies.map(p => (
-                <label key={p.id} className="flex items-center gap-2 px-3 py-1.5 text-xs cursor-pointer hover:bg-white/5" style={{ color: 'var(--foreground)' }}>
+                <label key={p.id} className="flex items-center gap-2 px-3 py-1.5 text-xs cursor-pointer hover:bg-black/[0.04]" style={{ color: 'var(--foreground)' }}>
                   <input type="checkbox" checked={linkedPolicyIds.includes(p.id)} onChange={() => toggle(linkedPolicyIds, p.id, setLinkedPolicy)} />
                   <span className="font-mono text-[10px]" style={{ color: 'var(--brand-500)' }}>{p.policy_id}</span>
                   <span className="truncate">{p.title}</span>
@@ -436,7 +436,7 @@ export function ObligationFormDialog({ obligation, onClose, onSave, onSaved }: P
             {/* Footer */}
             <div className="flex items-center justify-between pt-2">
               <button type="button" onClick={onClose}
-                className="px-4 py-2 rounded-lg text-sm transition-colors hover:bg-white/5" style={{ color: 'var(--muted-fg)' }}>
+                className="px-4 py-2 rounded-lg text-sm transition-colors hover:bg-black/[0.04]" style={{ color: 'var(--muted-fg)' }}>
                 Cancel
               </button>
               <button type="submit" disabled={!title.trim() || loading}

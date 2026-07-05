@@ -238,7 +238,7 @@ export function ControlChecklist() {
               {/* Header */}
               <div className="flex items-center justify-between px-6 py-4 border-b" style={{ borderColor: 'var(--border)' }}>
                 <h3 className="text-sm font-bold text-white uppercase tracking-wider">Create Compliance Control</h3>
-                <button onClick={() => setShowAddModal(false)} className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-white/5 transition-colors cursor-pointer">
+                <button onClick={() => setShowAddModal(false)} className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-black/[0.04] transition-colors cursor-pointer">
                   <X className="w-4 h-4 text-slate-400" />
                 </button>
               </div>
@@ -301,7 +301,7 @@ export function ControlChecklist() {
                   <button
                     type="button"
                     onClick={() => setShowAddModal(false)}
-                    className="px-4 py-2 rounded-xl text-xs font-semibold hover:bg-white/5 transition-colors cursor-pointer"
+                    className="px-4 py-2 rounded-xl text-xs font-semibold hover:bg-black/[0.04] transition-colors cursor-pointer"
                     style={{ color: 'var(--muted-fg)' }}
                   >
                     Cancel

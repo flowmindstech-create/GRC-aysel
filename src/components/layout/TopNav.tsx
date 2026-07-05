@@ -64,7 +64,7 @@ export function TopNav({ title, subtitle }: TopNavProps) {
     <header
       className="h-14 flex items-center gap-4 px-6 border-b shrink-0"
       style={{
-        background: 'rgba(8,14,26,0.85)',
+        background: 'rgba(255,255,255,0.82)',
         backdropFilter: 'blur(14px)',
         WebkitBackdropFilter: 'blur(14px)',
         borderColor: 'var(--border)',
@@ -86,18 +86,18 @@ export function TopNav({ title, subtitle }: TopNavProps) {
       <div
         className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg w-52 transition-colors cursor-pointer group"
         style={{
-          background: 'rgba(255,255,255,0.03)',
+          background: 'var(--muted)',
           border: '1px solid var(--border)',
           color: 'var(--muted-fg)',
         }}
-        onMouseEnter={e => ((e.currentTarget as HTMLElement).style.borderColor = 'rgba(14,165,233,0.3)')}
+        onMouseEnter={e => ((e.currentTarget as HTMLElement).style.borderColor = 'rgba(21,39,68,0.28)')}
         onMouseLeave={e => ((e.currentTarget as HTMLElement).style.borderColor = 'var(--border)')}
       >
         <Search className="w-3.5 h-3.5 shrink-0" />
         <span className="text-xs flex-1">Search…</span>
         <kbd
           className="text-[10px] px-1.5 py-0.5 rounded font-medium"
-          style={{ background: 'rgba(255,255,255,0.06)', color: 'var(--muted-fg)' }}
+          style={{ background: 'rgba(21,39,68,0.05)', color: 'var(--muted-fg)' }}
         >
           ⌘K
         </kbd>
@@ -109,7 +109,7 @@ export function TopNav({ title, subtitle }: TopNavProps) {
           onClick={() => { setShowNotif(v => !v); setShowUserMenu(false) }}
           className="relative w-8 h-8 rounded-lg flex items-center justify-center transition-colors cursor-pointer"
           style={{ color: 'var(--muted-fg)' }}
-          onMouseEnter={e => ((e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.05)')}
+          onMouseEnter={e => ((e.currentTarget as HTMLElement).style.background = 'rgba(21,39,68,0.05)')}
           onMouseLeave={e => ((e.currentTarget as HTMLElement).style.background = '')}
           aria-label="Notifications"
         >
@@ -128,7 +128,7 @@ export function TopNav({ title, subtitle }: TopNavProps) {
             <div
               className="absolute right-0 top-full mt-2 w-80 rounded-xl shadow-2xl z-50 border overflow-hidden"
               style={{
-                background: 'rgba(12,20,38,0.97)',
+                background: 'rgba(255,255,255,0.98)',
                 backdropFilter: 'blur(16px)',
                 borderColor: 'var(--border)',
                 boxShadow: '0 8px 32px rgba(0,0,0,0.4), 0 2px 8px rgba(0,0,0,0.2)',
@@ -137,7 +137,7 @@ export function TopNav({ title, subtitle }: TopNavProps) {
               <div className="flex items-center justify-between px-4 py-3 border-b" style={{ borderColor: 'var(--border)' }}>
                 <p className="text-xs font-bold uppercase tracking-wide" style={{ color: 'var(--foreground)' }}>Notifications</p>
                 {activities.length > 0 && (
-                  <span className="text-[10px] px-1.5 py-0.5 rounded-full font-semibold" style={{ background: 'rgba(14,165,233,0.15)', color: 'var(--brand-500)' }}>{activities.length}</span>
+                  <span className="text-[10px] px-1.5 py-0.5 rounded-full font-semibold" style={{ background: 'var(--brand-50)', color: 'var(--brand-500)' }}>{activities.length}</span>
                 )}
               </div>
 
@@ -149,7 +149,7 @@ export function TopNav({ title, subtitle }: TopNavProps) {
                   </div>
                 ) : (
                   activities.map((a) => (
-                    <div key={a.id} className="flex items-start gap-2.5 px-4 py-2.5 border-b last:border-b-0 transition-colors hover:bg-white/[0.03]" style={{ borderColor: 'var(--border)' }}>
+                    <div key={a.id} className="flex items-start gap-2.5 px-4 py-2.5 border-b last:border-b-0 transition-colors hover:bg-black/[0.04]" style={{ borderColor: 'var(--border)' }}>
                       <span className="mt-1.5 w-1.5 h-1.5 rounded-full shrink-0" style={{ background: 'var(--brand-500)' }} />
                       <div className="min-w-0 flex-1">
                         <p className="text-xs leading-snug" style={{ color: 'var(--foreground)' }}>
@@ -178,14 +178,14 @@ export function TopNav({ title, subtitle }: TopNavProps) {
           className={cn(
             'flex items-center gap-2 pl-1 pr-2.5 py-1 rounded-lg transition-colors cursor-pointer',
           )}
-          onMouseEnter={e => ((e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.04)')}
+          onMouseEnter={e => ((e.currentTarget as HTMLElement).style.background = 'rgba(21,39,68,0.05)')}
           onMouseLeave={e => ((e.currentTarget as HTMLElement).style.background = '')}
         >
           <div
             className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold"
             style={{
               background: 'linear-gradient(135deg, var(--brand-500), var(--brand-700))',
-              boxShadow: '0 0 10px rgba(14,165,233,0.3)',
+              boxShadow: '0 0 10px rgba(21,39,68,0.28)',
             }}
           >
             {initial}
@@ -200,7 +200,7 @@ export function TopNav({ title, subtitle }: TopNavProps) {
           <div
             className="absolute right-0 top-full mt-2 w-48 rounded-xl shadow-2xl z-50 border py-1 overflow-hidden"
             style={{
-              background: 'rgba(12,20,38,0.95)',
+              background: 'rgba(255,255,255,0.98)',
               backdropFilter: 'blur(16px)',
               borderColor: 'var(--border)',
               boxShadow: '0 8px 32px rgba(0,0,0,0.4), 0 2px 8px rgba(0,0,0,0.2)',
@@ -213,7 +213,7 @@ export function TopNav({ title, subtitle }: TopNavProps) {
             <button
               className="w-full flex items-center gap-2.5 px-3 py-2 text-sm transition-colors"
               style={{ color: 'var(--foreground)' }}
-              onMouseEnter={e => ((e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.04)')}
+              onMouseEnter={e => ((e.currentTarget as HTMLElement).style.background = 'rgba(21,39,68,0.05)')}
               onMouseLeave={e => ((e.currentTarget as HTMLElement).style.background = '')}
             >
               <User className="w-3.5 h-3.5" style={{ color: 'var(--muted-fg)' }} />

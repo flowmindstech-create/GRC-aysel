@@ -33,7 +33,7 @@ function ReportDialog({ code, onClose, onSave }: { code: string; onClose: () => 
           className="relative w-full max-w-md rounded-2xl border shadow-2xl" style={{ background: 'var(--card)', borderColor: 'var(--border)' }}>
           <div className="flex items-center justify-between px-6 py-4 border-b" style={{ borderColor: 'var(--border)' }}>
             <h2 className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>New Whistleblowing Report</h2>
-            <button onClick={onClose} className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/5"><X className="w-4 h-4" style={{ color: 'var(--muted-fg)' }} /></button>
+            <button onClick={onClose} className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-black/[0.04]"><X className="w-4 h-4" style={{ color: 'var(--muted-fg)' }} /></button>
           </div>
           <form onSubmit={async e => { e.preventDefault(); if (!body.trim()) return; setLoading(true); await onSave(subject.trim(), body.trim()); setLoading(false) }} className="px-6 py-5 space-y-4">
             <div>
@@ -46,7 +46,7 @@ function ReportDialog({ code, onClose, onSave }: { code: string; onClose: () => 
               <p className="text-[10px] mt-1 text-emerald-400 flex items-center gap-1"><Lock className="w-3 h-3" /> Şifrələnir — yalnız kodu bilən görə bilər</p>
             </div>
             <div className="flex items-center justify-between pt-1">
-              <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg text-sm hover:bg-white/5" style={{ color: 'var(--muted-fg)' }}>Cancel</button>
+              <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg text-sm hover:bg-black/[0.04]" style={{ color: 'var(--muted-fg)' }}>Cancel</button>
               <button type="submit" disabled={!body.trim() || loading} className="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold text-white disabled:opacity-50" style={{ background: 'var(--brand-500)' }}>
                 <Plus className="w-3.5 h-3.5" /> {loading ? 'Saving…' : 'Submit'}
               </button>

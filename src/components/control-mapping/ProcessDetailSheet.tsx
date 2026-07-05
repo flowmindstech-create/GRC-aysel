@@ -79,7 +79,7 @@ export function ProcessDetailSheet({ process, links, ctrlById, riskById, oblById
 
   // One linked-entity row: code chip + full title + optional meta line. Hover-highlighted.
   const linkRow = (key: string, code: string, title: string, codeCls: string, meta?: React.ReactNode) => (
-    <div key={key} className="flex items-start gap-2 px-3 py-2 rounded-lg transition-colors hover:bg-white/[0.04]"
+    <div key={key} className="flex items-start gap-2 px-3 py-2 rounded-lg transition-colors hover:bg-black/[0.04]"
       style={{ border: '1px solid var(--border)' }}>
       <span className={cn('mt-0.5 px-1.5 py-0.5 rounded text-[9px] font-mono font-bold whitespace-nowrap shrink-0', codeCls)}>{code}</span>
       <div className="min-w-0 flex-1">
@@ -120,7 +120,7 @@ export function ProcessDetailSheet({ process, links, ctrlById, riskById, oblById
               </div>
               <h2 className="text-sm font-semibold mt-1 truncate" style={{ color: 'var(--foreground)' }}>{process.name}</h2>
             </div>
-            <button onClick={onClose} className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/5 shrink-0"><X className="w-4 h-4" style={{ color: 'var(--muted-fg)' }} /></button>
+            <button onClick={onClose} className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-black/[0.04] shrink-0"><X className="w-4 h-4" style={{ color: 'var(--muted-fg)' }} /></button>
           </div>
           <div className="h-0.5 mx-6" style={{ background: 'linear-gradient(90deg, transparent, var(--brand-500), transparent)' }} />
 
@@ -235,7 +235,7 @@ export function ProcessDetailSheet({ process, links, ctrlById, riskById, oblById
 
           {/* Footer */}
           <div className="flex items-center justify-end gap-2 px-6 py-4 border-t sticky bottom-0" style={{ borderColor: 'var(--border)', background: 'var(--card)' }}>
-            <button onClick={onClose} className="px-4 py-2 rounded-lg text-sm hover:bg-white/5" style={{ color: 'var(--muted-fg)' }}>Bağla</button>
+            <button onClick={onClose} className="px-4 py-2 rounded-lg text-sm hover:bg-black/[0.04]" style={{ color: 'var(--muted-fg)' }}>Bağla</button>
             <button onClick={onEdit}
               className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-white transition-colors" style={{ background: 'var(--brand-500)' }}>
               <Edit className="w-3.5 h-3.5" /> Redaktə et

@@ -122,7 +122,7 @@ export function RegulatoryChangeFormDialog({ change, onClose, onSave, onSaved }:
               <h2 className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>{isEdit ? 'Edit Regulatory Change' : 'New Regulatory Change'}</h2>
               <p className="text-xs mt-0.5" style={{ color: 'var(--muted-fg)' }}>{isEdit ? `Editing ${change.change_code}` : 'Code will be auto-generated (RCM-…)'}</p>
             </div>
-            <button onClick={onClose} className="w-7 h-7 rounded-lg flex items-center justify-center transition-colors hover:bg-white/5">
+            <button onClick={onClose} className="w-7 h-7 rounded-lg flex items-center justify-center transition-colors hover:bg-black/[0.04]">
               <X className="w-4 h-4" style={{ color: 'var(--muted-fg)' }} />
             </button>
           </div>
@@ -229,7 +229,7 @@ export function RegulatoryChangeFormDialog({ change, onClose, onSave, onSaved }:
                 {obligations.length === 0 ? (
                   <p className="text-xs px-3 py-2" style={{ color: 'var(--muted-fg)' }}>No obligations in the register yet.</p>
                 ) : obligations.map(o => (
-                  <label key={o.id} className="flex items-center gap-2 px-3 py-1.5 text-xs cursor-pointer hover:bg-white/5" style={{ color: 'var(--foreground)' }}>
+                  <label key={o.id} className="flex items-center gap-2 px-3 py-1.5 text-xs cursor-pointer hover:bg-black/[0.04]" style={{ color: 'var(--foreground)' }}>
                     <input type="checkbox" checked={affected.includes(o.id)} onChange={() => toggle(o.id)} />
                     <span className="font-mono text-[10px]" style={{ color: 'var(--brand-500)' }}>{o.obligation_code}</span>
                     <span className="truncate">{o.title}</span>
@@ -239,7 +239,7 @@ export function RegulatoryChangeFormDialog({ change, onClose, onSave, onSaved }:
             </div>
 
             <div className="flex items-center justify-between pt-2">
-              <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg text-sm transition-colors hover:bg-white/5" style={{ color: 'var(--muted-fg)' }}>Cancel</button>
+              <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg text-sm transition-colors hover:bg-black/[0.04]" style={{ color: 'var(--muted-fg)' }}>Cancel</button>
               <button type="submit" disabled={!title.trim() || !effectiveDate || !businessEffect.trim() || loading}
                 className="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold text-white transition-colors disabled:opacity-50" style={{ background: 'var(--brand-500)' }}>
                 {loading ? 'Saving…' : (<>{isEdit ? <Save className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}{isEdit ? 'Update' : 'Create'}</>)}

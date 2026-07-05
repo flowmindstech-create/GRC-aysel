@@ -180,7 +180,7 @@ export default function LoginPage() {
                 setMockSessionCookie()
                 router.push('/dashboard')
               }}
-              className="w-full mt-6 p-3 rounded-xl text-center cursor-pointer hover:bg-white/5 transition-colors border"
+              className="w-full mt-6 p-3 rounded-xl text-center cursor-pointer hover:bg-black/[0.04] transition-colors border"
               style={{ background: 'var(--muted)', borderColor: 'var(--border)' }}
             >
               <p className="text-xs font-bold text-sky-400">

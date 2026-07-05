@@ -9,6 +9,7 @@ import { RISK_STATUSES, STATUS_CLASSES, RISK_STATUS_VALUES, STATUS_LABELS, norma
 import { residualLevelWord, CONTROL_RATING_INFO } from '@/lib/rcsa-methodology'
 import { TREATMENT_STRATEGY_LABELS, type TreatmentStrategy, type ControlRating } from '@/lib/rcsa'
 import { RiskLevelBadge } from '@/components/shared/Badges'
+import { Avatar } from '@/components/shared/Avatar'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { formatDistanceToNow } from 'date-fns'
 import { Plus, Search, MoreHorizontal, Edit, Trash2, Eye, ChevronDown, Wrench } from 'lucide-react'
@@ -330,11 +331,9 @@ export function RiskTable() {
                         <span className="text-xs" style={{ color: 'var(--muted-fg)' }}>{risk.owner_dept ?? '—'}</span>
                       </td>
                       <td className="px-3 py-3.5">
-                        <div className="flex items-center gap-1.5">
-                          <div className="w-5 h-5 rounded-full bg-sky-500 flex items-center justify-center text-white text-[10px] font-bold shrink-0">
-                            {risk.owner_name?.[0] ?? '?'}
-                          </div>
-                          <span className="text-xs whitespace-nowrap" style={{ color: 'var(--foreground)' }}>
+                        <div className="flex items-center gap-2">
+                          <Avatar name={risk.owner_name ?? '?'} size={24} />
+                          <span className="text-xs whitespace-nowrap font-medium" style={{ color: 'var(--foreground)' }}>
                             {risk.owner_name ?? '—'}
                           </span>
                         </div>

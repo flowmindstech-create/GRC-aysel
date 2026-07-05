@@ -175,7 +175,7 @@ function ProcessFormDialog({ process, controls, departments, profiles, policies,
         {items.length === 0 ? (
           <p className="text-xs px-3 py-2" style={{ color: 'var(--muted-fg)' }}>None available.</p>
         ) : items.map(it => (
-          <label key={it.id} className="flex items-center gap-2 px-3 py-1.5 text-xs cursor-pointer hover:bg-white/5" style={{ color: 'var(--foreground)' }}>
+          <label key={it.id} className="flex items-center gap-2 px-3 py-1.5 text-xs cursor-pointer hover:bg-black/[0.04]" style={{ color: 'var(--foreground)' }}>
             <input type="checkbox" checked={selected.includes(it.id)} onChange={() => toggle(selected, it.id, set)} />
             <span className="font-mono text-[10px]" style={{ color: 'var(--brand-500)' }}>{it.code}</span>
             <span className="truncate">{it.title}</span>
@@ -198,7 +198,7 @@ function ProcessFormDialog({ process, controls, departments, profiles, policies,
               <h2 className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>{isEdit ? 'Edit Process' : 'New Business Process'}</h2>
               <p className="text-xs mt-0.5" style={{ color: 'var(--muted-fg)' }}>{isEdit ? `Editing ${process.code}` : 'Code will be auto-generated (PRC-…)'}</p>
             </div>
-            <button onClick={onClose} className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/5"><X className="w-4 h-4" style={{ color: 'var(--muted-fg)' }} /></button>
+            <button onClick={onClose} className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-black/[0.04]"><X className="w-4 h-4" style={{ color: 'var(--muted-fg)' }} /></button>
           </div>
           <div className="h-0.5 mx-6" style={{ background: 'linear-gradient(90deg, transparent, var(--brand-500), transparent)' }} />
           <form onSubmit={handleSubmit} className="px-6 py-5 space-y-4">
@@ -289,7 +289,7 @@ function ProcessFormDialog({ process, controls, departments, profiles, policies,
             {multiBox('Internal Documents (daxili sənədlər)', 'Mapping Matrix-də "Internal Policy" sütununda görünür.',
               documents.map(d => ({ id: d.id, code: d.doc_uid, title: d.name })), linkedDocumentIds, setLinkedDoc)}
             <div className="flex items-center justify-between pt-2">
-              <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg text-sm hover:bg-white/5" style={{ color: 'var(--muted-fg)' }}>Cancel</button>
+              <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg text-sm hover:bg-black/[0.04]" style={{ color: 'var(--muted-fg)' }}>Cancel</button>
               <button type="submit" disabled={!name.trim() || loading}
                 className="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold text-white transition-colors disabled:opacity-50" style={{ background: 'var(--brand-500)' }}>
                 {loading ? 'Saving…' : (<>{isEdit ? <Save className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}{isEdit ? 'Update' : 'Create'}</>)}

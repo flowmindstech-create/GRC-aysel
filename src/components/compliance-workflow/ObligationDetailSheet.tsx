@@ -154,10 +154,10 @@ export function ObligationDetailSheet({ obligation, onClose, onEdit, onSaved }: 
               )}
             </div>
             <div className="flex items-center gap-1 shrink-0">
-              <button onClick={onEdit} className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/5" title="Edit">
+              <button onClick={onEdit} className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-black/[0.04]" title="Edit">
                 <Edit className="w-4 h-4" style={{ color: 'var(--muted-fg)' }} />
               </button>
-              <button onClick={onClose} className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/5" title="Close">
+              <button onClick={onClose} className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-black/[0.04]" title="Close">
                 <X className="w-4 h-4" style={{ color: 'var(--muted-fg)' }} />
               </button>
             </div>

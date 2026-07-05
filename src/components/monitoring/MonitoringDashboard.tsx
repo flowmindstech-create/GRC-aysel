@@ -258,7 +258,7 @@ function AlertRow({ alert, onAck }: { alert: MonitoringAlert; onAck: (id: string
       {!alert.acknowledged && (
         <button
           onClick={() => onAck(alert.id)}
-          className="shrink-0 text-[10px] px-2 py-1 rounded font-medium transition-colors hover:bg-white/5"
+          className="shrink-0 text-[10px] px-2 py-1 rounded font-medium transition-colors hover:bg-black/[0.04]"
           style={{ color: 'var(--muted-fg)', border: '1px solid var(--border)' }}
         >
           Ack
@@ -420,7 +420,7 @@ export function MonitoringDashboard() {
               )}
             </div>
             <button onClick={load}
-              className="w-7 h-7 flex items-center justify-center rounded-lg transition-colors hover:bg-white/5"
+              className="w-7 h-7 flex items-center justify-center rounded-lg transition-colors hover:bg-black/[0.04]"
               style={{ color: 'var(--muted-fg)' }}>
               <RefreshCw className="w-3.5 h-3.5" />
             </button>

@@ -56,7 +56,7 @@ function MappingCell({
     <td className="p-1">
       <div className="relative">
         <button
-          className="w-8 h-8 rounded-lg flex items-center justify-center mx-auto transition-all hover:bg-white/5"
+          className="w-8 h-8 rounded-lg flex items-center justify-center mx-auto transition-all hover:bg-black/[0.04]"
           style={{ border: '1px dashed var(--border)' }}
           onClick={() => setPicker(true)}
         >
@@ -71,13 +71,13 @@ function MappingCell({
               <button
                 key={type}
                 onClick={() => { onAdd(controlId, entityId, type as MappingType); setPicker(false) }}
-                className="w-full flex items-center gap-2 px-3 py-1.5 text-xs hover:bg-white/5 transition-colors"
+                className="w-full flex items-center gap-2 px-3 py-1.5 text-xs hover:bg-black/[0.04] transition-colors"
               >
                 <span className="w-5 h-5 rounded flex items-center justify-center text-[9px] font-bold" style={{ background: cfg.bg, color: cfg.color }}>{cfg.short}</span>
                 <span style={{ color: 'var(--foreground)' }}>{cfg.label}</span>
               </button>
             ))}
-            <button onClick={() => setPicker(false)} className="w-full text-xs px-3 py-1.5 hover:bg-white/5" style={{ color: 'var(--muted-fg)' }}>Cancel</button>
+            <button onClick={() => setPicker(false)} className="w-full text-xs px-3 py-1.5 hover:bg-black/[0.04]" style={{ color: 'var(--muted-fg)' }}>Cancel</button>
           </div>
         )}
       </div>
@@ -219,11 +219,11 @@ export function MappingMatrixClient() {
       {totalPages > 1 && (
         <div className="flex items-center justify-center gap-2">
           <button onClick={() => setPage(p => Math.max(0, p - 1))} disabled={page === 0}
-            className="px-3 py-1.5 rounded-lg text-xs disabled:opacity-40 transition-colors hover:bg-white/5"
+            className="px-3 py-1.5 rounded-lg text-xs disabled:opacity-40 transition-colors hover:bg-black/[0.04]"
             style={{ border: '1px solid var(--border)', color: 'var(--muted-fg)' }}>← Prev</button>
           <span className="text-xs" style={{ color: 'var(--muted-fg)' }}>Page {page + 1} / {totalPages}</span>
           <button onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))} disabled={page === totalPages - 1}
-            className="px-3 py-1.5 rounded-lg text-xs disabled:opacity-40 transition-colors hover:bg-white/5"
+            className="px-3 py-1.5 rounded-lg text-xs disabled:opacity-40 transition-colors hover:bg-black/[0.04]"
             style={{ border: '1px solid var(--border)', color: 'var(--muted-fg)' }}>Next →</button>
         </div>
       )}

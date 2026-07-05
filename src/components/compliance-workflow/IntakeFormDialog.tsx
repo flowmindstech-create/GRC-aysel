@@ -77,7 +77,7 @@ export function IntakeFormDialog({ open, onClose, onSubmit }: Props) {
               <h2 className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>New Compliance Item</h2>
               <p className="text-xs mt-0.5" style={{ color: 'var(--muted-fg)' }}>Step {step} of 2</p>
             </div>
-            <button onClick={onClose} className="w-7 h-7 rounded-lg flex items-center justify-center transition-colors hover:bg-white/5">
+            <button onClick={onClose} className="w-7 h-7 rounded-lg flex items-center justify-center transition-colors hover:bg-black/[0.04]">
               <X className="w-4 h-4" style={{ color: 'var(--muted-fg)' }} />
             </button>
           </div>
@@ -105,7 +105,7 @@ export function IntakeFormDialog({ open, onClose, onSubmit }: Props) {
                         'flex flex-col items-start gap-1 p-3 rounded-xl border text-left transition-all',
                         type === t.value
                           ? 'border-sky-500/50 bg-sky-500/08'
-                          : 'hover:border-white/10 hover:bg-white/[0.02]'
+                          : 'hover:border-white/10 hover:bg-black/[0.04]'
                       )}
                       style={{ borderColor: type === t.value ? 'rgba(14,165,233,0.4)' : 'var(--border)' }}
                     >
@@ -181,7 +181,7 @@ export function IntakeFormDialog({ open, onClose, onSubmit }: Props) {
           <div className="flex items-center justify-between px-6 py-4 border-t" style={{ borderColor: 'var(--border)' }}>
             <button
               onClick={() => step === 1 ? onClose() : setStep(1)}
-              className="px-4 py-2 rounded-lg text-sm transition-colors hover:bg-white/5"
+              className="px-4 py-2 rounded-lg text-sm transition-colors hover:bg-black/[0.04]"
               style={{ color: 'var(--muted-fg)' }}
             >
               {step === 1 ? 'Cancel' : '← Back'}

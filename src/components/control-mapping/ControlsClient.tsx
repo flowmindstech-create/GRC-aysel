@@ -218,7 +218,7 @@ export function ControlsClient() {
               className="relative w-full max-w-md rounded-2xl border shadow-2xl" style={{ background: 'var(--card)', borderColor: 'var(--border)' }}>
               <div className="flex items-center justify-between px-6 py-4 border-b" style={{ borderColor: 'var(--border)' }}>
                 <h2 className="text-sm font-semibold flex items-center gap-2 text-red-400"><AlertTriangle className="w-4 h-4" /> Dependency Scan — {simCtrl.control_id}</h2>
-                <button onClick={() => setSimCtrl(null)} className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/5"><X className="w-4 h-4" style={{ color: 'var(--muted-fg)' }} /></button>
+                <button onClick={() => setSimCtrl(null)} className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-black/[0.04]"><X className="w-4 h-4" style={{ color: 'var(--muted-fg)' }} /></button>
               </div>
               <div className="px-6 py-5 space-y-3">
                 <p className="text-xs" style={{ color: 'var(--muted-fg)' }}>
@@ -237,7 +237,7 @@ export function ControlsClient() {
                   </ul>
                 )}
                 <div className="flex items-center justify-between pt-2">
-                  <button onClick={() => setSimCtrl(null)} className="px-4 py-2 rounded-lg text-sm hover:bg-white/5" style={{ color: 'var(--muted-fg)' }}>Bağla</button>
+                  <button onClick={() => setSimCtrl(null)} className="px-4 py-2 rounded-lg text-sm hover:bg-black/[0.04]" style={{ color: 'var(--muted-fg)' }}>Bağla</button>
                   <button onClick={raiseIncidentFromSim} disabled={creatingInc}
                     className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-white disabled:opacity-50" style={{ background: 'rgb(225,29,72)' }}>
                     <Zap className="w-3.5 h-3.5" /> {creatingInc ? 'Yaradılır…' : 'Real İnsident Yarat'}

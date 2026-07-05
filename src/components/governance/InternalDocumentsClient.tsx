@@ -79,7 +79,7 @@ function DocumentFormDialog({ doc, departments, profiles, onClose, onSave }: {
                 {isEdit ? `Unikal ID: ${doc.doc_uid}` : 'Unikal ID avtomatik veriləcək (DOC-…)'}
               </p>
             </div>
-            <button onClick={onClose} className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/5"><X className="w-4 h-4" style={{ color: 'var(--muted-fg)' }} /></button>
+            <button onClick={onClose} className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-black/[0.04]"><X className="w-4 h-4" style={{ color: 'var(--muted-fg)' }} /></button>
           </div>
           <div className="h-0.5 mx-6" style={{ background: 'linear-gradient(90deg, transparent, var(--brand-500), transparent)' }} />
           <form onSubmit={handleSubmit} className="px-6 py-5 space-y-4">
@@ -153,7 +153,7 @@ function DocumentFormDialog({ doc, departments, profiles, onClose, onSave }: {
               )}
             </div>
             <div className="flex items-center justify-between pt-2">
-              <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg text-sm hover:bg-white/5" style={{ color: 'var(--muted-fg)' }}>Ləğv et</button>
+              <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg text-sm hover:bg-black/[0.04]" style={{ color: 'var(--muted-fg)' }}>Ləğv et</button>
               <button type="submit" disabled={!name.trim() || loading}
                 className="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold text-white transition-colors disabled:opacity-50" style={{ background: 'var(--brand-500)' }}>
                 {loading ? 'Saxlanılır…' : (<>{isEdit ? <Save className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}{isEdit ? 'Yenilə' : 'Yarat'}</>)}

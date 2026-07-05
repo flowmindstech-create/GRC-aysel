@@ -267,7 +267,7 @@ export function FindingWorkflowClient() {
                         'w-full flex items-start gap-3 p-3 rounded-xl border text-left transition-all',
                         selectedFinding?.id === f.id
                           ? 'border-sky-500/40 bg-sky-500/08'
-                          : 'hover:bg-white/[0.02]'
+                          : 'hover:bg-black/[0.04]'
                       )}
                       style={{ borderColor: selectedFinding?.id === f.id ? 'rgba(14,165,233,0.4)' : 'var(--border)' }}
                     >

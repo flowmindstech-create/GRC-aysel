@@ -133,7 +133,7 @@ function NewPolicyDialog({ onClose, onCreate }: { onClose: () => void; onCreate:
         style={{ background: 'var(--card)', borderColor: 'var(--border)' }}>
         <div className="flex items-center justify-between px-5 py-4 border-b shrink-0" style={{ borderColor: 'var(--border)' }}>
           <h2 className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>New Policy</h2>
-          <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-white/5">
+          <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-black/[0.04]">
             <X className="w-4 h-4" style={{ color: 'var(--muted-fg)' }} />
           </button>
         </div>
@@ -185,7 +185,7 @@ function NewPolicyDialog({ onClose, onCreate }: { onClose: () => void; onCreate:
                       onClick={() => toggleReq(o.id)}
                       className={cn(
                         'w-full flex items-center justify-between text-left text-[11px] p-2 rounded-lg border transition-all',
-                        active ? 'border-sky-500 bg-sky-500/10' : 'border-transparent hover:bg-white/5'
+                        active ? 'border-sky-500 bg-sky-500/10' : 'border-transparent hover:bg-black/[0.04]'
                       )}
                     >
                       <span className="font-medium truncate mr-2 flex-1" style={{ color: 'var(--foreground)' }}>
@@ -293,7 +293,7 @@ function PolicyDetailDrawer({ policy, onClose, onUpdate }: { policy: Policy; onC
             <p className="text-[10px] font-mono" style={{ color: 'var(--muted-fg)' }}>{policy.policy_id}</p>
             <h2 className="text-sm font-semibold leading-snug" style={{ color: 'var(--foreground)' }}>{policy.title}</h2>
           </div>
-          <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-white/5 cursor-pointer">
+          <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-black/[0.04] cursor-pointer">
             <X className="w-4 h-4" style={{ color: 'var(--muted-fg)' }} />
           </button>
         </div>

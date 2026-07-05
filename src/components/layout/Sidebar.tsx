@@ -108,7 +108,7 @@ export function Sidebar({ onMobileClose }: SidebarProps) {
   return (
     <aside
       style={{
-        background: 'linear-gradient(180deg, #05090f 0%, var(--sidebar-bg) 40%, #060910 100%)',
+        background: 'var(--sidebar-bg)',
         borderColor: 'var(--border)',
       }}
       className={cn(
@@ -125,7 +125,7 @@ export function Sidebar({ onMobileClose }: SidebarProps) {
           className="flex items-center justify-center w-9 h-9 rounded-xl shrink-0"
           style={{
             background: 'linear-gradient(135deg, var(--brand-500) 0%, var(--brand-700) 100%)',
-            boxShadow: '0 0 18px rgba(14,165,233,0.38), 0 2px 6px rgba(0,0,0,0.35)',
+            boxShadow: '0 4px 10px rgba(21,39,68,0.20)',
           }}
         >
           <Shield className="w-4 h-4 text-white" />
@@ -137,9 +137,9 @@ export function Sidebar({ onMobileClose }: SidebarProps) {
             </p>
             <p
               className="text-[10px] mt-0.5 font-semibold uppercase tracking-[0.14em]"
-              style={{ color: 'var(--brand-500)', opacity: 0.85 }}
+              style={{ color: 'var(--muted-fg)' }}
             >
-              IRM Platform
+              Global Governance
             </p>
           </div>
         )}
@@ -172,15 +172,16 @@ export function Sidebar({ onMobileClose }: SidebarProps) {
                       'relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 group',
                     )}
                     style={active ? {
-                      boxShadow: 'inset 2px 0 0 var(--brand-500)',
-                      background: 'rgba(14,165,233,0.09)',
-                      color: 'var(--foreground)',
+                      boxShadow: 'inset 3px 0 0 var(--brand-500)',
+                      background: 'var(--brand-50)',
+                      color: 'var(--brand-500)',
+                      fontWeight: 600,
                     } : {
                       color: 'var(--sidebar-fg)',
                     }}
                     onMouseEnter={e => {
                       if (!active) {
-                        (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.04)'
+                        (e.currentTarget as HTMLElement).style.background = 'rgba(21,39,68,0.05)'
                         ;(e.currentTarget as HTMLElement).style.color = 'var(--foreground)'
                       }
                     }}
@@ -213,11 +214,11 @@ export function Sidebar({ onMobileClose }: SidebarProps) {
       {!collapsed && (
         <div
           className="mx-3 mb-3 p-3 rounded-xl border"
-          style={{ background: 'rgba(255,255,255,0.02)', borderColor: 'var(--border)' }}
+          style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
         >
           <p
             className="text-[10px] uppercase tracking-widest mb-1"
-            style={{ color: 'var(--muted-fg)', opacity: 0.5 }}
+            style={{ color: 'var(--muted-fg)', opacity: 0.7 }}
           >
             Organization
           </p>
@@ -225,9 +226,9 @@ export function Sidebar({ onMobileClose }: SidebarProps) {
           <span
             className="inline-flex items-center mt-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold"
             style={{
-              background: 'linear-gradient(90deg, rgba(14,165,233,0.18), rgba(3,105,161,0.18))',
+              background: 'var(--brand-50)',
               color: 'var(--brand-500)',
-              border: '1px solid rgba(14,165,233,0.2)',
+              border: '1px solid var(--brand-100)',
             }}
           >
             Professional
@@ -240,7 +241,7 @@ export function Sidebar({ onMobileClose }: SidebarProps) {
         {!collapsed ? (
           <div
             className="flex items-center gap-2 p-2 rounded-xl border"
-            style={{ borderColor: 'var(--border)', background: 'rgba(255,255,255,0.02)' }}
+            style={{ borderColor: 'var(--border)', background: 'var(--card)' }}
           >
             <div
               className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0"
