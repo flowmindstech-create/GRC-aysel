@@ -1,4 +1,4 @@
-import type { AuditFindingWorkflow, NIRAPItem, KRIItem, KCIItem, KPIItem, MonitoringAlert, Policy, PolicyApproval, InternalDocument } from '@/types'
+import type { AuditFindingWorkflow, NIRAPItem, KRIItem, KCIItem, KPIItem, MonitoringAlert, Policy, PolicyApproval, InternalDocument, ComplianceRisk, InfoSecRisk } from '@/types'
 import { isUUID, ensureUUID } from './db'
 import { MOCK_POLICIES } from './seed-data'
 
@@ -351,6 +351,100 @@ export const dbExt = {
     if (idx >= 0) all[idx] = next; else all.unshift(next)
     setLocal('policies', all)
     return next
+  },
+
+  // ── Compliance & InfoSec Risk Registers (phase 42) ─────────────────────────
+
+  async getComplianceRisks(): Promise<ComplianceRisk[]> {
+    if (isSupabase()) {
+      const { createClient } = await import('./supabase/client')
+      const { data } = await createClient().from('compliance_risks').select('*').order('created_at', { ascending: false })
+      return (data ?? []) as ComplianceRisk[]
+    }
+    return getLocal<ComplianceRisk[]>('compliance_risks', [])
+  },
+
+  async saveComplianceRisk(item: ComplianceRisk): Promise<ComplianceRisk> {
+    const sanitized: ComplianceRisk = {
+      ...item,
+      id: ensureUUID(item.id),
+      org_id: ensureUUID(item.org_id),
+      updated_at: new Date().toISOString(),
+    }
+    if (!sanitized.code) {
+      const existing = await dbExt.getComplianceRisks()
+      sanitized.code = `CRR-${new Date().getFullYear()}-${String(existing.length + 1).padStart(3, '0')}`
+    }
+    if (isSupabase()) {
+      const { createClient } = await import('./supabase/client')
+      const payload: any = {
+        ...sanitized,
+        obligation_id: sanitized.obligation_id || null,
+        control_id: sanitized.control_id || null,
+      }
+      const { data, error } = await createClient().from('compliance_risks').upsert(payload).select().single()
+      if (error) console.error('Supabase saveComplianceRisk error:', error)
+      if (!error && data) return data as ComplianceRisk
+    }
+    const all = getLocal<ComplianceRisk[]>('compliance_risks', [])
+    const idx = all.findIndex(r => r.id === sanitized.id)
+    if (idx >= 0) all[idx] = sanitized; else all.unshift(sanitized)
+    setLocal('compliance_risks', all)
+    return sanitized
+  },
+
+  async deleteComplianceRisk(id: string): Promise<void> {
+    if (isSupabase()) {
+      const { createClient } = await import('./supabase/client')
+      await createClient().from('compliance_risks').delete().eq('id', id)
+    }
+    setLocal('compliance_risks', getLocal<ComplianceRisk[]>('compliance_risks', []).filter(r => r.id !== id))
+  },
+
+  async getInfoSecRisks(): Promise<InfoSecRisk[]> {
+    if (isSupabase()) {
+      const { createClient } = await import('./supabase/client')
+      const { data } = await createClient().from('infosec_risks').select('*').order('created_at', { ascending: false })
+      return (data ?? []) as InfoSecRisk[]
+    }
+    return getLocal<InfoSecRisk[]>('infosec_risks', [])
+  },
+
+  async saveInfoSecRisk(item: InfoSecRisk): Promise<InfoSecRisk> {
+    const sanitized: InfoSecRisk = {
+      ...item,
+      id: ensureUUID(item.id),
+      org_id: ensureUUID(item.org_id),
+      updated_at: new Date().toISOString(),
+    }
+    if (!sanitized.code) {
+      const existing = await dbExt.getInfoSecRisks()
+      sanitized.code = `ISR-${new Date().getFullYear()}-${String(existing.length + 1).padStart(3, '0')}`
+    }
+    if (isSupabase()) {
+      const { createClient } = await import('./supabase/client')
+      const payload: any = {
+        ...sanitized,
+        current_control_id: sanitized.current_control_id || null,
+        deadline: sanitized.deadline || null,
+      }
+      const { data, error } = await createClient().from('infosec_risks').upsert(payload).select().single()
+      if (error) console.error('Supabase saveInfoSecRisk error:', error)
+      if (!error && data) return data as InfoSecRisk
+    }
+    const all = getLocal<InfoSecRisk[]>('infosec_risks', [])
+    const idx = all.findIndex(r => r.id === sanitized.id)
+    if (idx >= 0) all[idx] = sanitized; else all.unshift(sanitized)
+    setLocal('infosec_risks', all)
+    return sanitized
+  },
+
+  async deleteInfoSecRisk(id: string): Promise<void> {
+    if (isSupabase()) {
+      const { createClient } = await import('./supabase/client')
+      await createClient().from('infosec_risks').delete().eq('id', id)
+    }
+    setLocal('infosec_risks', getLocal<InfoSecRisk[]>('infosec_risks', []).filter(r => r.id !== id))
   },
 
   // ── Internal Documents (Policy Governance register, phase 41) ──────────────

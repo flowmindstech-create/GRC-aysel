@@ -1193,6 +1193,55 @@ export interface Process {
   updated_at: string
 }
 
+// ── Compliance Risk Register (phase 42) — Risk Register tab 2 ─────────────────
+export interface ComplianceRisk {
+  id: string
+  org_id: string
+  code: string                 // CRR-YYYY-NNN
+  obligation_id?: string       // requirement — Compliance Register-dən seçilir
+  requirement?: string         // sərbəst mətn (öhdəlik seçilməyəndə)
+  risk_description: string
+  likelihood?: number          // 1-5
+  impact?: number              // 1-5
+  inherent_score?: number      // likelihood × impact (avto)
+  risk_trigger?: string
+  control_id?: string          // related control (Control Library)
+  mitigation_plan?: string
+  treatment_plan?: string      // risk treatment plan
+  created_at: string
+  updated_at: string
+}
+
+// ── Information Security Risk Register (phase 42) — Risk Register tab 3 ──────
+// Impact 9 mövcud RCSA təsir ölçüsü üzrə daxil edilir (IMPACT_DOMAINS);
+// inherent = probability × max(impacts). Deadline/responsible sahələri yalnız
+// yaradılanda təyin olunur — redaktədə kilidli.
+export interface InfoSecRisk {
+  id: string
+  org_id: string
+  code: string                 // ISR-YYYY-NNN
+  process?: string             // biznes proses (ad)
+  asset: string
+  threat: string
+  vulnerability: string
+  risk_description: string
+  risk_trigger?: string
+  probability?: number         // 1-5
+  impacts?: Record<string, number> // IMPACT_DOMAINS key → 1-5
+  inherent_score?: number      // probability × max(impacts) (avto)
+  current_control_id?: string  // cari kontrol (Control Library)
+  residual_probability?: number
+  residual_impact?: number
+  residual_score?: number      // residual_probability × residual_impact (avto)
+  treatment_plan?: string
+  mitigation_plan?: string
+  deadline?: string            // 🔒 redaktə olunmur
+  responsible_structure?: string // 🔒 redaktə olunmur
+  responsible_person?: string  // 🔒 redaktə olunmur
+  created_at: string
+  updated_at: string
+}
+
 // Internal normative document register — Policy Governance "Internal Document List" (phase 41)
 export type InternalDocType = 'policy' | 'rule' | 'procedure' | 'instruction' | 'charter' | 'methodology' | 'other'
 export interface InternalDocument {
