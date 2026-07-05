@@ -2,7 +2,7 @@ import { TopNav } from '@/components/layout/TopNav'
 import { MonitoringDashboard } from '@/components/monitoring/MonitoringDashboard'
 import type { Metadata } from 'next'
 
-export const metadata: Metadata = { title: 'Monitoring | RiskShield IRM' }
+export const metadata: Metadata = { title: 'Monitoring | GRCell IRM' }
 
 export default function MonitoringPage() {
   return (

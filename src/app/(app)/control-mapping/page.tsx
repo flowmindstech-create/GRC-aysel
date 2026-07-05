@@ -2,7 +2,7 @@ import { TopNav } from '@/components/layout/TopNav'
 import { ControlMappingTabs } from '@/components/control-mapping/ControlMappingTabs'
 import type { Metadata } from 'next'
 
-export const metadata: Metadata = { title: 'Control Mapping | RiskShield IRM' }
+export const metadata: Metadata = { title: 'Control Mapping | GRCell IRM' }
 
 export default function ControlMappingPage() {
   return (

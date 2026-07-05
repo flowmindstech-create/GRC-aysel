@@ -6,7 +6,7 @@ import {
 } from '@/lib/seed-data'
 import type { Metadata } from 'next'
 
-export const metadata: Metadata = { title: 'Dashboard | RiskShield IRM' }
+export const metadata: Metadata = { title: 'Dashboard | GRCell IRM' }
 
 export default function DashboardPage() {
   const stats = MOCK_DASHBOARD_STATS

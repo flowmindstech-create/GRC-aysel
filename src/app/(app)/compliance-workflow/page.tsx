@@ -2,7 +2,7 @@ import { TopNav } from '@/components/layout/TopNav'
 import { ComplianceTabs } from '@/components/compliance-workflow/ComplianceTabs'
 import type { Metadata } from 'next'
 
-export const metadata: Metadata = { title: 'Compliance Obligation Register | RiskShield IRM' }
+export const metadata: Metadata = { title: 'Compliance Obligation Register | GRCell IRM' }
 
 export default function ComplianceWorkflowPage() {
   return (

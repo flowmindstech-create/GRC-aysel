@@ -3,7 +3,7 @@ import { Shield, Zap, ShieldAlert, AlertTriangle, ClipboardCheck, Search, Users,
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'RiskShield — Risk Management for SMEs',
+  title: 'GRCell — Risk Management for SMEs',
 }
 
 const FEATURES = [
@@ -16,7 +16,7 @@ const FEATURES = [
 ]
 
 const TESTIMONIALS = [
-  { name: 'Sarah Chen', role: 'CISO, TechCorp', text: 'RiskShield cut our risk review time by 60%. The transparent, rule-based scoring is exactly what auditors want to see.', stars: 5 },
+  { name: 'Sarah Chen', role: 'CISO, TechCorp', text: 'GRCell cut our risk review time by 60%. The transparent, rule-based scoring is exactly what auditors want to see.', stars: 5 },
   { name: 'Marcus López', role: 'Risk Manager, FinGroup', text: 'Finally a tool that doesn\'t require a 6-month implementation. We were live in a week.', stars: 5 },
   { name: 'Ayse Kilic', role: 'Compliance Lead, MedTech', text: 'The ISO 27001 control tracking is exactly what we needed for our certification audit.', stars: 5 },
 ]
@@ -31,7 +31,7 @@ export default function LandingPage() {
           <div className="w-8 h-8 rounded-lg bg-sky-500 flex items-center justify-center">
             <Shield className="w-4 h-4 text-white" />
           </div>
-          <span className="font-black text-lg" style={{ color: 'var(--foreground)' }}>RiskShield</span>
+          <span className="font-black text-lg" style={{ color: 'var(--foreground)' }}>GRCell</span>
         </div>
         <div className="hidden md:flex items-center gap-6 text-sm font-medium" style={{ color: 'var(--muted-fg)' }}>
           <a href="#features" className="hover:text-sky-500 transition-colors">Features</a>
@@ -86,7 +86,7 @@ export default function LandingPage() {
           <div className="flex items-center gap-2 px-4 py-3 border-b" style={{ borderColor: 'var(--border)' }}>
             <div className="flex gap-1.5"><div className="w-3 h-3 rounded-full bg-red-500" /><div className="w-3 h-3 rounded-full bg-yellow-500" /><div className="w-3 h-3 rounded-full bg-green-500" /></div>
             <div className="flex-1 h-5 rounded-md mx-auto max-w-xs text-xs flex items-center justify-center" style={{ background: 'var(--muted)', color: 'var(--muted-fg)' }}>
-              app.riskshield.io/dashboard
+              app.grcell.com/dashboard
             </div>
           </div>
           <div className="p-6 grid grid-cols-4 gap-4">
@@ -179,7 +179,7 @@ export default function LandingPage() {
           Ready to manage risk smarter?
         </h2>
         <p className="text-lg mb-8" style={{ color: 'var(--muted-fg)' }}>
-          Join hundreds of security teams who trust RiskShield.
+          Join hundreds of security teams who trust GRCell.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Link href="/register"
@@ -200,14 +200,14 @@ export default function LandingPage() {
           <div className="w-6 h-6 rounded-lg bg-sky-500 flex items-center justify-center">
             <Shield className="w-3 h-3 text-white" />
           </div>
-          <span className="font-bold" style={{ color: 'var(--foreground)' }}>RiskShield</span>
+          <span className="font-bold" style={{ color: 'var(--foreground)' }}>GRCell</span>
         </div>
         <div className="flex items-center justify-center gap-4 flex-wrap">
           {['Privacy Policy', 'Terms of Service', 'Security', 'Status', 'Contact'].map(l => (
             <a key={l} href="#" className="hover:text-sky-500 transition-colors">{l}</a>
           ))}
         </div>
-        <p className="mt-4">© 2025 RiskShield. All rights reserved.</p>
+        <p className="mt-4">© 2025 GRCell. All rights reserved.</p>
       </footer>
     </div>
   )

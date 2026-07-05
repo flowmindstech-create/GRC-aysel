@@ -2,7 +2,7 @@ import { TopNav } from '@/components/layout/TopNav'
 import { GovernanceTabs } from '@/components/governance/GovernanceTabs'
 import type { Metadata } from 'next'
 
-export const metadata: Metadata = { title: 'Governance — Policies | RiskShield IRM' }
+export const metadata: Metadata = { title: 'Governance — Policies | GRCell IRM' }
 
 export default function PoliciesPage() {
   return (

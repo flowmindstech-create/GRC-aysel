@@ -120,7 +120,7 @@ export function Sidebar({ onMobileClose }: SidebarProps) {
       <Link
         href="/dashboard"
         onClick={onMobileClose}
-        aria-label="grcell — ana səhifə"
+        aria-label="GRCell — ana səhifə"
         className="flex items-center gap-3 px-4 py-5 border-b transition-colors hover:bg-black/[0.03]"
         style={{ borderColor: 'var(--border)' }}
       >
@@ -136,7 +136,7 @@ export function Sidebar({ onMobileClose }: SidebarProps) {
         {!collapsed && (
           <div>
             <p className="text-sm font-bold leading-none tracking-tight" style={{ color: 'var(--foreground)' }}>
-              grcell
+              GRCell
             </p>
             <p
               className="text-[10px] mt-0.5 font-semibold uppercase tracking-[0.14em]"

@@ -2,7 +2,7 @@ import { TopNav } from '@/components/layout/TopNav'
 import { WorkflowStepperClient } from '@/components/compliance-workflow/WorkflowStepperClient'
 import type { Metadata } from 'next'
 
-export const metadata: Metadata = { title: 'Workflow Detail | RiskShield IRM' }
+export const metadata: Metadata = { title: 'Workflow Detail | GRCell IRM' }
 
 export default function WorkflowDetailPage({ params }: { params: { id: string } }) {
   return (

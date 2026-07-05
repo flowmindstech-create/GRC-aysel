@@ -2,7 +2,7 @@ import { TopNav } from '@/components/layout/TopNav'
 import { FindingWorkflowStepper } from '@/components/audit-findings-workflow/FindingWorkflowStepper'
 import type { Metadata } from 'next'
 
-export const metadata: Metadata = { title: 'Finding Workflow | RiskShield IRM' }
+export const metadata: Metadata = { title: 'Finding Workflow | GRCell IRM' }
 
 export default function FindingWorkflowDetailPage({ params }: { params: { id: string } }) {
   return (

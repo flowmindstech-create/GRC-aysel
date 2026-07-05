@@ -2,7 +2,7 @@ import { TopNav } from '@/components/layout/TopNav'
 import { ComplianceMonitoringClient } from '@/components/compliance-monitoring/ComplianceMonitoringClient'
 import type { Metadata } from 'next'
 
-export const metadata: Metadata = { title: 'Compliance Monitoring | RiskShield IRM' }
+export const metadata: Metadata = { title: 'Compliance Monitoring | GRCell IRM' }
 
 export default function ComplianceMonitoringPage() {
   return (

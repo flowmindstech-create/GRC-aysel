@@ -274,7 +274,7 @@ export default function SettingsPage() {
                         </button>
                         <div>
                           <h3 className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>Jira Integration</h3>
-                          <p className="text-xs" style={{ color: 'var(--muted-fg)' }}>Configure RiskShield GRC to synchronize on top of Jira</p>
+                          <p className="text-xs" style={{ color: 'var(--muted-fg)' }}>Configure GRCell GRC to synchronize on top of Jira</p>
                         </div>
                       </div>
 

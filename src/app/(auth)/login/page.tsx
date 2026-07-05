@@ -75,7 +75,7 @@ export default function LoginPage() {
             <Shield className="w-5 h-5 text-white" />
           </div>
           <div>
-            <p className="font-bold text-white text-lg leading-none">RiskShield</p>
+            <p className="font-bold text-white text-lg leading-none">GRCell</p>
             <p className="text-xs text-sky-400">IRM Platform</p>
           </div>
         </div>
@@ -116,12 +116,12 @@ export default function LoginPage() {
             <div className="w-8 h-8 rounded-lg bg-sky-500 flex items-center justify-center">
               <Shield className="w-4 h-4 text-white" />
             </div>
-            <span className="font-bold text-lg" style={{ color: 'var(--foreground)' }}>RiskShield</span>
+            <span className="font-bold text-lg" style={{ color: 'var(--foreground)' }}>GRCell</span>
           </div>
 
           <h2 className="text-2xl font-black mb-1" style={{ color: 'var(--foreground)' }}>Welcome back</h2>
           <p className="text-sm mb-8" style={{ color: 'var(--muted-fg)' }}>
-            Sign in to your RiskShield account.
+            Sign in to your GRCell account.
           </p>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">

@@ -40,7 +40,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           >
             {mobileOpen ? <X className="w-4 h-4" /> : <Menu className="w-4.5 h-4.5" />}
           </button>
-          <span className="font-bold text-sm" style={{ color: 'var(--foreground)' }}>RiskShield</span>
+          <span className="font-bold text-sm" style={{ color: 'var(--foreground)' }}>GRCell</span>
         </div>
 
         {children}

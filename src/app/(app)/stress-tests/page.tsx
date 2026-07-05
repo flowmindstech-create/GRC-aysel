@@ -2,7 +2,7 @@ import { TopNav } from '@/components/layout/TopNav'
 import { StressTestsClient } from '@/components/modules/StressTestsClient'
 import type { Metadata } from 'next'
 
-export const metadata: Metadata = { title: 'Stress Tests | RiskShield IRM' }
+export const metadata: Metadata = { title: 'Stress Tests | GRCell IRM' }
 
 export default function StressTestsPage() {
   return (

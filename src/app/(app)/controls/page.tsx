@@ -2,7 +2,7 @@ import { TopNav } from '@/components/layout/TopNav'
 import { ControlsClient } from '@/components/control-mapping/ControlsClient'
 import type { Metadata } from 'next'
 
-export const metadata: Metadata = { title: 'Control Library | RiskShield IRM' }
+export const metadata: Metadata = { title: 'Control Library | GRCell IRM' }
 
 export default function ControlsPage() {
   return (

@@ -2,7 +2,7 @@ import { TopNav } from '@/components/layout/TopNav'
 import { WhistleblowingClient } from '@/components/whistleblowing/WhistleblowingClient'
 import type { Metadata } from 'next'
 
-export const metadata: Metadata = { title: 'Whistleblowing | RiskShield IRM' }
+export const metadata: Metadata = { title: 'Whistleblowing | GRCell IRM' }
 
 export default function WhistleblowingPage() {
   return (

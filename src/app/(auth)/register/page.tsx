@@ -72,7 +72,7 @@ export default function RegisterPage() {
           <div className="w-8 h-8 rounded-lg bg-sky-500 flex items-center justify-center">
             <Shield className="w-4 h-4 text-white" />
           </div>
-          <span className="font-bold text-lg" style={{ color: 'var(--foreground)' }}>RiskShield</span>
+          <span className="font-bold text-lg" style={{ color: 'var(--foreground)' }}>GRCell</span>
         </div>
 
         <h2 className="text-2xl font-black mb-1" style={{ color: 'var(--foreground)' }}>Create your account</h2>

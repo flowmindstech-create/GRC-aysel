@@ -9,8 +9,8 @@ const geistMono = Geist_Mono({ variable: '--font-geist-mono', subsets: ['latin']
 
 export const metadata: Metadata = {
   title: {
-    template: '%s | RiskShield IRM',
-    default: 'RiskShield — Integrated Risk Management',
+    template: '%s | GRCell IRM',
+    default: 'GRCell — Integrated Risk Management',
   },
   description:
     'Enterprise-grade Integrated Risk Management for small and medium businesses. Manage risks, incidents, compliance, audits and vendor risk in one platform.',

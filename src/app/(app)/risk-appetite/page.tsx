@@ -2,7 +2,7 @@ import { TopNav } from '@/components/layout/TopNav'
 import { RiskAppetiteClient } from '@/components/modules/RiskAppetiteClient'
 import type { Metadata } from 'next'
 
-export const metadata: Metadata = { title: 'Risk Appetite | RiskShield IRM' }
+export const metadata: Metadata = { title: 'Risk Appetite | GRCell IRM' }
 
 export default function RiskAppetitePage() {
   return (

@@ -676,7 +676,7 @@ export const db = {
         id: 'ja1',
         key: issueKey,
         action: 'Issue Created in Jira',
-        actor: 'RiskShield Integrator',
+        actor: 'GRCell Integrator',
         created_at: new Date(Date.now() - 3600000 * 2).toISOString()
       },
       {
@@ -702,7 +702,7 @@ export const db = {
       {
         id: 'jc1',
         author: 'Jira Automator',
-        content: 'Automatically linked to RiskShield risk register item. Please review mitigation checklist.',
+        content: 'Automatically linked to GRCell risk register item. Please review mitigation checklist.',
         created_at: new Date(Date.now() - 3600000 * 2).toISOString()
       },
       {
@@ -808,7 +808,7 @@ export const db = {
       risk.jira_issue_status = newStatus
       risk.jira_last_sync = new Date().toISOString()
       
-      // Map Jira statuses to RiskShield status
+      // Map Jira statuses to GRCell status
       if (newStatus === 'Done' || newStatus === 'Resolved') {
         risk.status = 'done'
       } else if (newStatus === 'In Progress') {

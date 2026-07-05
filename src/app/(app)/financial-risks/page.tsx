@@ -2,7 +2,7 @@ import { TopNav } from '@/components/layout/TopNav'
 import { FinancialRisksClient } from '@/components/modules/FinancialRisksClient'
 import type { Metadata } from 'next'
 
-export const metadata: Metadata = { title: 'Financial Risks | RiskShield IRM' }
+export const metadata: Metadata = { title: 'Financial Risks | GRCell IRM' }
 
 export default function FinancialRisksPage() {
   return (

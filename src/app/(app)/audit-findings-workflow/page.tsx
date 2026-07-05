@@ -2,7 +2,7 @@ import { TopNav } from '@/components/layout/TopNav'
 import { FindingWorkflowClient } from '@/components/audit-findings-workflow/FindingWorkflowClient'
 import type { Metadata } from 'next'
 
-export const metadata: Metadata = { title: 'Audit Findings Workflow | RiskShield IRM' }
+export const metadata: Metadata = { title: 'Audit Findings Workflow | GRCell IRM' }
 
 export default function AuditFindingsWorkflowPage() {
   return (
