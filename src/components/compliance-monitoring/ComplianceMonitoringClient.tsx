@@ -181,6 +181,7 @@ function AssessmentRegister() {
   const [freqFilter, setFreqFilter] = useState<AssessmentFrequency | 'all'>('all')
   const [historyFor, setHistoryFor] = useState<ComplianceAssessment | null>(null)
   const [historyRows, setHistoryRows] = useState<ComplianceAssessmentHistory[]>([])
+  const [coverageDetail, setCoverageDetail] = useState<string | null>(null) // clicked framework name
 
   async function openHistory(a: ComplianceAssessment) {
     setHistoryFor(a)
@@ -225,15 +226,16 @@ function AssessmentRegister() {
 
   return (
     <div className="space-y-5">
-      {/* Coverage cards */}
+      {/* Coverage cards — click a framework to see which obligations are covered */}
       {coverage.length > 0 && (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           {coverage.slice(0, 4).map(c => (
-            <div key={c.fw} className="card p-4">
+            <button key={c.fw} type="button" onClick={() => setCoverageDetail(c.fw)}
+              className="card p-4 text-left cursor-pointer transition-all hover:-translate-y-0.5 hover:shadow-lg">
               <p className="text-[11px] flex items-center gap-1 mb-1" style={{ color: 'var(--muted-fg)' }}><Gauge className="w-3 h-3" /> {c.fw}</p>
               <p className="text-xl font-bold" style={{ color: c.pct >= 80 ? '#34d399' : c.pct >= 50 ? '#fbbf24' : '#f87171' }}>{c.pct}%</p>
-              <p className="text-[10px]" style={{ color: 'var(--muted-fg)' }}>{c.covered}/{c.total} obligation covered</p>
-            </div>
+              <p className="text-[10px]" style={{ color: 'var(--muted-fg)' }}>{c.covered}/{c.total} obligation covered · detallar üçün klik</p>
+            </button>
           ))}
         </div>
       )}
@@ -328,6 +330,64 @@ function AssessmentRegister() {
             </motion.div>
           </div>
         )}
+      </AnimatePresence>
+
+      {/* Framework coverage detail — which obligations are covered by which controls */}
+      <AnimatePresence>
+        {coverageDetail && (() => {
+          const fwObligations = obligations.filter(o => (o.source || 'Other') === coverageDetail)
+          const covered = fwObligations.filter(o => (linkMaps[o.id]?.controlIds.length ?? 0) > 0).length
+          const pct = fwObligations.length ? Math.round((covered / fwObligations.length) * 100) : 0
+          return (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setCoverageDetail(null)} />
+              <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.96 }}
+                className="relative w-full max-w-lg rounded-2xl border shadow-2xl max-h-[85vh] overflow-y-auto" style={{ background: 'var(--card)', borderColor: 'var(--border)' }}>
+                <div className="flex items-center justify-between px-6 py-4 border-b sticky top-0 z-10" style={{ borderColor: 'var(--border)', background: 'var(--card)' }}>
+                  <div className="flex items-center gap-2">
+                    <Gauge className="w-4 h-4" style={{ color: 'var(--brand-500)' }} />
+                    <h2 className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>{coverageDetail}</h2>
+                    <span className={cn('px-2 py-0.5 rounded-full text-[10px] font-bold',
+                      pct >= 80 ? 'bg-emerald-500/15 text-emerald-400' : pct >= 50 ? 'bg-amber-500/15 text-amber-400' : 'bg-red-500/15 text-red-400')}>
+                      {covered}/{fwObligations.length} · {pct}%
+                    </span>
+                  </div>
+                  <button onClick={() => setCoverageDetail(null)} className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/5"><X className="w-4 h-4" style={{ color: 'var(--muted-fg)' }} /></button>
+                </div>
+                <div className="px-6 py-5 space-y-2">
+                  {fwObligations.length === 0 ? (
+                    <p className="text-xs" style={{ color: 'var(--muted-fg)' }}>Bu framework üzrə öhdəlik yoxdur.</p>
+                  ) : fwObligations.map(o => {
+                    const ctrlIds = linkMaps[o.id]?.controlIds ?? []
+                    const ctrlCodes = ctrlIds.map(id => controls.find(c => c.id === id)?.control_id).filter(Boolean) as string[]
+                    const isCovered = ctrlCodes.length > 0
+                    return (
+                      <div key={o.id} className="flex items-start gap-2 px-3 py-2 rounded-lg" style={{ border: '1px solid var(--border)' }}>
+                        <span className="mt-0.5 px-1.5 py-0.5 rounded text-[9px] font-mono font-bold whitespace-nowrap shrink-0 bg-violet-500/12 text-violet-400">{o.obligation_code}</span>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs font-medium" style={{ color: 'var(--foreground)' }}>{o.title}</p>
+                          <div className="flex items-center gap-1.5 flex-wrap mt-1">
+                            {isCovered ? (
+                              <>
+                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-500/15 text-emerald-400">✓ Covered</span>
+                                {ctrlCodes.map(code => (
+                                  <span key={code} className="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-sky-500/12 text-sky-400">{code}</span>
+                                ))}
+                              </>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-500/15 text-red-400">✗ Not covered — kontrol bağlanmayıb</span>
+                            )}
+                            <span className="text-[10px] capitalize ml-auto" style={{ color: 'var(--muted-fg)' }}>{String(o.status ?? '').replace(/_/g, ' ')}</span>
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </motion.div>
+            </div>
+          )
+        })()}
       </AnimatePresence>
     </div>
   )

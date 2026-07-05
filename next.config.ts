@@ -38,7 +38,7 @@ const nextConfig: NextConfig = {
   },
   experimental: {
     serverActions: {
-      allowedOrigins: ['localhost:3000'],
+      allowedOrigins: ['localhost:3000', 'grcell.com', 'www.grcell.com'],
     },
   },
   turbopack: {
