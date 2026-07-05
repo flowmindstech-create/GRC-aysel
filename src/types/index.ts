@@ -1242,6 +1242,28 @@ export interface InfoSecRisk {
   updated_at: string
 }
 
+// ── Internal Policies register (phase 43) — Compliance səhifəsinin tabı ──────
+export type InternalPolicyDocType = 'policy' | 'procedure' | 'rules' | 'instruction'
+export type ApprovingBody = 'trustees_body' | 'ceo'
+export type InternalPolicyStatus = 'in_progress' | 'approved' | 'published' | 'rejected' | 'defunct'
+export interface InternalPolicy {
+  id: string
+  org_id: string
+  code: string                        // IP-YYYY-NNN (avto)
+  policy_name: string
+  document_type: InternalPolicyDocType
+  approving_body: ApprovingBody       // Trustees Body | CEO
+  responsible_structure?: string      // dept dropdown
+  responsible_person?: string         // profiles dropdown (dept head avto)
+  version: string                     // dropdown (1.0, 1.1, 2.0 …)
+  document_number?: string            // seçim və ya yeni yazılır
+  publish_time?: string               // dərc tarixi
+  validity_period?: string            // qüvvədə olma müddəti (bitmə tarixi)
+  status: InternalPolicyStatus        // in progress → approved → published | rejected | defunct
+  created_at: string
+  updated_at: string
+}
+
 // Internal normative document register — Policy Governance "Internal Document List" (phase 41)
 export type InternalDocType = 'policy' | 'rule' | 'procedure' | 'instruction' | 'charter' | 'methodology' | 'other'
 export interface InternalDocument {

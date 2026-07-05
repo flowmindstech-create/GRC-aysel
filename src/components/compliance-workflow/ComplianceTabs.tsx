@@ -5,7 +5,7 @@ import { ScrollText, RefreshCw, FileText, Users } from 'lucide-react'
 import { ComplianceWorkflowClient } from './ComplianceWorkflowClient'
 import { RegulatoryChangeClient } from './RegulatoryChangeClient'
 import { InterestedPartiesClient } from './InterestedPartiesClient'
-import { PolicyKanbanClient } from '@/components/governance/PolicyKanbanClient'
+import { InternalPoliciesClient } from './InternalPoliciesClient'
 
 type Tab = 'register' | 'rcm' | 'policies' | 'parties'
 
@@ -36,7 +36,7 @@ export function ComplianceTabs() {
 
       {tab === 'register' && <ComplianceWorkflowClient />}
       {tab === 'rcm' && <RegulatoryChangeClient />}
-      {tab === 'policies' && <PolicyKanbanClient />}
+      {tab === 'policies' && <InternalPoliciesClient />}
       {tab === 'parties' && <InterestedPartiesClient />}
     </div>
   )

@@ -1,4 +1,4 @@
-import type { AuditFindingWorkflow, NIRAPItem, KRIItem, KCIItem, KPIItem, MonitoringAlert, Policy, PolicyApproval, InternalDocument, ComplianceRisk, InfoSecRisk } from '@/types'
+import type { AuditFindingWorkflow, NIRAPItem, KRIItem, KCIItem, KPIItem, MonitoringAlert, Policy, PolicyApproval, InternalDocument, ComplianceRisk, InfoSecRisk, InternalPolicy } from '@/types'
 import { isUUID, ensureUUID } from './db'
 import { MOCK_POLICIES } from './seed-data'
 
@@ -445,6 +445,54 @@ export const dbExt = {
       await createClient().from('infosec_risks').delete().eq('id', id)
     }
     setLocal('infosec_risks', getLocal<InfoSecRisk[]>('infosec_risks', []).filter(r => r.id !== id))
+  },
+
+  // ── Internal Policies register (Compliance tab, phase 43) ──────────────────
+
+  async getInternalPolicies(): Promise<InternalPolicy[]> {
+    if (isSupabase()) {
+      const { createClient } = await import('./supabase/client')
+      const { data } = await createClient().from('internal_policies').select('*').order('created_at', { ascending: false })
+      return (data ?? []) as InternalPolicy[]
+    }
+    return getLocal<InternalPolicy[]>('internal_policies', [])
+  },
+
+  async saveInternalPolicy(item: InternalPolicy): Promise<InternalPolicy> {
+    const sanitized: InternalPolicy = {
+      ...item,
+      id: ensureUUID(item.id),
+      org_id: ensureUUID(item.org_id),
+      updated_at: new Date().toISOString(),
+    }
+    if (!sanitized.code) {
+      const existing = await dbExt.getInternalPolicies()
+      sanitized.code = `IP-${new Date().getFullYear()}-${String(existing.length + 1).padStart(3, '0')}`
+    }
+    if (isSupabase()) {
+      const { createClient } = await import('./supabase/client')
+      const payload: any = {
+        ...sanitized,
+        publish_time: sanitized.publish_time || null,
+        validity_period: sanitized.validity_period || null,
+      }
+      const { data, error } = await createClient().from('internal_policies').upsert(payload).select().single()
+      if (error) console.error('Supabase saveInternalPolicy error:', error)
+      if (!error && data) return data as InternalPolicy
+    }
+    const all = getLocal<InternalPolicy[]>('internal_policies', [])
+    const idx = all.findIndex(p => p.id === sanitized.id)
+    if (idx >= 0) all[idx] = sanitized; else all.unshift(sanitized)
+    setLocal('internal_policies', all)
+    return sanitized
+  },
+
+  async deleteInternalPolicy(id: string): Promise<void> {
+    if (isSupabase()) {
+      const { createClient } = await import('./supabase/client')
+      await createClient().from('internal_policies').delete().eq('id', id)
+    }
+    setLocal('internal_policies', getLocal<InternalPolicy[]>('internal_policies', []).filter(p => p.id !== id))
   },
 
   // ── Internal Documents (Policy Governance register, phase 41) ──────────────
