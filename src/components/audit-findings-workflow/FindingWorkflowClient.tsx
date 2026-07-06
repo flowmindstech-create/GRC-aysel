@@ -107,6 +107,7 @@ export function FindingWorkflowClient() {
   const [findings, setFindings]   = useState<AuditFinding[]>([])
   const [loading, setLoading]     = useState(true)
   const [search, setSearch]       = useState('')
+  const [cardFilter, setCardFilter] = useState<'all' | 'active' | 'urgent' | 'closed'>('all')
   const [showPromote, setShowPromote] = useState(false)
   const [selectedFinding, setSelectedFinding] = useState<AuditFinding | null>(null)
 
@@ -122,9 +123,15 @@ export function FindingWorkflowClient() {
   }, [])
 
   const filtered = useMemo(() =>
-    workflows.filter(w =>
-      !search || (w.finding_title ?? '').toLowerCase().includes(search.toLowerCase())
-    ), [workflows, search])
+    workflows.filter(w => {
+      const matchSearch = !search || (w.finding_title ?? '').toLowerCase().includes(search.toLowerCase())
+      const matchCard =
+        cardFilter === 'all' ? true
+        : cardFilter === 'active' ? w.step !== 'closure'
+        : cardFilter === 'urgent' ? !!w.immediate_correction_required
+        : w.step === 'closure'
+      return matchSearch && matchCard
+    }), [workflows, search, cardFilter])
 
   const stats = useMemo(() => ({
     total:   workflows.length,
@@ -158,20 +165,26 @@ export function FindingWorkflowClient() {
 
   return (
     <div className="space-y-5">
-      {/* Stats */}
+      {/* Stats — clickable filters */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {[
-          { label: 'Total Workflows', value: stats.total,  icon: Layers,        rgb: '14,165,233' },
-          { label: 'Active',          value: stats.open,   icon: Activity,      rgb: '234,88,12'  },
-          { label: 'Urgent',          value: stats.urgent, icon: AlertTriangle, rgb: '225,29,72'  },
-          { label: 'Closed',          value: stats.closed, icon: CheckCircle2,  rgb: '5,150,105'  },
-        ].map((s, i) => (
-          <motion.div
+        {([
+          { label: 'Total Workflows', value: stats.total,  icon: Layers,        rgb: '14,165,233', filter: 'all' },
+          { label: 'Active',          value: stats.open,   icon: Activity,      rgb: '234,88,12',  filter: 'active' },
+          { label: 'Urgent',          value: stats.urgent, icon: AlertTriangle, rgb: '225,29,72',  filter: 'urgent' },
+          { label: 'Closed',          value: stats.closed, icon: CheckCircle2,  rgb: '5,150,105',  filter: 'closed' },
+        ] as const).map((s, i) => {
+          const active = cardFilter === s.filter
+          return (
+          <motion.button
             key={s.label}
+            type="button"
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.05 }}
-            className="card p-4 overflow-hidden"
+            onClick={() => setCardFilter(s.filter)}
+            aria-pressed={active}
+            className="card p-4 overflow-hidden text-left cursor-pointer transition-all hover:-translate-y-0.5"
+            style={active ? { boxShadow: `0 0 0 2px rgba(${s.rgb},0.7)` } : undefined}
           >
             <div className="absolute top-0 left-0 right-0 h-px"
               style={{ background: `linear-gradient(90deg,transparent,rgba(${s.rgb},0.7),transparent)` }} />
@@ -181,8 +194,10 @@ export function FindingWorkflowClient() {
             </div>
             <p className="text-xl font-bold tracking-tight" style={{ color: 'var(--foreground)' }}>{s.value}</p>
             <p className="text-xs mt-0.5" style={{ color: 'var(--muted-fg)' }}>{s.label}</p>
-          </motion.div>
-        ))}
+            {active && s.filter !== 'all' && <p className="text-[10px] mt-1 font-semibold" style={{ color: `rgb(${s.rgb})` }}>● Filtr aktiv</p>}
+          </motion.button>
+          )
+        })}
       </div>
 
       {/* Toolbar */}

@@ -89,16 +89,20 @@ export function RegulatoryChangeClient() {
 
   return (
     <div className="space-y-5">
-      {/* Stat cards */}
+      {/* Stat cards — clickable filters (click a card to filter the table) */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {[
-          { label: 'Total Changes',     value: stats.total,       icon: RefreshCw,     color: '14,165,233' },
-          { label: 'New',               value: stats.new,         icon: Sparkles,      color: '59,130,246' },
-          { label: 'Under Assessment',  value: stats.assessment,  icon: ClipboardCheck, color: '234,179,8' },
-          { label: 'Implemented',       value: stats.implemented, icon: CheckCircle2,  color: '5,150,105' },
-        ].map((s, i) => (
-          <motion.div key={s.label} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
-            className="card p-4 overflow-hidden relative">
+        {([
+          { label: 'Total Changes',     value: stats.total,       icon: RefreshCw,      color: '14,165,233', filter: 'all' },
+          { label: 'New',               value: stats.new,         icon: Sparkles,       color: '59,130,246', filter: 'new' },
+          { label: 'Under Assessment',  value: stats.assessment,  icon: ClipboardCheck, color: '234,179,8',  filter: 'under_assessment' },
+          { label: 'Implemented',       value: stats.implemented, icon: CheckCircle2,   color: '5,150,105',  filter: 'implemented' },
+        ] as const).map((s, i) => {
+          const active = statusFilter === s.filter
+          return (
+          <motion.button key={s.label} type="button" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
+            onClick={() => setStatusFilter(s.filter)} aria-pressed={active}
+            className="card p-4 overflow-hidden relative text-left cursor-pointer transition-all hover:-translate-y-0.5"
+            style={active ? { boxShadow: `0 0 0 2px rgba(${s.color},0.7)` } : undefined}>
             <div className="absolute top-0 left-0 right-0 h-px" style={{ background: `linear-gradient(90deg, transparent, rgba(${s.color},0.7), transparent)` }} />
             <div className="flex items-center justify-between mb-3">
               <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: `rgba(${s.color},0.12)` }}>
@@ -107,8 +111,10 @@ export function RegulatoryChangeClient() {
             </div>
             <p className="text-xl font-bold tracking-tight" style={{ color: 'var(--foreground)' }}>{s.value}</p>
             <p className="text-xs mt-0.5" style={{ color: 'var(--muted-fg)' }}>{s.label}</p>
-          </motion.div>
-        ))}
+            {active && s.filter !== 'all' && <p className="text-[10px] mt-1 font-semibold" style={{ color: `rgb(${s.color})` }}>● Filtr aktiv</p>}
+          </motion.button>
+          )
+        })}
       </div>
 
       {/* Toolbar */}

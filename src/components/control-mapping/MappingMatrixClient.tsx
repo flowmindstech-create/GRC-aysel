@@ -17,12 +17,13 @@ const MAPPING_TYPE_CONFIG: Record<MappingType, { label: string; short: string; c
 }
 
 function MappingCell({
-  controlId, entityId, entityType, mapping, onAdd, onRemove,
+  controlId, entityId, entityType, mapping, dimmed, onAdd, onRemove,
 }: {
   controlId: string
   entityId: string
   entityType: 'risk' | 'requirement'
   mapping?: ControlMapping
+  dimmed?: boolean
   onAdd: (controlId: string, entityId: string, type: MappingType) => void
   onRemove: (mappingId: string) => void
 }) {
@@ -35,7 +36,7 @@ function MappingCell({
       <td className="p-1">
         <div
           className="relative w-8 h-8 rounded-lg flex items-center justify-center mx-auto cursor-pointer transition-all group"
-          style={{ background: cfg.bg, border: `1px solid ${cfg.color}40` }}
+          style={{ background: cfg.bg, border: `1px solid ${cfg.color}40`, opacity: dimmed ? 0.2 : 1 }}
           title={cfg.label}
           onMouseEnter={() => setHover(true)}
           onMouseLeave={() => setHover(false)}
@@ -91,6 +92,7 @@ export function MappingMatrixClient() {
   const [mappings, setMappings]   = useState<ControlMapping[]>([])
   const [loading, setLoading]     = useState(true)
   const [view, setView]           = useState<'risk' | 'requirement'>('risk')
+  const [typeFilter, setTypeFilter] = useState<MappingType | 'all'>('all')
   const [page, setPage]           = useState(0)
   const PAGE = 8
 
@@ -131,22 +133,28 @@ export function MappingMatrixClient() {
 
   return (
     <div className="space-y-5">
-      {/* Stats */}
+      {/* Stats — clickable: highlight only that mapping type in the matrix */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {[
-          { label: 'Total Mappings',    value: stats.total,      rgb: '14,165,233' },
-          { label: 'Dual Purpose',      value: stats.dual,       rgb: '14,165,233' },
-          { label: 'Compliance Only',   value: stats.compliance, rgb: '168,85,247' },
-          { label: 'Risk Mitigation',   value: stats.risk,       rgb: '234,88,12'  },
-        ].map((s, i) => (
-          <motion.div key={s.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
-            className="card p-4 overflow-hidden">
+        {([
+          { label: 'Total Mappings',    value: stats.total,      rgb: '14,165,233', filter: 'all' },
+          { label: 'Dual Purpose',      value: stats.dual,       rgb: '14,165,233', filter: 'dual_purpose' },
+          { label: 'Compliance Only',   value: stats.compliance, rgb: '168,85,247', filter: 'compliance_only' },
+          { label: 'Risk Mitigation',   value: stats.risk,       rgb: '234,88,12',  filter: 'risk_mitigation_only' },
+        ] as const).map((s, i) => {
+          const active = typeFilter === s.filter
+          return (
+          <motion.button key={s.label} type="button" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
+            onClick={() => setTypeFilter(s.filter)} aria-pressed={active}
+            className="card p-4 overflow-hidden text-left cursor-pointer transition-all hover:-translate-y-0.5"
+            style={active ? { boxShadow: `0 0 0 2px rgba(${s.rgb},0.7)` } : undefined}>
             <div className="absolute top-0 left-0 right-0 h-px"
               style={{ background: `linear-gradient(90deg,transparent,rgba(${s.rgb},0.7),transparent)` }} />
             <p className="text-2xl font-bold" style={{ color: `rgb(${s.rgb})` }}>{s.value}</p>
             <p className="text-xs mt-0.5" style={{ color: 'var(--muted-fg)' }}>{s.label}</p>
-          </motion.div>
-        ))}
+            {active && s.filter !== 'all' && <p className="text-[10px] mt-1 font-semibold" style={{ color: `rgb(${s.rgb})` }}>● Yalnız bu tip görünür</p>}
+          </motion.button>
+          )
+        })}
       </div>
 
       {/* Legend */}
@@ -204,6 +212,7 @@ export function MappingMatrixClient() {
                       entityId={e.id}
                       entityType={view}
                       mapping={getMapping(ctrl.id, e.id)}
+                      dimmed={typeFilter !== 'all' && getMapping(ctrl.id, e.id)?.mapping_type !== typeFilter}
                       onAdd={handleAdd}
                       onRemove={handleRemove}
                     />

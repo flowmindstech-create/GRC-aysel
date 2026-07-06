@@ -45,6 +45,7 @@ export function VendorTable() {
   const [vendors, setVendors] = useState<Vendor[]>([])
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<VendorStatus | 'all'>('all')
+  const [cardFilter, setCardFilter] = useState<'all' | 'high_risk' | 'renewals'>('all')
   const [expanded, setExpanded] = useState<string | null>(null)
   const [showForm, setShowForm] = useState(false)
   const [editVendor, setEditVendor] = useState<Vendor | null>(null)
@@ -61,7 +62,11 @@ export function VendorTable() {
   const filtered = vendors.filter(v => {
     const ms = (v.name ?? '').toLowerCase().includes(search.toLowerCase())
     const mst = statusFilter === 'all' || v.status === statusFilter
-    return ms && mst
+    const mc =
+      cardFilter === 'all' ? true
+      : cardFilter === 'high_risk' ? v.risk_score >= 70
+      : !!(v.contract_renewal && !isPast(new Date(v.contract_renewal)))
+    return ms && mst && mc
   })
 
   const handleSave = async (vendor: Vendor) => {
@@ -102,19 +107,25 @@ export function VendorTable() {
         }
       />
 
-      {/* Stats */}
+      {/* Stats — clickable filters */}
       <div className="grid grid-cols-4 gap-4 mb-6">
-        {[
-          { label: 'Total Vendors', value: vendors.length, color: 'text-sky-400' },
-          { label: 'High Risk (≥70)', value: vendors.filter(v => v.risk_score >= 70).length, color: 'text-red-500' },
-          { label: 'Avg Risk Score', value: vendors.length ? Math.round(vendors.reduce((s, v) => s + v.risk_score, 0) / vendors.length) : 0, color: 'text-orange-500' },
-          { label: 'Renewals < 90d', value: vendors.filter(v => v.contract_renewal && !isPast(new Date(v.contract_renewal))).length, color: 'text-yellow-500' },
-        ].map(s => (
-          <div key={s.label} className="card p-4">
+        {([
+          { label: 'Total Vendors', value: vendors.length, color: 'text-sky-400', filter: 'all' },
+          { label: 'High Risk (≥70)', value: vendors.filter(v => v.risk_score >= 70).length, color: 'text-red-500', filter: 'high_risk' },
+          { label: 'Avg Risk Score', value: vendors.length ? Math.round(vendors.reduce((s, v) => s + v.risk_score, 0) / vendors.length) : 0, color: 'text-orange-500', filter: 'all' },
+          { label: 'Renewals < 90d', value: vendors.filter(v => v.contract_renewal && !isPast(new Date(v.contract_renewal))).length, color: 'text-yellow-500', filter: 'renewals' },
+        ] as const).map(s => {
+          const active = cardFilter === s.filter && s.filter !== 'all'
+          return (
+          <button key={s.label} type="button" onClick={() => setCardFilter(s.filter)} aria-pressed={active}
+            className="card p-4 text-left cursor-pointer transition-all hover:-translate-y-0.5"
+            style={active ? { boxShadow: '0 0 0 2px rgba(220,38,38,0.5)' } : undefined}>
             <p className={cn('text-2xl font-black', s.color)}>{s.value}</p>
             <p className="text-xs mt-1" style={{ color: 'var(--muted-fg)' }}>{s.label}</p>
-          </div>
-        ))}
+            {active && <p className="text-[10px] mt-1 font-semibold text-red-500">● Filtr aktiv</p>}
+          </button>
+          )
+        })}
       </div>
 
       {/* Filters */}

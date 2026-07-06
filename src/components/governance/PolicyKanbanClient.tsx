@@ -471,6 +471,7 @@ export function PolicyKanbanClient() {
   // Search and Filter state (T-3.2)
   const [search, setSearch] = useState('')
   const [categoryFilter, setCategoryFilter] = useState<PolicyCategory | 'all'>('all')
+  const [statFilter, setStatFilter] = useState<'all' | 'published' | 'pending' | 'draft'>('all')
 
   useEffect(() => {
     dbExt.getPolicies().then(p => { setPolicies(p); setLoading(false) })
@@ -529,21 +530,28 @@ export function PolicyKanbanClient() {
 
   return (
     <div className="space-y-5">
+      {/* Stat cards — clickable: filter the board to that status group */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {[
-          { label: 'Total Policies', value: stats.total,     rgb: '14,165,233' },
-          { label: 'Published',      value: stats.published, rgb: '5,150,105'  },
-          { label: 'Pending Review', value: stats.pending,   rgb: '217,119,6'  },
-          { label: 'In Draft',       value: stats.draft,     rgb: '100,116,139'},
-        ].map((s, i) => (
-          <motion.div key={s.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
-            className="card p-4 overflow-hidden relative">
+        {([
+          { label: 'Total Policies', value: stats.total,     rgb: '14,165,233',  filter: 'all' },
+          { label: 'Published',      value: stats.published, rgb: '5,150,105',   filter: 'published' },
+          { label: 'Pending Review', value: stats.pending,   rgb: '217,119,6',   filter: 'pending' },
+          { label: 'In Draft',       value: stats.draft,     rgb: '100,116,139', filter: 'draft' },
+        ] as const).map((s, i) => {
+          const active = statFilter === s.filter
+          return (
+          <motion.button key={s.label} type="button" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
+            onClick={() => setStatFilter(s.filter)} aria-pressed={active}
+            className="card p-4 overflow-hidden relative text-left cursor-pointer transition-all hover:-translate-y-0.5"
+            style={active ? { boxShadow: `0 0 0 2px rgba(${s.rgb},0.7)` } : undefined}>
             <div className="absolute top-0 left-0 right-0 h-px"
               style={{ background: `linear-gradient(90deg,transparent,rgba(${s.rgb},0.7),transparent)` }} />
             <p className="text-2xl font-bold" style={{ color: `rgb(${s.rgb})` }}>{s.value}</p>
             <p className="text-xs mt-0.5" style={{ color: 'var(--muted-fg)' }}>{s.label}</p>
-          </motion.div>
-        ))}
+            {active && s.filter !== 'all' && <p className="text-[10px] mt-1 font-semibold" style={{ color: `rgb(${s.rgb})` }}>● Filtr aktiv</p>}
+          </motion.button>
+          )
+        })}
       </div>
 
       {/* Toolbar with Search and Filter (T-3.2) */}
@@ -583,7 +591,12 @@ export function PolicyKanbanClient() {
         <div className="flex items-center justify-center h-40" style={{ color: 'var(--muted-fg)' }}>Loading…</div>
       ) : (
         <div className="flex gap-4 overflow-x-auto pb-4">
-          {COLUMNS.map(col => {
+          {COLUMNS.filter(col =>
+            statFilter === 'all' ? true
+            : statFilter === 'published' ? col.status === 'published'
+            : statFilter === 'draft' ? col.status === 'draft'
+            : ['in_review', 'committee_review'].includes(col.status)
+          ).map(col => {
             const colPolicies = filteredPolicies.filter(p => p.status === col.status)
             return (
               <div key={col.status} className="flex-shrink-0 w-60">
