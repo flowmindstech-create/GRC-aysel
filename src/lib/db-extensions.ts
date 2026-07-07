@@ -184,6 +184,16 @@ export const dbExt = {
     return sanitized
   },
 
+  // Deletes one risk↔control link when the user removes it in the UI.
+  // (Fixes: removal previously only updated local state and came back on refresh.)
+  async deleteControlMapping(id: string): Promise<void> {
+    if (isSupabase()) {
+      const { createClient } = await import('./supabase/client')
+      await createClient().from('control_mappings').delete().eq('id', id)
+    }
+    setLocal('control_mappings', getLocal<import('@/types').ControlMapping[]>('control_mappings', []).filter(m => m.id !== id))
+  },
+
   // ── KRI ────────────────────────────────────────────────────────────────────
 
   async getKRIItems(): Promise<KRIItem[]> {

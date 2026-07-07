@@ -5,7 +5,7 @@ import { motion } from 'framer-motion'
 import { db } from '@/lib/db'
 import { dbExt } from '@/lib/db-extensions'
 import { buildMapping } from '@/lib/control-mapping'
-import type { Control, Risk, ControlMapping, MappingType } from '@/types'
+import type { Control, Risk, ControlMapping, MappingType, Process } from '@/types'
 import { cn } from '@/lib/utils'
 import { Plus, X, GitBranch, Shield, ShieldAlert } from 'lucide-react'
 import { toast } from 'sonner'
@@ -86,10 +86,23 @@ function MappingCell({
   )
 }
 
+// Control status/effectiveness → traffic-light dot (fed by the Control Checklist)
+const effDot = (c: Control) => {
+  const e = c.effectiveness_rating
+  if (e === 'effective' || c.status === 'pass') return { color: '#10b981', label: 'Effective' }
+  if (e === 'partially_effective' || c.status === 'partial') return { color: '#f59e0b', label: 'Partially effective' }
+  if (e === 'ineffective' || c.status === 'fail') return { color: '#ef4444', label: 'Ineffective' }
+  return { color: 'var(--muted-fg)', label: 'Not tested' }
+}
+
 export function MappingMatrixClient() {
   const [controls, setControls]   = useState<Control[]>([])
   const [risks, setRisks]         = useState<Risk[]>([])
   const [mappings, setMappings]   = useState<ControlMapping[]>([])
+  const [processes, setProcesses] = useState<Process[]>([])
+  const [processFilter, setProcessFilter] = useState<string>('all') // process id | 'all'
+  const [procControlIds, setProcControlIds] = useState<string[]>([])
+  const [procRiskIds, setProcRiskIds] = useState<string[]>([])
   const [loading, setLoading]     = useState(true)
   const [view, setView]           = useState<'risk' | 'requirement'>('risk')
   const [typeFilter, setTypeFilter] = useState<MappingType | 'all'>('all')
@@ -97,12 +110,24 @@ export function MappingMatrixClient() {
   const PAGE = 8
 
   useEffect(() => {
-    Promise.all([db.getControls(), db.getRisks(), dbExt.getControlMappings()])
-      .then(([c, r, m]) => { setControls(c); setRisks(r); setMappings(m); setLoading(false) })
+    Promise.all([db.getControls(), db.getRisks(), dbExt.getControlMappings(), db.getProcesses()])
+      .then(([c, r, m, p]) => { setControls(c); setRisks(r); setMappings(m); setProcesses(p); setLoading(false) })
   }, [])
 
-  const entities = view === 'risk' ? risks.slice(page * PAGE, page * PAGE + PAGE) : []
-  const totalPages = Math.ceil((view === 'risk' ? risks.length : 0) / PAGE)
+  // Process filter — matrix shrinks to only that process's controls & risks
+  useEffect(() => {
+    if (processFilter === 'all') { setProcControlIds([]); setProcRiskIds([]); return }
+    let active = true
+    Promise.all([db.getProcessControlIds(processFilter), db.getProcessRiskIds(processFilter)])
+      .then(([cids, rids]) => { if (active) { setProcControlIds(cids); setProcRiskIds(rids); setPage(0) } })
+    return () => { active = false }
+  }, [processFilter])
+
+  const visibleControls = processFilter === 'all' ? controls : controls.filter(c => procControlIds.includes(c.id))
+  const visibleRisks = processFilter === 'all' ? risks : risks.filter(r => procRiskIds.includes(r.id))
+
+  const entities = view === 'risk' ? visibleRisks.slice(page * PAGE, page * PAGE + PAGE) : []
+  const totalPages = Math.ceil((view === 'risk' ? visibleRisks.length : 0) / PAGE)
 
   function getMapping(controlId: string, entityId: string) {
     return mappings.find(m => m.control_id === controlId && m.entity_id === entityId)
@@ -120,6 +145,7 @@ export function MappingMatrixClient() {
   }
 
   async function handleRemove(mappingId: string) {
+    await dbExt.deleteControlMapping(mappingId) // persist — otherwise it reappears on refresh
     setMappings(prev => prev.filter(m => m.id !== mappingId))
     toast.success('Mapping removed')
   }
@@ -155,6 +181,22 @@ export function MappingMatrixClient() {
           </motion.button>
           )
         })}
+      </div>
+
+      {/* Process filter — shrink the matrix to a single process (avoids the endless tunnel) */}
+      <div className="flex flex-wrap items-center gap-3">
+        <span className="text-xs font-semibold" style={{ color: 'var(--foreground)' }}>Prosesə görə filtr:</span>
+        <select value={processFilter} onChange={e => setProcessFilter(e.target.value)}
+          className="px-3 py-2 rounded-xl text-xs font-medium outline-none cursor-pointer"
+          style={{ background: 'var(--card)', border: '1px solid var(--border)', color: 'var(--foreground)' }}>
+          <option value="all">Bütün proseslər</option>
+          {processes.map(p => <option key={p.id} value={p.id}>{p.code} · {p.name}</option>)}
+        </select>
+        {processFilter !== 'all' && (
+          <span className="text-[11px]" style={{ color: 'var(--muted-fg)' }}>
+            {visibleControls.length} kontrol · {visibleRisks.length} risk göstərilir
+          </span>
+        )}
       </div>
 
       {/* Legend */}
@@ -196,11 +238,14 @@ export function MappingMatrixClient() {
               </tr>
             </thead>
             <tbody>
-              {controls.map((ctrl, ci) => (
+              {visibleControls.map((ctrl, ci) => (
                 <tr key={ctrl.id} className={ci % 2 === 0 ? '' : ''}>
                   <td className="sticky left-0 z-10 p-3 border-b border-r"
                     style={{ background: 'var(--card)', borderColor: 'var(--border)' }}>
                     <div className="flex items-center gap-2">
+                      {/* Effectiveness dot — fed by the Control Checklist */}
+                      <span className="w-2 h-2 rounded-full shrink-0" title={effDot(ctrl).label}
+                        style={{ background: effDot(ctrl).color }} />
                       <span className="font-mono text-[10px]" style={{ color: 'var(--brand-500)' }}>{ctrl.control_id}</span>
                       <span className="truncate max-w-32 text-[11px]" style={{ color: 'var(--foreground)' }}>{ctrl.title}</span>
                     </div>

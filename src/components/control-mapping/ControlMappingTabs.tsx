@@ -2,22 +2,22 @@
 
 import { useState } from 'react'
 import { Grid3x3, Workflow } from 'lucide-react'
-import { MappingMatrixClient } from './MappingMatrixClient'
+import { RiskControlMappingClient } from './RiskControlMappingClient'
 import { ProcessesClient } from './ProcessesClient'
 
-type Tab = 'matrix' | 'processes'
+type Tab = 'risk' | 'process'
 
 export function ControlMappingTabs() {
-  const [tab, setTab] = useState<Tab>('matrix')
+  const [tab, setTab] = useState<Tab>('risk')
 
   const tabs: { id: Tab; label: string; icon: typeof Grid3x3 }[] = [
-    { id: 'matrix', label: 'Control Mapping', icon: Grid3x3 },
-    { id: 'processes', label: 'Business Process List', icon: Workflow },
+    { id: 'risk', label: 'Risk Control Mapping', icon: Grid3x3 },
+    { id: 'process', label: 'Process Control Mapping', icon: Workflow },
   ]
 
   return (
     <div className="space-y-5">
-      <div className="flex items-center gap-1 p-1 rounded-xl w-fit" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
+      <div className="flex items-center gap-1 p-1 rounded-xl w-fit flex-wrap" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
         {tabs.map(t => (
           <button
             key={t.id}
@@ -30,8 +30,8 @@ export function ControlMappingTabs() {
         ))}
       </div>
 
-      {tab === 'matrix' && <MappingMatrixClient />}
-      {tab === 'processes' && <ProcessesClient />}
+      {tab === 'risk' && <RiskControlMappingClient />}
+      {tab === 'process' && <ProcessesClient />}
     </div>
   )
 }

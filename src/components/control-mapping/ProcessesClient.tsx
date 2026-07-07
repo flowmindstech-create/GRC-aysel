@@ -447,16 +447,16 @@ export function ProcessesClient() {
           <table className="w-full">
             <thead>
               <tr style={{ borderBottom: '1px solid var(--border)', background: 'var(--muted)' }}>
-                {['Code', 'Name', 'Owner Dept', 'Automation', 'Maturity', 'Description', 'Associated Policy', 'Internal Policy', 'Controls', 'Risks', 'Obligations', 'Criticality', 'Status', ''].map(h => (
+                {['Code', 'Name', 'Owner Dept', 'Automation', 'Maturity', 'Description', 'Linked Policies', 'Controls', 'Risks', 'Obligations', 'Criticality', 'Status', ''].map(h => (
                   <th key={h} className="text-left px-3 py-3 text-[11px] font-semibold uppercase tracking-wide whitespace-nowrap" style={{ color: 'var(--muted-fg)' }}>{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={14} className="py-16 text-center text-sm" style={{ color: 'var(--muted-fg)' }}>Loading…</td></tr>
+                <tr><td colSpan={13} className="py-16 text-center text-sm" style={{ color: 'var(--muted-fg)' }}>Loading…</td></tr>
               ) : filtered.length === 0 ? (
-                <tr><td colSpan={14} className="py-16 text-center" style={{ color: 'var(--muted-fg)' }}>
+                <tr><td colSpan={13} className="py-16 text-center" style={{ color: 'var(--muted-fg)' }}>
                   <div className="flex flex-col items-center gap-2"><Workflow className="w-8 h-8 opacity-30" /><p className="text-sm">No business processes yet</p><p className="text-xs opacity-60">Add a process and attach its controls</p></div>
                 </td></tr>
               ) : (
@@ -482,8 +482,15 @@ export function ProcessesClient() {
                     <td className="px-3 py-3.5"><span className={cn('inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold', au.cls)}>{au.label}</span></td>
                     <td className="px-3 py-3.5"><span className={cn('inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold whitespace-nowrap', mt.cls)}>{mt.label}</span></td>
                     <td className="px-3 py-3.5 max-w-[220px]"><span className="text-xs line-clamp-2" style={{ color: p.description ? 'var(--muted-fg)' : 'var(--muted-fg)' }} title={p.description || undefined}>{p.description || '—'}</span></td>
-                    <td className="px-3 py-3.5 max-w-[160px]">{policyChipCell(lm.policyIds)}</td>
-                    <td className="px-3 py-3.5 max-w-[160px]">{chipCell(docCodes, 'bg-teal-500/12 text-teal-400')}</td>
+                    {/* Linked Policies — governance policies (indigo) + internal documents (teal) in one cell */}
+                    <td className="px-3 py-3.5 max-w-[190px]">
+                      {(lm.policyIds.length === 0 && docCodes.length === 0)
+                        ? <span className="text-xs" style={{ color: 'var(--muted-fg)' }}>—</span>
+                        : <div className="flex flex-wrap gap-1">
+                            {lm.policyIds.length > 0 && policyChipCell(lm.policyIds)}
+                            {docCodes.length > 0 && chipCell(docCodes, 'bg-teal-500/12 text-teal-400')}
+                          </div>}
+                    </td>
                     <td className="px-3 py-3.5 max-w-[160px]">{controlChipCell(lm.controlIds)}</td>
                     <td className="px-3 py-3.5 max-w-[130px]">{chipCell(riskCodes, 'bg-rose-500/12 text-rose-400')}</td>
                     <td className="px-3 py-3.5 max-w-[150px]">{chipCell(oblCodes, 'bg-violet-500/12 text-violet-400')}</td>

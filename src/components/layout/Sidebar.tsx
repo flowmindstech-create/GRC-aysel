@@ -8,7 +8,7 @@ import {
   Search, Users, Settings, ChevronLeft, ChevronRight,
   Shield, GitBranch, FileSearch, Activity,
   BookOpen, Network, ScrollText, LogOut,
-  Target, Landmark, FlaskConical, Megaphone,
+  Target, Landmark, FlaskConical, Megaphone, Workflow,
 } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { getCurrentProfile, db } from '@/lib/db'
@@ -25,6 +25,7 @@ const navGroups = [
     label: 'GRC Suite',
     items: [
       { href: '/risks',                label: 'Risk Register',       icon: ShieldAlert },
+      { href: '/processes',            label: 'Business Processes',  icon: Workflow },
       { href: '/workflows',            label: 'Workflows',           icon: GitBranch },
       { href: '/compliance-workflow',       label: 'Compliance Register',  icon: ScrollText },
       { href: '/audit-findings-workflow',   label: 'Findings Workflow',    icon: FileSearch },
