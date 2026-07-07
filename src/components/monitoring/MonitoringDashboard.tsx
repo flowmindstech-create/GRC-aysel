@@ -294,6 +294,7 @@ export function MonitoringDashboard() {
   const [alerts, setAlerts] = useState<MonitoringAlert[]>([])
   const [loading, setLoading] = useState(true)
   const [tab, setTab]         = useState<'kri' | 'kci' | 'kpi'>('kri')
+  const [cardFilter, setCardFilter] = useState<'all' | 'red' | 'amber' | 'breach' | 'alerts'>('all')
 
   async function load() {
     const [k, c, p, a] = await Promise.all([
@@ -321,22 +322,45 @@ export function MonitoringDashboard() {
     openAlerts: alerts.filter(a => !a.acknowledged).length,
   }), [kris, kpis, alerts])
 
+  // Stat-card filter → narrowed lists (KCI mapping: red≈ineffective, amber≈partially_effective)
+  const visKris = cardFilter === 'red' ? kris.filter(k => k.current_status === 'red')
+    : cardFilter === 'amber' ? kris.filter(k => k.current_status === 'amber')
+    : cardFilter === 'breach' ? kris.filter(k => k.appetite_breach)
+    : kris
+  const visKcis = cardFilter === 'red' ? kcis.filter(k => k.current_status === 'ineffective')
+    : cardFilter === 'amber' ? kcis.filter(k => k.current_status === 'partially_effective')
+    : cardFilter === 'breach' ? [] : kcis
+  const visKpis = cardFilter === 'red' ? kpis.filter(k => k.performance_status === 'red')
+    : cardFilter === 'amber' ? kpis.filter(k => k.performance_status === 'amber')
+    : cardFilter === 'breach' ? [] : kpis
+  const visAlerts = cardFilter === 'alerts' ? alerts.filter(a => !a.acknowledged) : alerts
+
   return (
     <div className="space-y-6">
       {/* Summary strip */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {[
-          { label: 'Red Indicators', value: summary.red,        rgb: '225,29,72',  icon: AlertTriangle },
-          { label: 'Amber Warnings', value: summary.amber,      rgb: '217,119,6',  icon: Activity },
-          { label: 'Appetite Breach', value: summary.breach,    rgb: '225,29,72',  icon: Shield },
-          { label: 'Open Alerts',    value: summary.openAlerts, rgb: '14,165,233', icon: Bell },
-        ].map((s, i) => (
-          <motion.div
+        {([
+          { label: 'Red Indicators', value: summary.red,        rgb: '225,29,72',  icon: AlertTriangle, filter: 'red' },
+          { label: 'Amber Warnings', value: summary.amber,      rgb: '217,119,6',  icon: Activity,      filter: 'amber' },
+          { label: 'Appetite Breach', value: summary.breach,    rgb: '225,29,72',  icon: Shield,        filter: 'breach' },
+          { label: 'Open Alerts',    value: summary.openAlerts, rgb: '14,165,233', icon: Bell,          filter: 'alerts' },
+        ] as const).map((s, i) => {
+          const active = cardFilter === s.filter
+          return (
+          <motion.button
             key={s.label}
+            type="button"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.05 }}
-            className="card p-4 overflow-hidden"
+            onClick={() => {
+              const next = active ? 'all' : s.filter
+              setCardFilter(next)
+              if (next === 'breach') setTab('kri') // breach yalnız KRI-lərə aiddir
+            }}
+            aria-pressed={active}
+            className="card p-4 overflow-hidden text-left cursor-pointer transition-all hover:-translate-y-0.5"
+            style={active ? { boxShadow: `0 0 0 2px rgba(${s.rgb},0.7)` } : undefined}
           >
             <div className="absolute top-0 left-0 right-0 h-px"
               style={{ background: `linear-gradient(90deg,transparent,rgba(${s.rgb},0.7),transparent)` }} />
@@ -346,8 +370,10 @@ export function MonitoringDashboard() {
             </div>
             <p className="text-2xl font-bold tracking-tight" style={{ color: s.value > 0 ? `rgb(${s.rgb})` : 'var(--foreground)' }}>{s.value}</p>
             <p className="text-xs mt-0.5" style={{ color: 'var(--muted-fg)' }}>{s.label}</p>
-          </motion.div>
-        ))}
+            {active && <p className="text-[10px] mt-1 font-semibold" style={{ color: `rgb(${s.rgb})` }}>● Filtr aktiv — təmizləmək üçün yenidən klik</p>}
+          </motion.button>
+          )
+        })}
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
@@ -374,31 +400,31 @@ export function MonitoringDashboard() {
             <>
               {tab === 'kri' && (
                 <>
-                  <SectionHeader icon={Shield} title="Key Risk Indicators" count={kris.length} rgb="225,29,72" />
+                  <SectionHeader icon={Shield} title="Key Risk Indicators" count={visKris.length} rgb="225,29,72" />
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {kris.length === 0
+                    {visKris.length === 0
                       ? <p className="text-sm col-span-2 text-center py-8" style={{ color: 'var(--muted-fg)' }}>No KRI items. Run the Phase 3 SQL to seed data.</p>
-                      : kris.map((k, i) => <KRICard key={k.id} item={k} index={i} />)}
+                      : visKris.map((k, i) => <KRICard key={k.id} item={k} index={i} />)}
                   </div>
                 </>
               )}
               {tab === 'kci' && (
                 <>
-                  <SectionHeader icon={Gauge} title="Key Control Indicators" count={kcis.length} rgb="14,165,233" />
+                  <SectionHeader icon={Gauge} title="Key Control Indicators" count={visKcis.length} rgb="14,165,233" />
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {kcis.length === 0
+                    {visKcis.length === 0
                       ? <p className="text-sm col-span-2 text-center py-8" style={{ color: 'var(--muted-fg)' }}>No KCI items. Run the Phase 3 SQL to seed data.</p>
-                      : kcis.map((k, i) => <KCICard key={k.id} item={k} index={i} />)}
+                      : visKcis.map((k, i) => <KCICard key={k.id} item={k} index={i} />)}
                   </div>
                 </>
               )}
               {tab === 'kpi' && (
                 <>
-                  <SectionHeader icon={BarChart3} title="Key Performance Indicators" count={kpis.length} rgb="59,130,246" />
+                  <SectionHeader icon={BarChart3} title="Key Performance Indicators" count={visKpis.length} rgb="59,130,246" />
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {kpis.length === 0
+                    {visKpis.length === 0
                       ? <p className="text-sm col-span-2 text-center py-8" style={{ color: 'var(--muted-fg)' }}>No KPI items. Run the Phase 3 SQL to seed data.</p>
-                      : kpis.map((k, i) => <KPICard key={k.id} item={k} index={i} />)}
+                      : visKpis.map((k, i) => <KPICard key={k.id} item={k} index={i} />)}
                   </div>
                 </>
               )}
@@ -427,13 +453,13 @@ export function MonitoringDashboard() {
           </div>
 
           <div className="space-y-2">
-            {alerts.length === 0 ? (
+            {visAlerts.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-10 gap-2">
                 <BellOff className="w-8 h-8" style={{ color: 'var(--muted-fg)', opacity: 0.4 }} />
                 <p className="text-xs" style={{ color: 'var(--muted-fg)' }}>No alerts</p>
               </div>
             ) : (
-              alerts.map(a => <AlertRow key={a.id} alert={a} onAck={handleAck} />)
+              visAlerts.map(a => <AlertRow key={a.id} alert={a} onAck={handleAck} />)
             )}
           </div>
 
