@@ -10,6 +10,22 @@ import { cn } from '@/lib/utils'
 import { Plus, Search, MoreHorizontal, Edit, Trash2, FileText, X, Save } from 'lucide-react'
 import { toast } from 'sonner'
 import { usePermissions } from '@/hooks/usePermissions'
+import { ExportMenu } from '@/components/shared/ExportMenu'
+import type { ExportColumn } from '@/lib/export'
+
+const POLICY_EXPORT_COLUMNS: ExportColumn<InternalPolicy>[] = [
+  { key: 'code', label: 'Kod', value: p => p.code },
+  { key: 'policy_name', label: 'Sənəd adı', value: p => p.policy_name },
+  { key: 'document_type', label: 'Tip', value: p => p.document_type },
+  { key: 'approving_body', label: 'Təsdiq orqanı', value: p => p.approving_body },
+  { key: 'version', label: 'Versiya', value: p => p.version },
+  { key: 'document_number', label: 'Sənəd №', value: p => p.document_number ?? '' },
+  { key: 'status', label: 'Status', value: p => p.status },
+  { key: 'publish_time', label: 'Dərc tarixi', value: p => p.publish_time ? new Date(p.publish_time).toLocaleDateString('az-AZ') : '' },
+  { key: 'validity_period', label: 'Qüvvə müddəti', value: p => p.validity_period ? new Date(p.validity_period).toLocaleDateString('az-AZ') : '' },
+  { key: 'responsible_structure', label: 'Struktur', value: p => p.responsible_structure ?? '' },
+  { key: 'responsible_person', label: 'Cavabdeh', value: p => p.responsible_person ?? '' },
+]
 
 export const DOC_TYPE_CFG: Record<InternalPolicyDocType, { label: string; cls: string }> = {
   policy:      { label: 'Policy',      cls: 'bg-indigo-500/15 text-indigo-500' },
@@ -244,6 +260,7 @@ export function InternalPoliciesClient() {
             </button>
           ))}
         </div>
+        <ExportMenu columns={POLICY_EXPORT_COLUMNS} rows={filtered} filename="internal-policies" title="Internal Policies" />
         <button onClick={() => { setEditItem(null); setShowForm(true) }} className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white shadow-lg" style={{ background: 'var(--brand-500)' }}>
           <Plus className="w-4 h-4" /> New Policy
         </button>

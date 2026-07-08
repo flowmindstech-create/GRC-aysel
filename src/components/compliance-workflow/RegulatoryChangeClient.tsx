@@ -14,6 +14,20 @@ import {
 import { format } from 'date-fns'
 import { toast } from 'sonner'
 import { usePermissions } from '@/hooks/usePermissions'
+import { ExportMenu } from '@/components/shared/ExportMenu'
+import type { ExportColumn } from '@/lib/export'
+
+const REGCHANGE_EXPORT_COLUMNS: ExportColumn<RegulatoryChange>[] = [
+  { key: 'change_code', label: 'Kod', value: c => c.change_code },
+  { key: 'title', label: 'Dəyişiklik', value: c => c.title },
+  { key: 'source', label: 'Mənbə', value: c => c.source },
+  { key: 'regulator', label: 'Tənzimləyici', value: c => c.regulator ?? '' },
+  { key: 'status', label: 'Status', value: c => c.status },
+  { key: 'change_date', label: 'Dərc tarixi', value: c => c.change_date ? new Date(c.change_date).toLocaleDateString('az-AZ') : '' },
+  { key: 'effective_date', label: 'Qüvvəyə minmə', value: c => c.effective_date ? new Date(c.effective_date).toLocaleDateString('az-AZ') : '' },
+  { key: 'responsible_structure', label: 'Struktur', value: c => c.responsible_structure ?? '' },
+  { key: 'responsible_person', label: 'Cavabdeh', value: c => c.responsible_person ?? '' },
+]
 
 const STATUS_CONFIG: Record<RegulatoryChangeStatus, { label: string; classes: string }> = {
   new:              { label: 'New',              classes: 'bg-blue-500/15 text-blue-400 border-blue-500/25' },
@@ -135,6 +149,7 @@ export function RegulatoryChangeClient() {
             </button>
           ))}
         </div>
+        <ExportMenu columns={REGCHANGE_EXPORT_COLUMNS} rows={filtered} filename="regulatory-change-register" title="Regulatory Change Register" />
         <button onClick={() => { setEditItem(null); setShowForm(true) }}
           className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white transition-colors shadow-lg"
           style={{ background: 'var(--brand-500)', boxShadow: '0 4px 14px rgba(14,165,233,0.25)' }}>

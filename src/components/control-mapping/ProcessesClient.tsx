@@ -11,6 +11,20 @@ import { Plus, Search, MoreHorizontal, Edit, Trash2, Workflow, X, Save } from 'l
 import { toast } from 'sonner'
 import { usePermissions } from '@/hooks/usePermissions'
 import { ProcessDetailSheet } from './ProcessDetailSheet'
+import { ExportMenu } from '@/components/shared/ExportMenu'
+import type { ExportColumn } from '@/lib/export'
+
+const PROCESS_EXPORT_COLUMNS: ExportColumn<Process>[] = [
+  { key: 'code', label: 'Kod', value: p => p.code },
+  { key: 'name', label: 'Proses', value: p => p.name },
+  { key: 'owner_dept', label: 'Sahib struktur', value: p => p.owner_dept ?? '' },
+  { key: 'owner_name', label: 'Sahib', value: p => p.owner_name ?? '' },
+  { key: 'status', label: 'Status', value: p => p.status ?? '' },
+  { key: 'criticality', label: 'Kritiklik', value: p => p.criticality ?? '' },
+  { key: 'automation', label: 'Avtomatlaşma', value: p => p.automation ?? '' },
+  { key: 'maturity', label: 'Yetkinlik', value: p => p.maturity ?? '' },
+  { key: 'sub_processes', label: 'Alt proseslər', value: p => (p.sub_processes ?? []).join('; ') },
+]
 
 const STATUS_CFG: Record<ProcessStatus, { label: string; cls: string }> = {
   active:   { label: 'Active',   cls: 'bg-emerald-500/15 text-emerald-400' },
@@ -437,6 +451,7 @@ export function ProcessesClient() {
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search processes…" aria-label="Search processes"
             className="flex-1 text-sm bg-transparent outline-none" style={{ color: 'var(--foreground)' }} />
         </div>
+        <ExportMenu columns={PROCESS_EXPORT_COLUMNS} rows={filtered} filename="business-processes" title="Business Processes" />
         <button onClick={() => { setEditItem(null); setShowForm(true) }}
           className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white transition-colors shadow-lg"
           style={{ background: 'var(--brand-500)', boxShadow: '0 4px 14px rgba(14,165,233,0.25)' }}>

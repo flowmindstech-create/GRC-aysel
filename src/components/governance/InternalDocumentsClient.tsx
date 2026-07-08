@@ -9,6 +9,19 @@ import { cn } from '@/lib/utils'
 import { Plus, Search, MoreHorizontal, Edit, Trash2, FileText, X, Save } from 'lucide-react'
 import { toast } from 'sonner'
 import { usePermissions } from '@/hooks/usePermissions'
+import { ExportMenu } from '@/components/shared/ExportMenu'
+import type { ExportColumn } from '@/lib/export'
+
+const DOC_EXPORT_COLUMNS: ExportColumn<InternalDocument>[] = [
+  { key: 'doc_uid', label: 'ID', value: d => d.doc_uid },
+  { key: 'name', label: 'Sənədin adı', value: d => d.name },
+  { key: 'doc_type', label: 'Növ', value: d => d.doc_type },
+  { key: 'doc_number', label: 'Nömrə', value: d => d.doc_number ?? '' },
+  { key: 'version', label: 'Versiya', value: d => d.version },
+  { key: 'effective_date', label: 'Qüvvəyə minmə', value: d => d.effective_date ? new Date(d.effective_date).toLocaleDateString('az-AZ') : '' },
+  { key: 'approved_by', label: 'Təsdiqləyən', value: d => d.approved_by ?? '' },
+  { key: 'author_dept', label: 'Tərtib edən struktur', value: d => d.author_dept ?? '' },
+]
 
 export const DOC_TYPE_CFG: Record<InternalDocType, { label: string; cls: string }> = {
   policy:      { label: 'Siyasət',      cls: 'bg-indigo-500/15 text-indigo-400' },
@@ -225,6 +238,7 @@ export function InternalDocumentsClient() {
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Sənəd axtar (ad / ID / nömrə)…" aria-label="Search documents"
             className="flex-1 text-sm bg-transparent outline-none" style={{ color: 'var(--foreground)' }} />
         </div>
+        <ExportMenu columns={DOC_EXPORT_COLUMNS} rows={filtered} filename="internal-documents" title="Internal Document List" />
         <button onClick={() => { setEditItem(null); setShowForm(true) }}
           className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white transition-colors shadow-lg"
           style={{ background: 'var(--brand-500)', boxShadow: '0 4px 14px rgba(14,165,233,0.25)' }}>
