@@ -43,6 +43,10 @@ function nextDate(from: Date, freq?: ExecutionFrequency): string | null {
 const STATUS_TO_EFF: Record<ControlStatus, Control['effectiveness_rating']> = {
   pass: 'effective', partial: 'partially_effective', fail: 'ineffective', na: 'na',
 }
+const EFF_LABEL = (e?: string) =>
+  e === 'effective' ? 'Effective' : e === 'partially_effective' ? 'Partially' : e === 'ineffective' ? 'Ineffective' : 'Not Tested'
+const EFF_DOT = (e?: string) =>
+  e === 'effective' ? '#22c55e' : e === 'partially_effective' ? '#eab308' : e === 'ineffective' ? '#ef4444' : 'var(--muted-fg)'
 
 function calcScore(controls: Control[]) {
   const total = controls.length
@@ -162,10 +166,11 @@ export function ControlChecklist() {
         {/* Column header */}
         <div className="hidden md:grid grid-cols-12 gap-3 px-5 py-2.5 border-b text-[10px] font-semibold uppercase tracking-wide"
           style={{ borderColor: 'var(--border)', background: 'var(--muted)', color: 'var(--muted-fg)' }}>
-          <div className="col-span-5">Kod / Nəzarət adı</div>
+          <div className="col-span-4">Kod / Nəzarət adı</div>
           <div className="col-span-2">Son yoxlama</div>
           <div className="col-span-2">Növbəti yoxlama</div>
-          <div className="col-span-2">Status</div>
+          <div className="col-span-2">Effektivlik</div>
+          <div className="col-span-1">Status</div>
           <div className="col-span-1" />
         </div>
 
@@ -180,7 +185,7 @@ export function ControlChecklist() {
             <motion.div key={control.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.03 }}>
               <div className="grid grid-cols-12 gap-3 items-center px-5 py-3.5 hover:bg-black/[0.02] transition-colors cursor-pointer"
                 onClick={() => setExpanded(isOpen ? null : control.id)}>
-                <div className="col-span-12 md:col-span-5 flex items-center gap-2 min-w-0">
+                <div className="col-span-12 md:col-span-4 flex items-center gap-2 min-w-0">
                   <span className="text-xs font-mono font-bold text-sky-600 shrink-0">{control.control_id}</span>
                   <span className="text-sm font-medium truncate" style={{ color: 'var(--foreground)' }}>{control.title}</span>
                 </div>
@@ -190,7 +195,11 @@ export function ControlChecklist() {
                 <div className="col-span-6 md:col-span-2 text-xs flex items-center gap-1" style={{ color: control.next_test_date ? 'var(--brand-500)' : 'var(--muted-fg)' }}>
                   {control.next_test_date && <RotateCw className="w-3 h-3" />}{fmtDate(control.next_test_date)}
                 </div>
-                <div className="col-span-4 md:col-span-2">
+                <div className="col-span-6 md:col-span-2 flex items-center gap-1.5 text-xs" style={{ color: 'var(--foreground)' }}>
+                  <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: EFF_DOT(control.effectiveness_rating) }} />
+                  {EFF_LABEL(control.effectiveness_rating)}
+                </div>
+                <div className="col-span-4 md:col-span-1">
                   <span className={cn('inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold border', st.cls)}>{st.label}</span>
                 </div>
                 <div className="col-span-2 md:col-span-1 flex justify-end">
