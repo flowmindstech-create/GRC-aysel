@@ -7,7 +7,6 @@ import { db } from '@/lib/db'
 import { calculateInherentLevel } from '@/lib/rcsa'
 import { resolveOwnerFromUnit } from '@/lib/org'
 import type { Incident, IncidentPriority, IncidentSeverity, AttachedFile, OrgUnit, Process, Risk, Control, UserProfile } from '@/types'
-import { MOCK_USERS } from '@/lib/seed-data'
 import { RISK_CATEGORIES, type RiskCategory } from '@/lib/risk-categories'
 import { incidentSubcategories } from '@/lib/incident-categories'
 import { RcsaDropdown } from '@/components/risks/RcsaDropdown'
@@ -107,6 +106,19 @@ export function IncidentIntakeForm({ data, onChange }: Props) {
     db.getRisks().then(setAllRisks)
     db.getControls().then(setAllControls)
   }, [])
+
+  // Auto-assign to the Risk Manager (head of risk management) — intake has no
+  // manual investigator picker; every new incident lands on the risk manager.
+  const riskManager = useMemo(
+    () => profiles.find(p => p.role === 'risk_manager') ?? profiles.find(p => p.role === 'super_admin' || p.role === 'admin'),
+    [profiles]
+  )
+  useEffect(() => {
+    if (riskManager && !data.assigned_to) {
+      onChange({ ...data, assigned_to: riskManager.id, assigned_name: riskManager.full_name })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [riskManager])
 
   // Reporter structure → reporter person (auto-fill to dept head; editable)
   function handleStructureChange(structureName: string) {
@@ -396,14 +408,26 @@ export function IncidentIntakeForm({ data, onChange }: Props) {
         </div>
       </div>
 
-      {/* Assign Investigator */}
+      {/* Assignment — defolt avtomatik Risk Manager (risk idarəetməsinin rəhbəri);
+          başqa şəxs lazımdırsa yığcam dropdown-dan dəyişilə bilir (real profillər) */}
       <div>
-        <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Assign Investigator</label>
-        <select value={data.assigned_to ?? ''} onChange={e => onChange({ ...data, assigned_to: e.target.value })}
+        <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Təyinat</label>
+        <select value={data.assigned_to ?? ''}
+          onChange={e => {
+            const p = profiles.find(u => u.id === e.target.value)
+            onChange({ ...data, assigned_to: p?.id, assigned_name: p?.full_name })
+          }}
           className={`${fieldCls} cursor-pointer`} style={inputStyle}>
-          <option value="">Unassigned</option>
-          {MOCK_USERS.map(u => <option key={u.id} value={u.id}>{u.full_name}</option>)}
+          {!data.assigned_to && <option value="">Risk Manager təyin olunacaq…</option>}
+          {profiles.map(u => (
+            <option key={u.id} value={u.id}>
+              {u.full_name}{u.id === riskManager?.id ? ' — Risk Manager (defolt)' : ''}
+            </option>
+          ))}
         </select>
+        <p className="text-[10px] mt-0.5" style={{ color: 'var(--muted-fg)' }}>
+          Avtomatik risk idarəetməsinin rəhbərinə yönləndirilir
+        </p>
       </div>
 
       {/* File Attachment */}
