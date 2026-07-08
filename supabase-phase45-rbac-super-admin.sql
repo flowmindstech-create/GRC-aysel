@@ -16,9 +16,16 @@
 -- profiles.role TEXT sütunudur — enum dəyişikliyi lazım deyil.
 -- ============================================================
 
+-- ── 0) role CHECK constraint-inə 'super_admin' əlavə et ─────────────────────
+-- profiles_role_check köhnə rolları saxlayır; super_admin-i icazə siyahısına qat.
+ALTER TABLE public.profiles DROP CONSTRAINT IF EXISTS profiles_role_check;
+ALTER TABLE public.profiles ADD CONSTRAINT profiles_role_check
+  CHECK (role IN ('super_admin','admin','risk_manager','auditor','employee'));
+
 -- ── 1) Aysel Rajabli → super_admin (yeganə) ─────────────────────────────────
 -- Əvvəlcə kimin uyğun gəldiyini gör (adı fərqli yazılıbsa, aşağıdakı UPDATE-i düzəlt):
-SELECT id, full_name, email, role FROM public.profiles
+-- Qeyd: profiles cədvəlində email sütunu yoxdur — yalnız full_name/role.
+SELECT id, full_name, role FROM public.profiles
 WHERE full_name ILIKE '%aysel%';
 
 -- Mövcud super_admin(lar)ı — Aysel deyilsə — admin-ə endir (təklik qorunsun):
@@ -101,7 +108,7 @@ BEGIN
 END $$;
 
 -- ── Yoxlama ──────────────────────────────────────────────────────────────────
-SELECT full_name, email, role FROM public.profiles WHERE role = 'super_admin';
+SELECT full_name, role FROM public.profiles WHERE role = 'super_admin';
 
 -- ============================================================
 -- RECOVERY (yalnız giriş pozulsa işə sal):

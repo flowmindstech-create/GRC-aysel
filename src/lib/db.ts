@@ -7,7 +7,7 @@ import {
 } from './seed-data'
 import type {
   Risk, Incident, Control, Audit, AuditFinding, Vendor, Activity, DashboardStats,
-  JiraConfig, JiraActivity, JiraComment, GRCIntakeItem, OrgUnit, UserProfile,
+  JiraConfig, JiraActivity, JiraComment, GRCIntakeItem, OrgUnit, UserProfile, UserRole,
   ComplianceObligation, ObligationAuditLog, RegulatoryChange, InterestedParty, Process,
   AppetiteEntry, FinancialRisk, StressTest, WhistleblowReport, ComplianceAssessment, ComplianceAssessmentHistory
 } from '@/types'
@@ -1824,6 +1824,19 @@ export const db = {
       if (!error && data) return data as UserProfile[]
     }
     return MOCK_USERS
+  },
+
+  // Rol təyini — yalnız super_admin. DB tərəfdə guard_role_change trigger-i
+  // + one_super_admin_per_org index qoruyur (bax phase45). Xəta mesajı ötürülür.
+  async updateProfileRole(id: string, role: UserRole): Promise<{ ok: boolean; error?: string }> {
+    if (isSupabaseConfigured()) {
+      const { createClient } = await import('./supabase/client')
+      const supabase = createClient()
+      const { error } = await supabase.from('profiles').update({ role }).eq('id', id)
+      if (error) return { ok: false, error: error.message }
+      return { ok: true }
+    }
+    return { ok: true }
   },
 
   // ─── ORG STRUCTURE (org_units) ─────────────────────────────────────────────

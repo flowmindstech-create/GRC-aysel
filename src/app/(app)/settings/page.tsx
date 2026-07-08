@@ -2,16 +2,19 @@
 import { TopNav } from '@/components/layout/TopNav'
 import type { Metadata } from 'next'
 import { MOCK_USERS } from '@/lib/seed-data'
-import { User, Bell, Shield, Database, Key, Globe, Palette, Check, Loader2, ArrowLeft, ExternalLink, Settings, Building2 } from 'lucide-react'
+import { User, Bell, Shield, Database, Key, Globe, Palette, Check, Loader2, ArrowLeft, ExternalLink, Settings, Building2, Users } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import type { LucideIcon } from 'lucide-react'
 import { toast } from 'sonner'
 import { db } from '@/lib/db'
 import { OrgStructurePanel } from '@/components/settings/OrgStructurePanel'
+import { UserManagementPanel } from '@/components/settings/UserManagementPanel'
+import { usePermissions } from '@/hooks/usePermissions'
 
 
-const SECTIONS: { id: string; icon: LucideIcon; label: string }[] = [
+const SECTIONS: { id: string; icon: LucideIcon; label: string; superAdminOnly?: boolean }[] = [
   { id: 'profile',       icon: User,      label: 'Profile' },
+  { id: 'users',         icon: Users,     label: 'İstifadəçilər', superAdminOnly: true },
   { id: 'notifications', icon: Bell,      label: 'Notifications' },
   { id: 'security',      icon: Shield,    label: 'Security' },
   { id: 'integrations',  icon: Database,  label: 'Integrations' },
@@ -23,7 +26,9 @@ const SECTIONS: { id: string; icon: LucideIcon; label: string }[] = [
 
 export default function SettingsPage() {
   const user = MOCK_USERS[0]
+  const { isSuperAdmin } = usePermissions()
   const [activeSection, setActiveSection] = useState('profile')
+  const sections = SECTIONS.filter(s => !s.superAdminOnly || isSuperAdmin)
   const [jiraConfig, setJiraConfig] = useState<any>({
     instanceUrl: '',
     email: '',
@@ -52,7 +57,7 @@ export default function SettingsPage() {
           <div className="flex gap-6">
             {/* Sidebar nav */}
             <nav className="w-48 shrink-0 space-y-0.5">
-              {SECTIONS.map(s => {
+              {sections.map(s => {
                 const Icon = s.icon
                 const active = activeSection === s.id
                 return (
@@ -108,6 +113,9 @@ export default function SettingsPage() {
                   </div>
                 </div>
               )}
+
+              {/* İstifadəçilər — yalnız super_admin */}
+              {activeSection === 'users' && <UserManagementPanel />}
 
               {/* Notifications */}
               {activeSection === 'notifications' && (
