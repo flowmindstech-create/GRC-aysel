@@ -8,6 +8,8 @@ import { cn } from '@/lib/utils'
 import { Search, Plus, Edit, Zap, AlertTriangle, X, Check } from 'lucide-react'
 import { toast } from 'sonner'
 import { ControlFormDialog } from './ControlFormDialog'
+import { ExportMenu } from '@/components/shared/ExportMenu'
+import type { ExportColumn } from '@/lib/export'
 
 const TYPE_COLOR: Record<string, string> = {
   preventive: 'bg-blue-500/12 text-blue-400',
@@ -17,6 +19,21 @@ const TYPE_COLOR: Record<string, string> = {
 }
 const EFF_DOT = (e?: string) =>
   e === 'effective' ? '#34d399' : e === 'partially_effective' ? '#fbbf24' : e === 'ineffective' ? '#f87171' : 'var(--muted-fg)'
+const EFF_LABEL = (e?: string) =>
+  e === 'effective' ? 'Effective' : e === 'partially_effective' ? 'Partially' : e === 'ineffective' ? 'Ineffective' : 'Not Tested'
+const fmtDate = (d?: string | null) => d ? new Date(d).toLocaleDateString('az-AZ') : '—'
+
+const EXPORT_COLUMNS: ExportColumn<Control>[] = [
+  { key: 'control_id', label: 'Kod', value: c => c.control_id },
+  { key: 'title', label: 'Nəzarət Adı', value: c => c.title },
+  { key: 'framework', label: 'Framework', value: c => c.framework },
+  { key: 'control_type', label: 'Tip', value: c => c.control_type ?? '' },
+  { key: 'execution_frequency', label: 'Tezlik', value: c => c.execution_frequency ?? '' },
+  { key: 'owner_dept', label: 'Sahib / Şöbə', value: c => c.owner_dept ?? '' },
+  { key: 'last_tested_at', label: 'Son yoxlama', value: c => c.last_tested_at ? new Date(c.last_tested_at).toLocaleDateString('az-AZ') : '' },
+  { key: 'effectiveness', label: 'Effektivlik', value: c => EFF_LABEL(c.effectiveness_rating) },
+  { key: 'status', label: 'Status', value: c => c.approval_status === 'pending_review' ? 'Gözləmədə' : 'Aktiv' },
+]
 
 export function ControlsClient() {
   const [controls, setControls]   = useState<Control[]>([])
@@ -106,7 +123,7 @@ export function ControlsClient() {
           { key: 'all',        label: 'Ümumi Nəzarətlər',           value: stats.total,      rgb: '14,165,233' },
           { key: 'preventive', label: 'Preventive (Önləyici)',      value: stats.preventive, rgb: '59,130,246' },
           { key: 'detective',  label: 'Detective (Aşkarlayıcı)',    value: stats.detective,  rgb: '234,179,8' },
-          { key: 'failures',   label: 'Sıradan çıxanlar (Failures)', value: stats.failures,  rgb: '225,29,72' },
+          { key: 'failures',   label: 'Effektiv olmayanlar (Ineffective)', value: stats.failures,  rgb: '225,29,72' },
         ] as const).map((s, i) => {
           const active = statFilter === s.key
           return (
@@ -144,6 +161,7 @@ export function ControlsClient() {
             </button>
           ))}
         </div>
+        <ExportMenu columns={EXPORT_COLUMNS} rows={filtered} filename="control-library" title="Control Library" />
         <button onClick={() => { setEditControl(null); setShowForm(true) }}
           className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold text-white bg-sky-500 hover:bg-sky-600 cursor-pointer">
           <Plus className="w-4 h-4" /> Yeni Nəzarət Əlavə Et
@@ -153,12 +171,12 @@ export function ControlsClient() {
       {/* Table */}
       <div className="card overflow-hidden"><div className="overflow-x-auto"><table className="w-full">
         <thead><tr style={{ borderBottom: '1px solid var(--border)', background: 'var(--muted)' }}>
-          {['Kod', 'Nəzarət Adı', 'Tip', 'Metod / Tezlik', 'Sahib / Şöbə', 'Status', 'Simulyator', ''].map(h => (
+          {['Kod', 'Nəzarət Adı', 'Tip', 'Metod / Tezlik', 'Sahib / Şöbə', 'Son yoxlama', 'Status', 'Simulyator', ''].map(h => (
             <th key={h} className="text-left px-3 py-3 text-[11px] font-semibold uppercase tracking-wide whitespace-nowrap" style={{ color: 'var(--muted-fg)' }}>{h}</th>))}
         </tr></thead>
         <tbody>
-          {loading ? (<tr><td colSpan={8} className="py-16 text-center text-sm" style={{ color: 'var(--muted-fg)' }}>Loading…</td></tr>)
-          : filtered.length === 0 ? (<tr><td colSpan={8} className="py-16 text-center text-sm" style={{ color: 'var(--muted-fg)' }}>No controls found</td></tr>)
+          {loading ? (<tr><td colSpan={9} className="py-16 text-center text-sm" style={{ color: 'var(--muted-fg)' }}>Loading…</td></tr>)
+          : filtered.length === 0 ? (<tr><td colSpan={9} className="py-16 text-center text-sm" style={{ color: 'var(--muted-fg)' }}>No controls found</td></tr>)
           : filtered.map((c, i) => {
             const pending = c.approval_status === 'pending_review'
             return (
@@ -176,12 +194,13 @@ export function ControlsClient() {
                 <p className="text-[10px] capitalize" style={{ color: 'var(--muted-fg)' }}>{c.execution_frequency || '—'}</p>
               </td>
               <td className="px-3 py-3.5"><span className="text-xs whitespace-nowrap" style={{ color: c.owner_dept ? 'var(--foreground)' : 'var(--muted-fg)' }}>{c.owner_dept || '—'}</span></td>
+              <td className="px-3 py-3.5"><span className="text-xs whitespace-nowrap" style={{ color: c.last_tested_at ? 'var(--foreground)' : 'var(--muted-fg)' }}>{fmtDate(c.last_tested_at)}</span></td>
               <td className="px-3 py-3.5">
                 {pending ? (
                   <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/15 text-amber-400">Gözləmədə</span>
                 ) : (
-                  <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/15 text-emerald-400">
-                    <span className="w-1.5 h-1.5 rounded-full" style={{ background: EFF_DOT(c.effectiveness_rating) }} /> Aktiv
+                  <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold whitespace-nowrap" style={{ background: 'var(--muted)', color: 'var(--muted-fg)' }} title="Effektivlik reytinqi">
+                    <span className="w-1.5 h-1.5 rounded-full" style={{ background: EFF_DOT(c.effectiveness_rating) }} /> {EFF_LABEL(c.effectiveness_rating)}
                   </span>
                 )}
               </td>
