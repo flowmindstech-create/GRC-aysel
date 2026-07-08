@@ -63,9 +63,10 @@ export function StatsCard({
       />
 
       <div className="flex items-start justify-between mb-4">
+        {/* Duotone ikon tile — Proton üslubu */}
         <div
-          className={cn('w-10 h-10 rounded-xl flex items-center justify-center', iconBg)}
-          style={{ boxShadow: `0 0 18px rgba(${rgb},0.22)` }}
+          className={cn('w-10 h-10 rounded-xl flex items-center justify-center border', iconBg)}
+          style={{ borderColor: `rgba(${rgb},0.18)`, boxShadow: `0 4px 14px rgba(${rgb},0.14)` }}
         >
           <Icon className={cn('w-5 h-5', iconColor)} />
         </div>
@@ -88,10 +89,10 @@ export function StatsCard({
         )}
       </div>
 
-      <p className="text-2xl font-bold tracking-tight mb-0.5" style={{ color: 'var(--foreground)' }}>
+      <p className="text-[28px] leading-tight font-bold tracking-tighter mb-0.5" style={{ color: 'var(--foreground)' }}>
         {value}
       </p>
-      <p className="text-sm font-medium" style={{ color: 'var(--muted-fg)' }}>{title}</p>
+      <p className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: 'var(--muted-fg)' }}>{title}</p>
       {subtitle && (
         <p className="text-xs mt-1" style={{ color: 'var(--muted-fg)', opacity: 0.65 }}>
           {subtitle}

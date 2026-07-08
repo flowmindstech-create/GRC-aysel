@@ -2,13 +2,14 @@
 
 import { useState } from 'react'
 import { Sidebar } from './Sidebar'
+import { MobileNav } from './MobileNav'
 import { Menu, X } from 'lucide-react'
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false)
 
   return (
-    <div className="flex h-screen overflow-hidden" style={{ background: 'var(--background)' }}>
+    <div className="flex h-screen overflow-hidden mesh-gradient" style={{ background: 'var(--background)' }}>
       {/* Mobile Sidebar overlay */}
       {mobileOpen && (
         <div
@@ -43,7 +44,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <span className="font-bold text-sm" style={{ color: 'var(--foreground)' }}>GRCell</span>
         </div>
 
-        {children}
+        {/* pb-14: mobil bottom nav-ın altında məzmun gizlənməsin */}
+        <div className="flex flex-col flex-1 overflow-hidden pb-14 md:pb-0">
+          {children}
+        </div>
+
+        <MobileNav />
       </div>
     </div>
   )

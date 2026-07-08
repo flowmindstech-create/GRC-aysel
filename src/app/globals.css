@@ -15,6 +15,7 @@
   /* Secondary data accent (charts, readiness, positive trend) */
   --accent-teal:   #0f766e;
   --accent-teal-50:#d5f0ec;
+  --accent-emerald:#10b981; /* Proton — canlı puls, pozitiv vurğu */
 
   /* Semantic (Airy Light — soft lavender canvas, white surfaces) */
   --background:   #eef0f8; /* Soft cool lavender-gray page canvas */
@@ -128,6 +129,13 @@ body {
 .animate-fade-in        { animation: fade-in 0.4s ease forwards; }
 .animate-slide-in-right { animation: slide-in-right 0.35s ease forwards; }
 .animate-pulse-ring     { animation: pulse-ring 2s infinite; }
+
+/* ── Mesh gradient fon (Proton) — künclərdə incə emerald/teal işartısı ─────── */
+.mesh-gradient {
+  background-image:
+    radial-gradient(600px 400px at 100% 0%,   rgba(16,185,129,0.05), transparent 60%),
+    radial-gradient(500px 350px at 0%   100%, rgba(15,118,110,0.05), transparent 60%);
+}
 
 /* ── Card ──────────────────────────────────────────────────────────────────── */
 .card {
