@@ -12,6 +12,7 @@ import { Plus, Search, MoreHorizontal, Edit, Trash2, ScrollText, X, Save } from 
 import { toast } from 'sonner'
 import { ExportMenu } from '@/components/shared/ExportMenu'
 import type { ExportColumn } from '@/lib/export'
+import { usePermissions } from '@/hooks/usePermissions'
 
 function RiskFormDialog({ item, obligations, controls, onClose, onSave }: {
   item: ComplianceRisk | null
@@ -147,6 +148,7 @@ function RiskFormDialog({ item, obligations, controls, onClose, onSave }: {
 
 // ── Register ──────────────────────────────────────────────────────────────────
 export function ComplianceRiskClient() {
+  const { can } = usePermissions()
   const [items, setItems] = useState<ComplianceRisk[]>([])
   const [obligations, setObligations] = useState<ComplianceObligation[]>([])
   const [controls, setControls] = useState<Control[]>([])
@@ -258,9 +260,9 @@ export function ComplianceRiskClient() {
                         className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-black/5 text-left" style={{ color: 'var(--foreground)' }}>
                         <Edit className="w-3.5 h-3.5" /> Edit
                       </button>
-                      <button onClick={() => handleDelete(r.id)} className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-red-50 text-left text-red-500">
+                      {can('delete') && <button onClick={() => handleDelete(r.id)} className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-red-50 text-left text-red-500">
                         <Trash2 className="w-3.5 h-3.5" /> Delete
-                      </button>
+                      </button>}
                     </div>
                   )}
                 </div>

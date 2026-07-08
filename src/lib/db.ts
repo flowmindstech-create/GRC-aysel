@@ -86,13 +86,16 @@ export async function getCurrentProfile(): Promise<UserProfile | null> {
         }
         return data as UserProfile
       } else {
-        // Profile row is missing — create it dynamically in the database
+        // Profile row is missing — create it dynamically in the database.
+        // Rol HƏMİŞƏ 'employee' başlayır (ən aşağı rütbə) — qaldırmağı yalnız
+        // super_admin edir (Settings → İstifadəçilər). Əvvəlki 'admin' default
+        // təhlükəsizlik boşluğu idi.
         const newProfile: UserProfile = {
           id: user.id,
           org_id: DEFAULT_ORG_ID,
           full_name: fullName,
           email: user.email || '',
-          role: 'admin',
+          role: 'employee',
           created_at: user.created_at || new Date().toISOString()
         }
         const { data: insertedData, error: insertErr } = await supabase

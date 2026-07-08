@@ -13,6 +13,7 @@ import {
 } from 'lucide-react'
 import { format } from 'date-fns'
 import { toast } from 'sonner'
+import { usePermissions } from '@/hooks/usePermissions'
 
 const STATUS_CONFIG: Record<RegulatoryChangeStatus, { label: string; classes: string }> = {
   new:              { label: 'New',              classes: 'bg-blue-500/15 text-blue-400 border-blue-500/25' },
@@ -24,6 +25,7 @@ const STATUS_CONFIG: Record<RegulatoryChangeStatus, { label: string; classes: st
 const ALL_STATUSES: RegulatoryChangeStatus[] = ['new', 'under_assessment', 'implemented', 'closed']
 
 export function RegulatoryChangeClient() {
+  const { can } = usePermissions()
   const [changes, setChanges]   = useState<RegulatoryChange[]>([])
   const [counts, setCounts]     = useState<Record<string, number>>({})
   const [loading, setLoading]   = useState(true)
@@ -204,10 +206,12 @@ export function RegulatoryChangeClient() {
                                   className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-black/5 dark:hover:bg-white/5 text-left" style={{ color: 'var(--foreground)' }}>
                                   <Edit className="w-3.5 h-3.5" /> Edit
                                 </button>
+                                {can('delete') && (
                                 <button onClick={() => handleDelete(item.id)}
                                   className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-red-50 dark:hover:bg-red-900/20 text-left text-red-500">
                                   <Trash2 className="w-3.5 h-3.5" /> Delete
                                 </button>
+                                )}
                               </div>
                             )}
                           </div>

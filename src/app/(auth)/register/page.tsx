@@ -9,12 +9,13 @@ import { Shield, Mail, Lock, User, Building, ArrowRight } from 'lucide-react'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 
+// Rol seçimi YOXDUR — hər yeni istifadəçi 'employee' başlayır (phase18 trigger),
+// rütbəni yalnız Super Admin qaldırır (Settings → İstifadəçilər).
 const schema = z.object({
   full_name: z.string().min(2),
   company: z.string().min(2),
   email: z.string().email(),
   password: z.string().min(8),
-  role: z.enum(['admin','risk_manager','auditor','employee']),
 })
 type FormValues = z.infer<typeof schema>
 
@@ -26,10 +27,10 @@ function setMockSessionCookie() {
 
 export default function RegisterPage() {
   const [loading, setLoading] = useState(false)
+  const [awaitingConfirm, setAwaitingConfirm] = useState<string | null>(null) // e-poçt təsdiqi gözlənilir
   const router = useRouter()
   const { register, handleSubmit, formState: { errors } } = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: { role: 'admin' },
   })
 
   const onSubmit = async (v: FormValues) => {
@@ -42,21 +43,35 @@ export default function RegisterPage() {
     } else {
       const { createClient } = await import('@/lib/supabase/client')
       const supabase = createClient()
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email: v.email,
         password: v.password,
         options: {
+          emailRedirectTo: `${window.location.origin}/login`,
           data: {
             full_name: v.full_name,
             company: v.company,
-            role: v.role,
+            // rol göndərilmir — DB trigger-i (phase18) hər yeni istifadəçini 'employee' edir
           }
         }
       })
       if (error) {
         alert(error.message)
       } else {
-        router.push('/dashboard')
+        // Welcome email — fire-and-forget; a mail failure must not block onboarding
+        fetch('/api/emails/welcome', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: v.email, full_name: v.full_name, company: v.company }),
+        }).catch(() => {})
+
+        if (data.session) {
+          // E-poçt təsdiqi söndürülüb — birbaşa daxil ol
+          router.push('/dashboard')
+        } else {
+          // Təsdiq tələb olunur — istifadəçini yönləndirmə, izah göstər
+          setAwaitingConfirm(v.email)
+        }
       }
     }
     setLoading(false)
@@ -75,6 +90,23 @@ export default function RegisterPage() {
           <span className="font-bold text-lg" style={{ color: 'var(--foreground)' }}>GRCell</span>
         </div>
 
+        {awaitingConfirm ? (
+          <div className="rounded-2xl border p-6 space-y-3" style={{ borderColor: 'var(--border)', background: 'var(--card)' }}>
+            <div className="w-11 h-11 rounded-xl bg-sky-500/10 flex items-center justify-center">
+              <Mail className="w-5 h-5 text-sky-500" />
+            </div>
+            <h2 className="text-lg font-bold" style={{ color: 'var(--foreground)' }}>E-poçtunu yoxla</h2>
+            <p className="text-sm leading-relaxed" style={{ color: 'var(--muted-fg)' }}>
+              <strong style={{ color: 'var(--foreground)' }}>{awaitingConfirm}</strong> ünvanına təsdiq linki göndərdik.
+              Linkə basandan sonra hesabın aktivləşəcək və daxil ola biləcəksən.
+            </p>
+            <p className="text-xs" style={{ color: 'var(--muted-fg)' }}>Məktub gəlməyibsə spam qovluğuna bax.</p>
+            <Link href="/login" className="inline-flex items-center gap-1.5 text-sm font-semibold text-sky-500 hover:text-sky-400">
+              Girişə qayıt <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+        ) : (
+        <>
         <h2 className="text-2xl font-black mb-1" style={{ color: 'var(--foreground)' }}>Create your account</h2>
         <p className="text-sm mb-8" style={{ color: 'var(--muted-fg)' }}>Start managing risks — free 14-day trial.</p>
 
@@ -95,16 +127,10 @@ export default function RegisterPage() {
             </div>
           ))}
 
-          <div>
-            <label className="block text-xs font-semibold mb-1.5" style={{ color: 'var(--foreground)' }}>Your Role</label>
-            <select {...register('role')} className="w-full px-3 py-3 rounded-xl text-sm border outline-none"
-              style={{ background: 'var(--muted)', borderColor: 'var(--border)', color: 'var(--foreground)' }}>
-              <option value="admin">Administrator</option>
-              <option value="risk_manager">Risk Manager</option>
-              <option value="auditor">Auditor</option>
-              <option value="employee">Employee</option>
-            </select>
-          </div>
+          <p className="text-[11px] leading-relaxed" style={{ color: 'var(--muted-fg)' }}>
+            Qeydiyyatdan sonra hesabınız <strong>Əməkdaş</strong> səviyyəsində açılır.
+            Rütbənizi təşkilatınızın Super Admini təyin edir.
+          </p>
 
           <button type="submit" disabled={loading}
             className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold text-white bg-sky-500 hover:bg-sky-600 disabled:opacity-60 transition-all shadow-lg shadow-sky-500/25 mt-2">
@@ -118,6 +144,8 @@ export default function RegisterPage() {
           Already have an account?{' '}
           <Link href="/login" className="text-sky-500 hover:text-sky-400 font-medium">Sign in</Link>
         </p>
+        </>
+        )}
       </motion.div>
     </div>
   )

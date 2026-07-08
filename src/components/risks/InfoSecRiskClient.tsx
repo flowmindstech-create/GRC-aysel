@@ -14,6 +14,7 @@ import { Plus, Search, MoreHorizontal, Edit, Trash2, ShieldAlert, X, Save, Lock 
 import { toast } from 'sonner'
 import { ExportMenu } from '@/components/shared/ExportMenu'
 import type { ExportColumn } from '@/lib/export'
+import { usePermissions } from '@/hooks/usePermissions'
 const maxImpactOf = (im?: Record<string, number>) => im ? Math.max(0, ...Object.values(im)) : 0
 
 // Max of the entered impact dimension scores (defaults to 1 when nothing set)
@@ -256,6 +257,7 @@ function InfoSecFormDialog({ item, controls, processes, departments, profiles, o
 
 // ── Register ──────────────────────────────────────────────────────────────────
 export function InfoSecRiskClient() {
+  const { can } = usePermissions()
   const [items, setItems] = useState<InfoSecRisk[]>([])
   const [controls, setControls] = useState<Control[]>([])
   const [processes, setProcesses] = useState<Process[]>([])
@@ -377,9 +379,9 @@ export function InfoSecRiskClient() {
                         className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-black/5 text-left" style={{ color: 'var(--foreground)' }}>
                         <Edit className="w-3.5 h-3.5" /> Edit
                       </button>
-                      <button onClick={() => handleDelete(r.id)} className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-red-50 text-left text-red-500">
+                      {can('delete') && <button onClick={() => handleDelete(r.id)} className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-red-50 text-left text-red-500">
                         <Trash2 className="w-3.5 h-3.5" /> Delete
-                      </button>
+                      </button>}
                     </div>
                   )}
                 </div>

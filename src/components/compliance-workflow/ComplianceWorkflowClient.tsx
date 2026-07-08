@@ -10,6 +10,7 @@ import { ObligationFormDialog } from './ObligationFormDialog'
 import { ObligationDetailSheet } from './ObligationDetailSheet'
 import { ExportMenu } from '@/components/shared/ExportMenu'
 import type { ExportColumn } from '@/lib/export'
+import { usePermissions } from '@/hooks/usePermissions'
 
 const OBLIGATION_EXPORT_COLUMNS: ExportColumn<ComplianceObligation>[] = [
   { key: 'obligation_code', label: 'Kod', value: o => o.obligation_code },
@@ -79,6 +80,7 @@ const ALL_SOURCES: ObligationSource[] = [
 // ── Main ──────────────────────────────────────────────────────────────────────
 
 export function ComplianceWorkflowClient() {
+  const { can } = usePermissions()
   const [obligations, setObligations] = useState<ComplianceObligation[]>([])
   const [risksById, setRisksById]     = useState<Record<string, Risk>>({})
   const [linkCounts, setLinkCounts]   = useState<Record<string, { risks: number; controls: number; policies: number }>>({})
@@ -461,10 +463,12 @@ export function ComplianceWorkflowClient() {
                                   className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-black/5 dark:hover:bg-white/5 text-left" style={{ color: 'var(--foreground)' }}>
                                   <Edit className="w-3.5 h-3.5" /> Edit
                                 </button>
+                                {can('delete') && (
                                 <button onClick={() => handleDelete(item.id)}
                                   className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-red-50 dark:hover:bg-red-900/20 text-left text-red-500">
                                   <Trash2 className="w-3.5 h-3.5" /> Delete
                                 </button>
+                                )}
                               </div>
                             )}
                           </div>

@@ -9,6 +9,7 @@ import type { InternalPolicy, InternalPolicyDocType, ApprovingBody, InternalPoli
 import { cn } from '@/lib/utils'
 import { Plus, Search, MoreHorizontal, Edit, Trash2, FileText, X, Save } from 'lucide-react'
 import { toast } from 'sonner'
+import { usePermissions } from '@/hooks/usePermissions'
 
 export const DOC_TYPE_CFG: Record<InternalPolicyDocType, { label: string; cls: string }> = {
   policy:      { label: 'Policy',      cls: 'bg-indigo-500/15 text-indigo-500' },
@@ -180,6 +181,7 @@ function PolicyFormDialog({ item, departments, profiles, existingNumbers, onClos
 
 // ── Register ──────────────────────────────────────────────────────────────────
 export function InternalPoliciesClient() {
+  const { can } = usePermissions()
   const [items, setItems] = useState<InternalPolicy[]>([])
   const [departments, setDepartments] = useState<OrgUnit[]>([])
   const [profiles, setProfiles] = useState<UserProfile[]>([])
@@ -286,9 +288,9 @@ export function InternalPoliciesClient() {
                         className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-black/5 text-left" style={{ color: 'var(--foreground)' }}>
                         <Edit className="w-3.5 h-3.5" /> Edit
                       </button>
-                      <button onClick={() => handleDelete(p.id)} className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-red-50 text-left text-red-500">
+                      {can('delete') && <button onClick={() => handleDelete(p.id)} className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-red-50 text-left text-red-500">
                         <Trash2 className="w-3.5 h-3.5" /> Delete
-                      </button>
+                      </button>}
                     </div>
                   )}
                 </div>

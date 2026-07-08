@@ -9,6 +9,7 @@ import type { Process, ProcessStatus, Control, OrgUnit, UserProfile, Policy, Ris
 import { cn } from '@/lib/utils'
 import { Plus, Search, MoreHorizontal, Edit, Trash2, Workflow, X, Save } from 'lucide-react'
 import { toast } from 'sonner'
+import { usePermissions } from '@/hooks/usePermissions'
 import { ProcessDetailSheet } from './ProcessDetailSheet'
 
 const STATUS_CFG: Record<ProcessStatus, { label: string; cls: string }> = {
@@ -304,6 +305,7 @@ function ProcessFormDialog({ process, controls, departments, profiles, policies,
 
 // ── Main ──────────────────────────────────────────────────────────────────────
 export function ProcessesClient() {
+  const { can } = usePermissions()
   const [processes, setProcesses] = useState<Process[]>([])
   const [controls, setControls] = useState<Control[]>([])
   const [departments, setDepartments] = useState<OrgUnit[]>([])
@@ -508,9 +510,9 @@ export function ProcessesClient() {
                               className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-black/5 dark:hover:bg-white/5 text-left" style={{ color: 'var(--foreground)' }}>
                               <Edit className="w-3.5 h-3.5" /> Edit
                             </button>
-                            <button onClick={() => handleDelete(p.id)} className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-red-50 dark:hover:bg-red-900/20 text-left text-red-500">
+                            {can('delete') && <button onClick={() => handleDelete(p.id)} className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-red-50 dark:hover:bg-red-900/20 text-left text-red-500">
                               <Trash2 className="w-3.5 h-3.5" /> Delete
-                            </button>
+                            </button>}
                           </div>
                         )}
                       </div>

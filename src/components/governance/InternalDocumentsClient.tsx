@@ -8,6 +8,7 @@ import type { InternalDocument, InternalDocType, OrgUnit, UserProfile } from '@/
 import { cn } from '@/lib/utils'
 import { Plus, Search, MoreHorizontal, Edit, Trash2, FileText, X, Save } from 'lucide-react'
 import { toast } from 'sonner'
+import { usePermissions } from '@/hooks/usePermissions'
 
 export const DOC_TYPE_CFG: Record<InternalDocType, { label: string; cls: string }> = {
   policy:      { label: 'Siyasət',      cls: 'bg-indigo-500/15 text-indigo-400' },
@@ -168,6 +169,7 @@ function DocumentFormDialog({ doc, departments, profiles, onClose, onSave }: {
 
 // ── Main register ─────────────────────────────────────────────────────────────
 export function InternalDocumentsClient() {
+  const { can } = usePermissions()
   const [docs, setDocs] = useState<InternalDocument[]>([])
   const [departments, setDepartments] = useState<OrgUnit[]>([])
   const [profiles, setProfiles] = useState<UserProfile[]>([])
@@ -284,9 +286,9 @@ export function InternalDocumentsClient() {
                               className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-black/5 dark:hover:bg-white/5 text-left" style={{ color: 'var(--foreground)' }}>
                               <Edit className="w-3.5 h-3.5" /> Redaktə
                             </button>
-                            <button onClick={() => handleDelete(d.id)} className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-red-50 dark:hover:bg-red-900/20 text-left text-red-500">
+                            {can('delete') && <button onClick={() => handleDelete(d.id)} className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-red-50 dark:hover:bg-red-900/20 text-left text-red-500">
                               <Trash2 className="w-3.5 h-3.5" /> Sil
-                            </button>
+                            </button>}
                           </div>
                         )}
                       </div>
