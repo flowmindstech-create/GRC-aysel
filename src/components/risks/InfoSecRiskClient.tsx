@@ -12,6 +12,9 @@ import { ScoreChip } from '@/components/shared/ScoreChip'
 import type { InfoSecRisk, Control, Process, OrgUnit, UserProfile } from '@/types'
 import { Plus, Search, MoreHorizontal, Edit, Trash2, ShieldAlert, X, Save, Lock } from 'lucide-react'
 import { toast } from 'sonner'
+import { ExportMenu } from '@/components/shared/ExportMenu'
+import type { ExportColumn } from '@/lib/export'
+const maxImpactOf = (im?: Record<string, number>) => im ? Math.max(0, ...Object.values(im)) : 0
 
 // Max of the entered impact dimension scores (defaults to 1 when nothing set)
 function maxImpact(impacts?: Record<string, number>): number {
@@ -288,6 +291,23 @@ export function InfoSecRiskClient() {
       .some(v => (v ?? '').toLowerCase().includes(search.toLowerCase()))
   )
 
+  const infosecExportColumns: ExportColumn<InfoSecRisk>[] = [
+    { key: 'code', label: 'Code', value: r => r.code },
+    { key: 'process', label: 'Process', value: r => r.process ?? '' },
+    { key: 'asset', label: 'Asset', value: r => r.asset },
+    { key: 'threat', label: 'Threat', value: r => r.threat },
+    { key: 'vulnerability', label: 'Vulnerability', value: r => r.vulnerability },
+    { key: 'risk_description', label: 'Risk Description', value: r => r.risk_description },
+    { key: 'probability', label: 'Probability', value: r => r.probability ?? '' },
+    { key: 'max_impact', label: 'Max Impact', value: r => maxImpactOf(r.impacts) || '' },
+    { key: 'inherent_score', label: 'Inherent', value: r => r.inherent_score ?? '' },
+    { key: 'current_control', label: 'Current Control', value: r => ctrlById[r.current_control_id ?? '']?.control_id ?? '' },
+    { key: 'residual_score', label: 'Residual', value: r => r.residual_score ?? '' },
+    { key: 'deadline', label: 'Deadline', value: r => r.deadline ? new Date(r.deadline).toLocaleDateString('az-AZ') : '' },
+    { key: 'responsible_structure', label: 'Resp. Structure', value: r => r.responsible_structure ?? '' },
+    { key: 'responsible_person', label: 'Resp. Person', value: r => r.responsible_person ?? '' },
+  ]
+
   async function handleSave(r: InfoSecRisk) {
     await dbExt.saveInfoSecRisk(r)
     setShowForm(false); setEditItem(null); reload()
@@ -304,6 +324,7 @@ export function InfoSecRiskClient() {
           <Search className="w-4 h-4 shrink-0" style={{ color: 'var(--muted-fg)' }} />
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search infosec risks…" className="flex-1 text-sm bg-transparent outline-none" style={{ color: 'var(--foreground)' }} />
         </div>
+        <ExportMenu columns={infosecExportColumns} rows={filtered} filename="infosec-risk-register" title="InfoSec Risk Register" />
         <button onClick={() => { setEditItem(null); setShowForm(true) }} className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white shadow-lg" style={{ background: 'var(--brand-500)' }}>
           <Plus className="w-4 h-4" /> New InfoSec Risk
         </button>

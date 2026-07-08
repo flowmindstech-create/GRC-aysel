@@ -17,6 +17,21 @@ import { cn } from '@/lib/utils'
 import { RiskFormDialog } from './RiskFormDialog'
 import { RiskDetailSheet } from './RiskDetailSheet'
 import { toast } from 'sonner'
+import { ExportMenu } from '@/components/shared/ExportMenu'
+import type { ExportColumn } from '@/lib/export'
+
+const RISK_EXPORT_COLUMNS: ExportColumn<Risk>[] = [
+  { key: 'risk_code', label: 'Risk ID', value: r => r.risk_code ?? r.id },
+  { key: 'title', label: 'Risk', value: r => r.title },
+  { key: 'category', label: 'Kateqoriya', value: r => CATEGORY_LABELS[r.category as RiskCategory] ?? r.category },
+  { key: 'status', label: 'Status', value: r => STATUS_LABELS[r.status] ?? r.status },
+  { key: 'level', label: 'Inherent', value: r => r.level },
+  { key: 'residual_level', label: 'Residual', value: r => r.residual_level ?? '' },
+  { key: 'treatment_plan', label: 'Treatment', value: r => r.treatment_plan ?? '' },
+  { key: 'due_date', label: 'Due', value: r => r.due_date ? new Date(r.due_date).toLocaleDateString('az-AZ') : '' },
+  { key: 'owner_dept', label: 'Owner structure', value: r => r.owner_dept ?? '' },
+  { key: 'owner_name', label: 'Owner', value: r => r.owner_name ?? '' },
+]
 
 const LEVELS: (RiskLevel | 'all')[] = ['all', 'critical', 'high', 'medium', 'low', 'minimal']
 const CATEGORIES: (RiskCategory | 'all')[] = ['all', ...RISK_CATEGORY_VALUES]
@@ -166,6 +181,8 @@ export function RiskTable() {
         >
           {CATEGORIES.map(c => <option key={c} value={c}>{c === 'all' ? 'All Categories' : CATEGORY_LABELS[c]}</option>)}
         </select>
+
+        <ExportMenu columns={RISK_EXPORT_COLUMNS} rows={filtered} filename="risk-register" title="Risk Register" />
       </div>
 
       {/* Table */}

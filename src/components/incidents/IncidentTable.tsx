@@ -12,6 +12,17 @@ import { PRIORITY_CONFIG } from './IncidentIntakeForm'
 import { formatDistanceToNow } from 'date-fns'
 import { Plus, Search, MoreHorizontal, Eye, Edit, Trash2, AlertTriangle, Building2, Landmark, Table2, LayoutGrid } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { ExportMenu } from '@/components/shared/ExportMenu'
+import type { ExportColumn } from '@/lib/export'
+
+const INCIDENT_EXPORT_COLUMNS: ExportColumn<Incident>[] = [
+  { key: 'title', label: 'Başlıq', value: i => i.title },
+  { key: 'severity', label: 'Ciddiyyət', value: i => i.severity },
+  { key: 'status', label: 'Status', value: i => i.status },
+  { key: 'assigned_name', label: 'Təhkim olunub', value: i => i.assigned_name ?? '' },
+  { key: 'reporter_name', label: 'Bildirən', value: i => i.reporter_name ?? '' },
+  { key: 'created_at', label: 'Yaradılıb', value: i => i.created_at ? new Date(i.created_at).toLocaleDateString('az-AZ') : '' },
+]
 
 const severities: (IncidentSeverity | 'all')[] = ['all', 'critical', 'high', 'medium', 'low', 'minimal']
 
@@ -125,6 +136,7 @@ export function IncidentTable() {
             <option key={s} value={s}>{s === 'all' ? 'All Status' : s.replace(/_/g, ' ')}</option>
           ))}
         </select>
+        <ExportMenu columns={INCIDENT_EXPORT_COLUMNS} rows={filtered} filename="incidents" title="Incident Register" />
         <div className="flex items-center gap-1 p-1 rounded-xl" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
           <button onClick={() => setViewMode('register')} aria-label="Register view"
             className="px-2.5 py-1.5 rounded-lg transition-all" style={viewMode === 'register' ? { background: 'var(--brand-500)', color: '#fff' } : { color: 'var(--muted-fg)' }}>

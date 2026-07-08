@@ -10,6 +10,8 @@ import { ScoreChip } from '@/components/shared/ScoreChip'
 import type { ComplianceRisk, ComplianceObligation, Control } from '@/types'
 import { Plus, Search, MoreHorizontal, Edit, Trash2, ScrollText, X, Save } from 'lucide-react'
 import { toast } from 'sonner'
+import { ExportMenu } from '@/components/shared/ExportMenu'
+import type { ExportColumn } from '@/lib/export'
 
 function RiskFormDialog({ item, obligations, controls, onClose, onSave }: {
   item: ComplianceRisk | null
@@ -185,6 +187,19 @@ export function ComplianceRiskClient() {
     await dbExt.deleteComplianceRisk(id); setMenuOpen(null); reload(); toast.success('Deleted')
   }
 
+  const exportColumns: ExportColumn<ComplianceRisk>[] = [
+    { key: 'code', label: 'Code', value: r => r.code },
+    { key: 'requirement', label: 'Requirement', value: r => oblById[r.obligation_id ?? '']?.title ?? r.requirement ?? '' },
+    { key: 'risk_description', label: 'Risk Description', value: r => r.risk_description },
+    { key: 'likelihood', label: 'Likelihood', value: r => r.likelihood ?? '' },
+    { key: 'impact', label: 'Impact', value: r => r.impact ?? '' },
+    { key: 'inherent_score', label: 'Inherent Risk', value: r => r.inherent_score ?? (r.likelihood && r.impact ? r.likelihood * r.impact : '') },
+    { key: 'risk_trigger', label: 'Risk Trigger', value: r => r.risk_trigger ?? '' },
+    { key: 'control', label: 'Related Control', value: r => ctrlById[r.control_id ?? '']?.control_id ?? '' },
+    { key: 'mitigation_plan', label: 'Mitigation Plan', value: r => r.mitigation_plan ?? '' },
+    { key: 'treatment_plan', label: 'Treatment Plan', value: r => r.treatment_plan ?? '' },
+  ]
+
   return (
     <div className="space-y-5">
       <div className="flex flex-wrap items-center gap-3">
@@ -192,6 +207,7 @@ export function ComplianceRiskClient() {
           <Search className="w-4 h-4 shrink-0" style={{ color: 'var(--muted-fg)' }} />
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search compliance risks…" className="flex-1 text-sm bg-transparent outline-none" style={{ color: 'var(--foreground)' }} />
         </div>
+        <ExportMenu columns={exportColumns} rows={filtered} filename="compliance-risk-register" title="Compliance Risk Register" />
         <button onClick={() => { setEditItem(null); setShowForm(true) }} className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white shadow-lg" style={{ background: 'var(--brand-500)' }}>
           <Plus className="w-4 h-4" /> New Compliance Risk
         </button>

@@ -8,6 +8,20 @@ import type { ComplianceObligation, ObligationStatus, ObligationSource, Obligati
 import { cn } from '@/lib/utils'
 import { ObligationFormDialog } from './ObligationFormDialog'
 import { ObligationDetailSheet } from './ObligationDetailSheet'
+import { ExportMenu } from '@/components/shared/ExportMenu'
+import type { ExportColumn } from '@/lib/export'
+
+const OBLIGATION_EXPORT_COLUMNS: ExportColumn<ComplianceObligation>[] = [
+  { key: 'obligation_code', label: 'Kod', value: o => o.obligation_code },
+  { key: 'title', label: 'Öhdəlik', value: o => o.title },
+  { key: 'source', label: 'Mənbə', value: o => o.source },
+  { key: 'regulator', label: 'Tənzimləyici', value: o => o.regulator ?? '' },
+  { key: 'criticality', label: 'Kritiklik', value: o => o.criticality },
+  { key: 'status', label: 'Status', value: o => o.status },
+  { key: 'accountable_owner', label: 'Cavabdeh', value: o => o.accountable_owner ?? '' },
+  { key: 'responsible_structure', label: 'Struktur', value: o => o.responsible_structure ?? '' },
+  { key: 'next_review_date', label: 'Növbəti baxış', value: o => o.next_review_date ? new Date(o.next_review_date).toLocaleDateString('az-AZ') : '' },
+]
 import {
   Plus, Search, MoreHorizontal, Edit, Trash2, Eye,
   ChevronDown, ScrollText, CheckCircle2, Clock,
@@ -212,6 +226,7 @@ export function ComplianceWorkflowClient() {
           {ALL_SOURCES.map(s => <option key={s} value={s}>{s}</option>)}
         </select>
 
+        <ExportMenu columns={OBLIGATION_EXPORT_COLUMNS} rows={filtered} filename="compliance-obligation-register" title="Compliance Obligation Register" />
         <button onClick={() => { setEditItem(null); setShowForm(true) }}
           className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white transition-colors shadow-lg"
           style={{ background: 'var(--brand-500)', boxShadow: '0 4px 14px rgba(14,165,233,0.25)' }}>
