@@ -1,6 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
+import { useRouter } from 'next/navigation'
 import type { DashboardStats } from '@/types'
 import { cn } from '@/lib/utils'
 import { calculateInherentLevel } from '@/lib/rcsa'
@@ -53,6 +54,7 @@ const AXIS_LABELS = ['1', '2', '3', '4', '5']
 
 export function RiskHeatmap({ stats }: RiskHeatmapProps) {
   const cells = buildHeatmapData()
+  const router = useRouter()
 
   return (
     <div className="card p-5">
@@ -86,12 +88,15 @@ export function RiskHeatmap({ stats }: RiskHeatmapProps) {
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: cell.count > 0 ? 1 : 0.2, scale: 1 }}
                 transition={{ delay: i * 0.015, duration: 0.3 }}
+                onClick={cell.count > 0 ? () => router.push('/risks') : undefined}
+                role={cell.count > 0 ? 'button' : undefined}
                 className={cn(
-                  'aspect-square rounded-md flex items-center justify-center text-xs font-bold cursor-default transition-transform hover:scale-110',
+                  'aspect-square rounded-md flex items-center justify-center text-xs font-bold transition-transform hover:scale-110',
+                  cell.count > 0 ? 'cursor-pointer' : 'cursor-default',
                   getCellColor(cell.likelihood, cell.impact),
                   getCellOpacity(cell.count)
                 )}
-                title={`L:${cell.likelihood} × I:${cell.impact} — ${cell.count} risk(s)`}
+                title={cell.count > 0 ? `L:${cell.likelihood} × I:${cell.impact} — ${cell.count} risk · klik → Risk Register` : `L:${cell.likelihood} × I:${cell.impact} — boş`}
               >
                 {cell.count > 0 ? cell.count : ''}
               </motion.div>
