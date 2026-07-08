@@ -268,7 +268,7 @@ export const db = {
       // Only send columns that exist in the incidents table (priority is derived, not stored)
       const dbColumns = [
         'id', 'org_id', 'title', 'description', 'severity', 'status', 'workflow_stage',
-        'assigned_to', 'reported_by', 'reporter_email', 'reporter_structure',
+        'assigned_to', 'assigned_name', 'reported_by', 'reporter_email', 'reporter_structure',
         'occurrence_datetime', 'discovery_datetime', 'likelihood', 'impact',
         'loss_effect', 'loss_amount', 'loss_currency', 'attached_files',
         'root_cause', 'root_cause_category', 'investigation_notes', 'investigation_lead',
