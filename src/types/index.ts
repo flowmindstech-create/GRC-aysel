@@ -1,6 +1,6 @@
 // ─── Auth & Users ────────────────────────────────────────────────────────────
 
-export type UserRole = 'admin' | 'risk_manager' | 'auditor' | 'employee'
+export type UserRole = 'super_admin' | 'admin' | 'risk_manager' | 'auditor' | 'employee'
 
 export interface UserProfile {
   id: string

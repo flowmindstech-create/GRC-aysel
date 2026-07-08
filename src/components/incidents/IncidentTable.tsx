@@ -14,6 +14,7 @@ import { Plus, Search, MoreHorizontal, Eye, Edit, Trash2, AlertTriangle, Buildin
 import { cn } from '@/lib/utils'
 import { ExportMenu } from '@/components/shared/ExportMenu'
 import type { ExportColumn } from '@/lib/export'
+import { usePermissions } from '@/hooks/usePermissions'
 
 const INCIDENT_EXPORT_COLUMNS: ExportColumn<Incident>[] = [
   { key: 'title', label: 'Başlıq', value: i => i.title },
@@ -36,6 +37,7 @@ function safeAgo(value: string | undefined): string {
 }
 
 export function IncidentTable() {
+  const { can } = usePermissions()
   const [incidents, setIncidents] = useState<Incident[]>([])
   const [search, setSearch] = useState('')
   const [severity, setSeverity] = useState<IncidentSeverity | 'all'>('all')
@@ -195,7 +197,7 @@ export function IncidentTable() {
                               {(isManager || inc.assigned_to === myId || inc.resolution_assignee === myId) && (
                                 <button onClick={() => { setEditIncident(inc); setShowForm(true); setMenuOpen(null) }} className="w-full flex items-center gap-2 px-3 py-2 text-sm text-left hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer" style={{ color: 'var(--foreground)' }}><Edit className="w-3.5 h-3.5" /> Edit</button>
                               )}
-                              {isManager && (
+                              {can('delete') && (
                                 <button onClick={() => handleDelete(inc.id)} className="w-full flex items-center gap-2 px-3 py-2 text-sm text-left text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 cursor-pointer"><Trash2 className="w-3.5 h-3.5" /> Delete</button>
                               )}
                             </div>
@@ -279,7 +281,7 @@ export function IncidentTable() {
                               <Edit className="w-3.5 h-3.5" /> Edit Incident
                             </button>
                           )}
-                          {isManager && (
+                          {can('delete') && (
                             <button onClick={() => handleDelete(inc.id)}
                               className="w-full flex items-center gap-2 px-3 py-2 text-sm text-left text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 cursor-pointer">
                               <Trash2 className="w-3.5 h-3.5" /> Delete

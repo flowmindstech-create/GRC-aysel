@@ -12,7 +12,8 @@ import {
 } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { getCurrentProfile, db } from '@/lib/db'
-import type { UserProfile } from '@/types'
+import type { UserProfile, UserRole } from '@/types'
+import { atLeast, ROLE_LABEL } from '@/lib/permissions'
 
 const navGroups = [
   {
@@ -51,7 +52,7 @@ const navGroups = [
       { href: '/control-mapping',       label: 'Ctrl Mapping',    icon: Network   },
       { href: '/governance/policies',   label: 'Policies',        icon: ScrollText},
       { href: '/vendors',               label: 'Vendors',         icon: Users     },
-      { href: '/settings',              label: 'Settings',        icon: Settings  },
+      { href: '/settings',              label: 'Settings',        icon: Settings, minRole: 'admin' as UserRole },
     ],
   },
 ]
@@ -83,11 +84,15 @@ export function Sidebar({ onMobileClose }: SidebarProps) {
     db.getIncidents().then(list => setOpenIncidents(list.filter(i => i.status !== 'done' && i.status !== 'closed').length))
   }, [])
 
-  // Risk team (admin / risk_manager / auditor) sees the full platform;
-  // a plain employee only sees their own work surfaces.
-  const isRiskTeam = profile?.role === 'admin' || profile?.role === 'risk_manager' || profile?.role === 'auditor'
+  // Risk team (auditor səviyyəsi və yuxarı: super_admin/admin/risk_manager/auditor)
+  // tam platformanı görür; sadə əməkdaş yalnız öz iş səthlərini görür.
+  const isRiskTeam = atLeast(profile, 'auditor')
   const visibleGroups = navGroups
-    .map(g => ({ ...g, items: g.items.filter(it => isRiskTeam || EMPLOYEE_ALLOWED.has(it.href)) }))
+    .map(g => ({ ...g, items: g.items.filter(it => {
+      if (!isRiskTeam && !EMPLOYEE_ALLOWED.has(it.href)) return false
+      const minRole = (it as { minRole?: UserRole }).minRole
+      return !minRole || atLeast(profile, minRole)
+    }) }))
     .filter(g => g.items.length > 0)
 
   const handleSignOut = async () => {
@@ -103,7 +108,7 @@ export function Sidebar({ onMobileClose }: SidebarProps) {
   }
 
   const displayName = profile?.full_name ?? 'User'
-  const roleLabel = profile?.role ? profile.role.replace('_', ' ') : ''
+  const roleLabel = profile?.role ? (ROLE_LABEL[profile.role] ?? profile.role.replace('_', ' ')) : ''
   const initial = displayName.charAt(0).toUpperCase()
 
   return (

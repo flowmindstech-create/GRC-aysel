@@ -19,6 +19,7 @@ import { RiskDetailSheet } from './RiskDetailSheet'
 import { toast } from 'sonner'
 import { ExportMenu } from '@/components/shared/ExportMenu'
 import type { ExportColumn } from '@/lib/export'
+import { usePermissions } from '@/hooks/usePermissions'
 
 const RISK_EXPORT_COLUMNS: ExportColumn<Risk>[] = [
   { key: 'risk_code', label: 'Risk ID', value: r => r.risk_code ?? r.id },
@@ -38,6 +39,7 @@ const CATEGORIES: (RiskCategory | 'all')[] = ['all', ...RISK_CATEGORY_VALUES]
 const STATUSES: (RiskStatus | 'all')[] = ['all', ...RISK_STATUS_VALUES]
 
 export function RiskTable() {
+  const { can } = usePermissions()
   const [risks, setRisks] = useState<Risk[]>([])
   const [search, setSearch] = useState('')
   const [levelFilter, setLevelFilter] = useState<RiskLevel | 'all'>('all')
@@ -380,10 +382,12 @@ export function RiskTable() {
                                 style={{ color: 'var(--foreground)' }}>
                                 <Edit className="w-3.5 h-3.5" /> Edit
                               </button>
+                              {can('delete') && (
                               <button onClick={() => handleDelete(risk.id)}
                                 className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-red-50 dark:hover:bg-red-900/20 text-left text-red-500">
                                 <Trash2 className="w-3.5 h-3.5" /> Delete
                               </button>
+                              )}
                             </div>
                           )}
                         </div>
