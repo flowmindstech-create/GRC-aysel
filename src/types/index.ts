@@ -98,6 +98,9 @@ export interface Risk {
   jira_last_sync?: string
   jira_project_key?: string
   workflow_step?: string
+  // Maker-checker: adi istifadəçinin yaratdığı risk 'pending' düşür,
+  // yalnız admin/super_admin təsdiq verəndən sonra 'approved' olur (phase47)
+  approval_status?: 'pending' | 'approved'
   inherent_likelihood?: number
   inherent_impact?: number
   control_mapped_ids?: string[]

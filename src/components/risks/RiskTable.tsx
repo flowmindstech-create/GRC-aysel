@@ -12,7 +12,7 @@ import { RiskLevelBadge } from '@/components/shared/Badges'
 import { Avatar } from '@/components/shared/Avatar'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { formatDistanceToNow } from 'date-fns'
-import { Plus, Search, MoreHorizontal, Edit, Trash2, Eye, ChevronDown, Wrench } from 'lucide-react'
+import { Plus, Search, MoreHorizontal, Edit, Trash2, Eye, ChevronDown, Wrench, Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { RiskFormDialog } from './RiskFormDialog'
 import { RiskDetailSheet } from './RiskDetailSheet'
@@ -224,10 +224,17 @@ export function RiskTable() {
                         </span>
                       </td>
                       <td className="px-3 py-3.5 max-w-xs">
-                        <p className="text-sm font-medium truncate group-hover:text-sky-500 transition-colors"
-                          style={{ color: 'var(--foreground)' }}>
-                          {risk.title}
-                        </p>
+                        <div className="flex items-center gap-2 min-w-0">
+                          <p className="text-sm font-medium truncate group-hover:text-sky-500 transition-colors"
+                            style={{ color: 'var(--foreground)' }}>
+                            {risk.title}
+                          </p>
+                          {risk.approval_status === 'pending' && (
+                            <span className="shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/15 text-amber-600 border border-amber-500/25">
+                              Gözləmədə
+                            </span>
+                          )}
+                        </div>
                         <p className="text-xs mt-0.5 truncate" style={{ color: 'var(--muted-fg)' }}>
                           {risk.description.slice(0, 50)}…
                         </p>
@@ -383,6 +390,16 @@ export function RiskTable() {
                                 style={{ color: 'var(--foreground)' }}>
                                 <Edit className="w-3.5 h-3.5" /> Edit
                               </button>
+                              {risk.approval_status === 'pending' && can('approve') && (
+                              <button onClick={async () => {
+                                  await handleSave({ ...risk, approval_status: 'approved' })
+                                  setMenuOpen(null)
+                                  toast.success(`Risk təsdiqləndi: ${risk.title}`)
+                                }}
+                                className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-emerald-50 dark:hover:bg-emerald-900/20 text-left text-emerald-600 font-semibold">
+                                <Check className="w-3.5 h-3.5" /> Təsdiq et
+                              </button>
+                              )}
                               {can('delete') && (
                               <button onClick={() => handleDelete(risk.id)}
                                 className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-red-50 dark:hover:bg-red-900/20 text-left text-red-500">

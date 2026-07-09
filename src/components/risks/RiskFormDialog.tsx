@@ -265,6 +265,10 @@ export function RiskFormDialog({ risk, onClose, onSave }: Props) {
       treatment_approval_note: approval.note,
       treatment_approved_by: approval.by,
       treatment_approved_at: approval.at,
+      // Maker-checker: yeni risk admin+ yaradıbsa dərhal approved,
+      // adi istifadəçi yaradıbsa pending (super admin təsdiqini gözləyir).
+      // Redaktədə mövcud dəyər saxlanılır. DB trigger-i də bunu məcbur edir (phase47).
+      approval_status: risk?.approval_status ?? (atLeast({ role: currentRole }, 'admin') ? 'approved' : 'pending'),
       created_at: risk?.created_at ?? new Date().toISOString(),
       updated_at: new Date().toISOString(),
     }
