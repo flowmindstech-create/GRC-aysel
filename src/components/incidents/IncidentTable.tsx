@@ -15,6 +15,7 @@ import { cn } from '@/lib/utils'
 import { ExportMenu } from '@/components/shared/ExportMenu'
 import type { ExportColumn } from '@/lib/export'
 import { usePermissions } from '@/hooks/usePermissions'
+import { atLeast } from '@/lib/permissions'
 
 const INCIDENT_EXPORT_COLUMNS: ExportColumn<Incident>[] = [
   { key: 'title', label: 'Başlıq', value: i => i.title },
@@ -63,7 +64,7 @@ export function IncidentTable() {
 
   // 3-tier RBAC: managers (admin/risk_manager) see all; everyone else sees only
   // incidents they reported or are assigned to (RLS enforces this server-side too).
-  const isManager = profile?.role === 'admin' || profile?.role === 'risk_manager'
+  const isManager = atLeast(profile, 'risk_manager')
   const myId = profile?.id
   const myName = profile?.full_name
 

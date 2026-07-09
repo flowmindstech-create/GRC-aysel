@@ -20,6 +20,7 @@ import { toast } from 'sonner'
 import { ExportMenu } from '@/components/shared/ExportMenu'
 import type { ExportColumn } from '@/lib/export'
 import { usePermissions } from '@/hooks/usePermissions'
+import { atLeast } from '@/lib/permissions'
 
 const RISK_EXPORT_COLUMNS: ExportColumn<Risk>[] = [
   { key: 'risk_code', label: 'Risk ID', value: r => r.risk_code ?? r.id },
@@ -75,7 +76,7 @@ export function RiskTable() {
 
   // Risk team (admin / risk_manager / auditor) sees every risk;
   // a plain employee only sees risks they own / reported.
-  const isManager = profile?.role === 'admin' || profile?.role === 'risk_manager' || profile?.role === 'auditor'
+  const isManager = atLeast(profile, 'auditor')
   const myId = profile?.id
   const myName = profile?.full_name
 

@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { cn } from '@/lib/utils'
 import { db } from '@/lib/db'
+import { atLeast } from '@/lib/permissions'
 import { calculateInherentLevel, calculateResidualLevel, evaluateControlEffectiveness } from '@/lib/rcsa'
 import { inherentLevelWord, residualLevelWord, CONTROL_SUBCRITERIA, CONTROL_RATING_INFO } from '@/lib/rcsa-methodology'
 import { RcsaDropdown } from '@/components/risks/RcsaDropdown'
@@ -158,7 +159,7 @@ export function IncidentInvestigationForm({ data, onChange }: Props) {
   }, [])
 
   // Risk management team — investigation lead & members are chosen from here only.
-  const riskTeam = useMemo(() => profiles.filter(p => p.role === 'admin' || p.role === 'risk_manager'), [profiles])
+  const riskTeam = useMemo(() => profiles.filter(p => atLeast(p, 'risk_manager')), [profiles])
 
   // Affected parties = all structures + vendors + interested/3rd parties (names, deduped).
   const affectedPartyOptions = useMemo(() => {

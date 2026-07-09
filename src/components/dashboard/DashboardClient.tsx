@@ -15,6 +15,7 @@ import { formatDistanceToNow } from 'date-fns'
 import type { DashboardStats, Activity, Risk, Incident, JiraConfig, UserProfile } from '@/types'
 import { useState, useEffect } from 'react'
 import { db, getCurrentProfile } from '@/lib/db'
+import { atLeast } from '@/lib/permissions'
 import { toast } from 'sonner'
 
 interface DashboardClientProps {
@@ -49,7 +50,7 @@ export function DashboardClient({
     setProfile(p)
 
     // Risk team sees the whole org; a plain employee only their own work.
-    const manager = p?.role === 'admin' || p?.role === 'risk_manager' || p?.role === 'auditor'
+    const manager = atLeast(p, 'auditor')
     const mineRisks = (x: Risk) => manager || x.owner_id === p?.id || (!!p?.full_name && x.owner_name === p.full_name)
     const mineIncidents = (x: Incident) => manager || x.reported_by === p?.id || x.assigned_to === p?.id || x.resolution_assignee === p?.id
 
@@ -81,7 +82,7 @@ export function DashboardClient({
     toast.success('Bidirectional sync with Jira completed successfully!')
   }
 
-  const isManager = profile?.role === 'admin' || profile?.role === 'risk_manager' || profile?.role === 'auditor'
+  const isManager = atLeast(profile, 'auditor')
 
   return (
     <main className="flex-1 overflow-y-auto p-6">

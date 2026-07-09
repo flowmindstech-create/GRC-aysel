@@ -15,6 +15,7 @@ import { resolveOwnerFromUnit } from '@/lib/org'
 import { orgUnitCode, generateRiskCode } from '@/lib/risk-id'
 import { validateRiskConsistency } from '@/lib/risk-logic'
 import { cn } from '@/lib/utils'
+import { atLeast } from '@/lib/permissions'
 import {
   calculateInherentLevel,
   evaluateControlActivity,
@@ -107,7 +108,8 @@ export function RiskFormDialog({ risk, onClose, onSave }: Props) {
     at: risk?.treatment_approved_at,
   })
   const [pendingStrategy, setPendingStrategy] = useState<TreatmentStrategy | null>(null)
-  const canApprove = currentRole === 'admin' || currentRole === 'risk_manager'
+  // risk_manager səviyyəsi və yuxarı (super_admin, admin, risk_manager) təsdiq verə bilər
+  const canApprove = atLeast({ role: currentRole }, 'risk_manager')
 
   const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<FormValues>({
     resolver: zodResolver(schema),

@@ -12,6 +12,7 @@ import { RiskLevelBadge, IncidentStatusBadge } from '@/components/shared/Badges'
 import { PRIORITY_CONFIG } from './IncidentIntakeForm'
 import { format, formatDistanceToNow } from 'date-fns'
 import { db, getCurrentProfile } from '@/lib/db'
+import { atLeast } from '@/lib/permissions'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 
@@ -47,7 +48,7 @@ export function IncidentDetailSheet({ incident, onClose, onUpdate, onEdit }: Pro
   const [simRole, setSimRole] = useState<'risk_manager' | 'ero' | 'user' | null>(null)
 
   useEffect(() => { getCurrentProfile().then(setProfile) }, [])
-  const realRiskOwner = profile?.role === 'admin' || profile?.role === 'risk_manager'
+  const realRiskOwner = atLeast(profile, 'risk_manager')
   // Only the risk owner can change status / run SLA handover (simulator overrides for preview)
   const isRiskOwner = simRole ? simRole === 'risk_manager' : realRiskOwner
 
