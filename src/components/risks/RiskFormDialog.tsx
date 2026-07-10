@@ -257,6 +257,9 @@ export function RiskFormDialog({ risk, onClose, onSave }: Props) {
       risk_code: riskCode,
       org_id: 'org1',
       ...values,
+      // Status axını yalnız risk komandası (risk_manager+) idarə edir;
+      // adi əməkdaş formadan da statusu dəyişə bilməz — yeni risk 'open' başlayır
+      status: can({ role: currentRole }, 'edit') ? values.status : (risk?.status ?? 'open'),
       triggers: savedTriggers,
       owner_name: owner?.full_name,
       control_design: Math.round(evalResult.designAvg),

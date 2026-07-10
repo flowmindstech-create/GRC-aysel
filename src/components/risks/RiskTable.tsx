@@ -249,6 +249,9 @@ export function RiskTable() {
                       </td>
                       <td className="px-3 py-3.5" onClick={e => e.stopPropagation()}>
                         <div className="relative inline-block">
+                          {/* Status axını risk komandasının işidir (risk_manager+);
+                              adi əməkdaş üçün statik nişan — dəyişə bilməz */}
+                          {can('edit') ? (
                           <button
                             onClick={() => setOpenStatusRiskId(openStatusRiskId === risk.id ? null : risk.id)}
                             className={cn(
@@ -259,7 +262,13 @@ export function RiskTable() {
                             <span>{STATUS_LABELS[normalizeStatus(risk.status)] ?? risk.status}</span>
                             <ChevronDown className="w-3 h-3 shrink-0 opacity-80" />
                           </button>
-                          {openStatusRiskId === risk.id && (
+                          ) : (
+                          <span className={cn('inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold border border-transparent shadow-sm',
+                            STATUS_CLASSES[normalizeStatus(risk.status)])}>
+                            {STATUS_LABELS[normalizeStatus(risk.status)] ?? risk.status}
+                          </span>
+                          )}
+                          {openStatusRiskId === risk.id && can('edit') && (
                             <div
                               className="absolute left-0 mt-1.5 w-40 rounded-xl shadow-2xl z-50 border py-1 animate-in fade-in slide-in-from-top-1 duration-150"
                               style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
