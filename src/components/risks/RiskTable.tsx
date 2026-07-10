@@ -74,14 +74,17 @@ export function RiskTable() {
     load()
   }, [])
 
-  // Risk team (admin / risk_manager / auditor) sees every risk;
-  // a plain employee only sees risks they own / reported.
+  // Risk team (auditor+) hamısını görür; adi əməkdaş isə sahibi olduğu
+  // VƏ YA ÖZÜNÜN YARATDIĞI riskləri görür (created_by — phase49).
   const isManager = atLeast(profile, 'auditor')
   const myId = profile?.id
   const myName = profile?.full_name
 
   const filtered = risks.filter(r => {
-    const matchTier = isManager || r.owner_id === myId || (!!myName && r.owner_name === myName)
+    const matchTier = isManager
+      || r.owner_id === myId
+      || r.created_by === myId
+      || (!!myName && (r.owner_name === myName || r.created_by_name === myName))
     const matchSearch = (r.title ?? '').toLowerCase().includes(search.toLowerCase()) ||
       (r.description ?? '').toLowerCase().includes(search.toLowerCase())
     const matchLevel = levelFilter === 'all' || r.level === levelFilter

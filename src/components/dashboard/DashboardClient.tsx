@@ -51,7 +51,10 @@ export function DashboardClient({
 
     // Risk team sees the whole org; a plain employee only their own work.
     const manager = atLeast(p, 'auditor')
-    const mineRisks = (x: Risk) => manager || x.owner_id === p?.id || (!!p?.full_name && x.owner_name === p.full_name)
+    const mineRisks = (x: Risk) => manager
+      || x.owner_id === p?.id
+      || x.created_by === p?.id
+      || (!!p?.full_name && (x.owner_name === p.full_name || x.created_by_name === p.full_name))
     const mineIncidents = (x: Incident) => manager || x.reported_by === p?.id || x.assigned_to === p?.id || x.resolution_assignee === p?.id
 
     setStats(s)

@@ -101,6 +101,10 @@ export interface Risk {
   // Maker-checker: adi istifadəçinin yaratdığı risk 'pending' düşür,
   // yalnız admin/super_admin təsdiq verəndən sonra 'approved' olur (phase47)
   approval_status?: 'pending' | 'approved'
+  // Yaradan şəxs — hər istifadəçi öz yaratdığını görsün deyə (phase49);
+  // owner-dən fərqlidir: owner şöbə rəhbəri ola bilər, yaradan isə istənilən əməkdaş
+  created_by?: string
+  created_by_name?: string
   inherent_likelihood?: number
   inherent_impact?: number
   control_mapped_ids?: string[]

@@ -96,6 +96,7 @@ export function RiskFormDialog({ risk, onClose, onSave }: Props) {
   const [profiles, setProfiles] = useState<UserProfile[]>(MOCK_USERS)
   const [currentRole, setCurrentRole] = useState<UserRole>('admin')
   const [currentName, setCurrentName] = useState<string>('')
+  const [currentId, setCurrentId] = useState<string>('')
   const [triggers, setTriggers] = useState<RiskTrigger[]>(risk?.triggers ?? [])
   const [controlsLib, setControlsLib] = useState<Control[]>([])
   const dueTouched = useRef(false)
@@ -208,6 +209,7 @@ export function RiskFormDialog({ risk, onClose, onSave }: Props) {
       if (current) {
         setCurrentRole(current.role)
         setCurrentName(current.full_name)
+        setCurrentId(current.id)
       }
     }
     load()
@@ -269,6 +271,9 @@ export function RiskFormDialog({ risk, onClose, onSave }: Props) {
       // başqası yaradıbsa pending (super_admin təsdiqini gözləyir).
       // Redaktədə mövcud dəyər saxlanılır. DB trigger-i də bunu məcbur edir (phase48).
       approval_status: risk?.approval_status ?? (can({ role: currentRole }, 'approve') ? 'approved' : 'pending'),
+      // Yaradan — redaktədə orijinal yaradan saxlanılır; hər user öz yaratdığını görür
+      created_by: risk?.created_by ?? (currentId || undefined),
+      created_by_name: risk?.created_by_name ?? (currentName || undefined),
       created_at: risk?.created_at ?? new Date().toISOString(),
       updated_at: new Date().toISOString(),
     }
