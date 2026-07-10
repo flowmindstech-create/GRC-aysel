@@ -105,7 +105,7 @@ export function FinancialRisksClient() {
 
   return (
     <div className="space-y-5">
-      <div className="flex items-center gap-1 p-1 rounded-xl w-fit" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
+      <div className="flex flex-wrap items-center gap-1 p-1 rounded-xl w-fit" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
         {tabs.map(t => (
           <button key={t.id} onClick={() => setTab(t.id)} className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all"
             style={tab === t.id ? { background: 'var(--brand-500)', color: '#fff' } : { color: 'var(--muted-fg)' }}>

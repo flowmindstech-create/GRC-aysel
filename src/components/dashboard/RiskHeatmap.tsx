@@ -58,12 +58,12 @@ export function RiskHeatmap({ stats }: RiskHeatmapProps) {
 
   return (
     <div className="card p-5">
-      <div className="flex items-center justify-between mb-5">
+      <div className="flex flex-wrap items-start justify-between gap-2 mb-5">
         <div>
           <h3 className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>Risk Heatmap</h3>
           <p className="text-xs mt-0.5" style={{ color: 'var(--muted-fg)' }}>Likelihood × Impact matrix</p>
         </div>
-        <div className="flex items-center gap-3 text-[10px]" style={{ color: 'var(--muted-fg)' }}>
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px]" style={{ color: 'var(--muted-fg)' }}>
           <span className="flex items-center gap-1"><span className="w-2 h-2 rounded bg-emerald-400" />Minimal</span>
           <span className="flex items-center gap-1"><span className="w-2 h-2 rounded bg-green-400" />Low</span>
           <span className="flex items-center gap-1"><span className="w-2 h-2 rounded bg-yellow-400" />Medium</span>

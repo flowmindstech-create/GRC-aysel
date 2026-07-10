@@ -101,7 +101,7 @@ export function RiskControlMappingClient() {
     <div className="space-y-5">
       {/* View toggle: List (default) | Matrix */}
       <div className="flex flex-wrap items-center gap-3">
-        <div className="flex items-center gap-1 p-1 rounded-xl" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
+        <div className="flex flex-wrap items-center gap-1 p-1 rounded-xl" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
           {([
             { key: 'list', label: 'Siyahı', icon: List },
             { key: 'matrix', label: 'Matris', icon: Grid3x3 },

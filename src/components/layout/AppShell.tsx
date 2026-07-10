@@ -31,17 +31,18 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <div className="flex flex-col flex-1 overflow-hidden relative">
         {/* Mobile floating menu toggle button */}
         <div
-          className="md:hidden flex items-center h-14 px-4 border-b shrink-0 gap-3"
+          className="md:hidden flex items-center h-12 px-3 border-b shrink-0 gap-2.5"
           style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
         >
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
-            className="p-1.5 rounded-lg text-white shadow-lg cursor-pointer"
+            aria-label="Menyunu aç"
+            className="p-1.5 rounded-lg text-white shadow cursor-pointer"
             style={{ background: 'var(--brand-500)' }}
           >
-            {mobileOpen ? <X className="w-4 h-4" /> : <Menu className="w-4.5 h-4.5" />}
+            {mobileOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
           </button>
-          <span className="font-bold text-sm" style={{ color: 'var(--foreground)' }}>GRCell</span>
+          <span className="font-bold text-sm tracking-tight" style={{ color: 'var(--foreground)' }}>GRCell</span>
         </div>
 
         {/* pb-14: mobil bottom nav-ın altında məzmun gizlənməsin */}

@@ -140,7 +140,7 @@ export function RegulatoryChangeClient() {
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search regulatory changes…" aria-label="Search regulatory changes"
             className="flex-1 text-sm bg-transparent outline-none" style={{ color: 'var(--foreground)' }} />
         </div>
-        <div className="flex items-center gap-1 p-1 rounded-xl" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
+        <div className="flex flex-wrap items-center gap-1 p-1 rounded-xl" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
           {(['all', ...ALL_STATUSES] as const).map(s => (
             <button key={s} onClick={() => setStatusFilter(s)}
               className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all"

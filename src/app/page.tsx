@@ -51,18 +51,18 @@ export default function LandingPage() {
       </nav>
 
       {/* Hero */}
-      <section className="text-center px-8 py-24 max-w-5xl mx-auto">
+      <section className="text-center px-5 md:px-8 py-16 md:py-24 max-w-5xl mx-auto">
         <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold mb-6"
           style={{ background: 'var(--muted)', border: '1px solid var(--border)', color: 'var(--muted-fg)' }}>
           <Zap className="w-3 h-3 text-sky-500" />
           Rule-based · RCSA · ISO 27001 · SOC2
         </div>
-        <h1 className="text-5xl md:text-7xl font-black leading-tight mb-6" style={{ color: 'var(--foreground)' }}>
+        <h1 className="text-4xl sm:text-5xl md:text-7xl font-black leading-tight mb-6" style={{ color: 'var(--foreground)' }}>
           Enterprise Risk
           <br />
           <span className="text-sky-500">Management.</span>
           <br />
-          <span className="text-3xl md:text-5xl" style={{ color: 'var(--muted-fg)' }}>Built for SMEs.</span>
+          <span className="text-2xl sm:text-3xl md:text-5xl" style={{ color: 'var(--muted-fg)' }}>Built for SMEs.</span>
         </h1>
         <p className="text-lg md:text-xl max-w-2xl mx-auto mb-10 leading-relaxed" style={{ color: 'var(--muted-fg)' }}>
           The lightweight alternative to Archer IRM. Manage risks, incidents, compliance, audits and vendor risk in one platform — without enterprise complexity or price tags.

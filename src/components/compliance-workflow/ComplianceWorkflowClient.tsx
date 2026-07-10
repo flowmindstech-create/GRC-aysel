@@ -211,7 +211,7 @@ export function ComplianceWorkflowClient() {
             className="flex-1 text-sm bg-transparent outline-none" style={{ color: 'var(--foreground)' }} />
         </div>
 
-        <div className="flex items-center gap-1 p-1 rounded-xl" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
+        <div className="flex flex-wrap items-center gap-1 p-1 rounded-xl" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
           {(['all', ...ALL_STATUSES, 'overdue'] as const).map(s => (
             <button key={s} onClick={() => setStatusFilter(s)}
               className={cn('px-3 py-1.5 rounded-lg text-xs font-medium transition-all')}

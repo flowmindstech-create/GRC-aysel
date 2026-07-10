@@ -122,7 +122,7 @@ export function IncidentTable() {
             placeholder="Search incidents…" className="flex-1 text-sm bg-transparent outline-none"
             style={{ color: 'var(--foreground)' }} />
         </div>
-        <div className="flex items-center gap-1 p-1 rounded-xl" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
+        <div className="flex flex-wrap items-center gap-1 p-1 rounded-xl" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
           {severities.map(s => (
             <button key={s} onClick={() => setSeverity(s)}
               className={cn('px-3 py-1.5 rounded-lg text-xs font-medium capitalize transition-all cursor-pointer', {
@@ -140,7 +140,7 @@ export function IncidentTable() {
           ))}
         </select>
         <ExportMenu columns={INCIDENT_EXPORT_COLUMNS} rows={filtered} filename="incidents" title="Incident Register" />
-        <div className="flex items-center gap-1 p-1 rounded-xl" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
+        <div className="flex flex-wrap items-center gap-1 p-1 rounded-xl" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
           <button onClick={() => setViewMode('register')} aria-label="Register view"
             className="px-2.5 py-1.5 rounded-lg transition-all" style={viewMode === 'register' ? { background: 'var(--brand-500)', color: '#fff' } : { color: 'var(--muted-fg)' }}>
             <Table2 className="w-4 h-4" />

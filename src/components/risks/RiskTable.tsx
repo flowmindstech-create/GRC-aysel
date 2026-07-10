@@ -152,7 +152,7 @@ export function RiskTable() {
         </div>
 
         {/* Level filter */}
-        <div className="flex items-center gap-1 p-1 rounded-xl" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
+        <div className="flex flex-wrap items-center gap-1 p-1 rounded-xl" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
           {LEVELS.map(l => (
             <button key={l} onClick={() => setLevelFilter(l)}
               className={cn('px-3 py-1.5 rounded-lg text-xs font-medium capitalize transition-all', {
