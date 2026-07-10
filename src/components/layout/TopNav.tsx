@@ -62,13 +62,8 @@ export function TopNav({ title, subtitle }: TopNavProps) {
 
   return (
     <header
-      className="h-14 flex items-center gap-3 md:gap-4 px-4 md:px-6 border-b shrink-0"
-      style={{
-        background: 'rgba(255,255,255,0.82)',
-        backdropFilter: 'blur(14px)',
-        WebkitBackdropFilter: 'blur(14px)',
-        borderColor: 'var(--border)',
-      }}
+      className="glass-header h-14 flex items-center gap-3 md:gap-4 px-4 md:px-6 border-b shrink-0"
+      style={{ borderColor: 'var(--border)' }}
     >
       {/* Page title */}
       <div className="flex-1 min-w-0">

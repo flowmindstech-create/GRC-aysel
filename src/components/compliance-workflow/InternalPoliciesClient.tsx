@@ -300,7 +300,7 @@ export function InternalPoliciesClient() {
                     <MoreHorizontal className="w-4 h-4" style={{ color: 'var(--muted-fg)' }} />
                   </button>
                   {menuOpen === p.id && (
-                    <div className="absolute right-0 top-full mt-1 w-36 rounded-xl shadow-xl z-20 border py-1" style={{ background: 'var(--card)', borderColor: 'var(--border)' }} onClick={e => e.stopPropagation()}>
+                    <div className="absolute right-0 top-full mt-1 w-36 rounded-xl shadow-xl z-50 border py-1" style={{ background: 'var(--card)', borderColor: 'var(--border)' }} onClick={e => e.stopPropagation()}>
                       <button onClick={() => { setEditItem(p); setShowForm(true); setMenuOpen(null) }}
                         className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-black/5 text-left" style={{ color: 'var(--foreground)' }}>
                         <Edit className="w-3.5 h-3.5" /> Edit

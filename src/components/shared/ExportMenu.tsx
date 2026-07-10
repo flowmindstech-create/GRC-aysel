@@ -48,7 +48,7 @@ export function ExportMenu<T>({ columns, rows, filename, title }: Props<T>) {
         <Download className="w-3.5 h-3.5" /> Export
       </button>
       {open && (
-        <div className="absolute right-0 top-full mt-1 w-40 rounded-xl shadow-xl z-30 border py-1"
+        <div className="absolute right-0 top-full mt-1 w-40 rounded-xl shadow-xl z-50 border py-1"
           style={{ background: 'var(--card)', borderColor: 'var(--border)' }} onClick={e => e.stopPropagation()}>
           {items.map(it => (
             <button key={it.fmt} onClick={() => run(it.fmt)}

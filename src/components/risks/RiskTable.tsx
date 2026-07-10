@@ -258,7 +258,7 @@ export function RiskTable() {
                           </button>
                           {openStatusRiskId === risk.id && (
                             <div
-                              className="absolute left-0 mt-1.5 w-40 rounded-xl shadow-2xl z-30 border py-1 animate-in fade-in slide-in-from-top-1 duration-150"
+                              className="absolute left-0 mt-1.5 w-40 rounded-xl shadow-2xl z-50 border py-1 animate-in fade-in slide-in-from-top-1 duration-150"
                               style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
                             >
                               {RISK_STATUSES.map(s => (
@@ -376,7 +376,7 @@ export function RiskTable() {
                           </button>
                           {menuOpen === risk.id && (
                             <div className={cn(
-                              "absolute right-0 w-40 rounded-xl shadow-xl z-20 border py-1",
+                              "absolute right-0 w-40 rounded-xl shadow-xl z-50 border py-1",
                               isNearBottom ? "bottom-full mb-1" : "top-full mt-1"
                             )}
                               style={{ background: 'var(--card)', borderColor: 'var(--border)' }}>

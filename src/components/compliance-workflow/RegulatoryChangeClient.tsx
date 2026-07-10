@@ -215,7 +215,7 @@ export function RegulatoryChangeClient() {
                               <MoreHorizontal className="w-4 h-4" style={{ color: 'var(--muted-fg)' }} />
                             </button>
                             {menuOpen === item.id && (
-                              <div className={cn("absolute right-0 w-40 rounded-xl shadow-xl z-20 border py-1", isNearBottom ? "bottom-full mb-1" : "top-full mt-1")}
+                              <div className={cn("absolute right-0 w-40 rounded-xl shadow-xl z-50 border py-1", isNearBottom ? "bottom-full mb-1" : "top-full mt-1")}
                                 style={{ background: 'var(--card)', borderColor: 'var(--border)' }} onClick={e => e.stopPropagation()}>
                                 <button onClick={() => { setEditItem(item); setShowForm(true); setMenuOpen(null) }}
                                   className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-black/5 dark:hover:bg-white/5 text-left" style={{ color: 'var(--foreground)' }}>

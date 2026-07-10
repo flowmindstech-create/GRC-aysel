@@ -27,11 +27,14 @@ export function MobileNav() {
 
   return (
     <nav
-      className="md:hidden fixed bottom-0 inset-x-0 z-40 border-t backdrop-blur-lg"
+      className="md:hidden fixed bottom-0 inset-x-0 z-40 border-t"
       style={{
-        background: 'color-mix(in srgb, var(--card) 88%, transparent)',
+        // Solid fon — color-mix/backdrop-filter köhnə mobil brauzerlərdə yoxdur,
+        // şəffaf qalanda nav yazıları səhifə mətni ilə üst-üstə düşürdü
+        background: 'var(--card)',
         borderColor: 'var(--border)',
         paddingBottom: 'env(safe-area-inset-bottom)',
+        boxShadow: '0 -4px 16px rgba(16,24,40,0.06)',
       }}
       aria-label="Mobil naviqasiya"
     >

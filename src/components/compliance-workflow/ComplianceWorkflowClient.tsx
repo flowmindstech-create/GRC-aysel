@@ -336,7 +336,7 @@ export function ComplianceWorkflowClient() {
                               <ChevronDown className="w-3 h-3 shrink-0 opacity-80" />
                             </button>
                             {openStatusId === item.id && (
-                              <div className={cn("absolute left-0 mt-1.5 w-44 rounded-xl shadow-2xl z-30 border py-1 animate-in fade-in slide-in-from-top-1 duration-150", isNearBottom && "bottom-full mb-1 mt-0")}
+                              <div className={cn("absolute left-0 mt-1.5 w-44 rounded-xl shadow-2xl z-50 border py-1 animate-in fade-in slide-in-from-top-1 duration-150", isNearBottom && "bottom-full mb-1 mt-0")}
                                 style={{ background: 'var(--card)', borderColor: 'var(--border)' }} onClick={e => e.stopPropagation()}>
                                 {ALL_STATUSES.map(s => (
                                   <button key={s} onClick={() => handleStatusChange(item, s)}
@@ -453,7 +453,7 @@ export function ComplianceWorkflowClient() {
                               <MoreHorizontal className="w-4 h-4" style={{ color: 'var(--muted-fg)' }} />
                             </button>
                             {menuOpen === item.id && (
-                              <div className={cn("absolute right-0 w-40 rounded-xl shadow-xl z-20 border py-1", isNearBottom ? "bottom-full mb-1" : "top-full mt-1")}
+                              <div className={cn("absolute right-0 w-40 rounded-xl shadow-xl z-50 border py-1", isNearBottom ? "bottom-full mb-1" : "top-full mt-1")}
                                 style={{ background: 'var(--card)', borderColor: 'var(--border)' }} onClick={e => e.stopPropagation()}>
                                 <button onClick={() => { setDetailItem(item); setMenuOpen(null) }}
                                   className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-black/5 dark:hover:bg-white/5 text-left" style={{ color: 'var(--foreground)' }}>
