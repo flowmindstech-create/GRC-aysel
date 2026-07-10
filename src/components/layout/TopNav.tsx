@@ -121,12 +121,11 @@ export function TopNav({ title, subtitle }: TopNavProps) {
           <>
             <div className="fixed inset-0 z-40" onClick={() => setShowNotif(false)} />
             <div
-              className="absolute right-0 top-full mt-2 w-80 rounded-xl shadow-2xl z-50 border overflow-hidden"
+              className="absolute right-0 top-full mt-2 w-80 max-w-[calc(100vw-2rem)] rounded-xl shadow-2xl z-50 border overflow-hidden"
               style={{
-                background: 'rgba(255,255,255,0.98)',
-                backdropFilter: 'blur(16px)',
+                background: 'var(--card)',
                 borderColor: 'var(--border)',
-                boxShadow: '0 8px 32px rgba(0,0,0,0.4), 0 2px 8px rgba(0,0,0,0.2)',
+                boxShadow: '0 8px 32px rgba(0,0,0,0.25), 0 2px 8px rgba(0,0,0,0.12)',
               }}
             >
               <div className="flex items-center justify-between px-4 py-3 border-b" style={{ borderColor: 'var(--border)' }}>
@@ -195,10 +194,9 @@ export function TopNav({ title, subtitle }: TopNavProps) {
           <div
             className="absolute right-0 top-full mt-2 w-48 rounded-xl shadow-2xl z-50 border py-1 overflow-hidden"
             style={{
-              background: 'rgba(255,255,255,0.98)',
-              backdropFilter: 'blur(16px)',
+              background: 'var(--card)',
               borderColor: 'var(--border)',
-              boxShadow: '0 8px 32px rgba(0,0,0,0.4), 0 2px 8px rgba(0,0,0,0.2)',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.25), 0 2px 8px rgba(0,0,0,0.12)',
             }}
           >
             <div className="px-3 py-2.5 border-b" style={{ borderColor: 'var(--border)' }}>

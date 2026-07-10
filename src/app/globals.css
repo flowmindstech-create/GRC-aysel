@@ -130,16 +130,13 @@ body {
 .animate-slide-in-right { animation: slide-in-right 0.35s ease forwards; }
 .animate-pulse-ring     { animation: pulse-ring 2s infinite; }
 
-/* ── Glass header — blur dəstəklənməyəndə SOLID fon (mətn içindən görünməsin) ── */
+/* ── Header — SOLID fon, blur YOX.
+   backdrop-filter öz stacking context-ini yaradır və içindəki dropdown/bildiriş
+   panelinin z-index-ini "həbs" edir → panel səhifə kartlarının arxasında qalırdı. */
 .glass-header {
   background: var(--card);
-}
-@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-  .glass-header {
-    background: rgba(255, 255, 255, 0.82);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-  }
+  position: relative;
+  z-index: 30; /* açılan panellər həmişə səhifə məzmununun üstündə */
 }
 
 /* ── Mobil: səhifə padding-ini sıxlaşdır (bütün main-lər p-6 istifadə edir) ── */
