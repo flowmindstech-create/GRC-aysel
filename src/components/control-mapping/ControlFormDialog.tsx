@@ -8,6 +8,7 @@ import { db } from '@/lib/db'
 import { generateControlCode } from '@/lib/control-id'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
+import { usePermissions } from '@/hooks/usePermissions'
 
 const TYPES: ControlType[] = ['preventive', 'detective', 'corrective', 'directive']
 const FREQS: ExecutionFrequency[] = ['continuous', 'daily', 'weekly', 'monthly', 'quarterly', 'annual', 'ad_hoc']
@@ -23,6 +24,7 @@ interface Props {
 const inputCls = 'w-full px-3 py-2 rounded-xl text-sm border outline-none focus:ring-2 focus:ring-sky-500/30'
 
 export function ControlFormDialog({ control, existing, onClose, onSave }: Props) {
+  const { can } = usePermissions()
   const isEdit = !!control
   const [profiles, setProfiles] = useState<UserProfile[]>([])
   const [isCompliance, setIsCompliance] = useState((control?.framework ?? 'custom') !== 'custom')
@@ -52,6 +54,9 @@ export function ControlFormDialog({ control, existing, onClose, onSave }: Props)
       ...form,
       framework: isCompliance ? (COMPLIANCE_FRAMEWORKS.includes(form.framework) ? form.framework : 'iso27001') : 'custom',
       control_id: form.control_id?.trim() || generateControlCode(existing),
+      // GRC qaydası: yeni kontrol super_admin yaradıbsa dərhal approved,
+      // başqası yaradıbsa pending_review (super_admin təsdiqini gözləyir)
+      approval_status: control?.approval_status ?? (can('approve') ? 'approved' : 'pending_review'),
       updated_at: new Date().toISOString(),
     }
     try {

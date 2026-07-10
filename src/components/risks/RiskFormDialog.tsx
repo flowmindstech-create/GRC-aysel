@@ -15,7 +15,7 @@ import { resolveOwnerFromUnit } from '@/lib/org'
 import { orgUnitCode, generateRiskCode } from '@/lib/risk-id'
 import { validateRiskConsistency } from '@/lib/risk-logic'
 import { cn } from '@/lib/utils'
-import { atLeast } from '@/lib/permissions'
+import { can } from '@/lib/permissions'
 import {
   calculateInherentLevel,
   evaluateControlActivity,
@@ -108,8 +108,8 @@ export function RiskFormDialog({ risk, onClose, onSave }: Props) {
     at: risk?.treatment_approved_at,
   })
   const [pendingStrategy, setPendingStrategy] = useState<TreatmentStrategy | null>(null)
-  // risk_manager səviyyəsi və yuxarı (super_admin, admin, risk_manager) təsdiq verə bilər
-  const canApprove = atLeast({ role: currentRole }, 'risk_manager')
+  // GRC qaydası: bütün təsdiqlər yalnız super_admin-dədir (approve capability = 100)
+  const canApprove = can({ role: currentRole }, 'approve')
 
   const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -265,10 +265,10 @@ export function RiskFormDialog({ risk, onClose, onSave }: Props) {
       treatment_approval_note: approval.note,
       treatment_approved_by: approval.by,
       treatment_approved_at: approval.at,
-      // Maker-checker: yeni risk admin+ yaradıbsa dərhal approved,
-      // adi istifadəçi yaradıbsa pending (super admin təsdiqini gözləyir).
-      // Redaktədə mövcud dəyər saxlanılır. DB trigger-i də bunu məcbur edir (phase47).
-      approval_status: risk?.approval_status ?? (atLeast({ role: currentRole }, 'admin') ? 'approved' : 'pending'),
+      // Maker-checker: yeni risk YALNIZ super_admin yaradıbsa dərhal approved,
+      // başqası yaradıbsa pending (super_admin təsdiqini gözləyir).
+      // Redaktədə mövcud dəyər saxlanılır. DB trigger-i də bunu məcbur edir (phase48).
+      approval_status: risk?.approval_status ?? (can({ role: currentRole }, 'approve') ? 'approved' : 'pending'),
       created_at: risk?.created_at ?? new Date().toISOString(),
       updated_at: new Date().toISOString(),
     }

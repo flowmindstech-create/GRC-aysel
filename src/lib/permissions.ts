@@ -45,8 +45,8 @@ export const CAPABILITY_MIN_LEVEL: Record<Capability, number> = {
   run_test:        40,   // auditor+
   create:          60,   // risk_manager+
   edit:            60,   // risk_manager+
-  approve:         80,   // admin+
   manage_settings: 80,   // admin+
+  approve:        100,   // YALNIZ super_admin — GRC qaydası: bütün təsdiqlər ona düşür
   delete:         100,   // yalnız super_admin
   manage_users:   100,   // yalnız super_admin
 }

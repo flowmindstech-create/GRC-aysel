@@ -10,6 +10,7 @@ import { toast } from 'sonner'
 import { ControlFormDialog } from './ControlFormDialog'
 import { ExportMenu } from '@/components/shared/ExportMenu'
 import type { ExportColumn } from '@/lib/export'
+import { usePermissions } from '@/hooks/usePermissions'
 
 const TYPE_COLOR: Record<string, string> = {
   preventive: 'bg-blue-500/12 text-blue-400',
@@ -36,6 +37,7 @@ const EXPORT_COLUMNS: ExportColumn<Control>[] = [
 ]
 
 export function ControlsClient() {
+  const { can } = usePermissions()
   const [controls, setControls]   = useState<Control[]>([])
   const [obligations, setObligations] = useState<ComplianceObligation[]>([])
   const [linkMaps, setLinkMaps]   = useState<Record<string, { controlIds: string[]; policyIds: string[] }>>({})
@@ -212,7 +214,7 @@ export function ControlsClient() {
                 </button>
               </td>
               <td className="px-3 py-3.5"><div className="flex items-center gap-1">
-                {pending && (
+                {pending && can('approve') && (
                   <button onClick={() => handleApprove(c)} title="Təsdiqlə" className="px-2.5 py-1 rounded-lg text-[11px] font-semibold text-white bg-emerald-600 hover:bg-emerald-700"><Check className="w-3.5 h-3.5" /></button>
                 )}
                 <button onClick={() => { setEditControl(c); setShowForm(true) }} className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-black/10 dark:hover:bg-white/10"><Edit className="w-3.5 h-3.5" style={{ color: 'var(--muted-fg)' }} /></button>
