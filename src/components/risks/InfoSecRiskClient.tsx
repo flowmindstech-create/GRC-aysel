@@ -257,7 +257,7 @@ function InfoSecFormDialog({ item, controls, processes, departments, profiles, o
 
 // ── Register ──────────────────────────────────────────────────────────────────
 export function InfoSecRiskClient() {
-  const { can } = usePermissions()
+  const { can, isSuperAdmin } = usePermissions()
   const [items, setItems] = useState<InfoSecRisk[]>([])
   const [controls, setControls] = useState<Control[]>([])
   const [processes, setProcesses] = useState<Process[]>([])
@@ -375,10 +375,10 @@ export function InfoSecRiskClient() {
                   </button>
                   {menuOpen === r.id && (
                     <div className="absolute right-0 top-full mt-1 w-36 rounded-xl shadow-xl z-50 border py-1" style={{ background: 'var(--card)', borderColor: 'var(--border)' }} onClick={e => e.stopPropagation()}>
-                      <button onClick={() => { setEditItem(r); setShowForm(true); setMenuOpen(null) }}
+                      {isSuperAdmin && <button onClick={() => { setEditItem(r); setShowForm(true); setMenuOpen(null) }}
                         className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-black/5 text-left" style={{ color: 'var(--foreground)' }}>
                         <Edit className="w-3.5 h-3.5" /> Edit
-                      </button>
+                      </button>}
                       {can('delete') && <button onClick={() => handleDelete(r.id)} className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-red-50 text-left text-red-500">
                         <Trash2 className="w-3.5 h-3.5" /> Delete
                       </button>}

@@ -40,7 +40,7 @@ const CATEGORIES: (RiskCategory | 'all')[] = ['all', ...RISK_CATEGORY_VALUES]
 const STATUSES: (RiskStatus | 'all')[] = ['all', ...RISK_STATUS_VALUES]
 
 export function RiskTable() {
-  const { can } = usePermissions()
+  const { can, isSuperAdmin } = usePermissions()
   const [risks, setRisks] = useState<Risk[]>([])
   const [search, setSearch] = useState('')
   const [levelFilter, setLevelFilter] = useState<RiskLevel | 'all'>('all')
@@ -397,11 +397,13 @@ export function RiskTable() {
                                 style={{ color: 'var(--foreground)' }}>
                                 <Eye className="w-3.5 h-3.5" /> View
                               </button>
+                              {isSuperAdmin && (
                               <button onClick={() => { setEditRisk(risk); setShowForm(true); setMenuOpen(null) }}
                                 className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-black/5 dark:hover:bg-white/5 text-left"
                                 style={{ color: 'var(--foreground)' }}>
                                 <Edit className="w-3.5 h-3.5" /> Edit
                               </button>
+                              )}
                               {risk.approval_status === 'pending' && can('approve') && (
                               <button onClick={async () => {
                                   await handleSave({ ...risk, approval_status: 'approved' })
