@@ -3,12 +3,14 @@
 import { useState } from 'react'
 import { Sidebar } from './Sidebar'
 import { MobileNav } from './MobileNav'
+import { SubscriptionGate } from './SubscriptionGate'
 import { Menu, X } from 'lucide-react'
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false)
 
   return (
+    <SubscriptionGate>
     <div className="flex h-screen overflow-hidden mesh-gradient" style={{ background: 'var(--background)' }}>
       {/* Mobile Sidebar overlay */}
       {mobileOpen && (
@@ -53,6 +55,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <MobileNav />
       </div>
     </div>
+    </SubscriptionGate>
   )
 }
 

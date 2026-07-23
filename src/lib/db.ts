@@ -7,7 +7,7 @@ import {
 } from './seed-data'
 import type {
   Risk, Incident, Control, Audit, AuditFinding, Vendor, Activity, DashboardStats,
-  JiraConfig, JiraActivity, JiraComment, GRCIntakeItem, OrgUnit, UserProfile, UserRole,
+  JiraConfig, JiraActivity, JiraComment, GRCIntakeItem, OrgUnit, UserProfile, UserRole, Organization,
   ComplianceObligation, ObligationAuditLog, RegulatoryChange, InterestedParty, Process,
   AppetiteEntry, FinancialRisk, StressTest, WhistleblowReport, ComplianceAssessment, ComplianceAssessmentHistory
 } from '@/types'
@@ -132,6 +132,29 @@ async function getCurrentOrgId(): Promise<string> {
   return DEFAULT_ORG_ID
 }
 export { getCurrentOrgId }
+
+// Cari istifadəçinin təşkilatı — abunə statusu ilə (phase51 access gate üçün).
+// FAIL-OPEN: mock rejimdə, org tapılmasa və ya xəta olsa → aktiv sayılır
+// (heç kim təsadüfən kilidlənməsin; blok yalnız açıq şəkildə bitmiş abunədə).
+export interface OrgAccess { active: boolean; org: Organization | null }
+export async function getMyOrgAccess(): Promise<OrgAccess> {
+  if (!isSupabaseConfigured()) return { active: true, org: null }
+  try {
+    const orgId = await getCurrentOrgId()
+    const { createClient } = await import('./supabase/client')
+    const supabase = createClient()
+    const { data, error } = await supabase.from('organizations').select('*').eq('id', orgId).single()
+    if (error || !data) return { active: true, org: null }  // fail-open
+    const org = data as Organization
+    const notExpired = !org.subscription_expires_at || new Date(org.subscription_expires_at) > new Date()
+    const statusOk = !org.subscription_status || ['trial', 'active', 'past_due'].includes(org.subscription_status)
+    const active = (org.is_active !== false) && statusOk && notExpired
+    return { active, org }
+  } catch (err) {
+    console.error('getMyOrgAccess exception:', err)
+    return { active: true, org: null }  // fail-open
+  }
+}
 
 // Unified Database and LocalStorage Client
 export const db = {

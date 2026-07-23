@@ -12,11 +12,19 @@ export interface UserProfile {
   created_at: string
 }
 
+export type SubscriptionStatus = 'trial' | 'active' | 'past_due' | 'suspended' | 'cancelled'
+
 export interface Organization {
   id: string
   name: string
   plan: 'starter' | 'professional' | 'enterprise'
   created_at: string
+  // Abunə (phase51) — multi-tenant access gate
+  subscription_status?: SubscriptionStatus
+  subscription_expires_at?: string | null
+  is_active?: boolean
+  contact_email?: string
+  seats?: number | null
 }
 
 // ─── Organizational Structure ──────────────────────────────────────────────────
