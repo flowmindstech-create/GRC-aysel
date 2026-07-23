@@ -37,7 +37,7 @@ const EXPORT_COLUMNS: ExportColumn<Control>[] = [
 ]
 
 export function ControlsClient() {
-  const { can } = usePermissions()
+  const { can, isSuperAdmin } = usePermissions()
   const [controls, setControls]   = useState<Control[]>([])
   const [obligations, setObligations] = useState<ComplianceObligation[]>([])
   const [linkMaps, setLinkMaps]   = useState<Record<string, { controlIds: string[]; policyIds: string[] }>>({})
@@ -217,7 +217,7 @@ export function ControlsClient() {
                 {pending && can('approve') && (
                   <button onClick={() => handleApprove(c)} title="Təsdiqlə" className="px-2.5 py-1 rounded-lg text-[11px] font-semibold text-white bg-emerald-600 hover:bg-emerald-700"><Check className="w-3.5 h-3.5" /></button>
                 )}
-                <button onClick={() => { setEditControl(c); setShowForm(true) }} className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-black/10 dark:hover:bg-white/10"><Edit className="w-3.5 h-3.5" style={{ color: 'var(--muted-fg)' }} /></button>
+                {isSuperAdmin && <button onClick={() => { setEditControl(c); setShowForm(true) }} className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-black/10 dark:hover:bg-white/10"><Edit className="w-3.5 h-3.5" style={{ color: 'var(--muted-fg)' }} /></button>}
               </div></td>
             </motion.tr>
             )

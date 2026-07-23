@@ -80,7 +80,7 @@ const ALL_SOURCES: ObligationSource[] = [
 // ── Main ──────────────────────────────────────────────────────────────────────
 
 export function ComplianceWorkflowClient() {
-  const { can } = usePermissions()
+  const { can, isSuperAdmin } = usePermissions()
   const [obligations, setObligations] = useState<ComplianceObligation[]>([])
   const [risksById, setRisksById]     = useState<Record<string, Risk>>({})
   const [linkCounts, setLinkCounts]   = useState<Record<string, { risks: number; controls: number; policies: number }>>({})
@@ -459,10 +459,12 @@ export function ComplianceWorkflowClient() {
                                   className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-black/5 dark:hover:bg-white/5 text-left" style={{ color: 'var(--foreground)' }}>
                                   <Eye className="w-3.5 h-3.5" /> View
                                 </button>
+                                {isSuperAdmin && (
                                 <button onClick={() => { setEditItem(item); setShowForm(true); setMenuOpen(null) }}
                                   className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-black/5 dark:hover:bg-white/5 text-left" style={{ color: 'var(--foreground)' }}>
                                   <Edit className="w-3.5 h-3.5" /> Edit
                                 </button>
+                                )}
                                 {can('delete') && (
                                 <button onClick={() => handleDelete(item.id)}
                                   className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-red-50 dark:hover:bg-red-900/20 text-left text-red-500">

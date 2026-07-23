@@ -15,6 +15,7 @@ import {
 import { cn } from '@/lib/utils'
 import { ExportMenu } from '@/components/shared/ExportMenu'
 import type { ExportColumn } from '@/lib/export'
+import { usePermissions } from '@/hooks/usePermissions'
 
 const VENDOR_EXPORT_COLUMNS: ExportColumn<Vendor>[] = [
   { key: 'name', label: 'Vendor', value: v => v.name },
@@ -54,6 +55,7 @@ function getRandomAiSummary(vendorName: string) {
 }
 
 export function VendorTable() {
+  const { isSuperAdmin } = usePermissions()
   const [vendors, setVendors] = useState<Vendor[]>([])
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<VendorStatus | 'all'>('all')
@@ -252,11 +254,11 @@ export function VendorTable() {
                         <FileText className="w-3.5 h-3.5 text-sky-500" />
                         {loadingAi === vendor.id ? 'Updating...' : 'Regenerate Summary'}
                       </button>
-                      <button onClick={() => { setEditVendor(vendor); setShowForm(true) }}
+                      {isSuperAdmin && <button onClick={() => { setEditVendor(vendor); setShowForm(true) }}
                         className="px-3 py-1.5 text-xs font-medium rounded-lg border hover:bg-black/5 dark:hover:bg-white/5"
                         style={{ borderColor: 'var(--border)', color: 'var(--foreground)' }}>
                         Edit Vendor
-                      </button>
+                      </button>}
                     </div>
                   </div>
                 </motion.div>

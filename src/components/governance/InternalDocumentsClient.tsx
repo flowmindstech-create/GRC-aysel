@@ -182,7 +182,7 @@ function DocumentFormDialog({ doc, departments, profiles, onClose, onSave }: {
 
 // ── Main register ─────────────────────────────────────────────────────────────
 export function InternalDocumentsClient() {
-  const { can } = usePermissions()
+  const { can, isSuperAdmin } = usePermissions()
   const [docs, setDocs] = useState<InternalDocument[]>([])
   const [departments, setDepartments] = useState<OrgUnit[]>([])
   const [profiles, setProfiles] = useState<UserProfile[]>([])
@@ -296,10 +296,10 @@ export function InternalDocumentsClient() {
                         </button>
                         {menuOpen === d.id && (
                           <div className="absolute right-0 top-full mt-1 w-36 rounded-xl shadow-xl z-50 border py-1" style={{ background: 'var(--card)', borderColor: 'var(--border)' }} onClick={e => e.stopPropagation()}>
-                            <button onClick={() => { setEditItem(d); setShowForm(true); setMenuOpen(null) }}
+                            {isSuperAdmin && <button onClick={() => { setEditItem(d); setShowForm(true); setMenuOpen(null) }}
                               className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-black/5 dark:hover:bg-white/5 text-left" style={{ color: 'var(--foreground)' }}>
                               <Edit className="w-3.5 h-3.5" /> Redaktə
-                            </button>
+                            </button>}
                             {can('delete') && <button onClick={() => handleDelete(d.id)} className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-red-50 dark:hover:bg-red-900/20 text-left text-red-500">
                               <Trash2 className="w-3.5 h-3.5" /> Sil
                             </button>}

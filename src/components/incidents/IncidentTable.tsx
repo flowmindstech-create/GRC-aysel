@@ -38,7 +38,7 @@ function safeAgo(value: string | undefined): string {
 }
 
 export function IncidentTable() {
-  const { can } = usePermissions()
+  const { can, isSuperAdmin } = usePermissions()
   const [incidents, setIncidents] = useState<Incident[]>([])
   const [search, setSearch] = useState('')
   const [severity, setSeverity] = useState<IncidentSeverity | 'all'>('all')
@@ -195,7 +195,7 @@ export function IncidentTable() {
                           {menuOpen === inc.id && (
                             <div className={cn('absolute right-0 w-36 rounded-xl shadow-xl z-50 border py-1', isNearBottom ? 'bottom-full mb-1' : 'top-full mt-1')} style={{ background: 'var(--card)', borderColor: 'var(--border)' }}>
                               <button onClick={() => { setDetailIncident(inc); setMenuOpen(null) }} className="w-full flex items-center gap-2 px-3 py-2 text-sm text-left hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer" style={{ color: 'var(--foreground)' }}><Eye className="w-3.5 h-3.5" /> View</button>
-                              {(isManager || inc.assigned_to === myId || inc.resolution_assignee === myId) && (
+                              {isSuperAdmin && (
                                 <button onClick={() => { setEditIncident(inc); setShowForm(true); setMenuOpen(null) }} className="w-full flex items-center gap-2 px-3 py-2 text-sm text-left hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer" style={{ color: 'var(--foreground)' }}><Edit className="w-3.5 h-3.5" /> Edit</button>
                               )}
                               {can('delete') && (
@@ -275,7 +275,7 @@ export function IncidentTable() {
                             style={{ color: 'var(--foreground)' }}>
                             <Eye className="w-3.5 h-3.5" /> View Details
                           </button>
-                          {(isManager || inc.assigned_to === myId || inc.resolution_assignee === myId) && (
+                          {isSuperAdmin && (
                             <button onClick={() => { setEditIncident(inc); setShowForm(true); setMenuOpen(null) }}
                               className="w-full flex items-center gap-2 px-3 py-2 text-sm text-left hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer"
                               style={{ color: 'var(--foreground)' }}>
