@@ -50,21 +50,24 @@ Avtomatik testlər `vitest` ilə işləyir: **`npm test`** (94 test, 13 fayl).
 
 | Bənd | Status | Sübut |
 |------|--------|-------|
-| Normal yük altında işləmə | 🧪 MANUAL | k6/Playwright ilə canlı mühitdə (aşağıya bax) |
+| Normal yük altında işləmə | 🧪 SKRİPT | `tests/load/k6-smoke.js` — `k6 run tests/load/k6-smoke.js` |
 | Hesabatların məqbul müddətdə formalaşması | ✅ AVTO (smoke) | `perf.test.ts` (50k risk hesablaması <250ms, 100k RBAC <100ms) |
-| Eyni vaxtda çoxsaylı istifadəçi | 🧪 MANUAL | Konkurrensiya testi — canlı (Supabase connection pool + Vercel) |
+| Eyni vaxtda çoxsaylı istifadəçi | 🧪 SKRİPT | `k6 run --vus 50 --duration 2m tests/load/k6-smoke.js` (thresholds: p95<2s, xəta<1%) |
 
 ## 5. İstifadəçi Qəbul Testi (UAT)
 
 Təşkilat nümayəndələri (İcbari Sığorta Bürosu) tərəfindən əvvəlcədən razılaşdırılmış
-ssenarilər üzrə aparılır. Kritik ssenarilər:
+ssenarilər üzrə aparılır. **Hər ssenarinin biznes-məntiqi avtomatlaşdırılıb** —
+`uat.test.ts` (15 test); UI axını isə `tests/e2e/smoke.spec.ts` (Playwright).
 
-1. Super Admin (Aysel) daxil olur → bütün reyestrləri görür, təsdiq/silmə edə bilir.
-2. Adi istifadəçi (employee) risk yaradır → "Gözləmədə" düşür, öz yaratdığını görür, redaktə/silmə görmür.
-3. Super Admin təsdiqləyir → risk rəsmiləşir. Adi istifadəçi özü təsdiqləyə bilmir (DB rədd edir).
-4. Risk qiymətləndirməsi: likelihood×impact → inherent → nəzarətlər → residual düzgün hesablanır.
-5. Reyestr Excel/PDF ixracı: filtrlənmiş data düz açılır, AZ hərfləri korrekt.
-6. Abunə: müddət bitəndə/dayandırılanda giriş bloklanır ("Abunəlik bitib" ekranı).
+| # | Ssenari | Biznes-məntiq (AVTO) | UI axını |
+|---|---------|----------------------|----------|
+| 1 | Super Admin hər şeyi görür, təsdiq/silmə edir | ✅ `uat.test.ts` | 🧪 Playwright |
+| 2 | Employee risk yaradır → pending, öz yaratdığını görür, redaktə görmür | ✅ `uat.test.ts` | 🧪 |
+| 3 | Super Admin təsdiqləyir; employee özü təsdiqləyə bilmir | ✅ `uat.test.ts` | 🧪 |
+| 4 | likelihood×impact → inherent → nəzarət → residual düz hesablanır | ✅ `uat.test.ts` | — |
+| 5 | Reyestr Excel/CSV ixracı: filtrlənmiş data düz, AZ hərfləri | ✅ `uat.test.ts` | 🧪 |
+| 6 | Abunə bitəndə/dayandırılanda giriş bloklanır | ✅ `uat.test.ts` | 🧪 |
 
 **Qəbul şərti:** yalnız bütün kritik testlər uğurla tamamlandıqdan sonra sistem istismara qəbul edilir.
 
@@ -73,16 +76,18 @@ ssenarilər üzrə aparılır. Kritik ssenarilər:
 ## Test infrastrukturu
 
 - **Framework:** Vitest 4.1.10 · **İcra:** `npm test` · **Config:** `vitest.config.ts`
-- **Avtomatik test faylları** (`src/lib/*.test.ts`): permissions, rcsa, risk-status, risk-id, risk-logic,
-  risk-categories, whistleblow-crypto, export, subscription, email, control-id, org, perf
-- **Cəmi: 13 fayl, 94 test — hamısı keçir ✅**
+- **Unit/integration faylları** (`src/lib/*.test.ts`): permissions, rcsa, risk-status, risk-id, risk-logic,
+  risk-categories, whistleblow-crypto, export, subscription, email, control-id, org, perf, **uat**
+- **Cəmi: 14 fayl, 111 test — hamısı keçir ✅**
+- **E2E / yük skriptləri** (`tests/`): `tests/e2e/smoke.spec.ts` (Playwright), `tests/load/k6-smoke.js` (k6)
 
-### Real yük testi (manual, tövsiyə olunan)
-Canlı performans/konkurrensiya üçün ayrıca alət tələb olunur (kod bazasında deyil):
-
+### E2E və yük testinin icrası (canlı mühit, ayrıca alət)
 ```bash
-# Nümunə: k6 ilə yük testi (grcell.com-a qarşı)
-k6 run --vus 50 --duration 2m load-test.js
-# Nümunə: Playwright ilə E2E kritik axınlar
-npx playwright test
+# Playwright E2E smoke (public axınlar — auth-suz, canlı datanı dəyişmir)
+npm i -D @playwright/test && npx playwright install chromium
+BASE_URL=https://grcell.com npx playwright test tests/e2e/smoke.spec.ts
+
+# k6 yük testi (k6.io ayrıca binardır)
+k6 run tests/load/k6-smoke.js                          # smoke (10 vus, 30s)
+k6 run --vus 50 --duration 2m tests/load/k6-smoke.js   # ağır yük
 ```
