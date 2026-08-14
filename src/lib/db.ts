@@ -146,10 +146,8 @@ export async function getMyOrgAccess(): Promise<OrgAccess> {
     const { data, error } = await supabase.from('organizations').select('*').eq('id', orgId).single()
     if (error || !data) return { active: true, org: null }  // fail-open
     const org = data as Organization
-    const notExpired = !org.subscription_expires_at || new Date(org.subscription_expires_at) > new Date()
-    const statusOk = !org.subscription_status || ['trial', 'active', 'past_due'].includes(org.subscription_status)
-    const active = (org.is_active !== false) && statusOk && notExpired
-    return { active, org }
+    const { orgIsActive } = await import('./permissions')
+    return { active: orgIsActive(org), org }
   } catch (err) {
     console.error('getMyOrgAccess exception:', err)
     return { active: true, org: null }  // fail-open

@@ -4,7 +4,7 @@
 // Bu qat SAF məntiqdir — DB qıfılı Supabase RLS-dədir (bax supabase-phase45-rbac.sql).
 // UI burada gizlədir; əsl təhlükəsizlik RLS-də dublikat olunur.
 
-import type { UserRole, UserProfile } from '@/types'
+import type { UserRole, UserProfile, Organization } from '@/types'
 
 // ── Rütbə səviyyələri ──────────────────────────────────────────────────────
 // Aralarda boşluq (10-luq addım) qoyulub ki gələcəkdə yeni rol asan əlavə olunsun.
@@ -70,4 +70,19 @@ export function atLeast(profile: Pick<UserProfile, 'role'> | null | undefined, r
 
 export function isSuperAdmin(profile: Pick<UserProfile, 'role'> | null | undefined): boolean {
   return profile?.role === 'super_admin'
+}
+
+// ── Abunə qıfılı (phase51): org aktivdirmi? ─────────────────────────────────
+// FAIL-OPEN: org yoxdursa və ya sahələr boşdursa aktiv sayılır — heç kim
+// təsadüfən kilidlənməsin. Blok yalnız açıq deaktivdə: is_active=false,
+// status suspended/cancelled, VƏ YA bitmə tarixi keçib.
+const ACTIVE_SUB_STATUSES = ['trial', 'active', 'past_due'] as const
+export function orgIsActive(
+  org: Pick<Organization, 'is_active' | 'subscription_status' | 'subscription_expires_at'> | null | undefined,
+  now: Date = new Date(),
+): boolean {
+  if (!org) return true
+  const notExpired = !org.subscription_expires_at || new Date(org.subscription_expires_at) > now
+  const statusOk = !org.subscription_status || (ACTIVE_SUB_STATUSES as readonly string[]).includes(org.subscription_status)
+  return org.is_active !== false && statusOk && notExpired
 }

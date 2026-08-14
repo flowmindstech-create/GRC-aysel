@@ -45,7 +45,7 @@ export async function sendWelcomeEmail(input: WelcomeEmailInput): Promise<SendRe
   return { ok: true, id: data?.id }
 }
 
-function escapeHtml(value: string): string {
+export function escapeHtml(value: string): string {
   return value
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
@@ -53,7 +53,7 @@ function escapeHtml(value: string): string {
     .replace(/"/g, '&quot;')
 }
 
-function renderWelcomeHtml(input: WelcomeEmailInput): string {
+export function renderWelcomeHtml(input: WelcomeEmailInput): string {
   const name = escapeHtml(input.fullName)
   const company = escapeHtml(input.company)
   return `

@@ -14,6 +14,22 @@ function cell<T>(col: ExportColumn<T>, row: T): string {
   return v === null || v === undefined ? '' : String(v)
 }
 
+// ── Saf data-şəkilləndirmə (browser-siz, test edilə bilən) ──────────────────
+// Hər üç format eyni matrisdən qidalanır: [header, ...body].
+export function buildRowMatrix<T>(columns: ExportColumn<T>[], rows: T[]): string[][] {
+  const header = columns.map(c => c.label)
+  const body = rows.map(r => columns.map(c => cell(c, r)))
+  return [header, ...body]
+}
+
+// CSV mətni — UTF-8 BOM ilə (Excel-də Azərbaycan hərfləri düz açılsın),
+// standart RFC-4180 sitatlaşdırma (dırnaq, vergül, sətir keçidi təhlükəsiz).
+export function buildCsv<T>(columns: ExportColumn<T>[], rows: T[]): string {
+  const esc = (s: string) => `"${s.replace(/"/g, '""')}"`
+  const matrix = buildRowMatrix(columns, rows)
+  return '﻿' + matrix.map(row => row.map(esc).join(',')).join('\r\n')
+}
+
 function downloadBlob(blob: Blob, filename: string) {
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
@@ -27,10 +43,7 @@ function downloadBlob(blob: Blob, filename: string) {
 
 // CSV — dependency-free, UTF-8 BOM so Excel opens Azerbaijani characters correctly
 function exportCsv<T>(columns: ExportColumn<T>[], rows: T[], filename: string) {
-  const esc = (s: string) => `"${s.replace(/"/g, '""')}"`
-  const head = columns.map(c => esc(c.label)).join(',')
-  const body = rows.map(r => columns.map(c => esc(cell(c, r))).join(',')).join('\r\n')
-  const blob = new Blob(['﻿' + head + '\r\n' + body], { type: 'text/csv;charset=utf-8;' })
+  const blob = new Blob([buildCsv(columns, rows)], { type: 'text/csv;charset=utf-8;' })
   downloadBlob(blob, `${filename}.csv`)
 }
 
