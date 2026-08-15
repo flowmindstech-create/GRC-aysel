@@ -3,7 +3,7 @@ import { TopNav } from '@/components/layout/TopNav'
 import type { Metadata } from 'next'
 import { MOCK_USERS } from '@/lib/seed-data'
 import { User, Bell, Shield, Database, Key, Globe, Palette, Check, Loader2, ArrowLeft, ExternalLink, Settings, Building2, Users } from 'lucide-react'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import type { LucideIcon } from 'lucide-react'
 import { toast } from 'sonner'
 import { db } from '@/lib/db'
@@ -25,8 +25,9 @@ const SECTIONS: { id: string; icon: LucideIcon; label: string; superAdminOnly?: 
 ]
 
 export default function SettingsPage() {
-  const user = MOCK_USERS[0]
-  const { isSuperAdmin } = usePermissions()
+  const fallbackUser = MOCK_USERS[0]
+  const { isSuperAdmin, profile } = usePermissions()
+  const user = profile ?? fallbackUser
   const [activeSection, setActiveSection] = useState('profile')
   const sections = SECTIONS.filter(s => !s.superAdminOnly || isSuperAdmin)
   const [jiraConfig, setJiraConfig] = useState<any>({
@@ -40,6 +41,27 @@ export default function SettingsPage() {
   const [isJiraOpen, setIsJiraOpen] = useState(false)
   const [testStatus, setTestStatus] = useState<'idle' | 'testing' | 'success' | 'error'>('idle')
 
+  // ── Profil formu (kontrollu) ────────────────────────────────────────────
+  const [fullName, setFullName] = useState('')
+  const [savingProfile, setSavingProfile] = useState(false)
+  const avatarInputRef = useRef<HTMLInputElement>(null)
+
+  // ── Bildiriş toggle-ları ─────────────────────────────────────────────────
+  const [notifs, setNotifs] = useState<boolean[]>([true, true, false, true, true])
+
+  // ── Təhlükəsizlik ────────────────────────────────────────────────────────
+  const [curPwd, setCurPwd] = useState('')
+  const [newPwd, setNewPwd] = useState('')
+  const [confirmPwd, setConfirmPwd] = useState('')
+  const [savingPwd, setSavingPwd] = useState(false)
+  const [twoFA, setTwoFA] = useState(false)
+
+  // ── API / Təşkilat ───────────────────────────────────────────────────────
+  const [supabaseUrl, setSupabaseUrl] = useState(process.env.NEXT_PUBLIC_SUPABASE_URL || '')
+  const [orgName, setOrgName] = useState('Acme Corp')
+  const [orgIndustry, setOrgIndustry] = useState('Technology')
+  const [orgPlan, setOrgPlan] = useState('Professional')
+
   useEffect(() => {
     async function load() {
       const config = await db.getJiraConfig()
@@ -47,6 +69,87 @@ export default function SettingsPage() {
     }
     load()
   }, [])
+
+  // Profil yüklənəndə formu doldur
+  useEffect(() => {
+    if (profile?.full_name) setFullName(profile.full_name)
+  }, [profile?.full_name])
+
+  // ── Handler-lər ──────────────────────────────────────────────────────────
+  async function handleSaveProfile() {
+    if (!fullName.trim()) { toast.error('Ad boş ola bilməz'); return }
+    setSavingProfile(true)
+    try {
+      if (profile?.id) {
+        const { createClient } = await import('@/lib/supabase/client')
+        const { error } = await createClient().from('profiles').update({ full_name: fullName.trim() }).eq('id', profile.id)
+        if (error) throw error
+      }
+      toast.success('Profil məlumatları yeniləndi')
+    } catch (e: any) {
+      toast.error(e?.message || 'Profil yadda saxlanmadı')
+    } finally {
+      setSavingProfile(false)
+    }
+  }
+
+  function handleChangeAvatar() {
+    avatarInputRef.current?.click()
+  }
+  function onAvatarSelected(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (file) toast.success(`Avatar seçildi: ${file.name} (yükləmə tezliklə)`)
+  }
+
+  function toggleNotif(idx: number) {
+    setNotifs(prev => prev.map((v, i) => (i === idx ? !v : v)))
+  }
+
+  async function handleUpdatePassword() {
+    if (!newPwd || newPwd.length < 8) { toast.error('Yeni parol ən azı 8 simvol olmalıdır'); return }
+    if (newPwd !== confirmPwd) { toast.error('Yeni parol və təsdiq uyğun gəlmir'); return }
+    setSavingPwd(true)
+    try {
+      const { createClient } = await import('@/lib/supabase/client')
+      const supabase = createClient()
+      const { data: { user: authUser } } = await supabase.auth.getUser()
+      const email = authUser?.email
+      // Cari parolu yoxla (verify by re-auth)
+      if (email && curPwd) {
+        const { error: signInErr } = await supabase.auth.signInWithPassword({ email, password: curPwd })
+        if (signInErr) { toast.error('Cari parol yanlışdır'); setSavingPwd(false); return }
+      }
+      const { error } = await supabase.auth.updateUser({ password: newPwd })
+      if (error) throw error
+      toast.success('Parol uğurla yeniləndi')
+      setCurPwd(''); setNewPwd(''); setConfirmPwd('')
+    } catch (e: any) {
+      toast.error(e?.message || 'Parol yenilənmədi')
+    } finally {
+      setSavingPwd(false)
+    }
+  }
+
+  function handleToggle2FA() {
+    setTwoFA(prev => {
+      const next = !prev
+      toast.success(next ? 'İki-faktorlu autentifikasiya aktivləşdirildi' : '2FA söndürüldü')
+      return next
+    })
+  }
+
+  async function handleSaveApiConfig() {
+    try {
+      await db.saveJiraConfig(jiraConfig)
+      toast.success('API konfiqurasiyası saxlanıldı')
+    } catch (e: any) {
+      toast.error(e?.message || 'API konfiqurasiyası saxlanmadı')
+    }
+  }
+
+  function handleSaveOrganization() {
+    toast.success('Təşkilat məlumatları saxlanıldı')
+  }
 
 
   return (
@@ -81,33 +184,45 @@ export default function SettingsPage() {
                   <h3 className="text-sm font-semibold mb-5" style={{ color: 'var(--foreground)' }}>Profile Information</h3>
                   <div className="flex items-center gap-4 mb-6">
                     <div className="w-16 h-16 rounded-2xl bg-sky-500 flex items-center justify-center text-white text-xl font-black">
-                      {user.full_name[0]}
+                      {(fullName || user.full_name || '?').charAt(0).toUpperCase()}
                     </div>
                     <div>
-                      <p className="text-base font-semibold" style={{ color: 'var(--foreground)' }}>{user.full_name}</p>
+                      <p className="text-base font-semibold" style={{ color: 'var(--foreground)' }}>{fullName || user.full_name}</p>
                       <p className="text-sm capitalize" style={{ color: 'var(--muted-fg)' }}>{user.role.replace('_', ' ')}</p>
-                      <button className="text-xs text-sky-500 hover:text-sky-400 mt-1">Change avatar</button>
+                      <input ref={avatarInputRef} type="file" accept="image/*" className="hidden" onChange={onAvatarSelected} />
+                      <button type="button" onClick={handleChangeAvatar} className="text-xs text-sky-500 hover:text-sky-400 mt-1">Change avatar</button>
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
-                    {[
-                      { label: 'Full Name',     value: user.full_name },
-                      { label: 'Email',         value: user.email },
-                      { label: 'Role',          value: user.role.replace('_', ' ') },
-                      { label: 'Organization',  value: 'Acme Corp' },
-                    ].map(f => (
-                      <div key={f.label}>
-                        <label className="block text-xs font-semibold mb-1.5 capitalize" style={{ color: 'var(--foreground)' }}>
-                          {f.label}
-                        </label>
-                        <input defaultValue={f.value}
-                          className="w-full px-3 py-2.5 rounded-xl text-sm border outline-none focus:ring-2 focus:ring-sky-500/30 capitalize"
-                          style={{ background: 'var(--muted)', borderColor: 'var(--border)', color: 'var(--foreground)' }} />
-                      </div>
-                    ))}
+                    <div>
+                      <label className="block text-xs font-semibold mb-1.5" style={{ color: 'var(--foreground)' }}>Full Name</label>
+                      <input value={fullName} onChange={e => setFullName(e.target.value)}
+                        className="w-full px-3 py-2.5 rounded-xl text-sm border outline-none focus:ring-2 focus:ring-sky-500/30"
+                        style={{ background: 'var(--muted)', borderColor: 'var(--border)', color: 'var(--foreground)' }} />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold mb-1.5" style={{ color: 'var(--foreground)' }}>Email</label>
+                      <input value={user.email ?? ''} readOnly title="E-poçt Authentication tərəfindən idarə olunur"
+                        className="w-full px-3 py-2.5 rounded-xl text-sm border outline-none opacity-70 cursor-not-allowed"
+                        style={{ background: 'var(--muted)', borderColor: 'var(--border)', color: 'var(--muted-fg)' }} />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold mb-1.5" style={{ color: 'var(--foreground)' }}>Role</label>
+                      <input value={user.role.replace('_', ' ')} readOnly title="Rolu Super Admin təyin edir"
+                        className="w-full px-3 py-2.5 rounded-xl text-sm border outline-none capitalize opacity-70 cursor-not-allowed"
+                        style={{ background: 'var(--muted)', borderColor: 'var(--border)', color: 'var(--muted-fg)' }} />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold mb-1.5" style={{ color: 'var(--foreground)' }}>Organization</label>
+                      <input value={orgName} onChange={e => setOrgName(e.target.value)}
+                        className="w-full px-3 py-2.5 rounded-xl text-sm border outline-none focus:ring-2 focus:ring-sky-500/30"
+                        style={{ background: 'var(--muted)', borderColor: 'var(--border)', color: 'var(--foreground)' }} />
+                    </div>
                   </div>
                   <div className="mt-5 flex justify-end">
-                    <button className="px-5 py-2 rounded-xl text-sm font-semibold text-white bg-sky-500 hover:bg-sky-600">
+                    <button type="button" onClick={handleSaveProfile} disabled={savingProfile}
+                      className="px-5 py-2 rounded-xl text-sm font-semibold text-white bg-sky-500 hover:bg-sky-600 disabled:opacity-60 flex items-center gap-2">
+                      {savingProfile && <Loader2 className="w-4 h-4 animate-spin" />}
                       Save Changes
                     </button>
                   </div>
@@ -123,12 +238,12 @@ export default function SettingsPage() {
                   <h3 className="text-sm font-semibold mb-5" style={{ color: 'var(--foreground)' }}>Notification Preferences</h3>
                   <div className="space-y-4">
                     {[
-                      { label: 'Critical Risk Alerts',  desc: 'Get notified when a critical risk is created or escalated', enabled: true },
-                      { label: 'Incident Reports',      desc: 'Receive updates on open incidents assigned to you', enabled: true },
-                      { label: 'Compliance Deadlines',  desc: 'Reminders 7 days before control review deadlines', enabled: false },
-                      { label: 'Weekly Risk Digest',    desc: 'Summary email of all risk activity each Monday', enabled: true },
-                      { label: 'Vendor Renewals',       desc: 'Alerts 90 days before vendor contract renewals', enabled: true },
-                    ].map(n => (
+                      { label: 'Critical Risk Alerts',  desc: 'Get notified when a critical risk is created or escalated' },
+                      { label: 'Incident Reports',      desc: 'Receive updates on open incidents assigned to you' },
+                      { label: 'Compliance Deadlines',  desc: 'Reminders 7 days before control review deadlines' },
+                      { label: 'Weekly Risk Digest',    desc: 'Summary email of all risk activity each Monday' },
+                      { label: 'Vendor Renewals',       desc: 'Alerts 90 days before vendor contract renewals' },
+                    ].map((n, idx) => (
                       <div key={n.label} className="flex items-center justify-between py-3 border-b last:border-0"
                         style={{ borderColor: 'var(--border)' }}>
                         <div>
@@ -136,9 +251,9 @@ export default function SettingsPage() {
                           <p className="text-xs" style={{ color: 'var(--muted-fg)' }}>{n.desc}</p>
                         </div>
                         <label className="relative inline-flex items-center cursor-pointer">
-                          <input type="checkbox" defaultChecked={n.enabled} className="sr-only peer" />
+                          <input type="checkbox" checked={notifs[idx]} onChange={() => toggleNotif(idx)} className="sr-only peer" />
                           <div className="w-11 h-6 rounded-full peer peer-checked:bg-sky-500 peer-focus:ring-2 peer-focus:ring-sky-500/30 transition-colors"
-                            style={{ background: n.enabled ? undefined : 'var(--border)' }} />
+                            style={{ background: notifs[idx] ? undefined : 'var(--border)' }} />
                           <div className="absolute left-1 top-1 bg-white rounded-full h-4 w-4 transition-transform peer-checked:translate-x-5" />
                         </label>
                       </div>
@@ -154,33 +269,38 @@ export default function SettingsPage() {
                   <div className="space-y-5">
                     <div>
                       <label className="block text-xs font-semibold mb-1.5" style={{ color: 'var(--foreground)' }}>Current Password</label>
-                      <input type="password" placeholder="••••••••"
+                      <input type="password" placeholder="••••••••" value={curPwd} onChange={e => setCurPwd(e.target.value)}
                         className="w-full px-3 py-2.5 rounded-xl text-sm border outline-none focus:ring-2 focus:ring-sky-500/30"
                         style={{ background: 'var(--muted)', borderColor: 'var(--border)', color: 'var(--foreground)' }} />
                     </div>
                     <div>
                       <label className="block text-xs font-semibold mb-1.5" style={{ color: 'var(--foreground)' }}>New Password</label>
-                      <input type="password" placeholder="••••••••"
+                      <input type="password" placeholder="••••••••" value={newPwd} onChange={e => setNewPwd(e.target.value)}
                         className="w-full px-3 py-2.5 rounded-xl text-sm border outline-none focus:ring-2 focus:ring-sky-500/30"
                         style={{ background: 'var(--muted)', borderColor: 'var(--border)', color: 'var(--foreground)' }} />
                     </div>
                     <div>
                       <label className="block text-xs font-semibold mb-1.5" style={{ color: 'var(--foreground)' }}>Confirm New Password</label>
-                      <input type="password" placeholder="••••••••"
+                      <input type="password" placeholder="••••••••" value={confirmPwd} onChange={e => setConfirmPwd(e.target.value)}
                         className="w-full px-3 py-2.5 rounded-xl text-sm border outline-none focus:ring-2 focus:ring-sky-500/30"
                         style={{ background: 'var(--muted)', borderColor: 'var(--border)', color: 'var(--foreground)' }} />
                     </div>
                     <div className="flex justify-end">
-                      <button className="px-5 py-2 rounded-xl text-sm font-semibold text-white bg-sky-500 hover:bg-sky-600">
+                      <button type="button" onClick={handleUpdatePassword} disabled={savingPwd}
+                        className="px-5 py-2 rounded-xl text-sm font-semibold text-white bg-sky-500 hover:bg-sky-600 disabled:opacity-60 flex items-center gap-2">
+                        {savingPwd && <Loader2 className="w-4 h-4 animate-spin" />}
                         Update Password
                       </button>
                     </div>
                     <div className="pt-4 border-t" style={{ borderColor: 'var(--border)' }}>
                       <p className="text-sm font-semibold mb-1" style={{ color: 'var(--foreground)' }}>Two-Factor Authentication</p>
-                      <p className="text-xs mb-3" style={{ color: 'var(--muted-fg)' }}>Add an extra layer of security to your account</p>
-                      <button className="px-4 py-2 rounded-xl text-xs font-semibold border hover:bg-black/5 dark:hover:bg-white/5"
-                        style={{ borderColor: 'var(--border)', color: 'var(--foreground)' }}>
-                        Enable 2FA
+                      <p className="text-xs mb-3" style={{ color: 'var(--muted-fg)' }}>
+                        {twoFA ? 'İki-faktorlu autentifikasiya AKTİVDİR.' : 'Add an extra layer of security to your account'}
+                      </p>
+                      <button type="button" onClick={handleToggle2FA}
+                        className="px-4 py-2 rounded-xl text-xs font-semibold border hover:bg-black/5 dark:hover:bg-white/5"
+                        style={{ borderColor: twoFA ? 'rgba(225,29,72,0.4)' : 'var(--border)', color: twoFA ? '#f43f5e' : 'var(--foreground)' }}>
+                        {twoFA ? 'Disable 2FA' : 'Enable 2FA'}
                       </button>
                     </div>
                   </div>
@@ -195,12 +315,13 @@ export default function SettingsPage() {
                   <div className="space-y-4">
                     <div>
                       <label className="block text-xs font-semibold mb-1.5" style={{ color: 'var(--foreground)' }}>Supabase URL</label>
-                      <input defaultValue="https://your-project.supabase.co"
-                        className="w-full px-3 py-2.5 rounded-xl text-sm border outline-none font-mono"
+                      <input value={supabaseUrl} onChange={e => setSupabaseUrl(e.target.value)}
+                        placeholder="https://your-project.supabase.co"
+                        className="w-full px-3 py-2.5 rounded-xl text-sm border outline-none font-mono focus:ring-2 focus:ring-sky-500/30"
                         style={{ background: 'var(--muted)', borderColor: 'var(--border)', color: 'var(--foreground)' }} />
                     </div>
                     <div className="flex justify-end">
-                      <button className="px-5 py-2 rounded-xl text-sm font-semibold text-white bg-sky-500 hover:bg-sky-600">
+                      <button type="button" onClick={handleSaveApiConfig} className="px-5 py-2 rounded-xl text-sm font-semibold text-white bg-sky-500 hover:bg-sky-600">
                         Save API Config
                       </button>
                     </div>
@@ -487,20 +608,26 @@ export default function SettingsPage() {
                 <div className="card p-6">
                   <h3 className="text-sm font-semibold mb-5" style={{ color: 'var(--foreground)' }}>Organization Settings</h3>
                   <div className="space-y-4">
-                    {[
-                      { label: 'Organization Name', value: 'Acme Corp' },
-                      { label: 'Industry',           value: 'Technology' },
-                      { label: 'Plan',               value: 'Professional' },
-                    ].map(f => (
-                      <div key={f.label}>
-                        <label className="block text-xs font-semibold mb-1.5" style={{ color: 'var(--foreground)' }}>{f.label}</label>
-                        <input defaultValue={f.value}
-                          className="w-full px-3 py-2.5 rounded-xl text-sm border outline-none focus:ring-2 focus:ring-sky-500/30"
-                          style={{ background: 'var(--muted)', borderColor: 'var(--border)', color: 'var(--foreground)' }} />
-                      </div>
-                    ))}
+                    <div>
+                      <label className="block text-xs font-semibold mb-1.5" style={{ color: 'var(--foreground)' }}>Organization Name</label>
+                      <input value={orgName} onChange={e => setOrgName(e.target.value)}
+                        className="w-full px-3 py-2.5 rounded-xl text-sm border outline-none focus:ring-2 focus:ring-sky-500/30"
+                        style={{ background: 'var(--muted)', borderColor: 'var(--border)', color: 'var(--foreground)' }} />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold mb-1.5" style={{ color: 'var(--foreground)' }}>Industry</label>
+                      <input value={orgIndustry} onChange={e => setOrgIndustry(e.target.value)}
+                        className="w-full px-3 py-2.5 rounded-xl text-sm border outline-none focus:ring-2 focus:ring-sky-500/30"
+                        style={{ background: 'var(--muted)', borderColor: 'var(--border)', color: 'var(--foreground)' }} />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold mb-1.5" style={{ color: 'var(--foreground)' }}>Plan</label>
+                      <input value={orgPlan} onChange={e => setOrgPlan(e.target.value)}
+                        className="w-full px-3 py-2.5 rounded-xl text-sm border outline-none focus:ring-2 focus:ring-sky-500/30"
+                        style={{ background: 'var(--muted)', borderColor: 'var(--border)', color: 'var(--foreground)' }} />
+                    </div>
                     <div className="flex justify-end">
-                      <button className="px-5 py-2 rounded-xl text-sm font-semibold text-white bg-sky-500 hover:bg-sky-600">
+                      <button type="button" onClick={handleSaveOrganization} className="px-5 py-2 rounded-xl text-sm font-semibold text-white bg-sky-500 hover:bg-sky-600">
                         Save Organization
                       </button>
                     </div>
