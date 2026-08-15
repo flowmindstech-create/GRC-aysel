@@ -204,7 +204,8 @@ export function TopNav({ title, subtitle }: TopNavProps) {
               <p className="text-[11px] mt-0.5 capitalize" style={{ color: 'var(--muted-fg)' }}>{roleLabel}</p>
             </div>
             <button
-              className="w-full flex items-center gap-2.5 px-3 py-2 text-sm transition-colors"
+              onClick={() => { setShowUserMenu(false); router.push('/settings') }}
+              className="w-full flex items-center gap-2.5 px-3 py-2 text-sm transition-colors cursor-pointer"
               style={{ color: 'var(--foreground)' }}
               onMouseEnter={e => ((e.currentTarget as HTMLElement).style.background = 'rgba(21,39,68,0.05)')}
               onMouseLeave={e => ((e.currentTarget as HTMLElement).style.background = '')}
