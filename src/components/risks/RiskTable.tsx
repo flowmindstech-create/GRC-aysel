@@ -46,6 +46,8 @@ export function RiskTable() {
   const [levelFilter, setLevelFilter] = useState<RiskLevel | 'all'>('all')
   const [categoryFilter, setCategoryFilter] = useState<RiskCategory | 'all'>('all')
   const [statusFilter, setStatusFilter] = useState<RiskStatus | 'all'>('all')
+  const [deptFilter, setDeptFilter] = useState<string>('all')
+  const [ownerFilter, setOwnerFilter] = useState<string>('all')
   const [showForm, setShowForm] = useState(false)
   const [editRisk, setEditRisk] = useState<Risk | null>(null)
   const [detailRisk, setDetailRisk] = useState<Risk | null>(null)
@@ -90,8 +92,14 @@ export function RiskTable() {
     const matchLevel = levelFilter === 'all' || r.level === levelFilter
     const matchCat = categoryFilter === 'all' || r.category === categoryFilter
     const matchStatus = statusFilter === 'all' || normalizeStatus(r.status) === statusFilter
-    return matchTier && matchSearch && matchLevel && matchCat && matchStatus
+    const matchDept = deptFilter === 'all' || (r.owner_dept ?? '') === deptFilter
+    const matchOwner = ownerFilter === 'all' || (r.owner_name ?? '') === ownerFilter
+    return matchTier && matchSearch && matchLevel && matchCat && matchStatus && matchDept && matchOwner
   })
+
+  // Filter dropdown üçün unikal dəyərlər (mövcud məlumatdan)
+  const deptOptions = Array.from(new Set(risks.map(r => r.owner_dept ?? '').filter(Boolean))).sort()
+  const ownerOptions = Array.from(new Set(risks.map(r => r.owner_name ?? '').filter(Boolean))).sort()
 
   // Group by category (registry view): RISK_CATEGORIES order, newest/updated on top
   const grouped = RISK_CATEGORIES
@@ -187,6 +195,32 @@ export function RiskTable() {
         >
           {CATEGORIES.map(c => <option key={c} value={c}>{c === 'all' ? 'All Categories' : CATEGORY_LABELS[c]}</option>)}
         </select>
+
+        {/* Department filter */}
+        {deptOptions.length > 0 && (
+          <select
+            value={deptFilter}
+            onChange={e => setDeptFilter(e.target.value)}
+            className="px-3 py-2 rounded-xl text-xs font-medium outline-none cursor-pointer"
+            style={{ background: 'var(--card)', border: '1px solid var(--border)', color: 'var(--foreground)' }}
+          >
+            <option value="all">All Departments</option>
+            {deptOptions.map(d => <option key={d} value={d}>{d}</option>)}
+          </select>
+        )}
+
+        {/* Owner filter */}
+        {ownerOptions.length > 0 && (
+          <select
+            value={ownerFilter}
+            onChange={e => setOwnerFilter(e.target.value)}
+            className="px-3 py-2 rounded-xl text-xs font-medium outline-none cursor-pointer"
+            style={{ background: 'var(--card)', border: '1px solid var(--border)', color: 'var(--foreground)' }}
+          >
+            <option value="all">All Owners</option>
+            {ownerOptions.map(o => <option key={o} value={o}>{o}</option>)}
+          </select>
+        )}
 
         <ExportMenu columns={RISK_EXPORT_COLUMNS} rows={filtered} filename="risk-register" title="Risk Register" />
       </div>
