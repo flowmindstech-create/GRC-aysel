@@ -23,7 +23,7 @@ describe('email — konfiqurasiya', () => {
 
   it('açar yoxdursa göndərmə şəbəkəyə çıxmadan xəta qaytarır (onboarding bloklanmır)', async () => {
     delete process.env.RESEND_API_KEY
-    const res = await sendWelcomeEmail({ to: 'a@b.com', fullName: 'Ali', company: 'Acme' })
+    const res = await sendWelcomeEmail({ to: 'a@b.com', fullName: 'Ali', company: 'GRCell' })
     expect(res.ok).toBe(false)
     expect(res.error).toMatch(/RESEND_API_KEY/)
   })
@@ -41,7 +41,7 @@ describe('email — HTML məzmunu və XSS escaping', () => {
   })
 
   it('ad sahəsindəki XSS payload escape olunur (raw <script> yoxdur)', () => {
-    const html = renderWelcomeHtml({ to: 'x@y.com', fullName: '<script>alert(1)</script>', company: 'Acme' })
+    const html = renderWelcomeHtml({ to: 'x@y.com', fullName: '<script>alert(1)</script>', company: 'GRCell' })
     expect(html).not.toContain('<script>alert(1)</script>')
     expect(html).toContain('&lt;script&gt;')
   })

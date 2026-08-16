@@ -232,7 +232,7 @@ export function Sidebar({ onMobileClose }: SidebarProps) {
           >
             Organization
           </p>
-          <p className="text-xs font-semibold" style={{ color: 'var(--foreground)' }}>Acme Corp</p>
+          <p className="text-xs font-semibold" style={{ color: 'var(--foreground)' }}>GRCell</p>
           <span
             className="inline-flex items-center mt-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold"
             style={{

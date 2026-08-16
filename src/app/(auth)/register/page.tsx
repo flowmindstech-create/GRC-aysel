@@ -113,7 +113,7 @@ export default function RegisterPage() {
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           {[
             { name: 'full_name', label: 'Full Name', icon: User, type: 'text', placeholder: 'Ali Hasanov' },
-            { name: 'company', label: 'Company', icon: Building, type: 'text', placeholder: 'Acme Corp' },
+            { name: 'company', label: 'Company', icon: Building, type: 'text', placeholder: 'GRCell' },
             { name: 'email', label: 'Work Email', icon: Mail, type: 'email', placeholder: 'you@company.com' },
             { name: 'password', label: 'Password', icon: Lock, type: 'password', placeholder: '••••••••' },
           ].map(f => (

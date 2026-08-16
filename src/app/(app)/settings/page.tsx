@@ -60,7 +60,7 @@ export default function SettingsPage() {
 
   // ── API / Təşkilat ───────────────────────────────────────────────────────
   const [supabaseUrl, setSupabaseUrl] = useState(process.env.NEXT_PUBLIC_SUPABASE_URL || '')
-  const [orgName, setOrgName] = useState('Acme Corp')
+  const [orgName, setOrgName] = useState('GRCell')
   const [orgIndustry, setOrgIndustry] = useState('Technology')
   const [orgPlan, setOrgPlan] = useState('Professional')
 
