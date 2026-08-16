@@ -831,7 +831,7 @@ export interface ControlIssue {
 // ─── Monitoring (KRI / KCI / KPI) ────────────────────────────────────────────
 
 export type MonitoringStatus  = 'green' | 'amber' | 'red'
-export type MonitoringFreq    = 'daily' | 'weekly' | 'monthly' | 'quarterly'
+export type MonitoringFreq    = 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'annual'
 export type Trend             = 'up' | 'down' | 'flat'
 export type KCIStatus         = 'effective' | 'partially_effective' | 'ineffective'
 

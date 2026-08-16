@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { dbExt } from '@/lib/db-extensions'
+import { SEED_RAS_KRIS } from '@/lib/seed-ras'
 import type { KRIItem, KCIItem, KPIItem, MonitoringAlert, MonitoringStatus, Trend } from '@/types'
 import { cn } from '@/lib/utils'
 import {
@@ -303,7 +304,15 @@ export function MonitoringDashboard() {
       dbExt.getKPIItems(),
       dbExt.getMonitoringAlerts(),
     ])
-    setKRIs(k); setKCIs(c); setKPIs(p); setAlerts(a)
+    // RAS seed: KRI-lar boşdursa Excel RAS (04.08.2026) göstəricilərini yüklə
+    let kr = k
+    if (kr.length === 0 && SEED_RAS_KRIS.length > 0) {
+      for (const item of SEED_RAS_KRIS) {
+        await dbExt.saveKRIItem(item)
+      }
+      kr = await dbExt.getKRIItems()
+    }
+    setKRIs(kr); setKCIs(c); setKPIs(p); setAlerts(a)
     setLoading(false)
   }
 
