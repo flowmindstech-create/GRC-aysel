@@ -79,7 +79,7 @@ export default function SettingsPage() {
 
   // ── Handler-lər ──────────────────────────────────────────────────────────
   async function handleSaveProfile() {
-    if (!fullName.trim()) { toast.error('Ad boş ola bilməz'); return }
+    if (!fullName.trim()) { toast.error('Name cannot be empty'); return }
     setSavingProfile(true)
     try {
       if (profile?.id) {

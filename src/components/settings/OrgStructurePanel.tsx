@@ -119,7 +119,7 @@ export function OrgStructurePanel() {
               </select>
             </div>
             <div>
-              <label className="block text-[11px] font-semibold mb-1.5" style={{ color: 'var(--foreground)' }}>Code <span className="font-normal text-slate-500">(Risk ID prefiksi, məs. IT)</span></label>
+              <label className="block text-[11px] font-semibold mb-1.5" style={{ color: 'var(--foreground)' }}>Code <span className="font-normal text-slate-500">(Risk ID prefix, e.g. IT)</span></label>
               <input value={editing.code ?? ''} onChange={e => setEditing({ ...editing, code: e.target.value.toUpperCase() })}
                 placeholder="IT" className={inputCls} style={{ ...inputSty, background: 'var(--card)' }} />
             </div>

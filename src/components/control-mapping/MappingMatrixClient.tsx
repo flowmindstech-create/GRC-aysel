@@ -177,7 +177,7 @@ export function MappingMatrixClient() {
               style={{ background: `linear-gradient(90deg,transparent,rgba(${s.rgb},0.7),transparent)` }} />
             <p className="text-2xl font-bold" style={{ color: `rgb(${s.rgb})` }}>{s.value}</p>
             <p className="text-xs mt-0.5" style={{ color: 'var(--muted-fg)' }}>{s.label}</p>
-            {active && s.filter !== 'all' && <p className="text-[10px] mt-1 font-semibold" style={{ color: `rgb(${s.rgb})` }}>● Yalnız bu tip görünür</p>}
+            {active && s.filter !== 'all' && <p className="text-[10px] mt-1 font-semibold" style={{ color: `rgb(${s.rgb})` }}>● Only this type shown</p>}
           </motion.button>
           )
         })}
@@ -185,16 +185,16 @@ export function MappingMatrixClient() {
 
       {/* Process filter — shrink the matrix to a single process (avoids the endless tunnel) */}
       <div className="flex flex-wrap items-center gap-3">
-        <span className="text-xs font-semibold" style={{ color: 'var(--foreground)' }}>Prosesə görə filtr:</span>
+        <span className="text-xs font-semibold" style={{ color: 'var(--foreground)' }}>Filter by process:</span>
         <select value={processFilter} onChange={e => setProcessFilter(e.target.value)}
           className="px-3 py-2 rounded-xl text-xs font-medium outline-none cursor-pointer"
           style={{ background: 'var(--card)', border: '1px solid var(--border)', color: 'var(--foreground)' }}>
-          <option value="all">Bütün proseslər</option>
+          <option value="all">All processes</option>
           {processes.map(p => <option key={p.id} value={p.id}>{p.code} · {p.name}</option>)}
         </select>
         {processFilter !== 'all' && (
           <span className="text-[11px]" style={{ color: 'var(--muted-fg)' }}>
-            {visibleControls.length} kontrol · {visibleRisks.length} risk göstərilir
+            {visibleControls.length} controls · {visibleRisks.length} risks shown
           </span>
         )}
       </div>

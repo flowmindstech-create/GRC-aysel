@@ -89,7 +89,7 @@ export function IncidentInvestigationForm({ data, onChange }: Props) {
       const obl = obligations.find(o => o.id === data.compliance_obligation_id)
       if (obl) {
         await db.saveObligation({ ...obl, status: 'non_compliant' })
-        toast.success(`Uyğunsuzluq işarələndi: ${obl.obligation_code}`)
+        toast.success(`Non-compliance flagged: ${obl.obligation_code}`)
       }
     } catch { toast.error('Could not be marked') } finally { setFlagging(false) }
   }
@@ -199,41 +199,41 @@ export function IncidentInvestigationForm({ data, onChange }: Props) {
 
       {/* Resolution assignment — Department → responsible person (auto) */}
       <p className="text-[11px] font-bold uppercase tracking-wide pt-1" style={{ color: 'var(--brand-500)' }}>
-        Həll üzrə Təyinat
+        Resolution Assignment
       </p>
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Assign Department</label>
           <select value={data.assigned_dept ?? ''} onChange={e => handleAssignDept(e.target.value)}
             className={`${fieldCls} cursor-pointer`} style={inputStyle}>
-            <option value="">— Seçin —</option>
+            <option value="">— Select —</option>
             {departments.map(d => <option key={d.id} value={d.name}>{d.name}</option>)}
           </select>
         </div>
         <div>
-          <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Məsul şəxs (avtomatik)</label>
+          <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Responsible person (automatic)</label>
           <input value={data.resolution_assignee_name ?? ''} readOnly placeholder="Department Head"
             className={`${fieldCls} opacity-70`} style={inputStyle} />
         </div>
       </div>
       <p className="text-[10px]" style={{ color: 'var(--muted-fg)' }}>
-        Departament seçiləndə məsul şəxs avtomatik gəlir; təyinatdan sonra həll yalnız bu şəxsdə açılır.
+        When a department is selected the responsible person is auto-filled; after assignment the resolution opens only for that person.
       </p>
 
       {/* Investigation Lead — chosen from the risk management team (dept head) */}
       <div>
-        <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Araşdırma Rəhbəri</label>
+        <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Investigation Lead</label>
         <select value={data.investigation_lead ?? ''}
           onChange={e => onChange({ ...data, investigation_lead: e.target.value })}
           className={`${fieldCls} cursor-pointer`} style={inputStyle}>
-          <option value="">— Seçin (risk komandası) —</option>
+          <option value="">— Select (risk team) —</option>
           {riskTeam.map(u => <option key={u.id} value={u.full_name}>{u.full_name}</option>)}
         </select>
       </div>
 
       {/* Investigation Members — same risk team group; dropdown to add + chips */}
       <div>
-        <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Araşdırma Üzvləri</label>
+        <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Investigation Members</label>
         <select value=""
           onChange={e => {
             const name = e.target.value
@@ -242,7 +242,7 @@ export function IncidentInvestigationForm({ data, onChange }: Props) {
             if (!cur.includes(name)) onChange({ ...data, investigation_members: [...cur, name] })
           }}
           className={`${fieldCls} cursor-pointer`} style={inputStyle}>
-          <option value="">— Üzv əlavə et (risk komandası) —</option>
+          <option value="">— Add member (risk team) —</option>
           {riskTeam
             .filter(u => u.full_name !== data.investigation_lead && !(data.investigation_members ?? []).includes(u.full_name))
             .map(u => <option key={u.id} value={u.full_name}>{u.full_name}</option>)}
@@ -265,14 +265,14 @@ export function IncidentInvestigationForm({ data, onChange }: Props) {
       {/* Investigation Dates */}
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Başlanğıc Tarixi</label>
+          <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Start Date</label>
           <input type="date" max={todayLocal()} value={data.investigation_start?.split('T')[0] ?? ''}
             onChange={e => { const v = e.target.value; onChange({ ...data, investigation_start: v && v > todayLocal() ? todayLocal() : v }) }}
             className={fieldCls} style={inputStyle} onFocus={focus} onBlur={blur} />
-          <p className="text-[10px] mt-0.5" style={{ color: 'var(--muted-fg)' }}>Gələcək tarix seçmək olmaz</p>
+          <p className="text-[10px] mt-0.5" style={{ color: 'var(--muted-fg)' }}>Future dates are not allowed</p>
         </div>
         <div>
-          <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Bitmə Tarixi</label>
+          <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>End Date</label>
           <input type="date" value={data.investigation_end?.split('T')[0] ?? ''}
             onChange={e => onChange({ ...data, investigation_end: e.target.value })}
             className={fieldCls} style={inputStyle} onFocus={focus} onBlur={blur} />
@@ -281,11 +281,11 @@ export function IncidentInvestigationForm({ data, onChange }: Props) {
 
       {/* GRC linkage — incident ↔ risk / control */}
       <p className="text-[11px] font-bold uppercase tracking-wide pt-1" style={{ color: 'var(--brand-500)' }}>
-        GRC Əlaqəsi
+        GRC Link
       </p>
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Əlaqəli Risk</label>
+          <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Related Risk</label>
           <select value={data.risk_id ?? ''} onChange={e => onChange({ ...data, risk_id: e.target.value || undefined })}
             className={`${fieldCls} cursor-pointer`} style={inputStyle}>
             <option value="">— Yoxdur —</option>
@@ -300,7 +300,7 @@ export function IncidentInvestigationForm({ data, onChange }: Props) {
             {selectableControls.map(c => <option key={c.id} value={c.id}>{c.control_id + ' · ' + c.title}</option>)}
           </select>
           {processControlIds && (
-            <p className="text-[10px] mt-0.5" style={{ color: 'var(--muted-fg)' }}>Yalnız seçilmiş prosesin kontrolları</p>
+            <p className="text-[10px] mt-0.5" style={{ color: 'var(--muted-fg)' }}>Only controls of the selected process</p>
           )}
         </div>
       </div>
@@ -315,7 +315,7 @@ export function IncidentInvestigationForm({ data, onChange }: Props) {
             )}
           </div>
           <div className="space-y-1">
-            <span className="text-[10px] uppercase font-bold text-sky-400 tracking-wider">Nəzarətin dizaynı</span>
+            <span className="text-[10px] uppercase font-bold text-sky-400 tracking-wider">Control design</span>
             <div className="grid grid-cols-3 gap-2">
               {CONTROL_SUBCRITERIA.filter(s => s.group === 'design').map(s => (
                 <RcsaDropdown key={s.key} label={s.label} value={(data.incident_control_assessment?.[s.key as keyof NonNullable<Incident['incident_control_assessment']>] as number) || 3}
@@ -324,7 +324,7 @@ export function IncidentInvestigationForm({ data, onChange }: Props) {
             </div>
           </div>
           <div className="space-y-1">
-            <span className="text-[10px] uppercase font-bold text-sky-400 tracking-wider">Nəzarətin tətbiqi</span>
+            <span className="text-[10px] uppercase font-bold text-sky-400 tracking-wider">Control implementation</span>
             <div className="grid grid-cols-3 gap-2">
               {CONTROL_SUBCRITERIA.filter(s => s.group === 'implementation').map(s => (
                 <RcsaDropdown key={s.key} label={s.label} value={(data.incident_control_assessment?.[s.key as keyof NonNullable<Incident['incident_control_assessment']>] as number) || 3}
@@ -338,7 +338,7 @@ export function IncidentInvestigationForm({ data, onChange }: Props) {
       {/* Inherent → Residual → Priority (single source: 5×5 + RCSA) */}
       <div className="grid grid-cols-3 gap-2">
         <div className="rounded-lg px-2 py-1.5" style={{ background: 'var(--muted)' }}>
-          <p className="text-[9px] uppercase" style={{ color: 'var(--muted-fg)' }}>İlkin (Inherent)</p>
+          <p className="text-[9px] uppercase" style={{ color: 'var(--muted-fg)' }}>Initial (Inherent)</p>
           <p className="text-xs font-semibold" style={{ color: 'var(--foreground)' }}>{inherentLevelWord(inherentLevel)}</p>
         </div>
         <div className="rounded-lg px-2 py-1.5" style={{ background: 'var(--muted)' }}>
@@ -353,7 +353,7 @@ export function IncidentInvestigationForm({ data, onChange }: Props) {
 
       {/* Compliance linkage + non-compliance flag */}
       <div>
-        <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Əlaqəli Compliance Öhdəliyi</label>
+        <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Related Compliance Obligation</label>
         <div className="flex gap-2">
           <select value={data.compliance_obligation_id ?? ''} onChange={e => onChange({ ...data, compliance_obligation_id: e.target.value || undefined })}
             className={`${fieldCls} cursor-pointer`} style={inputStyle}>
@@ -368,7 +368,7 @@ export function IncidentInvestigationForm({ data, onChange }: Props) {
           )}
         </div>
         {data.compliance_obligation_id && (
-          <p className="text-[10px] mt-0.5 text-red-400">Uyğunsuzluq aşkarlandı — öhdəlik "non_compliant" kimi işarələnəcək.</p>
+          <p className="text-[10px] mt-0.5 text-red-400">Non-compliance detected — the obligation will be flagged as "non_compliant".</p>
         )}
       </div>
 
@@ -377,23 +377,23 @@ export function IncidentInvestigationForm({ data, onChange }: Props) {
         Root Cause Analysis
       </p>
       <div>
-        <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Kök Səbəb Təsnifatı</label>
+        <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Root Cause Classification</label>
         <select value={data.root_cause_category ?? ''} onChange={e => onChange({ ...data, root_cause_category: (e.target.value || undefined) as Incident['root_cause_category'] })}
           className={`${fieldCls} cursor-pointer`} style={inputStyle}>
-          <option value="">— Seçin —</option>
+          <option value="">— Select —</option>
           {ROOT_CAUSE_CATEGORIES.map(cat => <option key={cat.value} value={cat.value}>{cat.label}</option>)}
         </select>
       </div>
 
       {/* 5-Why */}
       <div>
-        <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>5 Niyə (5-Why)</label>
+        <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>5 Whys (5-Why)</label>
         <div className="space-y-2 pl-2 border-l-2" style={{ borderColor: 'var(--border)' }}>
           {[0, 1, 2, 3, 4].map(i => (
             <div key={i}>
-              {i === 4 && <p className="text-[10px] text-amber-400 font-semibold mb-0.5">Yekun səbəb:</p>}
+              {i === 4 && <p className="text-[10px] text-amber-400 font-semibold mb-0.5">Final cause:</p>}
               <input value={whys[i] ?? ''} onChange={e => setWhy(i, e.target.value)}
-                placeholder={i === 4 ? '5. Why? (final root cause)' : `${i + 1}. Niyə?`}
+                placeholder={i === 4 ? '5. Why? (final root cause)' : `${i + 1}. Why?`}
                 className={cn(fieldCls, i === 4 && 'font-medium')}
                 style={i === 4 ? { background: 'rgba(234,179,8,0.08)', border: '1px solid rgba(234,179,8,0.3)', color: 'var(--foreground)' } : inputStyle}
                 onFocus={focus} onBlur={blur} />
@@ -404,7 +404,7 @@ export function IncidentInvestigationForm({ data, onChange }: Props) {
 
       {/* Root Cause Detail (free text) */}
       <div>
-        <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Root Cause Təfərrüatı</label>
+        <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Root Cause Details</label>
         <textarea value={data.root_cause ?? ''} onChange={e => onChange({ ...data, root_cause: e.target.value })} rows={2}
           placeholder="Explain the root cause in detail..."
           className={`${fieldCls} resize-none`} style={inputStyle} onFocus={focus} onBlur={blur} />
@@ -412,7 +412,7 @@ export function IncidentInvestigationForm({ data, onChange }: Props) {
 
       {/* Clarifying questions (replaces free investigation notes) */}
       <div>
-        <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Dəqiqləşdirmə sualları</label>
+        <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Clarifying questions</label>
         <div className="space-y-2">
           {CLARIFYING_QUESTIONS.map((q, i) => (
             <div key={i}>
@@ -429,7 +429,7 @@ export function IncidentInvestigationForm({ data, onChange }: Props) {
 
       {/* Affected Parties — structures + vendors + interested/3rd parties (dropdown + chips) */}
       <div>
-        <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Təsirlənmiş Tərəflər</label>
+        <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Affected Parties</label>
         <select value=""
           onChange={e => {
             const name = e.target.value
@@ -438,7 +438,7 @@ export function IncidentInvestigationForm({ data, onChange }: Props) {
             if (!cur.includes(name)) onChange({ ...data, affected_departments: [...cur, name] })
           }}
           className={`${fieldCls} cursor-pointer`} style={inputStyle}>
-          <option value="">— Tərəf əlavə et (struktur / vendor / 3-cü tərəf) —</option>
+          <option value="">— Add party (structure / vendor / third party) —</option>
           {affectedPartyOptions.filter(n => !(data.affected_departments ?? []).includes(n)).map(n => <option key={n} value={n}>{n}</option>)}
         </select>
         {(data.affected_departments ?? []).length > 0 && (

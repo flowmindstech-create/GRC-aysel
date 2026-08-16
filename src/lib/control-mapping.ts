@@ -142,25 +142,25 @@ export function canAdvance(item: GRCIntakeItem): { ok: boolean; reason?: string 
   const step = item.step
 
   if (step === 'compliance_assessment' && item.mapped_control_ids.length === 0)
-    return { ok: false, reason: 'En az bir control map edilməlidir.' }
+    return { ok: false, reason: 'At least one control must be mapped.' }
 
   if (step === 'inherent_assessment' && (item.inherent_likelihood == null || item.inherent_impact == null))
-    return { ok: false, reason: 'Inherent likelihood və impact daxil edilməlidir.' }
+    return { ok: false, reason: 'Inherent likelihood and impact must be entered.' }
 
   if (step === 'residual_assessment' && (item.residual_likelihood == null || item.residual_impact == null))
-    return { ok: false, reason: 'Residual likelihood və impact daxil edilməlidir.' }
+    return { ok: false, reason: 'Residual likelihood and impact must be entered.' }
 
   if (step === 'appetite_gate' && !item.appetite_decision)
-    return { ok: false, reason: 'Qərar seçin: Accept və ya Treat.' }
+    return { ok: false, reason: 'Choose a decision: Accept or Treat.' }
 
   if (step === 'action_plan' && !item.action_plan?.trim())
-    return { ok: false, reason: 'Action plan mətni tələb olunur.' }
+    return { ok: false, reason: 'Action plan text is required.' }
 
   if (step === 'validation' && !item.validation_note?.trim())
-    return { ok: false, reason: 'Validation notu tələb olunur.' }
+    return { ok: false, reason: 'Validation note is required.' }
 
   if (step === 'reassessment' && !item.post_treatment_appetite)
-    return { ok: false, reason: 'Post-treatment appetite qiymətləndirilməlidir.' }
+    return { ok: false, reason: 'Post-treatment appetite must be assessed.' }
 
   return { ok: true }
 }

@@ -20,8 +20,8 @@ const entLabel = (t: string) => ENTITY_OPTIONS.find(o => o.value === t)?.label ?
 
 function statusOf(ex: AccessException): { label: string; rgb: string } {
   if (ex.revoked) return { label: 'Cancelled', rgb: '100,116,139' }
-  if (!isExceptionActive(ex)) return { label: 'Bitib', rgb: '217,119,6' }
-  return { label: 'Aktiv', rgb: '5,150,105' }
+  if (!isExceptionActive(ex)) return { label: 'Expired', rgb: '217,119,6' }
+  return { label: 'Active', rgb: '5,150,105' }
 }
 const fmt = (iso?: string | null) => (iso ? new Date(iso).toLocaleDateString('az-AZ') : '—')
 
@@ -87,14 +87,14 @@ export function AccessExceptionsPanel() {
     setItems(prev => prev.map(e => (e.id === id ? { ...e, revoked: true } : e)))
   }
 
-  if (permLoading) return <div className="card p-6 flex items-center gap-2 text-sm" style={{ color: 'var(--muted-fg)' }}><Loader2 className="w-4 h-4 animate-spin" /> Yüklənir…</div>
+  if (permLoading) return <div className="card p-6 flex items-center gap-2 text-sm" style={{ color: 'var(--muted-fg)' }}><Loader2 className="w-4 h-4 animate-spin" /> Loading…</div>
   if (!isSuperAdmin) {
     return (
       <div className="card p-8 flex flex-col items-center text-center gap-3">
         <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ background: 'var(--muted)' }}><Lock className="w-5 h-5" style={{ color: 'var(--muted-fg)' }} /></div>
         <div>
-          <p className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>Giriş məhduddur</p>
-          <p className="text-xs mt-1" style={{ color: 'var(--muted-fg)' }}>Xüsusi icazələr yalnız Super Admin üçündür.</p>
+          <p className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>Access restricted</p>
+          <p className="text-xs mt-1" style={{ color: 'var(--muted-fg)' }}>Access exceptions are for Super Admin only.</p>
         </div>
       </div>
     )
@@ -108,62 +108,62 @@ export function AccessExceptionsPanel() {
       <div className="flex items-center justify-between mb-1">
         <div className="flex items-center gap-2">
           <KeyRound className="w-4 h-4" style={{ color: 'var(--brand-500)' }} />
-          <h3 className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>Xüsusi icazələr</h3>
+          <h3 className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>Access Exceptions</h3>
         </div>
         <button onClick={() => setShowForm(v => !v)} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-sky-500 hover:bg-sky-600">
-          <Plus className="w-3.5 h-3.5" /> Yeni icazə
+          <Plus className="w-3.5 h-3.5" /> New Exception
         </button>
       </div>
-      <p className="text-xs mb-5" style={{ color: 'var(--muted-fg)' }}>İerarxiyadan kənar müvəqqəti giriş. Bitmə tarixi keçəndə avtomatik passiv olur.</p>
+      <p className="text-xs mb-5" style={{ color: 'var(--muted-fg)' }}>Temporary access outside the hierarchy. Automatically deactivates once the expiry date passes.</p>
 
       {showForm && (
         <div className="rounded-xl p-4 mb-5 space-y-3" style={{ background: 'var(--muted)', border: '1px solid var(--border)' }}>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium mb-1.5" style={{ color: 'var(--muted-fg)' }}>İstifadəçi</label>
+              <label className="block text-xs font-medium mb-1.5" style={{ color: 'var(--muted-fg)' }}>User</label>
               <select value={userId} onChange={e => setUserId(e.target.value)} className={`${fieldCls} cursor-pointer`} style={inputSty}>
-                <option value="">— Seçin —</option>
+                <option value="">— Select —</option>
                 {users.map(u => <option key={u.id} value={u.id}>{u.full_name}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-xs font-medium mb-1.5" style={{ color: 'var(--muted-fg)' }}>İcazə növü</label>
+              <label className="block text-xs font-medium mb-1.5" style={{ color: 'var(--muted-fg)' }}>Permission</label>
               <select value={permission} onChange={e => setPermission(e.target.value as AccessPermission)} className={`${fieldCls} cursor-pointer`} style={inputSty}>
                 {(['view', 'edit', 'approve'] as AccessPermission[]).map(p => <option key={p} value={p}>{PERM_LABEL[p]}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-xs font-medium mb-1.5" style={{ color: 'var(--muted-fg)' }}>Hədəf</label>
+              <label className="block text-xs font-medium mb-1.5" style={{ color: 'var(--muted-fg)' }}>Target</label>
               <select value={entityType} onChange={e => setEntityType(e.target.value)} className={`${fieldCls} cursor-pointer`} style={inputSty}>
                 {ENTITY_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
               </select>
             </div>
             {entityType === 'org_unit' && (
               <div>
-                <label className="block text-xs font-medium mb-1.5" style={{ color: 'var(--muted-fg)' }}>Bölmə</label>
+                <label className="block text-xs font-medium mb-1.5" style={{ color: 'var(--muted-fg)' }}>Division</label>
                 <select value={unitId} onChange={e => setUnitId(e.target.value)} className={`${fieldCls} cursor-pointer`} style={inputSty}>
-                  <option value="">— Seçin —</option>
+                  <option value="">— Select —</option>
                   {units.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
                 </select>
               </div>
             )}
             <div>
-              <label className="block text-xs font-medium mb-1.5" style={{ color: 'var(--muted-fg)' }}>Başlanğıc</label>
+              <label className="block text-xs font-medium mb-1.5" style={{ color: 'var(--muted-fg)' }}>Start</label>
               <input type="date" value={startsAt} onChange={e => setStartsAt(e.target.value)} className={fieldCls} style={inputSty} />
             </div>
             <div>
-              <label className="block text-xs font-medium mb-1.5" style={{ color: 'var(--muted-fg)' }}>Bitmə (müddət)</label>
+              <label className="block text-xs font-medium mb-1.5" style={{ color: 'var(--muted-fg)' }}>Expiry (duration)</label>
               <input type="date" value={expiresAt} onChange={e => setExpiresAt(e.target.value)} className={fieldCls} style={inputSty} />
             </div>
           </div>
           <div>
-            <label className="block text-xs font-medium mb-1.5" style={{ color: 'var(--muted-fg)' }}>Səbəb <span className="text-red-400">*</span></label>
+            <label className="block text-xs font-medium mb-1.5" style={{ color: 'var(--muted-fg)' }}>Reason <span className="text-red-400">*</span></label>
             <textarea value={reason} onChange={e => setReason(e.target.value)} rows={2} placeholder="Why is this access granted…" className={`${fieldCls} resize-none`} style={inputSty} />
           </div>
           <div className="flex justify-end gap-2">
-            <button onClick={() => setShowForm(false)} className="px-4 py-2 rounded-lg text-sm font-semibold border" style={{ borderColor: 'var(--border)', color: 'var(--foreground)' }}>Ləğv et</button>
+            <button onClick={() => setShowForm(false)} className="px-4 py-2 rounded-lg text-sm font-semibold border" style={{ borderColor: 'var(--border)', color: 'var(--foreground)' }}>Cancel</button>
             <button onClick={create} disabled={saving} className="px-4 py-2 rounded-lg text-sm font-semibold text-white bg-sky-500 hover:bg-sky-600 disabled:opacity-50 flex items-center gap-2">
-              {saving && <Loader2 className="w-4 h-4 animate-spin" />} İcazə ver
+              {saving && <Loader2 className="w-4 h-4 animate-spin" />} Grant
             </button>
           </div>
         </div>
@@ -178,9 +178,9 @@ export function AccessExceptionsPanel() {
           </tr></thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={7} className="py-10 text-center text-sm" style={{ color: 'var(--muted-fg)' }}>Yüklənir…</td></tr>
+              <tr><td colSpan={7} className="py-10 text-center text-sm" style={{ color: 'var(--muted-fg)' }}>Loading…</td></tr>
             ) : items.length === 0 ? (
-              <tr><td colSpan={7} className="py-10 text-center text-sm" style={{ color: 'var(--muted-fg)' }}>Hələ xüsusi icazə yoxdur</td></tr>
+              <tr><td colSpan={7} className="py-10 text-center text-sm" style={{ color: 'var(--muted-fg)' }}>No access exceptions yet</td></tr>
             ) : items.map(ex => {
               const st = statusOf(ex)
               const canRevoke = !ex.revoked && isExceptionActive(ex)
@@ -198,7 +198,7 @@ export function AccessExceptionsPanel() {
                     {canRevoke && (
                       <button onClick={() => revoke(ex.id)} className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold border transition-colors hover:bg-red-500/10"
                         style={{ borderColor: 'rgba(225,29,72,0.3)', color: '#f43f5e' }}>
-                        <Ban className="w-3.5 h-3.5" /> İcazəni ləğv et
+                        <Ban className="w-3.5 h-3.5" /> Revoke
                       </button>
                     )}
                   </td>

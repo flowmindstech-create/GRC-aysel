@@ -77,11 +77,11 @@ function RiskFormDialog({ item, obligations, controls, onClose, onSave }: {
             <div>
               <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Requirement (Compliance Register)</label>
               <select value={obligationId} onChange={e => setObligationId(e.target.value)} className={`${fieldCls} cursor-pointer`} style={inputStyle}>
-                <option value="">— Seçin —</option>
+                <option value="">— Select —</option>
                 {obligations.map(o => <option key={o.id} value={o.id}>{o.obligation_code} · {o.title}</option>)}
               </select>
               {!obligationId && (
-                <input value={requirement} onChange={e => setRequirement(e.target.value)} placeholder="və ya tələbi sərbəst yaz…"
+                <input value={requirement} onChange={e => setRequirement(e.target.value)} placeholder="or type a requirement freely…"
                   className={`${fieldCls} mt-2`} style={inputStyle} />
               )}
             </div>
@@ -131,7 +131,7 @@ function RiskFormDialog({ item, obligations, controls, onClose, onSave }: {
             <div>
               <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Risk Treatment Plan</label>
               <textarea value={treatment} onChange={e => setTreatment(e.target.value)} rows={2}
-                placeholder="Riskin idarəedilməsi planı (mitigate / accept / transfer / avoid)…" className={`${fieldCls} resize-none`} style={inputStyle} />
+                placeholder="Risk treatment plan (mitigate / accept / transfer / avoid)…" className={`${fieldCls} resize-none`} style={inputStyle} />
             </div>
             <div className="flex items-center justify-between pt-1">
               <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg text-sm hover:bg-black/[0.04]" style={{ color: 'var(--muted-fg)' }}>Cancel</button>
@@ -223,7 +223,7 @@ export function ComplianceRiskClient() {
         <tbody>
           {loading ? (<tr><td colSpan={11} className="py-16 text-center text-sm" style={{ color: 'var(--muted-fg)' }}>Loading…</td></tr>)
           : filtered.length === 0 ? (<tr><td colSpan={11} className="py-16 text-center" style={{ color: 'var(--muted-fg)' }}>
-              <div className="flex flex-col items-center gap-2"><ScrollText className="w-8 h-8 opacity-30" /><p className="text-sm">Hələ compliance riski yoxdur</p></div>
+              <div className="flex flex-col items-center gap-2"><ScrollText className="w-8 h-8 opacity-30" /><p className="text-sm">No compliance risks yet</p></div>
             </td></tr>)
           : filtered.map((r, i) => {
             const obl = oblById[r.obligation_id ?? '']

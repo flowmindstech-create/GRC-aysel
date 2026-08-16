@@ -18,20 +18,20 @@ export function validateRiskConsistency(
   const list = triggers ?? []
 
   if (list.length === 0) {
-    issues.push({ severity: 'warning', message: 'Risk üçün heç bir trigger təyin edilməyib. Ən azı bir səbəb əlavə edin.' })
+    issues.push({ severity: 'warning', message: 'No triggers defined for the risk. Add at least one cause.' })
     return issues
   }
 
   list.forEach((t, i) => {
     if (!t.description?.trim()) {
-      issues.push({ severity: 'warning', message: `Trigger ${i + 1}: təsvir boşdur.` })
+      issues.push({ severity: 'warning', message: `Trigger ${i + 1}: description is empty.` })
     }
     if (!t.controls || t.controls.length === 0) {
-      issues.push({ severity: 'warning', message: `Trigger ${i + 1}: heç bir control yoxdur — hər trigger ən azı bir control tələb edir.` })
+      issues.push({ severity: 'warning', message: `Trigger ${i + 1}: no controls — each trigger requires at least one control.` })
     } else {
       t.controls.forEach((c, j) => {
         if (!c.description?.trim()) {
-          issues.push({ severity: 'warning', message: `Trigger ${i + 1} · Control ${j + 1}: təsvir boşdur.` })
+          issues.push({ severity: 'warning', message: `Trigger ${i + 1} · Control ${j + 1}: description is empty.` })
         }
       })
     }
@@ -41,10 +41,10 @@ export function validateRiskConsistency(
   const agg = aggregateControlEffectiveness(list)
   const residual = calculateResidualLevel(inherentLevel, agg.rating)
   if (getRiskLevelNumber(inherentLevel) >= getRiskLevelNumber('high') && agg.rating === 'weak') {
-    issues.push({ severity: 'warning', message: 'Yüksək/kritik inherent risk, lakin nəzarətlər zəifdir — residual risk yüksək qalır.' })
+    issues.push({ severity: 'warning', message: 'High/critical inherent risk, but the controls are weak — residual risk stays high.' })
   }
   if (getRiskLevelNumber(residual) >= getRiskLevelNumber('high')) {
-    issues.push({ severity: 'info', message: `Residual risk hələ də yüksəkdir (${residual}). Treatment planı tələb oluna bilər.` })
+    issues.push({ severity: 'info', message: `Residual risk is still high (${residual}). A treatment plan may be required.` })
   }
 
   return issues

@@ -59,7 +59,7 @@ const KIND_FILTERS = ['all', 'CREATED', 'UPDATED', 'DELETED', 'OPENED', 'CLOSED'
 
 function fmtDate(iso: string) {
   const d = new Date(iso)
-  return isNaN(d.getTime()) ? '—' : d.toLocaleString('az-AZ', { dateStyle: 'short', timeStyle: 'short' })
+  return isNaN(d.getTime()) ? '—' : d.toLocaleString('en-GB', { dateStyle: 'short', timeStyle: 'short' })
 }
 
 export default function LogsPage() {
@@ -113,7 +113,7 @@ export default function LogsPage() {
     { key: 'kind', label: 'Status', value: a => actionKind(a.action).label },
     { key: 'action', label: 'Action', value: a => actionLabel(a.action) },
     { key: 'entity_type', label: 'Entity type', value: a => entityLabel(a.entity_type) },
-    { key: 'entity_title', label: 'Obyekt', value: a => a.entity_title ?? '' },
+    { key: 'entity_title', label: 'Object', value: a => a.entity_title ?? '' },
   ]
 
   const selectSty = { background: 'var(--card)', border: '1px solid var(--border)', color: 'var(--foreground)' }
@@ -122,8 +122,8 @@ export default function LogsPage() {
     <main className="flex-1 overflow-y-auto p-4 md:p-6">
       <PageHeader
         title="Logs"
-        subtitle={`Audit izi · ${filtered.length} / ${activities.length} qeyd`}
-        actions={<ExportMenu columns={exportColumns} rows={filtered} filename="audit-loglar" title="Audit Loglar" />}
+        subtitle={`Audit trail · ${filtered.length} / ${activities.length} records`}
+        actions={<ExportMenu columns={exportColumns} rows={filtered} filename="audit-logs" title="Audit Logs" />}
       />
 
       {/* Toolbar */}
@@ -134,14 +134,14 @@ export default function LogsPage() {
             className="flex-1 text-sm bg-transparent outline-none" style={{ color: 'var(--foreground)' }} />
         </div>
         <select value={entityFilter} onChange={e => setEntityFilter(e.target.value)} className="px-3 py-2 rounded-xl text-xs font-medium outline-none cursor-pointer" style={selectSty}>
-          <option value="all">Bütün obyektlər</option>
+          <option value="all">All entities</option>
           {entityTypes.map(t => <option key={t} value={t}>{entityLabel(t)}</option>)}
         </select>
         <select value={kindFilter} onChange={e => setKindFilter(e.target.value)} className="px-3 py-2 rounded-xl text-xs font-medium outline-none cursor-pointer" style={selectSty}>
           {KIND_FILTERS.map(k => <option key={k} value={k}>{k === 'all' ? 'All Actions' : k}</option>)}
         </select>
         <select value={userFilter} onChange={e => setUserFilter(e.target.value)} className="px-3 py-2 rounded-xl text-xs font-medium outline-none cursor-pointer" style={selectSty}>
-          <option value="all">Bütün istifadəçilər</option>
+          <option value="all">All users</option>
           {userNames.map(n => <option key={n} value={n}>{n}</option>)}
         </select>
         <input type="date" value={fromDate} onChange={e => setFromDate(e.target.value)} title="Start Date"
@@ -151,7 +151,7 @@ export default function LogsPage() {
         {(entityFilter !== 'all' || kindFilter !== 'all' || userFilter !== 'all' || fromDate || toDate || search) && (
           <button onClick={() => { setSearch(''); setEntityFilter('all'); setKindFilter('all'); setUserFilter('all'); setFromDate(''); setToDate('') }}
             className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold border" style={{ borderColor: 'var(--border)', color: 'var(--muted-fg)' }}>
-            <Filter className="w-3.5 h-3.5" /> Sıfırla
+            <Filter className="w-3.5 h-3.5" /> Reset
           </button>
         )}
       </div>
@@ -159,17 +159,17 @@ export default function LogsPage() {
       {/* Table */}
       <div className="card overflow-hidden"><div className="overflow-x-auto"><table className="w-full">
         <thead><tr style={{ borderBottom: '1px solid var(--border)', background: 'var(--muted)' }}>
-          {['Date', 'User', 'Status', 'Action', 'Entity type', 'Obyekt'].map(h => (
+          {['Date', 'User', 'Status', 'Action', 'Entity type', 'Object'].map(h => (
             <th key={h} className="text-left px-3 py-3 text-[11px] font-semibold uppercase tracking-wide whitespace-nowrap" style={{ color: 'var(--muted-fg)' }}>{h}</th>
           ))}
         </tr></thead>
         <tbody>
           {loading ? (
-            <tr><td colSpan={6} className="py-16 text-center text-sm" style={{ color: 'var(--muted-fg)' }}>Yüklənir…</td></tr>
+            <tr><td colSpan={6} className="py-16 text-center text-sm" style={{ color: 'var(--muted-fg)' }}>Loading…</td></tr>
           ) : filtered.length === 0 ? (
             <tr><td colSpan={6} className="py-16 text-center" style={{ color: 'var(--muted-fg)' }}>
               <ScrollText className="w-8 h-8 mx-auto mb-2 opacity-30" />
-              <p className="text-sm">Uyğun log qeydi tapılmadı</p>
+              <p className="text-sm">No matching log entries found</p>
             </td></tr>
           ) : filtered.slice(0, 500).map((a, i) => {
             const k = actionKind(a.action)
@@ -191,7 +191,7 @@ export default function LogsPage() {
         </tbody>
       </table></div></div>
       {filtered.length > 500 && (
-        <p className="text-xs mt-3 text-center" style={{ color: 'var(--muted-fg)' }}>İlk 500 qeyd göstərilir — filtrləri daraldın.</p>
+        <p className="text-xs mt-3 text-center" style={{ color: 'var(--muted-fg)' }}>Showing first 500 records — narrow your filters.</p>
       )}
     </main>
   )

@@ -21,7 +21,7 @@ export const ROLE_LABEL: Record<UserRole, string> = {
   admin:        'Administrator',
   risk_manager: 'Risk Manager',
   auditor:      'Auditor',
-  employee:     'Əməkdaş',
+  employee:     'Employee',
 }
 
 // Rolların yuxarıdan-aşağı sıralanması (UI dropdown-ları üçün)

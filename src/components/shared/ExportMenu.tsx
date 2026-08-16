@@ -43,7 +43,7 @@ export function ExportMenu<T>({ columns, rows, filename, title }: Props<T>) {
     try {
       const chosen = columns.filter((_, i) => selected.has(i))
       await exportRows(format, chosen, rows, filename, title)
-      toast.success(`${format.toUpperCase()} yükləndi`)
+      toast.success(`${format.toUpperCase()} downloaded`)
     } catch {
       toast.error('Export failed')
     }
@@ -72,7 +72,7 @@ export function ExportMenu<T>({ columns, rows, filename, title }: Props<T>) {
                 className="w-full flex items-center gap-2 px-3 py-2 text-xs font-semibold hover:bg-black/5 text-left"
                 style={{ color: 'var(--foreground)' }}>
                 <Columns3 className="w-3.5 h-3.5" style={{ color: 'var(--muted-fg)' }} />
-                Sütunları seç ({selected.size}/{columns.length})
+                Select columns ({selected.size}/{columns.length})
               </button>
               <div className="my-1" style={{ borderTop: '1px solid var(--border)' }} />
               {items.map(it => (
@@ -86,9 +86,9 @@ export function ExportMenu<T>({ columns, rows, filename, title }: Props<T>) {
           ) : (
             <>
               <div className="flex items-center justify-between px-3 py-2">
-                <span className="text-[11px] font-bold uppercase tracking-wide" style={{ color: 'var(--muted-fg)' }}>Sütunlar</span>
+                <span className="text-[11px] font-bold uppercase tracking-wide" style={{ color: 'var(--muted-fg)' }}>Columns</span>
                 <button type="button" onClick={() => setSelected(new Set(columns.map((_, i) => i)))}
-                  className="text-[11px] font-semibold hover:underline" style={{ color: 'var(--brand-500)' }}>Hamısı</button>
+                  className="text-[11px] font-semibold hover:underline" style={{ color: 'var(--brand-500)' }}>All</button>
               </div>
               <div className="max-h-64 overflow-y-auto px-1">
                 {columns.map((c, i) => (
@@ -104,7 +104,7 @@ export function ExportMenu<T>({ columns, rows, filename, title }: Props<T>) {
               <button type="button" onClick={() => setStep('format')}
                 className="w-full flex items-center gap-2 px-3 py-2 text-xs font-semibold hover:bg-black/5 text-left"
                 style={{ color: 'var(--brand-500)' }}>
-                ← Format seçiminə qayıt
+                ← Back to format selection
               </button>
             </>
           )}

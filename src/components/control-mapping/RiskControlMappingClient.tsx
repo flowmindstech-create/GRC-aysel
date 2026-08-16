@@ -134,7 +134,7 @@ export function RiskControlMappingClient() {
           <tbody>
             {loading ? (<tr><td colSpan={4} className="py-16 text-center text-sm" style={{ color: 'var(--muted-fg)' }}>Loading…</td></tr>)
             : filtered.length === 0 ? (<tr><td colSpan={4} className="py-16 text-center" style={{ color: 'var(--muted-fg)' }}>
-                <div className="flex flex-col items-center gap-2"><ShieldCheck className="w-8 h-8 opacity-30" /><p className="text-sm">Kontrol tapılmadı</p></div>
+                <div className="flex flex-col items-center gap-2"><ShieldCheck className="w-8 h-8 opacity-30" /><p className="text-sm">No control found</p></div>
               </td></tr>)
             : filtered.map((c, i) => {
               const links = mappingsByControl[c.id] ?? []
@@ -154,7 +154,7 @@ export function RiskControlMappingClient() {
                 <td className="px-4 py-4">
                   {links.length === 0 ? (
                     <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg text-[11px] font-semibold bg-red-500/10 text-red-500 border border-red-500/20">
-                      <AlertTriangle className="w-3 h-3" /> GAP — risk bağlanmayıb
+                      <AlertTriangle className="w-3 h-3" /> GAP — no risk linked
                     </span>
                   ) : (
                     <div className="flex flex-wrap gap-1.5 max-w-[460px]">
@@ -181,7 +181,7 @@ export function RiskControlMappingClient() {
                   <button onClick={() => setDrawerControl(c)} title="Manage Risks"
                     className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold border transition-colors hover:bg-black/[0.04]"
                     style={{ borderColor: 'var(--border)', color: 'var(--foreground)' }}>
-                    <Edit className="w-3.5 h-3.5" /> Redaktə
+                    <Edit className="w-3.5 h-3.5" /> Edit
                   </button>
                 </td>
               </motion.tr>
@@ -214,10 +214,10 @@ export function RiskControlMappingClient() {
                 {/* Existing links */}
                 <div>
                   <p className="text-[11px] font-bold uppercase tracking-wide mb-2" style={{ color: 'var(--brand-500)' }}>
-                    Bağlı Risklər ({drawerMappings.length})
+                    Linked Risks ({drawerMappings.length})
                   </p>
                   {drawerMappings.length === 0 ? (
-                    <p className="text-xs" style={{ color: 'var(--muted-fg)' }}>Hələ risk bağlanmayıb — aşağıdan əlavə et.</p>
+                    <p className="text-xs" style={{ color: 'var(--muted-fg)' }}>No risks linked yet — add one below.</p>
                   ) : (
                     <div className="space-y-2">
                       {drawerMappings.map(m => {
@@ -254,7 +254,7 @@ export function RiskControlMappingClient() {
                 {/* Add new link — risks come ONLY from the Risk Register */}
                 <div className="rounded-xl border p-3 space-y-2" style={{ borderColor: 'var(--border)' }}>
                   <p className="text-[11px] font-bold uppercase tracking-wide flex items-center gap-1.5" style={{ color: 'var(--brand-500)' }}>
-                    <Plus className="w-3.5 h-3.5" /> Risk bağla (Risk Register-dən)
+                    <Plus className="w-3.5 h-3.5" /> Link risk (from Risk Register)
                   </p>
                   <select id="rcm-add-risk" defaultValue="" disabled={savingRisk || drawerAvailableRisks.length === 0}
                     className="w-full px-3 py-2 rounded-lg text-sm outline-none cursor-pointer"
@@ -267,7 +267,7 @@ export function RiskControlMappingClient() {
                     {drawerAvailableRisks.map(r => <option key={r.id} value={r.id}>{(r.risk_code ?? '—') + ' · ' + r.title}</option>)}
                   </select>
                   <p className="text-[10px]" style={{ color: 'var(--muted-fg)' }}>
-                    Yeni əlaqə &quot;Mitigation&quot; tipi ilə yaranır — yuxarıda tipini dəyişə bilərsən.
+                    A new link is created as a &quot;Mitigation&quot; type — you can change the type above.
                   </p>
                 </div>
               </div>

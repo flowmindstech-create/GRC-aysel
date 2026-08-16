@@ -98,12 +98,12 @@ export function ControlFormDialog({ control, existing, onClose, onSave }: Props)
           </div>
 
           <div>
-            <label className="block text-[11px] font-bold mb-1.5" style={{ color: 'var(--foreground)' }}>Kontrol adı *</label>
+            <label className="block text-[11px] font-bold mb-1.5" style={{ color: 'var(--foreground)' }}>Control name *</label>
             <input value={form.title} onChange={(e) => set({ title: e.target.value })} placeholder="e.g. Multi-factor authentication" className={inputCls} style={sty} />
           </div>
 
           <div>
-            <label className="block text-[11px] font-bold mb-1.5" style={{ color: 'var(--foreground)' }}>Kontrol izahı</label>
+            <label className="block text-[11px] font-bold mb-1.5" style={{ color: 'var(--foreground)' }}>Control description</label>
             <textarea value={form.description} onChange={(e) => set({ description: e.target.value })} rows={2} className={cn(inputCls, 'resize-none')} style={sty} />
           </div>
 
@@ -111,12 +111,12 @@ export function ControlFormDialog({ control, existing, onClose, onSave }: Props)
             <div>
               <label className="block text-[11px] font-bold mb-1.5" style={{ color: 'var(--foreground)' }}>Kontrol sahibi</label>
               <select value={form.owner_id ?? ''} onChange={(e) => set({ owner_id: e.target.value || undefined })} className={inputCls} style={sty}>
-                <option value="">— Təyin edilməyib —</option>
+                <option value="">— Unassigned —</option>
                 {profiles.map((p) => <option key={p.id} value={p.id}>{p.full_name}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-[11px] font-bold mb-1.5" style={{ color: 'var(--foreground)' }}>İcra tezliyi</label>
+              <label className="block text-[11px] font-bold mb-1.5" style={{ color: 'var(--foreground)' }}>Execution frequency</label>
               <select value={form.execution_frequency ?? 'monthly'} onChange={(e) => set({ execution_frequency: e.target.value as ExecutionFrequency })} className={inputCls} style={sty}>
                 {FREQS.map((f) => <option key={f} value={f}>{f}</option>)}
               </select>
@@ -124,7 +124,7 @@ export function ControlFormDialog({ control, existing, onClose, onSave }: Props)
           </div>
 
           <div>
-            <label className="block text-[11px] font-bold mb-1.5" style={{ color: 'var(--foreground)' }}>Evidence (icranı sübut edən göstərici)</label>
+            <label className="block text-[11px] font-bold mb-1.5" style={{ color: 'var(--foreground)' }}>Evidence (indicator proving execution)</label>
             <input value={form.evidence_requirements ?? ''} onChange={(e) => set({ evidence_requirements: e.target.value })} placeholder="e.g. Monthly access logs, audit report" className={inputCls} style={sty} />
           </div>
 
@@ -132,7 +132,7 @@ export function ControlFormDialog({ control, existing, onClose, onSave }: Props)
           <div className="flex items-center gap-3 pt-1">
             <label className="flex items-center gap-2 text-xs cursor-pointer" style={{ color: 'var(--foreground)' }}>
               <input type="checkbox" checked={isCompliance} onChange={(e) => setIsCompliance(e.target.checked)} className="h-4 w-4" />
-              Compliance ilə bağlıdır
+              Linked to Compliance
             </label>
             {isCompliance ? (
               <select value={COMPLIANCE_FRAMEWORKS.includes(form.framework) ? form.framework : 'iso27001'} onChange={(e) => set({ framework: e.target.value as ControlFramework })} className={cn(inputCls, 'max-w-[180px]')} style={sty}>
@@ -145,7 +145,7 @@ export function ControlFormDialog({ control, existing, onClose, onSave }: Props)
         </div>
 
         <div className="flex items-center justify-end gap-3 px-6 py-4 border-t" style={{ borderColor: 'var(--border)' }}>
-          <button onClick={onClose} className="px-4 py-2 rounded-xl text-sm font-semibold cursor-pointer" style={{ color: 'var(--muted-fg)' }}>Ləğv et</button>
+          <button onClick={onClose} className="px-4 py-2 rounded-xl text-sm font-semibold cursor-pointer" style={{ color: 'var(--muted-fg)' }}>Cancel</button>
           <button onClick={handleSave} className="px-5 py-2 rounded-xl text-sm font-semibold text-white bg-sky-500 hover:bg-sky-600 cursor-pointer">Saxla</button>
         </div>
       </motion.div>

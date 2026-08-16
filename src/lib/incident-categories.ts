@@ -5,43 +5,43 @@
 
 import type { RiskCategory } from './risk-categories'
 
-const OTHER = 'Digər (Other)'
+const OTHER = 'Other'
 
 export const INCIDENT_TAXONOMY: Record<RiskCategory, string[]> = {
   financial: [
-    'Maliyyə itkisi / Yanlış ödəniş',
-    'Mühasibat / hesabat səhvi',
-    'Büdcə pozuntusu',
+    'Financial loss / Incorrect payment',
+    'Accounting / reporting error',
+    'Budget violation',
     OTHER,
   ],
   operational: [
-    'Əməliyyat səhvi / Prosedur pozuntusu',
-    'Daxili saxtakarlıq',
-    'Üçüncü tərəf / Vendor',
-    'Proses / sistem dayanması',
+    'Operational error / Procedure violation',
+    'Internal fraud',
+    'Third party / Vendor',
+    'Process / system outage',
     OTHER,
   ],
   reputation: [
-    'Media / ictimai şikayət',
-    'Müştəri narazılığı',
-    'Brend zərəri',
+    'Media / public complaint',
+    'Customer dissatisfaction',
+    'Brand damage',
     OTHER,
   ],
   information_security: [
-    'Kibertəhlükəsizlik / Data breach',
-    'Məxfilik pozuntusu',
-    'İcazəsiz giriş',
+    'Cybersecurity / Data breach',
+    'Confidentiality breach',
+    'Unauthorized access',
     OTHER,
   ],
   strategic: [
-    'Strateji qərar riski',
-    'Bazar / rəqabət dəyişikliyi',
+    'Strategic decision risk',
+    'Market / competition change',
     OTHER,
   ],
   compliance: [
-    'Uyğunluq pozuntusu (Compliance breach)',
-    'Tənzimləyici tələb pozuntusu',
-    'AML / sanksiya',
+    'Compliance breach',
+    'Regulatory requirement violation',
+    'AML / sanctions',
     OTHER,
   ],
 }

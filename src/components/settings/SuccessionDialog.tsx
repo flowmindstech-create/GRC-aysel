@@ -33,7 +33,7 @@ export function SuccessionDialog({ fromUser, users, onClose, onDone }: Props) {
     setSubmitting(false)
     if (!res.ok) { toast.error(res.error ?? 'Transfer failed'); return }
     const c = res.counts
-    toast.success(`Transfer tamamlandı: ${c.risks} risk, ${c.units} bölmə, ${c.vendors} vendor köçürüldü`)
+    toast.success(`Transfer complete: ${c.risks} risks, ${c.units} divisions, ${c.vendors} vendors reassigned`)
     onDone()
   }
 
@@ -48,48 +48,48 @@ export function SuccessionDialog({ fromUser, users, onClose, onDone }: Props) {
         <div className="flex items-center justify-between px-6 py-4 border-b sticky top-0 z-10" style={{ borderColor: 'var(--border)', background: 'var(--card)' }}>
           <div className="flex items-center gap-2">
             <ArrowRightLeft className="w-4 h-4" style={{ color: 'var(--brand-500)' }} />
-            <h2 className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>Vəzifəni təhvil ver</h2>
+            <h2 className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>Transfer role</h2>
           </div>
           <button onClick={onClose} className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-black/[0.04]"><X className="w-4 h-4" style={{ color: 'var(--muted-fg)' }} /></button>
         </div>
 
         <div className="px-6 py-5 space-y-5">
           <p className="text-sm" style={{ color: 'var(--muted-fg)' }}>
-            <strong style={{ color: 'var(--foreground)' }}>{fromUser.full_name}</strong> şəxsinin bütün məsuliyyətləri seçdiyiniz yeni şəxsə köçürüləcək.
+            All responsibilities of <strong style={{ color: 'var(--foreground)' }}>{fromUser.full_name}</strong> will be reassigned to the person you select.
           </p>
 
           <div>
-            <label className="block text-xs font-semibold mb-1.5" style={{ color: 'var(--foreground)' }}>Yeni məsul şəxs</label>
+            <label className="block text-xs font-semibold mb-1.5" style={{ color: 'var(--foreground)' }}>New responsible person</label>
             <select value={toUserId} onChange={e => setToUserId(e.target.value)}
               className="w-full px-3 py-2.5 rounded-lg text-sm border outline-none cursor-pointer"
               style={{ background: 'var(--muted)', borderColor: 'var(--border)', color: 'var(--foreground)' }}>
-              <option value="">— Seçin —</option>
+              <option value="">— Select —</option>
               {candidates.map(u => <option key={u.id} value={u.id}>{u.full_name}</option>)}
             </select>
           </div>
 
           {/* Xülasə */}
           <div className="rounded-xl p-4" style={{ background: 'var(--muted)', border: '1px solid var(--border)' }}>
-            <p className="text-[11px] font-bold uppercase tracking-wide mb-2" style={{ color: 'var(--muted-fg)' }}>Köçürüləcək</p>
+            <p className="text-[11px] font-bold uppercase tracking-wide mb-2" style={{ color: 'var(--muted-fg)' }}>To be reassigned</p>
             {preview === null ? (
-              <p className="text-xs flex items-center gap-2" style={{ color: 'var(--muted-fg)' }}><Loader2 className="w-3.5 h-3.5 animate-spin" /> hesablanır…</p>
+              <p className="text-xs flex items-center gap-2" style={{ color: 'var(--muted-fg)' }}><Loader2 className="w-3.5 h-3.5 animate-spin" /> calculating…</p>
             ) : (
               <div className="flex flex-wrap gap-4 text-sm" style={{ color: 'var(--foreground)' }}>
-                <span><strong>{preview.risks}</strong> risk</span>
-                <span><strong>{preview.units}</strong> bölmə rəhbərliyi</span>
-                <span><strong>{preview.vendors}</strong> vendor</span>
+                <span><strong>{preview.risks}</strong> risks</span>
+                <span><strong>{preview.units}</strong> division heads</span>
+                <span><strong>{preview.vendors}</strong> vendors</span>
               </div>
             )}
             {total === 0 && preview !== null && (
-              <p className="text-[11px] mt-2" style={{ color: 'var(--muted-fg)' }}>Bu şəxsə birbaşa bağlı obyekt yoxdur — yalnız profil taleyi tətbiq olunacaq.</p>
+              <p className="text-[11px] mt-2" style={{ color: 'var(--muted-fg)' }}>No objects are directly linked to this person — only the profile disposition will apply.</p>
             )}
           </div>
 
           {/* Köhnə profilin taleyi */}
           <div>
-            <label className="block text-xs font-semibold mb-2" style={{ color: 'var(--foreground)' }}>Köhnə profil</label>
+            <label className="block text-xs font-semibold mb-2" style={{ color: 'var(--foreground)' }}>Old profile</label>
             <div className="flex gap-2">
-              {([['deactivate', 'Deaktiv et'], ['delete', 'Delete']] as const).map(([val, label]) => (
+              {([['deactivate', 'Deactivate'], ['delete', 'Delete']] as const).map(([val, label]) => (
                 <button key={val} type="button" onClick={() => setDisposition(val)}
                   className="flex-1 px-3 py-2 rounded-lg text-xs font-semibold border transition-colors"
                   style={disposition === val
@@ -103,11 +103,11 @@ export function SuccessionDialog({ fromUser, users, onClose, onDone }: Props) {
         </div>
 
         <div className="flex items-center justify-end gap-2 px-6 py-4 border-t" style={{ borderColor: 'var(--border)' }}>
-          <button onClick={onClose} className="px-4 py-2 rounded-lg text-sm font-semibold border" style={{ borderColor: 'var(--border)', color: 'var(--foreground)' }}>Ləğv et</button>
+          <button onClick={onClose} className="px-4 py-2 rounded-lg text-sm font-semibold border" style={{ borderColor: 'var(--border)', color: 'var(--foreground)' }}>Cancel</button>
           <button onClick={submit} disabled={submitting || !toUserId}
             className="px-4 py-2 rounded-lg text-sm font-semibold text-white bg-sky-500 hover:bg-sky-600 disabled:opacity-50 flex items-center gap-2">
             {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
-            Təhvil ver{toName ? ` → ${toName}` : ''}
+            Transfer{toName ? ` → ${toName}` : ''}
           </button>
         </div>
       </div>

@@ -76,7 +76,7 @@ const schema = z.object({
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
       path: ['treatment_plan'],
-      message: 'Azaltma seçildikdə Mitigation planı mütləq doldurulmalıdır',
+      message: 'When Mitigate is selected, the Mitigation plan is required',
     })
   }
 })
@@ -419,7 +419,7 @@ export function RiskFormDialog({ risk, onClose, onSave }: Props) {
                     </div>
                     <div>
                       <label className="block text-[11px] font-bold mb-1.5" style={{ color: 'var(--foreground)' }}>
-                        Due Date <span className="text-[9px] font-normal text-slate-500">(SLA: residual səviyyədən avtomatik)</span>
+                        Due Date <span className="text-[9px] font-normal text-slate-500">(SLA: automatic from residual level)</span>
                       </label>
                       <input type="date" {...register('due_date')} onInput={() => { dueTouched.current = true }}
                         className={inputClass} style={sty} />
@@ -454,7 +454,7 @@ export function RiskFormDialog({ risk, onClose, onSave }: Props) {
                   {/* Residual result — shown at the top, under the inherent risk */}
                   <div className="p-3 rounded-xl border border-sky-500/20 bg-sky-500/5 flex items-center justify-between text-xs">
                     <div>
-                      <p className="font-bold text-slate-300">Hesablanmış Qalıq Risk (Residual)</p>
+                      <p className="font-bold text-slate-300">Calculated Residual Risk</p>
                       <p className="text-[10px] text-slate-500 mt-0.5">Inherent ({inherentLevelWord(computedLevel)}) × Control ({CONTROL_RATING_INFO[effEval.rating].label})</p>
                     </div>
                     <span className="text-base font-black text-sky-400 uppercase">{residualLevelWord(residualLevel)}</span>
@@ -462,7 +462,7 @@ export function RiskFormDialog({ risk, onClose, onSave }: Props) {
 
                   {/* 1. Impact domains (Excel "Impact Scale" — 9 dimensions, compact dropdowns) */}
                   <div className="space-y-3">
-                    <h4 className="text-[11px] font-bold text-sky-400 uppercase tracking-wide border-b pb-1" style={{ borderColor: 'var(--border)' }}>1. Təsir domenləri (max watermark)</h4>
+                    <h4 className="text-[11px] font-bold text-sky-400 uppercase tracking-wide border-b pb-1" style={{ borderColor: 'var(--border)' }}>1. Impact domains (max watermark)</h4>
                     <div className="grid grid-cols-2 gap-3">
                       {IMPACT_DOMAINS.map((d) => (
                         <RcsaDropdown
@@ -489,7 +489,7 @@ export function RiskFormDialog({ risk, onClose, onSave }: Props) {
 
                   {/* 4. Control Effectiveness — assess each trigger's control(s) on the 6 sub-criteria */}
                   <div className="space-y-3">
-                    <h4 className="text-[11px] font-bold text-sky-400 uppercase tracking-wide border-b pb-1" style={{ borderColor: 'var(--border)' }}>4. Control Effectiveness (6 göstərici + radar)</h4>
+                    <h4 className="text-[11px] font-bold text-sky-400 uppercase tracking-wide border-b pb-1" style={{ borderColor: 'var(--border)' }}>4. Control Effectiveness (6 indicators + radar)</h4>
                     <ControlEffectivenessAssessment triggers={triggers} onChange={setTriggers} />
 
                     {/* Consistency warnings */}
@@ -544,7 +544,7 @@ export function RiskFormDialog({ risk, onClose, onSave }: Props) {
                   <div className="space-y-3">
                     <h4 className="text-[11px] font-bold text-sky-400 uppercase tracking-wide border-b pb-1" style={{ borderColor: 'var(--border)' }}>6. Risk Treatment Plan</h4>
                     <p className="text-[10px] text-slate-500 leading-snug">
-                      İcazəli strategiyalar inherent risk səviyyəsinə (<strong className="text-slate-300">{inherentLevelWord(computedLevel)}</strong>) görə müəyyən edilir. Qadağan (×) seçim icraçı direktor təsdiqi tələb edir.
+                      Permitted strategies are determined by the inherent risk level (<strong className="text-slate-300">{inherentLevelWord(computedLevel)}</strong>). A forbidden (×) choice requires executive director approval.
                     </p>
                     {(() => {
                       const selected = watch('mitigation')
@@ -574,12 +574,12 @@ export function RiskFormDialog({ risk, onClose, onSave }: Props) {
                                 }`}>
                                 <div className="flex items-center justify-between gap-1">
                                   <p className="text-[11px] font-bold" style={{ color: 'var(--foreground)' }}>{o.label}</p>
-                                  {!allowed && <span className="text-[9px] font-bold text-amber-400 shrink-0">× təsdiq</span>}
+                                  {!allowed && <span className="text-[9px] font-bold text-amber-400 shrink-0">× approval</span>}
                                 </div>
                                 <p className="text-[10px] text-slate-500 leading-snug mt-0.5">{o.desc}</p>
                                 {showApproved && (
                                   <p className="text-[9px] text-emerald-400 mt-1 leading-snug">
-                                    ✓ İcraçı direktor təsdiqləyib{approval.by ? `: ${approval.by}` : ''}{approval.note ? ` — ${approval.note}` : ''}
+                                    ✓ Executive director approved{approval.by ? `: ${approval.by}` : ''}{approval.note ? ` — ${approval.note}` : ''}
                                   </p>
                                 )}
                               </button>
@@ -590,13 +590,13 @@ export function RiskFormDialog({ risk, onClose, onSave }: Props) {
                     })()}
                     {watch('mitigation') === 'mitigate' && (
                       <label className="block text-[11px] font-bold text-sky-400 mt-1">
-                        Mitigation plan (Azaltma tədbiri) <span className="text-red-400">*</span>
+                        Mitigation plan (treatment measure) <span className="text-red-400">*</span>
                       </label>
                     )}
                     <textarea {...register('treatment_plan')} rows={2}
                       placeholder={watch('mitigation') === 'mitigate'
-                        ? 'Mitigasiya planı: remediasiya nəzarətləri, texniki düzəlişlər, SLA şərtləri… (məcburi)'
-                        : 'Treatment planı: remediasiya nəzarətləri, texniki düzəlişlər, SLA şərtləri…'}
+                        ? 'Mitigation plan: remediation controls, technical fixes, SLA terms… (required)'
+                        : 'Treatment plan: remediation controls, technical fixes, SLA terms…'}
                       className={cn(inputClass, 'resize-none')} style={sty} />
                     {errors.treatment_plan && (
                       <p className="text-[11px] text-red-500 mt-1">{errors.treatment_plan.message}</p>

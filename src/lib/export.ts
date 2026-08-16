@@ -65,7 +65,7 @@ async function exportPdf<T>(columns: ExportColumn<T>[], rows: T[], filename: str
   doc.text(title, 14, 16)
   doc.setFontSize(9)
   doc.setTextColor(120)
-  doc.text(`GRCell · ${new Date().toLocaleString('az-AZ')} · ${rows.length} sətir`, 14, 22)
+  doc.text(`GRCell · ${new Date().toLocaleString('en-GB')} · ${rows.length} rows`, 14, 22)
   autoTable(doc, {
     startY: 27,
     head: [columns.map(c => c.label)],

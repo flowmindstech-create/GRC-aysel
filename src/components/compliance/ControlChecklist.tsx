@@ -100,7 +100,7 @@ export function ControlChecklist() {
     setControls(prev => prev.map(c => c.id === control.id ? updated : c))
     try {
       await db.saveControl(updated)
-      toast.success(`${control.control_id}: ${STATUS_CFG[result].label} — Library və matris yeniləndi`)
+      toast.success(`${control.control_id}: ${STATUS_CFG[result].label} — Library and matrix updated`)
     } catch {
       toast.error('Could not be saved')
     }
@@ -119,12 +119,12 @@ export function ControlChecklist() {
     <div>
       <PageHeader
         title="Compliance Management"
-        subtitle="Kontrolların dövri test meydanı — Pass/Fail nəticəsi Control Library-yə və matrisə avtomatik yansıyır"
+        subtitle="Periodic control test area — Pass/Fail results automatically reflect in the Control Library and matrix"
         actions={
           <Link href="/controls"
             className="px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 border transition-colors hover:bg-black/[0.04]"
             style={{ borderColor: 'var(--border)', color: 'var(--foreground)' }}>
-            <BookOpen className="w-3.5 h-3.5" /> Control Library-də yarat
+            <BookOpen className="w-3.5 h-3.5" /> Create in Control Library
           </Link>
         }
       />
@@ -166,9 +166,9 @@ export function ControlChecklist() {
         {/* Column header */}
         <div className="hidden md:grid grid-cols-12 gap-3 px-5 py-2.5 border-b text-[10px] font-semibold uppercase tracking-wide"
           style={{ borderColor: 'var(--border)', background: 'var(--muted)', color: 'var(--muted-fg)' }}>
-          <div className="col-span-4">Kod / Nəzarət adı</div>
+          <div className="col-span-4">Code / Control name</div>
           <div className="col-span-2">Son yoxlama</div>
-          <div className="col-span-2">Növbəti yoxlama</div>
+          <div className="col-span-2">Next check</div>
           <div className="col-span-2">Effektivlik</div>
           <div className="col-span-1">Status</div>
           <div className="col-span-1" />
@@ -176,7 +176,7 @@ export function ControlChecklist() {
 
         <div className="divide-y" style={{ borderColor: 'var(--border)' }}>
           {frameworkControls.length === 0 && (
-            <p className="px-5 py-10 text-center text-sm" style={{ color: 'var(--muted-fg)' }}>Bu framework üzrə kontrol yoxdur.</p>
+            <p className="px-5 py-10 text-center text-sm" style={{ color: 'var(--muted-fg)' }}>No controls for this framework.</p>
           )}
           {frameworkControls.map((control, i) => {
             const st = STATUS_CFG[control.status] ?? STATUS_CFG.na
@@ -215,13 +215,13 @@ export function ControlChecklist() {
                       {/* Left — test steps + result */}
                       <div className="space-y-3">
                         <div>
-                          <p className="text-[10px] font-bold uppercase tracking-wide mb-1" style={{ color: 'var(--muted-fg)' }}>Test addımları</p>
+                          <p className="text-[10px] font-bold uppercase tracking-wide mb-1" style={{ color: 'var(--muted-fg)' }}>Test steps</p>
                           <p className="text-xs leading-relaxed rounded-lg p-3" style={{ background: 'var(--card)', border: '1px solid var(--border)', color: 'var(--foreground)' }}>
-                            {control.evidence_requirements || control.description || 'Bu kontrol üçün test addımı təyin edilməyib (Control Library-də əlavə et).'}
+                            {control.evidence_requirements || control.description || 'No test steps defined for this control (add them in Control Library).'}
                           </p>
                         </div>
                         <div>
-                          <p className="text-[10px] font-bold uppercase tracking-wide mb-1.5" style={{ color: 'var(--muted-fg)' }}>Nəticəni qeyd et</p>
+                          <p className="text-[10px] font-bold uppercase tracking-wide mb-1.5" style={{ color: 'var(--muted-fg)' }}>Record result</p>
                           <div className="flex gap-2">
                             {(['pass', 'partial', 'fail'] as const).map(r => (
                               <button key={r} onClick={e => { e.stopPropagation(); runTest(control, r) }}
@@ -234,7 +234,7 @@ export function ControlChecklist() {
                           </div>
                           {control.execution_frequency && (
                             <p className="text-[10px] mt-1.5" style={{ color: 'var(--muted-fg)' }}>
-                              Tezlik: {control.execution_frequency} · nəticə qeyd olunanda növbəti yoxlama avtomatik hesablanır.
+                              Frequency: {control.execution_frequency} · the next check is computed automatically when a result is recorded.
                             </p>
                           )}
                         </div>

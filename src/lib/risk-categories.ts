@@ -3,12 +3,12 @@
 // derives its options and labels from this list.
 
 export const RISK_CATEGORIES = [
-  { value: 'financial', label: 'Maliyyə' },
-  { value: 'operational', label: 'Əməliyyat' },
-  { value: 'reputation', label: 'Reputasiya' },
-  { value: 'information_security', label: 'İnformasiya Təhlükəsizliyi' },
-  { value: 'strategic', label: 'Strateji' },
-  { value: 'compliance', label: 'Komplayens' },
+  { value: 'financial', label: 'Financial' },
+  { value: 'operational', label: 'Operational' },
+  { value: 'reputation', label: 'Reputation' },
+  { value: 'information_security', label: 'Information Security' },
+  { value: 'strategic', label: 'Strategic' },
+  { value: 'compliance', label: 'Compliance' },
 ] as const
 
 export type RiskCategory = (typeof RISK_CATEGORIES)[number]['value']

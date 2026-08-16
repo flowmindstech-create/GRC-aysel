@@ -32,7 +32,7 @@ export function ExecutiveApprovalModal({ strategyLabel, levelWord, canApprove, o
         <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: 'var(--border)' }}>
           <div className="flex items-center gap-2">
             <ShieldAlert className="w-4 h-4 text-amber-400" />
-            <h3 className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>İcraçı Direktor Təsdiqi</h3>
+            <h3 className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>Executive Director Approval</h3>
           </div>
           <button onClick={onClose} className="p-1 rounded hover:bg-black/10 dark:hover:bg-white/10 cursor-pointer">
             <X className="w-4 h-4" style={{ color: 'var(--muted-fg)' }} />
@@ -41,16 +41,16 @@ export function ExecutiveApprovalModal({ strategyLabel, levelWord, canApprove, o
 
         <div className="p-5 space-y-3">
           <p className="text-xs text-slate-400 leading-relaxed">
-            <strong className="text-amber-400">{strategyLabel}</strong> strategiyası <strong>{levelWord}</strong> risk səviyyəsi üçün metodologiya cədvəlinə görə <strong>qadağandır (×)</strong>. Seçim yalnız icraçı direktor təsdiqi ilə qüvvəyə minir.
+            The <strong className="text-amber-400">{strategyLabel}</strong> strategy is <strong>forbidden (×)</strong> for the <strong>{levelWord}</strong> risk level per the methodology matrix. The choice takes effect only with executive director approval.
           </p>
 
           {!canApprove ? (
             <p className="text-[11px] text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">
-              Bu seçimi yalnız <strong>admin</strong> və ya <strong>risk_manager</strong> rolu təsdiq edə bilər.
+              Only an <strong>admin</strong> or <strong>risk_manager</strong> role can approve this choice.
             </p>
           ) : (
             <div>
-              <label className="block text-[11px] font-bold mb-1.5" style={{ color: 'var(--foreground)' }}>Əsaslandırma *</label>
+              <label className="block text-[11px] font-bold mb-1.5" style={{ color: 'var(--foreground)' }}>Justification *</label>
               <textarea value={note} onChange={(e) => setNote(e.target.value)} rows={3}
                 placeholder="Write the reason for this exception…"
                 className="w-full px-3 py-2 rounded-xl text-sm border outline-none focus:ring-2 focus:ring-sky-500/30 resize-none" style={sty} />
@@ -59,13 +59,13 @@ export function ExecutiveApprovalModal({ strategyLabel, levelWord, canApprove, o
         </div>
 
         <div className="flex items-center justify-end gap-3 px-5 py-4 border-t" style={{ borderColor: 'var(--border)' }}>
-          <button onClick={onClose} className="px-4 py-2 rounded-xl text-xs font-semibold cursor-pointer" style={{ color: 'var(--muted-fg)' }}>İmtina et</button>
+          <button onClick={onClose} className="px-4 py-2 rounded-xl text-xs font-semibold cursor-pointer" style={{ color: 'var(--muted-fg)' }}>Cancel</button>
           <button
             onClick={() => onApprove(note.trim())}
             disabled={!canApprove || !note.trim()}
             className="px-5 py-2 rounded-xl text-xs font-semibold text-white bg-sky-500 hover:bg-sky-600 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Təsdiqləyirəm
+            Approve
           </button>
         </div>
       </motion.div>

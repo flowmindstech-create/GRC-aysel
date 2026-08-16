@@ -35,7 +35,7 @@ export async function sendWelcomeEmail(input: WelcomeEmailInput): Promise<SendRe
   const { data, error } = await resend.emails.send({
     from,
     to: input.to,
-    subject: 'GRCell hesabınız yaradıldı',
+    subject: 'Your GRCell account has been created',
     html: renderWelcomeHtml(input),
   })
 
@@ -62,17 +62,17 @@ export function renderWelcomeHtml(input: WelcomeEmailInput): string {
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:24px">
       <span style="font-size:18px;font-weight:800;color:#f8fafc">🛡️ GRCell</span>
     </div>
-    <h1 style="margin:0 0 12px;font-size:20px;color:#f8fafc">Xoş gəlmisiniz, ${name}!</h1>
+    <h1 style="margin:0 0 12px;font-size:20px;color:#f8fafc">Welcome, ${name}!</h1>
     <p style="margin:0 0 16px;font-size:14px;line-height:1.6;color:#94a3b8">
-      <strong style="color:#e2e8f0">${company}</strong> üçün GRCell hesabınız uğurla yaradıldı.
-      Risk idarəetməsi, RCSA, uyğunluq öhdəlikləri və insidentləri artıq bir platformadan idarə edə bilərsiniz.
+      Your GRCell account for <strong style="color:#e2e8f0">${company}</strong> has been created successfully.
+      You can now manage risk management, RCSA, compliance obligations, and incidents from a single platform.
     </p>
     <a href="https://grcell.com/login"
        style="display:inline-block;background:#0ea5e9;color:#ffffff;text-decoration:none;font-size:14px;font-weight:700;padding:12px 24px;border-radius:12px;margin:8px 0 24px">
       Platformaya daxil ol
     </a>
     <p style="margin:0;font-size:12px;color:#64748b;border-top:1px solid #1e293b;padding-top:16px">
-      Bu e-poçt grcell.com-da hesab yaradıldığı üçün göndərilib. Əgər bu siz deyilsinizsə, bu mesajı nəzərə almayın.
+      This email was sent because an account was created at grcell.com. If this wasn’t you, please ignore this message.
     </p>
   </div>
 </div>`

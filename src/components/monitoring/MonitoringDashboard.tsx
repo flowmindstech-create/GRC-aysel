@@ -379,7 +379,7 @@ export function MonitoringDashboard() {
             </div>
             <p className="text-2xl font-bold tracking-tight" style={{ color: s.value > 0 ? `rgb(${s.rgb})` : 'var(--foreground)' }}>{s.value}</p>
             <p className="text-xs mt-0.5" style={{ color: 'var(--muted-fg)' }}>{s.label}</p>
-            {active && <p className="text-[10px] mt-1 font-semibold" style={{ color: `rgb(${s.rgb})` }}>● Filtr aktiv — təmizləmək üçün yenidən klik</p>}
+            {active && <p className="text-[10px] mt-1 font-semibold" style={{ color: `rgb(${s.rgb})` }}>● Filter active — click again to clear</p>}
           </motion.button>
           )
         })}

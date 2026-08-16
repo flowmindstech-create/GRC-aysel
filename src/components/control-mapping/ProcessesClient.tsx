@@ -265,7 +265,7 @@ function ProcessFormDialog({ process, controls, departments, profiles, policies,
             </div>
             {/* Sub-processes — free text + Enter → chips */}
             <div>
-              <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Alt proseslər</label>
+              <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Sub-processes</label>
               <div className="flex gap-2">
                 <input value={subProcessInput} onChange={e => setSubProcessInput(e.target.value)}
                   onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addSubProcess() } }}
@@ -301,7 +301,7 @@ function ProcessFormDialog({ process, controls, departments, profiles, policies,
             {multiBox('Related Risks', '', risks.map(r => ({ id: r.id, code: r.risk_code ?? '—', title: r.title })), linkedRiskIds, setLinkedRisk)}
             {multiBox('Related Obligations', '', obligations.map(o => ({ id: o.id, code: o.obligation_code, title: o.title })), linkedObligationIds, setLinkedObl)}
             {multiBox('Related Policies', '', policies.map(p => ({ id: p.id, code: p.policy_id, title: p.title })), linkedPolicyIds, setLinkedPol)}
-            {multiBox('Internal Documents', 'Mapping Matrix-də "Internal Policy" sütununda görünür.',
+            {multiBox('Internal Documents', 'Appears in the "Internal Policy" column of the Mapping Matrix.',
               documents.map(d => ({ id: d.id, code: d.doc_uid, title: d.name })), linkedDocumentIds, setLinkedDoc)}
             <div className="flex items-center justify-between pt-2">
               <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg text-sm hover:bg-black/[0.04]" style={{ color: 'var(--muted-fg)' }}>Cancel</button>

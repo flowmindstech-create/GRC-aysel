@@ -98,19 +98,19 @@ function DocumentFormDialog({ doc, departments, profiles, onClose, onSave }: {
           <div className="h-0.5 mx-6" style={{ background: 'linear-gradient(90deg, transparent, var(--brand-500), transparent)' }} />
           <form onSubmit={handleSubmit} className="px-6 py-5 space-y-4">
             <div>
-              <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Sənədin adı <span className="text-red-400">*</span></label>
+              <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Document name <span className="text-red-400">*</span></label>
               <input autoFocus value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Information Security Rules"
                 className={fieldCls} style={inputStyle} required />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Sənəd növü</label>
+                <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Document type</label>
                 <select value={docType} onChange={e => setDocType(e.target.value as InternalDocType)} className={`${fieldCls} cursor-pointer`} style={inputStyle}>
                   {(Object.keys(DOC_TYPE_CFG) as InternalDocType[]).map(t => <option key={t} value={t}>{DOC_TYPE_CFG[t].label}</option>)}
                 </select>
               </div>
               <div>
-                <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Sənəd nömrəsi</label>
+                <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Document number</label>
                 <input value={docNumber} onChange={e => setDocNumber(e.target.value)} placeholder="e.g. QN-2026/14" className={fieldCls} style={inputStyle} />
               </div>
             </div>
@@ -120,36 +120,36 @@ function DocumentFormDialog({ doc, departments, profiles, onClose, onSave }: {
                 <input value={version} onChange={e => setVersion(e.target.value)} placeholder="1.0" className={fieldCls} style={inputStyle} />
               </div>
               <div>
-                <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Qüvvəyə minmə tarixi</label>
+                <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Effective date</label>
                 <input type="date" value={effectiveDate} onChange={e => setEffectiveDate(e.target.value)} className={fieldCls} style={inputStyle} />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Təsdiqləyən rəhbər</label>
+                <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Approving manager</label>
                 <select value={approvedBy} onChange={e => setApprovedBy(e.target.value)} className={`${fieldCls} cursor-pointer`} style={inputStyle}>
-                  <option value="">— Seçin —</option>
+                  <option value="">— Select —</option>
                   {profiles.map(p => <option key={p.id} value={p.full_name}>{p.full_name}</option>)}
                 </select>
               </div>
               <div>
-                <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Tərtib edən struktur</label>
+                <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Drafting structure</label>
                 <select value={authorDept} onChange={e => setAuthorDept(e.target.value)} className={`${fieldCls} cursor-pointer`} style={inputStyle}>
-                  <option value="">— Seçin —</option>
+                  <option value="">— Select —</option>
                   {departments.map(d => <option key={d.id} value={d.name}>{d.name}</option>)}
                 </select>
               </div>
             </div>
             {/* Participant structures — dropdown + chips */}
             <div>
-              <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>İştirakçı strukturlar</label>
+              <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Participating structures</label>
               <select value=""
                 onChange={e => {
                   const v = e.target.value
                   if (v && !participantDepts.includes(v)) setParticipantDepts([...participantDepts, v])
                 }}
                 className={`${fieldCls} cursor-pointer`} style={inputStyle}>
-                <option value="">— Struktur əlavə et —</option>
+                <option value="">— Add structure —</option>
                 {departments.filter(d => !participantDepts.includes(d.name)).map(d => <option key={d.id} value={d.name}>{d.name}</option>)}
               </select>
               {participantDepts.length > 0 && (
@@ -167,7 +167,7 @@ function DocumentFormDialog({ doc, departments, profiles, onClose, onSave }: {
               )}
             </div>
             <div className="flex items-center justify-between pt-2">
-              <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg text-sm hover:bg-black/[0.04]" style={{ color: 'var(--muted-fg)' }}>Ləğv et</button>
+              <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg text-sm hover:bg-black/[0.04]" style={{ color: 'var(--muted-fg)' }}>Cancel</button>
               <button type="submit" disabled={!name.trim() || loading}
                 className="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold text-white transition-colors disabled:opacity-50" style={{ background: 'var(--brand-500)' }}>
                 {loading ? 'Saving…' : (<>{isEdit ? <Save className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}{isEdit ? 'Refresh' : 'Create'}</>)}
@@ -242,7 +242,7 @@ export function InternalDocumentsClient() {
         <button onClick={() => { setEditItem(null); setShowForm(true) }}
           className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white transition-colors shadow-lg"
           style={{ background: 'var(--brand-500)', boxShadow: '0 4px 14px rgba(14,165,233,0.25)' }}>
-          <Plus className="w-4 h-4" /> Yeni Sənəd
+          <Plus className="w-4 h-4" /> New Document
         </button>
       </div>
 
@@ -261,7 +261,7 @@ export function InternalDocumentsClient() {
                 <tr><td colSpan={10} className="py-16 text-center text-sm" style={{ color: 'var(--muted-fg)' }}>Loading…</td></tr>
               ) : filtered.length === 0 ? (
                 <tr><td colSpan={10} className="py-16 text-center" style={{ color: 'var(--muted-fg)' }}>
-                  <div className="flex flex-col items-center gap-2"><FileText className="w-8 h-8 opacity-30" /><p className="text-sm">Hələ ki daxili sənəd yoxdur</p><p className="text-xs opacity-60">Reyestrə ilk sənədi əlavə edin</p></div>
+                  <div className="flex flex-col items-center gap-2"><FileText className="w-8 h-8 opacity-30" /><p className="text-sm">No internal documents yet</p><p className="text-xs opacity-60">Add the first document to the register</p></div>
                 </td></tr>
               ) : (
                 filtered.map((d, i) => {
@@ -298,7 +298,7 @@ export function InternalDocumentsClient() {
                           <div className="absolute right-0 top-full mt-1 w-36 rounded-xl shadow-xl z-50 border py-1" style={{ background: 'var(--card)', borderColor: 'var(--border)' }} onClick={e => e.stopPropagation()}>
                             {isSuperAdmin && <button onClick={() => { setEditItem(d); setShowForm(true); setMenuOpen(null) }}
                               className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-black/5 dark:hover:bg-white/5 text-left" style={{ color: 'var(--foreground)' }}>
-                              <Edit className="w-3.5 h-3.5" /> Redaktə
+                              <Edit className="w-3.5 h-3.5" /> Edit
                             </button>}
                             {can('delete') && <button onClick={() => handleDelete(d.id)} className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-red-50 dark:hover:bg-red-900/20 text-left text-red-500">
                               <Trash2 className="w-3.5 h-3.5" /> Sil

@@ -263,7 +263,7 @@ function PolicyDetailDrawer({ policy, onClose, onUpdate }: { policy: Policy; onC
         version: nextVersion,
         changed_by: 'Ali Hasanov',
         changed_at: new Date().toISOString(),
-        summary: `Siyasət təsdiqləndi və nəşr edildi (${approval.comments || 'Update'}).`
+        summary: `Policy approved and published (${approval.comments || 'Update'}).`
       })
     }
 
@@ -402,7 +402,7 @@ function PolicyDetailDrawer({ policy, onClose, onUpdate }: { policy: Policy; onC
               <div className="space-y-3">
                 <p className="text-[10px] font-bold uppercase tracking-wider text-orange-500">Change History (Versiyalar)</p>
                 {!policy.change_history || policy.change_history.length === 0 ? (
-                  <p className="text-xs text-slate-500 italic">Hər hansı versiya tarixçəsi yoxdur.</p>
+                  <p className="text-xs text-slate-500 italic">No version history.</p>
                 ) : (
                   <div className="space-y-3">
                     {policy.change_history.map((h, idx) => (
@@ -413,7 +413,7 @@ function PolicyDetailDrawer({ policy, onClose, onUpdate }: { policy: Policy; onC
                             <span className="font-bold text-sky-400 font-mono">v{h.version}</span>
                             <span className="text-[10px] text-slate-400 font-medium">{format(new Date(h.changed_at), 'dd.MM.yyyy HH:mm')}</span>
                           </div>
-                          <p className="text-[10px]" style={{ color: 'var(--muted-fg)' }}>Yenilədi: {h.changed_by}</p>
+                          <p className="text-[10px]" style={{ color: 'var(--muted-fg)' }}>Updated by: {h.changed_by}</p>
                           <p className="leading-relaxed mt-1" style={{ color: 'var(--foreground)' }}>{h.summary}</p>
                         </div>
                       </div>
@@ -426,7 +426,7 @@ function PolicyDetailDrawer({ policy, onClose, onUpdate }: { policy: Policy; onC
               <div className="space-y-3 border-t pt-4" style={{ borderColor: 'var(--border)' }}>
                 <p className="text-[10px] font-bold uppercase tracking-wider text-orange-500">Workflow Approval Log</p>
                 {approvals.length === 0 ? (
-                  <p className="text-xs text-slate-500 italic">Heç bir təsdiq jurnalı yoxdur.</p>
+                  <p className="text-xs text-slate-500 italic">No approval log.</p>
                 ) : (
                   <div className="space-y-2">
                     {approvals.map(a => (

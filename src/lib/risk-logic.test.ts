@@ -20,7 +20,7 @@ describe('risk-logic — validateRiskConsistency', () => {
       [{ id: 't1', description: '   ', controls: [{ id: 'c1', description: 'Ctrl' } as any] } as any],
       'medium'
     )
-    expect(issues.some((i) => i.message.includes('təsvir boşdur'))).toBe(true)
+    expect(issues.some((i) => i.message.includes('description is empty'))).toBe(true)
   })
 
   it('controls-u olmayan trigger xəbərdarlıq verir', () => {
@@ -58,6 +58,6 @@ describe('risk-logic — validateRiskConsistency', () => {
       ],
       'critical'
     )
-    expect(issues.some((i) => i.message.includes('zəif'))).toBe(true)
+    expect(issues.some((i) => i.message.includes('weak'))).toBe(true)
   })
 })

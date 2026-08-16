@@ -16,9 +16,9 @@ export default function AppError({ error, reset }: { error: Error & { digest?: s
           <AlertTriangle className="w-7 h-7 text-amber-500" />
         </div>
         <div className="space-y-1.5">
-          <h2 className="text-lg font-semibold" style={{ color: 'var(--foreground)' }}>Bu səhifə yüklənə bilmədi</h2>
+          <h2 className="text-lg font-semibold" style={{ color: 'var(--foreground)' }}>This page could not load</h2>
           <p className="text-sm" style={{ color: 'var(--muted-fg)' }}>
-            Gözlənilməz xəta baş verdi. Yenidən cəhd et — problem davam edərsə, məlumat ver.
+            An unexpected error occurred. Try again — if the problem persists, report it.
           </p>
           {error?.digest && (
             <p className="text-[10px] font-mono" style={{ color: 'var(--muted-fg)' }}>ref: {error.digest}</p>
@@ -29,7 +29,7 @@ export default function AppError({ error, reset }: { error: Error & { digest?: s
           className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white shadow-lg cursor-pointer transition-colors"
           style={{ background: 'var(--brand-500)' }}
         >
-          <RotateCcw className="w-4 h-4" /> Yenidən yüklə
+          <RotateCcw className="w-4 h-4" /> Reload
         </button>
       </div>
     </main>

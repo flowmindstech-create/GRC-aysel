@@ -44,10 +44,10 @@ export function TriggersEditor({ triggers, onChange, library }: Props) {
         </button>
       </div>
 
-      <p className="text-[10px] text-slate-500">Səbəb (trigger) və ona qarşı nəzarəti (control) burada təyin edin. Nəzarətin effektivliyi <strong>RCSA Assessment Matrix</strong> tab-ında qiymətləndirilir.</p>
+      <p className="text-[10px] text-slate-500">Define each trigger (cause) and the control that addresses it here. Control effectiveness is assessed in the <strong>RCSA Assessment Matrix</strong> tab.</p>
 
       {triggers.length === 0 && (
-        <p className="text-[11px] text-slate-500">Hələ trigger yoxdur.</p>
+        <p className="text-[11px] text-slate-500">No triggers yet.</p>
       )}
 
       {triggers.map((t, ti) => (
@@ -57,11 +57,11 @@ export function TriggersEditor({ triggers, onChange, library }: Props) {
             <input
               value={t.description}
               onChange={(e) => setTriggerDesc(t.id, e.target.value)}
-              placeholder={`Trigger ${ti + 1} təsviri (səbəb / təhlükə)`}
+              placeholder={`Trigger ${ti + 1} description (cause / threat)`}
               className="flex-1 px-2.5 py-1.5 rounded-lg text-xs border outline-none"
               style={{ background: 'var(--card)', borderColor: 'var(--border)', color: 'var(--foreground)' }}
             />
-            {t.controls.length === 0 && <span className="text-[10px] text-amber-400 font-semibold shrink-0">control yoxdur</span>}
+            {t.controls.length === 0 && <span className="text-[10px] text-amber-400 font-semibold shrink-0">no control</span>}
             <button type="button" onClick={() => removeTrigger(t.id)} aria-label="Remove trigger" className="p-1 rounded hover:bg-red-500/10 cursor-pointer">
               <Trash2 className="w-3.5 h-3.5 text-red-500" />
             </button>
@@ -87,7 +87,7 @@ export function TriggersEditor({ triggers, onChange, library }: Props) {
                     className="flex-1 px-2.5 py-1.5 rounded-lg text-xs border outline-none min-w-[200px]"
                     style={{ background: 'var(--muted)', borderColor: 'var(--border)', color: 'var(--foreground)' }}
                   >
-                    <option value="" disabled>Nəzarəti seçin...</option>
+                    <option value="" disabled>Select a control...</option>
                     {library.map((l) => <option key={l.id} value={l.id}>{l.control_id} — {l.title}</option>)}
                   </select>
                   <span className="text-[10px] font-bold shrink-0" style={{ color: assessed ? '#0ea5e9' : 'var(--muted-fg)' }}>
@@ -101,7 +101,7 @@ export function TriggersEditor({ triggers, onChange, library }: Props) {
             })}
             <button type="button" onClick={() => addControl(t.id)}
               className="text-[11px] font-semibold text-sky-400 hover:text-sky-300 flex items-center gap-1 cursor-pointer">
-              <Plus className="w-3 h-3" /> Control əlavə et
+              <Plus className="w-3 h-3" /> Add control
             </button>
           </div>
         </div>

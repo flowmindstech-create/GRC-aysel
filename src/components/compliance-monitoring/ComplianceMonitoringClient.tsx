@@ -55,7 +55,7 @@ function FormDialog({ item, controls, obligations, onClose, onSave }: {
     e.preventDefault()
     if (!observed.trim()) { toast.error('Observed state is required'); return }
     if (result === 'compliant' && !evidenceUrl.trim() && !fileName) { toast.error('Evidence required for Compliant (link or file)'); return }
-    if (needsFindings && !findings.trim()) { toast.error('Uyğunsuzluq üçün "Findings" doldurulmalıdır'); return }
+    if (needsFindings && !findings.trim()) { toast.error('"Findings" is required for non-compliance'); return }
     setLoading(true)
     const now = new Date().toISOString()
     const ctrl = controls.find(c => c.id === controlId)
@@ -151,7 +151,7 @@ function FormDialog({ item, controls, obligations, onClose, onSave }: {
                   <textarea value={remediation} onChange={e => setRemediation(e.target.value)} rows={2} placeholder="Corrective action…" className={`${fieldCls} resize-none`} style={inputStyle} />
                 </div>
                 {result === 'non_compliant' && !item?.created_incident_id && (
-                  <p className="text-[10px] text-red-400 flex items-center gap-1"><AlertTriangle className="w-3 h-3" /> Yadda saxlananda avtomatik incident yaradılacaq.</p>
+                  <p className="text-[10px] text-red-400 flex items-center gap-1"><AlertTriangle className="w-3 h-3" /> An incident will be created automatically on save.</p>
                 )}
               </>
             )}
@@ -234,7 +234,7 @@ function AssessmentRegister() {
               className="card p-4 text-left cursor-pointer transition-all hover:-translate-y-0.5 hover:shadow-lg">
               <p className="text-[11px] flex items-center gap-1 mb-1" style={{ color: 'var(--muted-fg)' }}><Gauge className="w-3 h-3" /> {c.fw}</p>
               <p className="text-xl font-bold" style={{ color: c.pct >= 80 ? '#34d399' : c.pct >= 50 ? '#fbbf24' : '#f87171' }}>{c.pct}%</p>
-              <p className="text-[10px]" style={{ color: 'var(--muted-fg)' }}>{c.covered}/{c.total} obligation covered · detallar üçün klik</p>
+              <p className="text-[10px]" style={{ color: 'var(--muted-fg)' }}>{c.covered}/{c.total} obligations covered · click for details</p>
             </button>
           ))}
         </div>
@@ -306,12 +306,12 @@ function AssessmentRegister() {
             <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.96 }}
               className="relative w-full max-w-md rounded-2xl border shadow-2xl max-h-[80vh] overflow-y-auto" style={{ background: 'var(--card)', borderColor: 'var(--border)' }}>
               <div className="flex items-center justify-between px-6 py-4 border-b" style={{ borderColor: 'var(--border)' }}>
-                <h2 className="text-sm font-semibold flex items-center gap-2" style={{ color: 'var(--foreground)' }}><Clock className="w-4 h-4" /> Tarixçə — {historyFor.code}</h2>
+                <h2 className="text-sm font-semibold flex items-center gap-2" style={{ color: 'var(--foreground)' }}><Clock className="w-4 h-4" /> History — {historyFor.code}</h2>
                 <button onClick={() => setHistoryFor(null)} className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-black/[0.04]"><X className="w-4 h-4" style={{ color: 'var(--muted-fg)' }} /></button>
               </div>
               <div className="px-6 py-5">
                 {historyRows.length === 0 ? (
-                  <p className="text-xs" style={{ color: 'var(--muted-fg)' }}>Hələ tarixçə yoxdur.</p>
+                  <p className="text-xs" style={{ color: 'var(--muted-fg)' }}>No history yet.</p>
                 ) : (
                   <div className="space-y-3 border-l pl-3" style={{ borderColor: 'var(--border)' }}>
                     {historyRows.map(h => (
@@ -356,7 +356,7 @@ function AssessmentRegister() {
                 </div>
                 <div className="px-6 py-5 space-y-2">
                   {fwObligations.length === 0 ? (
-                    <p className="text-xs" style={{ color: 'var(--muted-fg)' }}>Bu framework üzrə öhdəlik yoxdur.</p>
+                    <p className="text-xs" style={{ color: 'var(--muted-fg)' }}>No obligations for this framework.</p>
                   ) : fwObligations.map(o => {
                     const ctrlIds = linkMaps[o.id]?.controlIds ?? []
                     const ctrlCodes = ctrlIds.map(id => controls.find(c => c.id === id)?.control_id).filter(Boolean) as string[]
@@ -375,7 +375,7 @@ function AssessmentRegister() {
                                 ))}
                               </>
                             ) : (
-                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-500/15 text-red-400">✗ Not covered — kontrol bağlanmayıb</span>
+                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-500/15 text-red-400">✗ Not covered — no control linked</span>
                             )}
                             <span className="text-[10px] capitalize ml-auto" style={{ color: 'var(--muted-fg)' }}>{String(o.status ?? '').replace(/_/g, ' ')}</span>
                           </div>

@@ -1781,8 +1781,8 @@ export const db = {
       try {
         const inc = await this.saveIncident({
           id: crypto.randomUUID(), org_id: orgId,
-          title: `Uyğunsuzluq: ${s.title || s.code}`,
-          description: s.observed_state || s.findings || 'Compliance monitoring uyğunsuzluğu',
+          title: `Non-compliance: ${s.title || s.code}`,
+          description: s.observed_state || s.findings || 'Compliance monitoring non-compliance',
           severity: 'high', status: 'open', workflow_stage: 'intake',
           incident_category: 'Compliance breach',
           control_id: s.control_id, compliance_obligation_id: s.obligation_id,
@@ -2004,7 +2004,7 @@ export const db = {
       })
       return { ok: true, counts }
     } catch (e: any) {
-      return { ok: false, counts, error: e?.message ?? 'Transfer alınmadı' }
+      return { ok: false, counts, error: e?.message ?? 'Transfer failed' }
     }
   },
 

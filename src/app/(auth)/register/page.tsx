@@ -95,14 +95,14 @@ export default function RegisterPage() {
             <div className="w-11 h-11 rounded-xl bg-sky-500/10 flex items-center justify-center">
               <Mail className="w-5 h-5 text-sky-500" />
             </div>
-            <h2 className="text-lg font-bold" style={{ color: 'var(--foreground)' }}>E-poçtunu yoxla</h2>
+            <h2 className="text-lg font-bold" style={{ color: 'var(--foreground)' }}>Check your email</h2>
             <p className="text-sm leading-relaxed" style={{ color: 'var(--muted-fg)' }}>
-              <strong style={{ color: 'var(--foreground)' }}>{awaitingConfirm}</strong> ünvanına təsdiq linki göndərdik.
-              Linkə basandan sonra hesabın aktivləşəcək və daxil ola biləcəksən.
+              We sent a confirmation link to <strong style={{ color: 'var(--foreground)' }}>{awaitingConfirm}</strong>.
+              After you click the link, your account will be activated and you can sign in.
             </p>
-            <p className="text-xs" style={{ color: 'var(--muted-fg)' }}>Məktub gəlməyibsə spam qovluğuna bax.</p>
+            <p className="text-xs" style={{ color: 'var(--muted-fg)' }}>If the email hasn’t arrived, check your spam folder.</p>
             <Link href="/login" className="inline-flex items-center gap-1.5 text-sm font-semibold text-sky-500 hover:text-sky-400">
-              Girişə qayıt <ArrowRight className="w-3.5 h-3.5" />
+              Back to sign in <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
         ) : (
@@ -128,8 +128,8 @@ export default function RegisterPage() {
           ))}
 
           <p className="text-[11px] leading-relaxed" style={{ color: 'var(--muted-fg)' }}>
-            Qeydiyyatdan sonra hesabınız <strong>Əməkdaş</strong> səviyyəsində açılır.
-            Rütbənizi təşkilatınızın Super Admini təyin edir.
+            After registration your account is created at the <strong>Employee</strong> level.
+            Your rank is assigned by your organization’s Super Admin.
           </p>
 
           <button type="submit" disabled={loading}

@@ -73,7 +73,7 @@ function InfoSecFormDialog({ item, controls, processes, departments, profiles, o
   async function submit(e: React.FormEvent) {
     e.preventDefault()
     if (!asset.trim() || !threat.trim() || !vulnerability.trim() || !description.trim()) {
-      toast.error('Asset, Threat, Vulnerability və Risk Description məcburidir'); return
+      toast.error('Asset, Threat, Vulnerability and Risk Description are required'); return
     }
     setLoading(true)
     const now = new Date().toISOString()
@@ -116,7 +116,7 @@ function InfoSecFormDialog({ item, controls, processes, departments, profiles, o
               <div>
                 <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Process</label>
                 <select value={process} onChange={e => setProcess(e.target.value)} className={`${fieldCls} cursor-pointer`} style={inputStyle}>
-                  <option value="">— Seçin —</option>
+                  <option value="">— Select —</option>
                   {processes.map(p => <option key={p.id} value={p.name}>{p.code} · {p.name}</option>)}
                 </select>
               </div>
@@ -147,7 +147,7 @@ function InfoSecFormDialog({ item, controls, processes, departments, profiles, o
 
             {/* Probability + Impact per RCSA dimensions */}
             <p className="text-[11px] font-bold uppercase tracking-wide pt-1" style={{ color: 'var(--brand-500)' }}>
-              Qiymətləndirmə — Probability × Impact (kateqoriyalar üzrə, ən yüksəyi götürülür)
+              Assessment — Probability × Impact (across categories, the highest is taken)
             </p>
             <div>
               <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Probability (1-5)</label>
@@ -214,7 +214,7 @@ function InfoSecFormDialog({ item, controls, processes, departments, profiles, o
             {/* Locked management fields */}
             <div className="rounded-xl border p-3 space-y-3" style={{ borderColor: 'var(--border)', background: 'var(--muted)' }}>
               <p className="text-[11px] font-bold uppercase tracking-wide flex items-center gap-1.5" style={{ color: 'var(--brand-500)' }}>
-                <Lock className="w-3.5 h-3.5" /> İdarəetmə sahələri {isEdit && '(cannot be changed)'}
+                <Lock className="w-3.5 h-3.5" /> Management domains {isEdit && '(cannot be changed)'}
               </p>
               <div className="grid grid-cols-3 gap-2">
                 <div>
@@ -227,7 +227,7 @@ function InfoSecFormDialog({ item, controls, processes, departments, profiles, o
                   <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Resp. Structure</label>
                   <select value={respStructure} disabled={isEdit} onChange={e => handleStructure(e.target.value)}
                     className={`${fieldCls} ${isEdit ? '' : 'cursor-pointer'}`} style={isEdit ? lockedStyle : { ...inputStyle, background: 'var(--card)' }}>
-                    <option value="">— Seçin —</option>
+                    <option value="">— Select —</option>
                     {departments.map(d => <option key={d.id} value={d.name}>{d.name}</option>)}
                   </select>
                 </div>
@@ -235,7 +235,7 @@ function InfoSecFormDialog({ item, controls, processes, departments, profiles, o
                   <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Resp. Person</label>
                   <select value={respPerson} disabled={isEdit} onChange={e => setRespPerson(e.target.value)}
                     className={`${fieldCls} ${isEdit ? '' : 'cursor-pointer'}`} style={isEdit ? lockedStyle : { ...inputStyle, background: 'var(--card)' }}>
-                    <option value="">— Seçin —</option>
+                    <option value="">— Select —</option>
                     {profiles.map(p => <option key={p.id} value={p.full_name}>{p.full_name}</option>)}
                   </select>
                 </div>
@@ -340,7 +340,7 @@ export function InfoSecRiskClient() {
         <tbody>
           {loading ? (<tr><td colSpan={15} className="py-16 text-center text-sm" style={{ color: 'var(--muted-fg)' }}>Loading…</td></tr>)
           : filtered.length === 0 ? (<tr><td colSpan={15} className="py-16 text-center" style={{ color: 'var(--muted-fg)' }}>
-              <div className="flex flex-col items-center gap-2"><ShieldAlert className="w-8 h-8 opacity-30" /><p className="text-sm">Hələ infosec riski yoxdur</p></div>
+              <div className="flex flex-col items-center gap-2"><ShieldAlert className="w-8 h-8 opacity-30" /><p className="text-sm">No infosec risks yet</p></div>
             </td></tr>)
           : filtered.map((r, i) => {
             const mImp = maxImpact(r.impacts)

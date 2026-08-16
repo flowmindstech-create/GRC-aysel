@@ -48,21 +48,21 @@ export function SubscriptionGate({ children }: { children: React.ReactNode }) {
         </div>
         <h1 className="text-lg font-bold mb-2" style={{ color: 'var(--foreground)' }}>{heading}</h1>
         <p className="text-sm leading-relaxed mb-1" style={{ color: 'var(--muted-fg)' }}>
-          {org?.name ? <><strong style={{ color: 'var(--foreground)' }}>{org.name}</strong> təşkilatının</> : 'Təşkilatınızın'}{' '}
-          GRCell abunəliyi hazırda aktiv deyil. Sistemə giriş müvəqqəti dayandırılıb.
+          {org?.name ? <><strong style={{ color: 'var(--foreground)' }}>{org.name}</strong>’s</> : 'Your organization’s'}{' '}
+          GRCell subscription is not currently active. Access to the system is temporarily suspended.
         </p>
         <p className="text-sm mb-6" style={{ color: 'var(--muted-fg)' }}>
-          Girişi bərpa etmək üçün abunəliyi yeniləyin.
+          Renew the subscription to restore access.
         </p>
 
         <a href={`mailto:${org?.contact_email || 'support@grcell.com'}`}
           className="w-full inline-flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold text-white bg-sky-500 hover:bg-sky-600 transition-colors">
-          <Mail className="w-4 h-4" /> Abunəliyi yenilə
+          <Mail className="w-4 h-4" /> Renew subscription
         </a>
         <button onClick={signOut}
           className="w-full inline-flex items-center justify-center gap-2 py-2.5 mt-3 rounded-xl text-sm font-semibold border transition-colors hover:bg-black/[0.04]"
           style={{ borderColor: 'var(--border)', color: 'var(--foreground)' }}>
-          <LogOut className="w-4 h-4" /> Çıxış
+          <LogOut className="w-4 h-4" /> Log out
         </button>
       </div>
     </div>

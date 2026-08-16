@@ -87,7 +87,7 @@ export function IncidentResolutionForm({ data, onChange }: Props) {
       }
       setControls(prev => [created, ...prev])
       patchAction('preventive', { created_control_id: created.id })
-      toast.success(`Sorğu göndərildi: ${created.control_id} — Control Library-də təsdiq gözləyir`)
+      toast.success(`Request sent: ${created.control_id} — awaiting approval in Control Library`)
     } catch {
       toast.error('Request could not be sent')
     } finally {
@@ -96,11 +96,11 @@ export function IncidentResolutionForm({ data, onChange }: Props) {
   }
 
   async function createOptimizationRequest() {
-    if (!inheritedControl) { toast.error('Investigation-da "Cari Kontrol" seçilməyib'); return }
+    if (!inheritedControl) { toast.error('No "Current Control" selected in Investigation'); return }
     if (!preventive?.optimization_proposal?.trim()) { toast.error('Write optimization suggestion'); return }
     await createPendingControlEntry({
       title: `Optimizasiya: ${inheritedControl.control_id} · ${inheritedControl.title}`,
-      description: `Optimallaşdırma təklifi (insident: ${data.title ?? '—'}): ${preventive.optimization_proposal.trim()}`,
+      description: `Optimization proposal (incident: ${data.title ?? '—'}): ${preventive.optimization_proposal.trim()}`,
     })
   }
 
@@ -108,7 +108,7 @@ export function IncidentResolutionForm({ data, onChange }: Props) {
     if (!preventive?.title?.trim()) { toast.error('First enter the preventive action name'); return }
     await createPendingControlEntry({
       title: preventive.title.trim(),
-      description: `${preventive.description?.trim() || 'Control created from incident (CAPA).'} · İnsident: ${data.title ?? ''}`.trim(),
+      description: `${preventive.description?.trim() || 'Control created from incident (CAPA).'} · Incident: ${data.title ?? ''}`.trim(),
     })
   }
 
@@ -134,7 +134,7 @@ export function IncidentResolutionForm({ data, onChange }: Props) {
     <div className="grid grid-cols-2 gap-2">
       <select value={action?.assignee ?? ''} onChange={e => patchAction(kind, { assignee: e.target.value })}
         className="px-2 py-1.5 rounded-lg text-xs outline-none cursor-pointer" style={cardInput}>
-        <option value="">Təyin et...</option>
+        <option value="">Assign...</option>
         {MOCK_USERS.map(u => <option key={u.id} value={u.full_name}>{u.full_name}</option>)}
       </select>
       <div>
@@ -164,7 +164,7 @@ export function IncidentResolutionForm({ data, onChange }: Props) {
     <div className="space-y-4">
       {/* Resolution Summary */}
       <div>
-        <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Həll Xülasəsi <span className="text-red-400">*</span></label>
+        <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Resolution Summary <span className="text-red-400">*</span></label>
         <textarea value={data.resolution_summary ?? ''} onChange={e => onChange({ ...data, resolution_summary: e.target.value })} rows={3}
           placeholder="How was the incident resolved — steps taken, outcome..."
           className={`${fieldCls} resize-none`} style={inputStyle} onFocus={focus} onBlur={blur} />
@@ -172,17 +172,17 @@ export function IncidentResolutionForm({ data, onChange }: Props) {
 
       {/* ERO note / change request back to the risk owner */}
       <div>
-        <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Əlavə Qeyd (risk owner-ə)</label>
+        <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Additional Note (to risk owner)</label>
         <textarea value={data.ero_note ?? ''} onChange={e => onChange({ ...data, ero_note: e.target.value })} rows={2}
-          placeholder="Dəyişiklik tələbi və ya əlavə qeyd — risk owner görəcək…"
+          placeholder="Change request or additional note — visible to the risk owner…"
           className={`${fieldCls} resize-none`} style={inputStyle} onFocus={focus} onBlur={blur} />
       </div>
 
       {/* CAPA — corrective + preventive, stacked inline (no add button, no modal) */}
       <div>
-        <p className="text-[11px] font-bold uppercase tracking-wide mb-1" style={{ color: 'var(--brand-500)' }}>Tədbirlər (CAPA)</p>
+        <p className="text-[11px] font-bold uppercase tracking-wide mb-1" style={{ color: 'var(--brand-500)' }}>Actions (CAPA)</p>
         <p className="text-[10px] mb-2" style={{ color: 'var(--muted-fg)' }}>
-          Korrektiv = insidenti aradan qaldırmaq üçün dərhal görülən iş · Preventiv = kök səbəbə qarşı gələcək tədbir (kontrol)
+          Corrective = immediate work to resolve the incident · Preventive = future measure against the root cause (control)
         </p>
 
         <div className="space-y-3">
@@ -225,7 +225,7 @@ export function IncidentResolutionForm({ data, onChange }: Props) {
                     </div>
                   ) : (
                     <p className="text-[11px] text-amber-400">
-                      Investigation addımında &quot;Cari Kontrol&quot; seçilməyib — optimallaşdırma üçün əvvəlcə orada kontrol seçin.
+                      No &quot;Current Control&quot; selected in the Investigation step — select a control there first to optimize.
                     </p>
                   )}
                 </div>
@@ -264,7 +264,7 @@ export function IncidentResolutionForm({ data, onChange }: Props) {
       <div>
         <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Lessons Learned</label>
         <textarea value={data.lessons_learned ?? ''} onChange={e => onChange({ ...data, lessons_learned: e.target.value })} rows={3}
-          placeholder="Bu hadisədən alınan dərslər — gələcəkdə nə edilməlidir..."
+          placeholder="Lessons learned from this event — what should be done in future..."
           className={`${fieldCls} resize-none`} style={inputStyle} onFocus={focus} onBlur={blur} />
       </div>
 

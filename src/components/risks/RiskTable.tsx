@@ -268,7 +268,7 @@ export function RiskTable() {
                           </p>
                           {risk.approval_status === 'pending' && (
                             <span className="shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/15 text-amber-600 border border-amber-500/25">
-                              Gözləmədə
+                              Pending
                             </span>
                           )}
                         </div>
@@ -442,10 +442,10 @@ export function RiskTable() {
                               <button onClick={async () => {
                                   await handleSave({ ...risk, approval_status: 'approved' })
                                   setMenuOpen(null)
-                                  toast.success(`Risk təsdiqləndi: ${risk.title}`)
+                                  toast.success(`Risk approved: ${risk.title}`)
                                 }}
                                 className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-emerald-50 dark:hover:bg-emerald-900/20 text-left text-emerald-600 font-semibold">
-                                <Check className="w-3.5 h-3.5" /> Təsdiq et
+                                <Check className="w-3.5 h-3.5" /> Approve
                               </button>
                               )}
                               {can('delete') && (

@@ -259,7 +259,7 @@ export function IncidentDetailSheet({ incident, onClose, onUpdate, onEdit }: Pro
                   <>
                     {/* Description */}
                     <div className="space-y-1.5">
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Hadisənin İzahı (Description)</p>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Event Description</p>
                       <p className="text-xs leading-relaxed" style={{ color: 'var(--foreground)' }}>
                         {incident.description}
                       </p>
@@ -268,7 +268,7 @@ export function IncidentDetailSheet({ incident, onClose, onUpdate, onEdit }: Pro
                     {/* Meta Fields Grid */}
                     <div className="grid grid-cols-2 gap-3.5 pt-2">
                       <div className="p-3 rounded-xl border" style={{ borderColor: 'var(--border)', background: 'var(--muted)/20' }}>
-                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">Məruzəçi (Reporter)</p>
+                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">Reporter</p>
                         <p className="text-xs font-semibold" style={{ color: 'var(--foreground)' }}>
                           {incident.reporter_name || '—'}
                         </p>
@@ -276,14 +276,14 @@ export function IncidentDetailSheet({ incident, onClose, onUpdate, onEdit }: Pro
                       </div>
 
                       <div className="p-3 rounded-xl border" style={{ borderColor: 'var(--border)', background: 'var(--muted)/20' }}>
-                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">Şöbə (Reporter Structure)</p>
+                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">Reporter Structure</p>
                         <p className="text-xs font-semibold" style={{ color: 'var(--foreground)' }}>
                           {incident.reporter_structure || 'Unknown'}
                         </p>
                       </div>
 
                       <div className="p-3 rounded-xl border" style={{ borderColor: 'var(--border)', background: 'var(--muted)/20' }}>
-                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">Baş Vermə Tarixi</p>
+                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">Occurrence Date</p>
                         <p className="text-xs font-semibold flex items-center gap-1" style={{ color: 'var(--foreground)' }}>
                           <Calendar className="w-3.5 h-3.5 text-slate-400" />
                           {incident.occurrence_datetime ? format(new Date(incident.occurrence_datetime), 'dd.MM.yyyy HH:mm') : 'Not selected'}
@@ -291,7 +291,7 @@ export function IncidentDetailSheet({ incident, onClose, onUpdate, onEdit }: Pro
                       </div>
 
                       <div className="p-3 rounded-xl border" style={{ borderColor: 'var(--border)', background: 'var(--muted)/20' }}>
-                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">Aşkarlanma Tarixi</p>
+                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">Detection Date</p>
                         <p className="text-xs font-semibold flex items-center gap-1" style={{ color: 'var(--foreground)' }}>
                           <Clock className="w-3.5 h-3.5 text-slate-400" />
                           {incident.discovery_datetime ? format(new Date(incident.discovery_datetime), 'dd.MM.yyyy HH:mm') : 'Unknown'}
@@ -323,24 +323,24 @@ export function IncidentDetailSheet({ incident, onClose, onUpdate, onEdit }: Pro
 
                     {/* Loss Effect — amount only (free-text description removed) */}
                     <div className="space-y-2">
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Maliyyə İtkisi (Loss Effect)</p>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Financial Loss (Loss Effect)</p>
                       <div className="p-3.5 rounded-xl border" style={{ borderColor: 'var(--border)' }}>
                         {incident.loss_amount != null ? (
                           <div className="flex items-center gap-1 text-xs font-bold text-red-500">
                             <DollarSign className="w-3.5 h-3.5" />
-                            İtki Məbləği: {Number(incident.loss_amount).toLocaleString()} {incident.loss_currency || 'AZN'}
+                            Loss Amount: {Number(incident.loss_amount).toLocaleString()} {incident.loss_currency || 'AZN'}
                           </div>
                         ) : (
-                          <p className="text-xs" style={{ color: 'var(--muted-fg)' }}>İtki məbləği qeyd olunmayıb.</p>
+                          <p className="text-xs" style={{ color: 'var(--muted-fg)' }}>No loss amount recorded.</p>
                         )}
                       </div>
                     </div>
 
                     {/* Attached Files */}
                     <div className="space-y-2">
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Əlavə Edilmiş Fayllar (Attached Files)</p>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Attached Files</p>
                       {!incident.attached_files || incident.attached_files.length === 0 ? (
-                        <p className="text-xs text-slate-500 italic">Əlavə edilmiş fayl yoxdur.</p>
+                        <p className="text-xs text-slate-500 italic">No attached files.</p>
                       ) : (
                         <div className="grid grid-cols-1 gap-2">
                           {incident.attached_files.map(file => (
@@ -368,13 +368,13 @@ export function IncidentDetailSheet({ incident, onClose, onUpdate, onEdit }: Pro
                     {/* Investigator details */}
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Araşdırma Rəhbəri</p>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Investigation Lead</p>
                         <p className="text-xs font-semibold mt-1" style={{ color: 'var(--foreground)' }}>
                           {incident.investigation_lead || incident.assigned_name || 'Not assigned'}
                         </p>
                       </div>
                       <div>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Araşdırma Müddəti</p>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Investigation Period</p>
                         <p className="text-xs font-semibold mt-1" style={{ color: 'var(--foreground)' }}>
                           {incident.investigation_start ? (
                             <>
@@ -389,7 +389,7 @@ export function IncidentDetailSheet({ incident, onClose, onUpdate, onEdit }: Pro
                     {/* Root Cause category & details */}
                     <div className="space-y-3.5">
                       <div className="flex justify-between items-center">
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Əsas Səbəb (Root Cause)</p>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Root Cause</p>
                         {incident.root_cause_category && (
                           <span className="text-[9px] px-2 py-0.5 rounded bg-orange-500/10 text-orange-400 border border-orange-500/10 font-bold uppercase tracking-wider">
                             Kategoriya: {incident.root_cause_category}
@@ -403,7 +403,7 @@ export function IncidentDetailSheet({ incident, onClose, onUpdate, onEdit }: Pro
 
                     {/* Investigation Notes */}
                     <div className="space-y-2">
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Araşdırma Qeydləri (Investigation Notes)</p>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Investigation Notes</p>
                       <div className="p-3.5 rounded-xl border text-xs leading-relaxed whitespace-pre-line" style={{ borderColor: 'var(--border)' }}>
                         {incident.investigation_notes || 'No additional investigation notes.'}
                       </div>
@@ -412,11 +412,11 @@ export function IncidentDetailSheet({ incident, onClose, onUpdate, onEdit }: Pro
                     {/* GRC linkage */}
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Əlaqəli Risk</p>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Related Risk</p>
                         <p className="text-xs" style={{ color: linkedRisk ? 'var(--brand-500)' : 'var(--muted-fg)' }}>{linkedRisk || '—'}</p>
                       </div>
                       <div>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Əlaqəli Control</p>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Related Control</p>
                         <p className="text-xs" style={{ color: linkedControl ? 'var(--brand-500)' : 'var(--muted-fg)' }}>{linkedControl || '—'}</p>
                       </div>
                     </div>
@@ -425,7 +425,7 @@ export function IncidentDetailSheet({ incident, onClose, onUpdate, onEdit }: Pro
                     {brokenObligations.length > 0 && (
                       <div className="rounded-xl border border-red-500/25 bg-red-500/10 p-3">
                         <p className="text-[11px] font-bold text-red-400 flex items-center gap-1.5 mb-1.5">
-                          <AlertTriangle className="w-3.5 h-3.5" /> Bu insident bu öhdəlikləri poza bilər
+                          <AlertTriangle className="w-3.5 h-3.5" /> This incident may breach these obligations
                         </p>
                         <ul className="space-y-1">
                           {brokenObligations.map(o => (
@@ -438,9 +438,9 @@ export function IncidentDetailSheet({ incident, onClose, onUpdate, onEdit }: Pro
                     {/* Impacted Systems and Departments */}
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Təsirlənmiş Sistemlər</p>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Affected Systems</p>
                         {!incident.affected_systems || incident.affected_systems.length === 0 ? (
-                          <p className="text-xs text-slate-500 italic">Qeyd olunmayıb</p>
+                          <p className="text-xs text-slate-500 italic">Not recorded</p>
                         ) : (
                           <div className="flex flex-wrap gap-1">
                             {incident.affected_systems.map(sys => (
@@ -452,9 +452,9 @@ export function IncidentDetailSheet({ incident, onClose, onUpdate, onEdit }: Pro
                         )}
                       </div>
                       <div>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Təsirlənmiş Departamentlər</p>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Affected Departments</p>
                         {!incident.affected_departments || incident.affected_departments.length === 0 ? (
-                          <p className="text-xs text-slate-500 italic">Qeyd olunmayıb</p>
+                          <p className="text-xs text-slate-500 italic">Not recorded</p>
                         ) : (
                           <div className="flex flex-wrap gap-1">
                             {incident.affected_departments.map(dept => (
@@ -474,24 +474,24 @@ export function IncidentDetailSheet({ incident, onClose, onUpdate, onEdit }: Pro
                   <>
                     {/* Resolution summary */}
                     <div className="space-y-2">
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Həll Xülasəsi (Resolution Summary)</p>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Resolution Summary</p>
                       <div className="p-3.5 rounded-xl border text-xs leading-relaxed whitespace-pre-line" style={{ borderColor: 'var(--border)' }}>
                         {incident.resolution_summary || 'Incident resolution not yet completed.'}
                       </div>
                       {(incident.resolved_at || incident.closed_at) && (
                         <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-mono mt-1">
                           <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
-                          {incident.resolved_at && `Həll vaxtı: ${format(new Date(incident.resolved_at), 'dd.MM.yyyy HH:mm')}`}
-                          {incident.closed_at && ` | Bağlanma vaxtı: ${format(new Date(incident.closed_at), 'dd.MM.yyyy HH:mm')}`}
+                          {incident.resolved_at && `Resolved at: ${format(new Date(incident.resolved_at), 'dd.MM.yyyy HH:mm')}`}
+                          {incident.closed_at && ` | Closed at: ${format(new Date(incident.closed_at), 'dd.MM.yyyy HH:mm')}`}
                         </div>
                       )}
                     </div>
 
                     {/* Corrective Actions (CRUD items list) */}
                     <div className="space-y-3">
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Korrektiv Tədbirlər (Corrective Actions)</p>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Corrective Actions</p>
                       {!incident.corrective_actions || incident.corrective_actions.length === 0 ? (
-                        <p className="text-xs text-slate-500 italic">Heç bir korrektiv tədbir qeyd olunmayıb.</p>
+                        <p className="text-xs text-slate-500 italic">No corrective actions recorded.</p>
                       ) : (
                         <div className="space-y-2">
                           {incident.corrective_actions.map(action => (
@@ -513,9 +513,9 @@ export function IncidentDetailSheet({ incident, onClose, onUpdate, onEdit }: Pro
                                 </span>
                               </div>
                               <div className="flex items-center justify-between text-[10px] text-slate-400">
-                                <span>Təyin edilib: {action.assignee || 'Unassigned'}</span>
+                                <span>Assigned: {action.assignee || 'Unassigned'}</span>
                                 {action.due_date && (
-                                  <span>Müddət: {format(new Date(action.due_date), 'dd.MM.yyyy')}</span>
+                                  <span>Due: {format(new Date(action.due_date), 'dd.MM.yyyy')}</span>
                                 )}
                               </div>
                             </div>
@@ -526,7 +526,7 @@ export function IncidentDetailSheet({ incident, onClose, onUpdate, onEdit }: Pro
 
                     {/* Lessons Learned */}
                     <div className="space-y-2">
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Alınan Dərslər (Lessons Learned)</p>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Lessons Learned</p>
                       <div className="p-3.5 rounded-xl border text-xs leading-relaxed whitespace-pre-line" style={{ borderColor: 'var(--border)' }}>
                         {incident.lessons_learned || 'No lessons recorded.'}
                       </div>
@@ -706,13 +706,13 @@ export function IncidentDetailSheet({ incident, onClose, onUpdate, onEdit }: Pro
               ) : (
                 <button onClick={handleAcknowledge}
                   className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-semibold text-white bg-sky-600 hover:bg-sky-700 transition-colors">
-                  <Check className="w-3.5 h-3.5" /> Üzərimə götür (SLA başlat)
+                  <Check className="w-3.5 h-3.5" /> Take ownership (start SLA)
                 </button>
               )}
               <button onClick={handleForward}
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-semibold border hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
                 style={{ borderColor: 'var(--border)', color: 'var(--foreground)' }}>
-                <Send className="w-3.5 h-3.5" /> Ötür
+                <Send className="w-3.5 h-3.5" /> Forward
               </button>
               {incident.forwarded_to && (
                 <span className="text-[10px]" style={{ color: 'var(--muted-fg)' }}>→ {incident.forwarded_to}</span>
@@ -727,7 +727,7 @@ export function IncidentDetailSheet({ incident, onClose, onUpdate, onEdit }: Pro
               className="px-5 py-2 rounded-xl text-xs font-semibold border hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer transition-colors"
               style={{ borderColor: 'var(--border)', color: 'var(--foreground)' }}
             >
-              Hadisəni Redaktə Et
+              Edit Incident
             </button>
 
             {/* Quick status updater — only the risk owner can change status */}
@@ -749,7 +749,7 @@ export function IncidentDetailSheet({ incident, onClose, onUpdate, onEdit }: Pro
               </div>
             ) : (
               <span className="px-4 py-2 rounded-xl text-xs font-semibold" style={{ background: 'var(--muted)', color: 'var(--muted-fg)' }}>
-                Statusu yalnız risk owner dəyişə bilər
+                Only the risk owner can change the status
               </span>
             )}
           </div>

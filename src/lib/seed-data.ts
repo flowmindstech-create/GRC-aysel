@@ -44,69 +44,69 @@ const ou = (
 
 export const SEED_ORG_UNITS: OrgUnit[] = [
   // Top level
-  ou('ou-board', 'Himayəçilər Şurası', 'executive', null, 0),
-  ou('ou-exec', 'İcraçı direktor', 'executive', 'ou-board', 1),
-  ou('ou-audit-svc', 'Daxili audit xidməti', 'division', 'ou-board', 2),
-  ou('ou-audit-com', 'Audit komitəsi', 'committee', 'ou-board', 3),
-  ou('ou-strat-com', 'Strategiya komitəsi', 'committee', 'ou-board', 4),
-  ou('ou-risk-com', 'Risk komitəsi', 'committee', 'ou-board', 5),
+  ou('ou-board', 'Board of Trustees', 'executive', null, 0),
+  ou('ou-exec', 'Executive Director', 'executive', 'ou-board', 1),
+  ou('ou-audit-svc', 'Internal Audit Service', 'division', 'ou-board', 2),
+  ou('ou-audit-com', 'Audit Committee', 'committee', 'ou-board', 3),
+  ou('ou-strat-com', 'Strategy Committee', 'committee', 'ou-board', 4),
+  ou('ou-risk-com', 'Risk Committee', 'committee', 'ou-board', 5),
 
   // Executive line
-  ou('ou-dep1', 'İcraçı direktorun müavini (Korporativ)', 'executive', 'ou-exec', 10),
-  ou('ou-dep2', 'İcraçı direktorun müavini (Biznes)', 'executive', 'ou-exec', 11),
-  ou('ou-cio', 'Baş informasiya inzibatçısı', 'executive', 'ou-exec', 12),
-  ou('ou-ciso', 'İnformasiya təhlükəsizliyi üzrə baş inzibatçı', 'executive', 'ou-exec', 13),
+  ou('ou-dep1', 'Deputy Executive Director (Corporate)', 'executive', 'ou-exec', 10),
+  ou('ou-dep2', 'Deputy Executive Director (Business)', 'executive', 'ou-exec', 11),
+  ou('ou-cio', 'Chief Information Officer', 'executive', 'ou-exec', 12),
+  ou('ou-ciso', 'Chief Information Security Officer', 'executive', 'ou-exec', 13),
 
   // Departments (selectable as Owner Department) — each carries a Risk ID code
-  ou('ou-corp', 'Korporativ xidmətlər departamenti', 'department', 'ou-dep1', 20, 'u1', 'Korporativ xidmətlər departamentinin rəhbəri', 'CORP'),
-  ou('ou-bizdev', 'Biznesin inkişafı departamenti', 'department', 'ou-dep2', 21, 'u2', 'Biznesin inkişafı departamentinin rəhbəri', 'BIZ'),
-  ou('ou-digital', 'Rəqəmsal həllərin inkişafı departamenti', 'department', 'ou-cio', 22, 'u3', 'Rəqəmsal həllərin inkişafı departamentinin rəhbəri', 'DIG'),
-  ou('ou-itinfra', 'İT infrastruktur və əməliyyatların idarəedilməsi departamenti', 'department', 'ou-cio', 23, 'u4', 'İT infrastruktur departamentinin rəhbəri', 'IT'),
-  ou('ou-ops', 'Əməliyyatlar departamenti', 'department', 'ou-exec', 24, 'u2', 'Əməliyyatlar departamentinin rəhbəri', 'OPS'),
+  ou('ou-corp', 'Corporate Services Department', 'department', 'ou-dep1', 20, 'u1', 'Head of the Corporate Services Department', 'CORP'),
+  ou('ou-bizdev', 'Business Development Department', 'department', 'ou-dep2', 21, 'u2', 'Head of the Business Development Department', 'BIZ'),
+  ou('ou-digital', 'Digital Solutions Development Department', 'department', 'ou-cio', 22, 'u3', 'Head of the Digital Solutions Development Department', 'DIG'),
+  ou('ou-itinfra', 'IT Infrastructure and Operations Management Department', 'department', 'ou-cio', 23, 'u4', 'Head of the IT Infrastructure Department', 'IT'),
+  ou('ou-ops', 'Operations Department', 'department', 'ou-exec', 24, 'u2', 'Head of the Operations Department', 'OPS'),
 
-  // Korporativ xidmətlər → şöbələr
-  ou('ou-legal', 'Hüquq şöbəsi', 'division', 'ou-corp', 30),
-  ou('ou-hr', 'İnsan resurslarının idarəedilməsi şöbəsi', 'division', 'ou-corp', 31),
-  ou('ou-general', 'Ümumi şöbə', 'division', 'ou-corp', 32),
-  ou('ou-facilities', 'Təsərrüfat şöbəsi', 'division', 'ou-corp', 33),
-  ou('ou-pr', 'İctimaiyyətlə əlaqələr və kommunikasiya şöbəsi', 'division', 'ou-corp', 34),
-  ou('ou-finance', 'Maliyyə şöbəsi', 'division', 'ou-dep1', 35),
+  // Corporate Services → divisions
+  ou('ou-legal', 'Legal Division', 'division', 'ou-corp', 30),
+  ou('ou-hr', 'Human Resources Management Division', 'division', 'ou-corp', 31),
+  ou('ou-general', 'General Division', 'division', 'ou-corp', 32),
+  ou('ou-facilities', 'Facilities Division', 'division', 'ou-corp', 33),
+  ou('ou-pr', 'Public Relations and Communications Division', 'division', 'ou-corp', 34),
+  ou('ou-finance', 'Finance Division', 'division', 'ou-dep1', 35),
 
-  // Biznesin inkişafı → şöbələr
-  ou('ou-ba', 'Biznes analitika şöbəsi', 'division', 'ou-bizdev', 40),
-  ou('ou-method', 'Metodologiya şöbəsi', 'division', 'ou-bizdev', 41),
-  ou('ou-data', 'Data və hesabatlılıq şöbəsi', 'division', 'ou-dep2', 42),
-  ou('ou-greencard', 'Yaşıl Kart və beynəlxalq əlaqələr şöbəsi', 'division', 'ou-dep2', 43),
-  ou('ou-actuary', 'Aktuari', 'division', 'ou-dep2', 44),
+  // Business Development → divisions
+  ou('ou-ba', 'Business Analytics Division', 'division', 'ou-bizdev', 40),
+  ou('ou-method', 'Methodology Division', 'division', 'ou-bizdev', 41),
+  ou('ou-data', 'Data and Reporting Division', 'division', 'ou-dep2', 42),
+  ou('ou-greencard', 'Green Card and International Relations Division', 'division', 'ou-dep2', 43),
+  ou('ou-actuary', 'Actuary', 'division', 'ou-dep2', 44),
 
-  // Rəqəmsal həllər → şöbələr
-  ou('ou-appdev', 'Tətbiqi proqramlaşdırma şöbəsi', 'division', 'ou-digital', 50),
-  ou('ou-diganalysis', 'Rəqəmsal həllərin analizi və tətbiqi şöbəsi', 'division', 'ou-digital', 51),
+  // Digital Solutions → divisions
+  ou('ou-appdev', 'Application Programming Division', 'division', 'ou-digital', 50),
+  ou('ou-diganalysis', 'Digital Solutions Analysis and Implementation Division', 'division', 'ou-digital', 51),
 
-  // İT infrastruktur → şöbələr
-  ou('ou-sysnet', 'Sistem və şəbəkə inzibatçılığı şöbəsi', 'division', 'ou-itinfra', 60),
-  ou('ou-dbops', 'Əməliyyatların avtomatlaşdırılması və məlumat bazaları şöbəsi', 'division', 'ou-itinfra', 61),
+  // IT Infrastructure → divisions
+  ou('ou-sysnet', 'System and Network Administration Division', 'division', 'ou-itinfra', 60),
+  ou('ou-dbops', 'Operations Automation and Databases Division', 'division', 'ou-itinfra', 61),
 
   // CIO standalone roles
-  ou('ou-arch', 'Proqram təminatı üzrə arxitektor', 'division', 'ou-cio', 62),
-  ou('ou-uxui', 'UX/UI dizayner', 'division', 'ou-cio', 63),
-  ou('ou-ai', 'Süni intellekt üzrə mühəndis', 'division', 'ou-cio', 64),
+  ou('ou-arch', 'Software Architect', 'division', 'ou-cio', 62),
+  ou('ou-uxui', 'UX/UI Designer', 'division', 'ou-cio', 63),
+  ou('ou-ai', 'Artificial Intelligence Engineer', 'division', 'ou-cio', 64),
 
   // CISO
-  ou('ou-infosec', 'İnformasiya təhlükəsizliyi şöbəsi', 'division', 'ou-ciso', 70),
+  ou('ou-infosec', 'Information Security Division', 'division', 'ou-ciso', 70),
 
-  // Əməliyyatlar → şöbələr
-  ou('ou-requests', 'Tələblərin idarə edilməsi şöbəsi', 'division', 'ou-ops', 80),
-  ou('ou-callcenter', 'Çağrı mərkəzi şöbəsi', 'division', 'ou-ops', 81),
-  ou('ou-appeals', 'Müraciətlərin idarə edilməsi şöbəsi', 'division', 'ou-ops', 82),
+  // Operations → divisions
+  ou('ou-requests', 'Requests Management Division', 'division', 'ou-ops', 80),
+  ou('ou-callcenter', 'Call Center Division', 'division', 'ou-ops', 81),
+  ou('ou-appeals', 'Appeals Management Division', 'division', 'ou-ops', 82),
 
   // Reporting directly to executive director
-  ou('ou-riskmgmt', 'Risklərin idarəedilməsi şöbəsi', 'division', 'ou-exec', 90),
-  ou('ou-projects', 'Layihələrin idarə olunması şöbəsi', 'division', 'ou-exec', 91),
-  ou('ou-hse', 'Əməyin mühafizəsi üzrə mühəndis', 'division', 'ou-exec', 92),
-  ou('ou-procurement', 'Satınalma üzrə menecer', 'division', 'ou-exec', 93),
-  ou('ou-intsec', 'Daxili təhlükəsizlik üzrə menecer', 'division', 'ou-exec', 94),
-  ou('ou-strategy', 'Strategiya üzrə menecer', 'division', 'ou-exec', 95),
+  ou('ou-riskmgmt', 'Risk Management Division', 'division', 'ou-exec', 90),
+  ou('ou-projects', 'Project Management Division', 'division', 'ou-exec', 91),
+  ou('ou-hse', 'Occupational Safety Engineer', 'division', 'ou-exec', 92),
+  ou('ou-procurement', 'Procurement Manager', 'division', 'ou-exec', 93),
+  ou('ou-intsec', 'Internal Security Manager', 'division', 'ou-exec', 94),
+  ou('ou-strategy', 'Strategy Manager', 'division', 'ou-exec', 95),
 ]
 
 // ─── Risks ───────────────────────────────────────────────────────────────────
@@ -420,21 +420,21 @@ export const MOCK_POLICIES: Policy[] = [
     id: 'p1',
     org_id: 'org1',
     policy_id: 'POL-2026-101',
-    title: 'İnformasiya Təhlükəsizliyi Siyasəti (Information Security Policy)',
-    description: 'Şirkət daxilində bütün informasiya aktivlərinin qorunması, istifadəçi səlahiyyətlərinin idarə edilməsi və təhlükəsizlik qaydalarını müəyyən edir.',
+    title: 'Information Security Policy',
+    description: 'Defines the protection of all information assets within the company, the management of user permissions, and security rules.',
     category: 'information_security',
     version: '2.1',
     status: 'published',
-    owner_dept: 'İnformasiya Təhlükəsizliyi Şöbəsi',
+    owner_dept: 'Information Security Division',
     effective_date: '2026-01-01',
     review_date: '2027-01-01',
     linked_control_ids: ['c1', 'c2'],
     linked_requirement_ids: [],
-    change_summary: 'MFA tələbləri və uzaqdan iş qaydaları yeniləndi.',
+    change_summary: 'MFA requirements and remote-work rules updated.',
     change_history: [
-      { version: '1.0', changed_by: 'Ali Hasanov', changed_at: '2024-01-01T08:00:00Z', summary: 'İlk versiya yaradıldı.' },
-      { version: '2.0', changed_by: 'Ali Hasanov', changed_at: '2025-01-01T09:00:00Z', summary: 'Şifrə mürəkkəbliyi tələbləri sərtləşdirildi.' },
-      { version: '2.1', changed_by: 'Ali Hasanov', changed_at: '2026-01-01T10:00:00Z', summary: 'MFA tələbləri və uzaqdan iş qaydaları yeniləndi.' }
+      { version: '1.0', changed_by: 'Ali Hasanov', changed_at: '2024-01-01T08:00:00Z', summary: 'Initial version created.' },
+      { version: '2.0', changed_by: 'Ali Hasanov', changed_at: '2025-01-01T09:00:00Z', summary: 'Password complexity requirements tightened.' },
+      { version: '2.1', changed_by: 'Ali Hasanov', changed_at: '2026-01-01T10:00:00Z', summary: 'MFA requirements and remote-work rules updated.' }
     ],
     created_at: '2024-01-01T08:00:00Z',
     updated_at: '2026-01-01T10:00:00Z'
@@ -443,18 +443,18 @@ export const MOCK_POLICIES: Policy[] = [
     id: 'p2',
     org_id: 'org1',
     policy_id: 'POL-2026-102',
-    title: 'Fərdi Məlumatların Qorunması Siyasəti (Data Protection Policy)',
-    description: 'Müştəri və tərəfdaşların fərdi məlumatlarının toplanması, emal edilməsi və saxlanması proseslərinin tənzimlənməsi.',
+    title: 'Data Protection Policy',
+    description: 'Regulation of the collection, processing, and storage of the personal data of customers and partners.',
     category: 'compliance',
     version: '1.0',
     status: 'approved',
-    owner_dept: 'Hüquq şöbəsi',
+    owner_dept: 'Legal Division',
     effective_date: '2026-03-01',
     review_date: '2027-03-01',
     linked_control_ids: [],
     linked_requirement_ids: [],
     change_history: [
-      { version: '1.0', changed_by: 'Leyla Mammadova', changed_at: '2026-02-15T14:30:00Z', summary: 'GDPR və yerli qanunvericilik əsasında ilkin sənəd.' }
+      { version: '1.0', changed_by: 'Leyla Mammadova', changed_at: '2026-02-15T14:30:00Z', summary: 'Initial document based on GDPR and local legislation.' }
     ],
     created_at: '2026-02-15T14:30:00Z',
     updated_at: '2026-02-15T14:30:00Z'
@@ -463,17 +463,17 @@ export const MOCK_POLICIES: Policy[] = [
     id: 'p3',
     org_id: 'org1',
     policy_id: 'POL-2026-103',
-    title: 'Biznesin Fasiləsizliyi Planı (Business Continuity Policy)',
-    description: 'Fövqəladə hallar və gözlənilməz kəsintilər zamanı kritik biznes proseslərinin bərpası və davamlılığının təmin edilməsi.',
+    title: 'Business Continuity Policy',
+    description: 'Ensuring the recovery and continuity of critical business processes during emergencies and unexpected disruptions.',
     category: 'operational',
     version: '1.0',
     status: 'in_review',
-    owner_dept: 'Risklərin idarəedilməsi şöbəsi',
+    owner_dept: 'Risk Management Division',
     review_date: '2026-12-01',
     linked_control_ids: [],
     linked_requirement_ids: [],
     change_history: [
-      { version: '1.0', changed_by: 'Leyla Mammadova', changed_at: '2026-05-10T11:00:00Z', summary: 'İlkin layihə rəy üçün təqdim edilib.' }
+      { version: '1.0', changed_by: 'Leyla Mammadova', changed_at: '2026-05-10T11:00:00Z', summary: 'Initial draft submitted for review.' }
     ],
     created_at: '2026-05-10T11:00:00Z',
     updated_at: '2026-05-10T11:00:00Z'
@@ -482,12 +482,12 @@ export const MOCK_POLICIES: Policy[] = [
     id: 'p4',
     org_id: 'org1',
     policy_id: 'POL-2026-104',
-    title: 'İnsan Resursları Təhlükəsizlik Qaydaları (HR Security Policy)',
-    description: 'İşə qəbul, işdən ayrılma və daxili intizam qaydalarında təhlükəsizlik tələbləri.',
+    title: 'HR Security Policy',
+    description: 'Security requirements in hiring, termination, and internal disciplinary rules.',
     category: 'hr',
     version: '1.0',
     status: 'draft',
-    owner_dept: 'İnsan resurslarının idarəedilməsi şöbəsi',
+    owner_dept: 'Human Resources Management Division',
     linked_control_ids: [],
     linked_requirement_ids: [],
     change_history: [],
@@ -501,7 +501,7 @@ export const MOCK_REGULATORY_CHANGES: RegulatoryChange[] = [
     id: 'rcm1',
     org_id: 'org1',
     change_code: 'RCM-2026-001',
-    title: 'GDPR Amendment 2026 (Fərdi Məlumatların Qorunması Yeniliyi)',
+    title: 'GDPR Amendment 2026 (Data Protection Update)',
     source: 'GDPR',
     regulator: 'European Data Protection Board',
     change_date: '2026-05-15',
@@ -515,7 +515,7 @@ export const MOCK_REGULATORY_CHANGES: RegulatoryChange[] = [
     id: 'rcm2',
     org_id: 'org1',
     change_code: 'RCM-2026-002',
-    title: 'Local Data Protection Law Update (Fərdi Məlumatlar haqqında Qanuna Dəyişikliklər)',
+    title: 'Local Data Protection Law Update (Amendments to the Personal Data Law)',
     source: 'Local Regulation',
     regulator: 'State Security Service / Ministry of Digital Development',
     change_date: '2026-07-01',
@@ -529,7 +529,7 @@ export const MOCK_REGULATORY_CHANGES: RegulatoryChange[] = [
     id: 'rcm3',
     org_id: 'org1',
     change_code: 'RCM-2026-003',
-    title: 'PCI DSS v4.1 Update (Kart Məlumatları Təhlükəsizliyi Yeniliyi)',
+    title: 'PCI DSS v4.1 Update (Card Data Security Update)',
     source: 'PCI DSS',
     regulator: 'PCI SSC',
     change_date: '2026-09-30',

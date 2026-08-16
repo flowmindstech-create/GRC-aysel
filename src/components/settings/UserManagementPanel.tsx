@@ -41,7 +41,7 @@ export function UserManagementPanel() {
     toast.success(`${user.full_name} → ${ROLE_LABEL[role]}`)
   }
 
-  if (permLoading) return <div className="card p-6 flex items-center gap-2 text-sm" style={{ color: 'var(--muted-fg)' }}><Loader2 className="w-4 h-4 animate-spin" /> Yüklənir…</div>
+  if (permLoading) return <div className="card p-6 flex items-center gap-2 text-sm" style={{ color: 'var(--muted-fg)' }}><Loader2 className="w-4 h-4 animate-spin" /> Loading…</div>
 
   // Super_admin olmayan hər kəs üçün qapalı
   if (!isSuperAdmin) {
@@ -51,8 +51,8 @@ export function UserManagementPanel() {
           <Lock className="w-5 h-5" style={{ color: 'var(--muted-fg)' }} />
         </div>
         <div>
-          <p className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>Giriş məhduddur</p>
-          <p className="text-xs mt-1" style={{ color: 'var(--muted-fg)' }}>İstifadəçi idarəsi yalnız Super Admin üçündür.</p>
+          <p className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>Access restricted</p>
+          <p className="text-xs mt-1" style={{ color: 'var(--muted-fg)' }}>User management is for Super Admin only.</p>
         </div>
       </div>
     )
@@ -62,10 +62,10 @@ export function UserManagementPanel() {
     <div className="card p-6">
       <div className="flex items-center gap-2 mb-1">
         <ShieldCheck className="w-4 h-4" style={{ color: 'var(--brand-500)' }} />
-        <h3 className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>İstifadəçi İdarəsi</h3>
+        <h3 className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>User Management</h3>
       </div>
       <p className="text-xs mb-5" style={{ color: 'var(--muted-fg)' }}>
-        Rol təyin et. Yüksək rütbə çox icazə deməkdir. Super Admin yeganədir — silmə və istifadəçi idarəsi yalnız ona aiddir.
+        Assign roles. Higher rank means more permissions. Super Admin is unique — deletion and user management belong to them alone.
       </p>
 
       <div className="overflow-x-auto">
@@ -79,9 +79,9 @@ export function UserManagementPanel() {
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={4} className="py-10 text-center text-sm" style={{ color: 'var(--muted-fg)' }}>Yüklənir…</td></tr>
+              <tr><td colSpan={4} className="py-10 text-center text-sm" style={{ color: 'var(--muted-fg)' }}>Loading…</td></tr>
             ) : users.length === 0 ? (
-              <tr><td colSpan={4} className="py-10 text-center text-sm" style={{ color: 'var(--muted-fg)' }}>İstifadəçi yoxdur</td></tr>
+              <tr><td colSpan={4} className="py-10 text-center text-sm" style={{ color: 'var(--muted-fg)' }}>No users</td></tr>
             ) : users.map(u => {
               const isMe = u.id === me?.id
               return (
@@ -92,7 +92,7 @@ export function UserManagementPanel() {
                         {(u.full_name || '?').charAt(0).toUpperCase()}
                       </div>
                       <span className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>
-                        {u.full_name}{isMe && <span className="text-[10px] ml-1.5 px-1.5 py-0.5 rounded" style={{ background: 'var(--muted)', color: 'var(--muted-fg)' }}>sən</span>}
+                        {u.full_name}{isMe && <span className="text-[10px] ml-1.5 px-1.5 py-0.5 rounded" style={{ background: 'var(--muted)', color: 'var(--muted-fg)' }}>you</span>}
                       </span>
                     </div>
                   </td>
@@ -128,7 +128,7 @@ export function UserManagementPanel() {
                       <button type="button" onClick={() => setTransferUser(u)}
                         className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold border transition-colors hover:bg-black/[0.04]"
                         style={{ borderColor: 'var(--border)', color: 'var(--foreground)' }}>
-                        <ArrowRightLeft className="w-3.5 h-3.5" /> Vəzifəni təhvil ver
+                        <ArrowRightLeft className="w-3.5 h-3.5" /> Transfer role
                       </button>
                     )}
                   </td>

@@ -73,10 +73,10 @@ const IMPACT_OPTIONS: ScaleOption[] = IMPACT_LEVEL_LABELS.map((label, i) => ({
   value: i + 1,
   label,
   desc: [
-    'Cüzi təsir — əməliyyata/maliyyəyə demək olar təsir yoxdur',
-    'Kiçik təsir — məhdud, asanlıqla aradan qaldırılan təsir',
+    'Negligible impact — almost no effect on operations/finances',
+    'Minor impact — limited, easily remediated effect',
     'Moderate impact — noticeable, manageable impact',
-    'Əhəmiyyətli təsir — ciddi əməliyyat/maliyyə/nüfuz təsiri',
+    'Significant impact — serious operational/financial/reputational effect',
     'Catastrophic impact — critical, wide-scale impact',
   ][i],
 }))
@@ -204,7 +204,7 @@ export function IncidentIntakeForm({ data, onChange }: Props) {
       {/* Risk Category (parent) → Incident Category (dependent sub-category) */}
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Risk Kateqoriyası</label>
+          <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Risk Category</label>
           <select value={data.risk_category ?? ''}
             onChange={e => {
               const rc = (e.target.value || undefined) as RiskCategory | undefined
@@ -212,12 +212,12 @@ export function IncidentIntakeForm({ data, onChange }: Props) {
               onChange({ ...data, risk_category: rc, incident_category: stillValid ? data.incident_category : undefined })
             }}
             className={`${fieldCls} cursor-pointer`} style={inputStyle}>
-            <option value="">— Seçin —</option>
+            <option value="">— Select —</option>
             {RISK_CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
           </select>
         </div>
         <div>
-          <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>İnsident Kateqoriyası</label>
+          <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Incident Category</label>
           <select value={data.incident_category ?? ''} disabled={!data.risk_category}
             onChange={e => onChange({ ...data, incident_category: e.target.value || undefined })}
             className={`${fieldCls} ${data.risk_category ? 'cursor-pointer' : 'opacity-60 cursor-not-allowed'}`} style={inputStyle}>
@@ -231,7 +231,7 @@ export function IncidentIntakeForm({ data, onChange }: Props) {
       <div>
         <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Description <span className="text-red-400">*</span></label>
         <textarea value={data.description ?? ''} onChange={e => onChange({ ...data, description: e.target.value })} rows={3}
-          placeholder="Hadisənin təfərrüatları — nə baş verdi, harada, nə zaman..."
+          placeholder="Event details — what happened, where, when..."
           className={`${fieldCls} resize-none`} style={inputStyle} onFocus={focus} onBlur={blur} />
       </div>
 
@@ -239,7 +239,7 @@ export function IncidentIntakeForm({ data, onChange }: Props) {
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>
-            <Calendar className="w-3 h-3 inline mr-1" />Baş Vermə Tarixi (manual)
+            <Calendar className="w-3 h-3 inline mr-1" />Occurrence Date (manual)
           </label>
           <input type="datetime-local" value={data.occurrence_datetime ?? ''} max={nowLocalValue()}
             onChange={e => {
@@ -248,10 +248,10 @@ export function IncidentIntakeForm({ data, onChange }: Props) {
               onChange({ ...data, occurrence_datetime: v && v > max ? max : v })
             }}
             className={fieldCls} style={inputStyle} onFocus={focus} onBlur={blur} />
-          <p className="text-[10px] mt-0.5" style={{ color: 'var(--muted-fg)' }}>Gələcək tarix seçmək olmaz</p>
+          <p className="text-[10px] mt-0.5" style={{ color: 'var(--muted-fg)' }}>Future dates are not allowed</p>
         </div>
         <div>
-          <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Aşkarlanma Vaxtı (avtomatik)</label>
+          <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Detection Time (automatic)</label>
           <input type="text" readOnly
             value={data.discovery_datetime ? new Date(data.discovery_datetime).toLocaleString('az-AZ') : '—'}
             className={`${fieldCls} opacity-60 cursor-not-allowed`} style={inputStyle} />
@@ -265,7 +265,7 @@ export function IncidentIntakeForm({ data, onChange }: Props) {
           <select value={data.reporter_structure ?? ''}
             onChange={e => handleStructureChange(e.target.value)}
             className={`${fieldCls} cursor-pointer`} style={inputStyle}>
-            <option value="">— Seçin —</option>
+            <option value="">— Select —</option>
             {departments.map(d => <option key={d.id} value={d.name}>{d.name}</option>)}
           </select>
         </div>
@@ -286,14 +286,14 @@ export function IncidentIntakeForm({ data, onChange }: Props) {
       </p>
       <div>
         <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>
-          <Workflow className="w-3 h-3 inline mr-1" />Əlaqəli Proses
+          <Workflow className="w-3 h-3 inline mr-1" />Related Process
         </label>
         <select value={data.process_id ?? ''} onChange={e => onChange({ ...data, process_id: e.target.value || undefined })}
           className={`${fieldCls} cursor-pointer`} style={inputStyle}>
-          <option value="">— Seçin —</option>
+          <option value="">— Select —</option>
           {processes.map(p => <option key={p.id} value={p.id}>{p.code} · {p.name}</option>)}
         </select>
-        <p className="text-[10px] mt-0.5" style={{ color: 'var(--muted-fg)' }}>Kontrollar yalnız bu prosesin siyahısından seçilə bilər</p>
+        <p className="text-[10px] mt-0.5" style={{ color: 'var(--muted-fg)' }}>Controls can only be selected from this process's list</p>
       </div>
 
       {related && (
@@ -302,8 +302,8 @@ export function IncidentIntakeForm({ data, onChange }: Props) {
             <div className="flex items-start gap-2 p-3 rounded-xl border border-amber-500/25 bg-amber-500/10">
               <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0 text-amber-400" />
               <p className="text-xs text-amber-300">
-                Diqqət: bu proses üzrə son 3 ayda <b>{related.recent.length}</b> insident qeydə alınıb
-                {related.incidentsOnProcess.length > related.recent.length ? ` (ümumilikdə ${related.incidentsOnProcess.length})` : ''}.
+                Note: <b>{related.recent.length}</b> incidents recorded for this process in the last 3 months
+                {related.incidentsOnProcess.length > related.recent.length ? ` (total ${related.incidentsOnProcess.length})` : ''}.
               </p>
             </div>
           )}
@@ -313,11 +313,11 @@ export function IncidentIntakeForm({ data, onChange }: Props) {
               <p className="text-xs font-semibold" style={{ color: 'var(--foreground)' }}>{related.controls.length}</p>
             </div>
             <div className="rounded-lg px-2 py-1.5" style={{ background: 'var(--muted)' }}>
-              <p className="text-[9px] uppercase" style={{ color: 'var(--muted-fg)' }}>Əlaqəli risk</p>
+              <p className="text-[9px] uppercase" style={{ color: 'var(--muted-fg)' }}>Related risk</p>
               <p className="text-xs font-semibold" style={{ color: 'var(--foreground)' }}>{related.risks.length}</p>
             </div>
             <div className="rounded-lg px-2 py-1.5" style={{ background: 'var(--muted)' }}>
-              <p className="text-[9px] uppercase" style={{ color: 'var(--muted-fg)' }}>Əlaqəli insident</p>
+              <p className="text-[9px] uppercase" style={{ color: 'var(--muted-fg)' }}>Related incident</p>
               <p className="text-xs font-semibold" style={{ color: 'var(--foreground)' }}>{related.incidentsOnProcess.length}</p>
             </div>
           </div>
@@ -326,7 +326,7 @@ export function IncidentIntakeForm({ data, onChange }: Props) {
 
       {/* Affected Systems — dropdown (add) + chips */}
       <div>
-        <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Təsirlənmiş Sistemlər</label>
+        <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Affected Systems</label>
         <select value=""
           onChange={e => {
             const s = e.target.value
@@ -335,7 +335,7 @@ export function IncidentIntakeForm({ data, onChange }: Props) {
             if (!cur.includes(s)) onChange({ ...data, affected_systems: [...cur, s] })
           }}
           className={`${fieldCls} cursor-pointer`} style={inputStyle}>
-          <option value="">— Sistem əlavə et —</option>
+          <option value="">— Add system —</option>
           {INCIDENT_SYSTEMS.filter(s => !(data.affected_systems ?? []).includes(s)).map(s => <option key={s} value={s}>{s}</option>)}
         </select>
         {(data.affected_systems ?? []).length > 0 && (
@@ -379,7 +379,7 @@ export function IncidentIntakeForm({ data, onChange }: Props) {
         </span>
       </div>
       <p className="text-[10px] -mt-2" style={{ color: 'var(--muted-fg)' }}>
-        Severity və Priority eyni 5×5 matrisdən (Likelihood × Impact) hesablanır — risk register ilə eyni metodologiya.
+        Severity and Priority are computed from the same 5×5 matrix (Likelihood × Impact) — the same methodology as the risk register.
       </p>
 
       {/* Loss Effect — amount + currency only (free-text description removed: amount is enough) */}
@@ -388,14 +388,14 @@ export function IncidentIntakeForm({ data, onChange }: Props) {
       </p>
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>İtki Məbləği <span className="text-red-400">*</span></label>
+          <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Loss Amount <span className="text-red-400">*</span></label>
           <input type="number" min={0} step="0.01" inputMode="decimal" value={data.loss_amount ?? ''}
             onChange={e => {
               const v = e.target.value
               onChange({ ...data, loss_amount: v === '' ? undefined : Math.max(0, Number(v)) })
             }}
             placeholder="0.00 (required — numbers only)" className={fieldCls} style={inputStyle} onFocus={focus} onBlur={blur} />
-          <p className="text-[10px] mt-0.5" style={{ color: 'var(--muted-fg)' }}>İtki yoxdursa 0 yazın</p>
+          <p className="text-[10px] mt-0.5" style={{ color: 'var(--muted-fg)' }}>Enter 0 if there is no loss</p>
         </div>
         <div>
           <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Valyuta</label>
@@ -411,14 +411,14 @@ export function IncidentIntakeForm({ data, onChange }: Props) {
       {/* Assignment — defolt avtomatik Risk Manager (risk idarəetməsinin rəhbəri);
           başqa şəxs lazımdırsa yığcam dropdown-dan dəyişilə bilir (real profillər) */}
       <div>
-        <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Təyinat</label>
+        <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Assignment</label>
         <select value={data.assigned_to ?? ''}
           onChange={e => {
             const p = profiles.find(u => u.id === e.target.value)
             onChange({ ...data, assigned_to: p?.id, assigned_name: p?.full_name })
           }}
           className={`${fieldCls} cursor-pointer`} style={inputStyle}>
-          {!data.assigned_to && <option value="">Risk Manager təyin olunacaq…</option>}
+          {!data.assigned_to && <option value="">Risk Manager will be assigned…</option>}
           {profiles.map(u => (
             <option key={u.id} value={u.id}>
               {u.full_name}{u.id === riskManager?.id ? ' — Risk Manager (defolt)' : ''}
@@ -426,7 +426,7 @@ export function IncidentIntakeForm({ data, onChange }: Props) {
           ))}
         </select>
         <p className="text-[10px] mt-0.5" style={{ color: 'var(--muted-fg)' }}>
-          Avtomatik risk idarəetməsinin rəhbərinə yönləndirilir
+          Automatically routed to the head of risk management
         </p>
       </div>
 
@@ -440,7 +440,7 @@ export function IncidentIntakeForm({ data, onChange }: Props) {
           'hover:border-sky-500/50'
         )} style={{ borderColor: 'var(--border)', color: 'var(--muted-fg)' }}>
           <Upload className="w-4 h-4" />
-          <span className="text-xs">Fayl əlavə et (sürüklə və ya klikləyin)</span>
+          <span className="text-xs">Add file (drag or click)</span>
           <input type="file" multiple className="hidden" onChange={handleFileChange} />
         </label>
         {(data.attached_files ?? []).length > 0 && (

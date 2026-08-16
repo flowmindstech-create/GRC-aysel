@@ -138,14 +138,14 @@ function PolicyFormDialog({ item, departments, profiles, existingNumbers, onClos
               <div>
                 <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Responsible Structure</label>
                 <select value={respStructure} onChange={e => handleStructure(e.target.value)} className={`${fieldCls} cursor-pointer`} style={inputStyle}>
-                  <option value="">— Seçin —</option>
+                  <option value="">— Select —</option>
                   {departments.map(d => <option key={d.id} value={d.name}>{d.name}</option>)}
                 </select>
               </div>
               <div>
                 <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Responsible Person</label>
                 <select value={respPerson} onChange={e => setRespPerson(e.target.value)} className={`${fieldCls} cursor-pointer`} style={inputStyle}>
-                  <option value="">— Seçin —</option>
+                  <option value="">— Select —</option>
                   {profiles.map(p => <option key={p.id} value={p.full_name}>{p.full_name}</option>)}
                 </select>
               </div>
@@ -172,7 +172,7 @@ function PolicyFormDialog({ item, departments, profiles, existingNumbers, onClos
                 <input type="date" value={publishTime} onChange={e => setPublishTime(e.target.value)} className={fieldCls} style={inputStyle} />
               </div>
               <div>
-                <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Validity Period (bitmə)</label>
+                <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Validity Period (expiry)</label>
                 <input type="date" value={validity} onChange={e => setValidity(e.target.value)} className={fieldCls} style={inputStyle} />
               </div>
             </div>
@@ -274,7 +274,7 @@ export function InternalPoliciesClient() {
         <tbody>
           {loading ? (<tr><td colSpan={12} className="py-16 text-center text-sm" style={{ color: 'var(--muted-fg)' }}>Loading…</td></tr>)
           : filtered.length === 0 ? (<tr><td colSpan={12} className="py-16 text-center" style={{ color: 'var(--muted-fg)' }}>
-              <div className="flex flex-col items-center gap-2"><FileText className="w-8 h-8 opacity-30" /><p className="text-sm">Hələ daxili siyasət yoxdur</p></div>
+              <div className="flex flex-col items-center gap-2"><FileText className="w-8 h-8 opacity-30" /><p className="text-sm">No internal policies yet</p></div>
             </td></tr>)
           : filtered.map((p, i) => {
             const dt = DOC_TYPE_CFG[p.document_type ?? 'policy']

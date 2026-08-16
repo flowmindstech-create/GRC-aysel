@@ -88,7 +88,7 @@ export function ControlsClient() {
       await db.saveIncident({
         id: crypto.randomUUID(), org_id: '',
         title: `Control failure: ${simCtrl.control_id}`,
-        description: `${simCtrl.title} nəzarəti sıradan çıxdı.${broken ? ` Pozulan öhdəliklər: ${broken}.` : ''}`,
+        description: `Control ${simCtrl.title} has failed.${broken ? ` Breached obligations: ${broken}.` : ''}`,
         severity: 'high', status: 'open', workflow_stage: 'intake',
         incident_category: 'Control failure', control_id: simCtrl.id,
         compliance_obligation_id: brokenObligations[0]?.id,
@@ -144,7 +144,7 @@ export function ControlsClient() {
       {statFilter !== 'all' && (
         <button type="button" onClick={() => setStatFilter('all')}
           className="text-[11px] font-medium -mt-2 hover:underline" style={{ color: 'var(--brand-500)' }}>
-          ✕ Filtri təmizlə (hamısını göstər)
+          ✕ Clear filter (show all)
         </button>
       )}
 
@@ -166,7 +166,7 @@ export function ControlsClient() {
         <ExportMenu columns={EXPORT_COLUMNS} rows={filtered} filename="control-library" title="Control Library" />
         <button onClick={() => { setEditControl(null); setShowForm(true) }}
           className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold text-white bg-sky-500 hover:bg-sky-600 cursor-pointer">
-          <Plus className="w-4 h-4" /> Yeni Nəzarət Əlavə Et
+          <Plus className="w-4 h-4" /> Add New Control
         </button>
       </div>
 
@@ -199,7 +199,7 @@ export function ControlsClient() {
               <td className="px-3 py-3.5"><span className="text-xs whitespace-nowrap" style={{ color: c.last_tested_at ? 'var(--foreground)' : 'var(--muted-fg)' }}>{fmtDate(c.last_tested_at)}</span></td>
               <td className="px-3 py-3.5">
                 {pending ? (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/15 text-amber-400">Gözləmədə</span>
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/15 text-amber-400">Pending</span>
                 ) : (
                   <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold whitespace-nowrap" style={{ background: 'var(--muted)', color: 'var(--muted-fg)' }} title="Effektivlik reytinqi">
                     <span className="w-1.5 h-1.5 rounded-full" style={{ background: EFF_DOT(c.effectiveness_rating) }} /> {EFF_LABEL(c.effectiveness_rating)}
@@ -210,7 +210,7 @@ export function ControlsClient() {
                 <button onClick={() => setSimCtrl(c)}
                   className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold border transition-colors hover:bg-red-500/10"
                   style={{ borderColor: 'rgba(225,29,72,0.3)', color: '#f87171' }}>
-                  <Zap className="w-3.5 h-3.5" /> İnsident Simulyasiya Et
+                  <Zap className="w-3.5 h-3.5" /> Simulate Incident
                 </button>
               </td>
               <td className="px-3 py-3.5"><div className="flex items-center gap-1">
@@ -243,10 +243,10 @@ export function ControlsClient() {
               </div>
               <div className="px-6 py-5 space-y-3">
                 <p className="text-xs" style={{ color: 'var(--muted-fg)' }}>
-                  <b style={{ color: 'var(--foreground)' }}>{simCtrl.title}</b> nəzarəti sıradan çıxsa, aşağıdakı compliance öhdəlikləri pozulur:
+                  If control <b style={{ color: 'var(--foreground)' }}>{simCtrl.title}</b> fails, the following compliance obligations are breached:
                 </p>
                 {brokenObligations.length === 0 ? (
-                  <p className="text-xs" style={{ color: 'var(--muted-fg)' }}>Bu nəzarət heç bir öhdəliyə bağlı deyil (Control Mapping-də map olunmayıb).</p>
+                  <p className="text-xs" style={{ color: 'var(--muted-fg)' }}>This control is not linked to any obligation (not mapped in Control Mapping).</p>
                 ) : (
                   <ul className="space-y-1.5">
                     {brokenObligations.map(o => (
@@ -258,7 +258,7 @@ export function ControlsClient() {
                   </ul>
                 )}
                 <div className="flex items-center justify-between pt-2">
-                  <button onClick={() => setSimCtrl(null)} className="px-4 py-2 rounded-lg text-sm hover:bg-black/[0.04]" style={{ color: 'var(--muted-fg)' }}>Bağla</button>
+                  <button onClick={() => setSimCtrl(null)} className="px-4 py-2 rounded-lg text-sm hover:bg-black/[0.04]" style={{ color: 'var(--muted-fg)' }}>Close</button>
                   <button onClick={raiseIncidentFromSim} disabled={creatingInc}
                     className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-white disabled:opacity-50" style={{ background: 'rgb(225,29,72)' }}>
                     <Zap className="w-3.5 h-3.5" /> {creatingInc ? 'Creating…' : 'Create Real Incident'}

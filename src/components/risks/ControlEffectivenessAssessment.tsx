@@ -31,7 +31,7 @@ export function ControlEffectivenessAssessment({ triggers, onChange }: Props) {
   if (allControls.length === 0) {
     return (
       <p className="text-[11px] text-amber-400">
-        Hələ control yoxdur. General Details → Triggers bölməsində hər səbəbə control əlavə edin, sonra burada qiymətləndirin.
+        No controls yet. Add a control to each cause under General Details → Triggers, then assess them here.
       </p>
     )
   }
@@ -53,14 +53,14 @@ export function ControlEffectivenessAssessment({ triggers, onChange }: Props) {
 
               <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-3 items-start">
                 <div className="space-y-2">
-                  <span className="text-[10px] uppercase font-bold text-sky-400 tracking-wider">Nəzarətin dizaynı</span>
+                  <span className="text-[10px] uppercase font-bold text-sky-400 tracking-wider">Control design</span>
                   <div className="grid grid-cols-3 gap-2">
                     {CONTROL_SUBCRITERIA.filter((s) => s.group === 'design').map((s) => (
                       <RcsaDropdown key={s.key} label={s.label} value={(c[s.key] as number) || 3} options={s.options}
                         onChange={(v) => patchControl(t.id, c.id, { [s.key]: v })} />
                     ))}
                   </div>
-                  <span className="text-[10px] uppercase font-bold text-emerald-400 tracking-wider">Nəzarətin icrası</span>
+                  <span className="text-[10px] uppercase font-bold text-emerald-400 tracking-wider">Control implementation</span>
                   <div className="grid grid-cols-3 gap-2">
                     {CONTROL_SUBCRITERIA.filter((s) => s.group === 'implementation').map((s) => (
                       <RcsaDropdown key={s.key} label={s.label} value={(c[s.key] as number) || 3} options={s.options}
@@ -80,8 +80,8 @@ export function ControlEffectivenessAssessment({ triggers, onChange }: Props) {
       {/* Aggregate */}
       <div className="p-3 bg-black/20 rounded-xl border border-white/5 text-xs flex items-center justify-between">
         <div>
-          <p className="font-bold text-slate-400">Aqreqat Effectiveness ({allControls.length} control)</p>
-          <p className="text-[9px] text-slate-500 mt-0.5">Orta bal: {agg.score.toFixed(2)}</p>
+          <p className="font-bold text-slate-400">Aggregate Effectiveness ({allControls.length} controls)</p>
+          <p className="text-[9px] text-slate-500 mt-0.5">Average score: {agg.score.toFixed(2)}</p>
         </div>
         <span className="font-black text-sky-400 uppercase">{CONTROL_RATING_INFO[agg.rating].label}</span>
       </div>
