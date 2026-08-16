@@ -53,8 +53,8 @@ function FormDialog({ item, controls, obligations, onClose, onSave }: {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
-    if (!observed.trim()) { toast.error('Müşahidə edilən vəziyyət (Observed State) məcburidir'); return }
-    if (result === 'compliant' && !evidenceUrl.trim() && !fileName) { toast.error('Compliant üçün evidence (link və ya fayl) məcburidir'); return }
+    if (!observed.trim()) { toast.error('Observed state is required'); return }
+    if (result === 'compliant' && !evidenceUrl.trim() && !fileName) { toast.error('Evidence required for Compliant (link or file)'); return }
     if (needsFindings && !findings.trim()) { toast.error('Uyğunsuzluq üçün "Findings" doldurulmalıdır'); return }
     setLoading(true)
     const now = new Date().toISOString()
@@ -125,7 +125,7 @@ function FormDialog({ item, controls, obligations, onClose, onSave }: {
             </div>
             <div>
               <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Observed State <span className="text-red-400">*</span></label>
-              <textarea value={observed} onChange={e => setObserved(e.target.value)} rows={2} placeholder="Yoxlama zamanı real olaraq nə aşkarlandı… (məcburi)" className={`${fieldCls} resize-none`} style={inputStyle} />
+              <textarea value={observed} onChange={e => setObserved(e.target.value)} rows={2} placeholder="What was actually observed during the check… (required)" className={`${fieldCls} resize-none`} style={inputStyle} />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
@@ -144,11 +144,11 @@ function FormDialog({ item, controls, obligations, onClose, onSave }: {
               <>
                 <div>
                   <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Findings <span className="text-red-400">*</span></label>
-                  <textarea value={findings} onChange={e => setFindings(e.target.value)} rows={2} placeholder="Aşkar edilmiş uyğunsuzluq…" className={`${fieldCls} resize-none`} style={inputStyle} />
+                  <textarea value={findings} onChange={e => setFindings(e.target.value)} rows={2} placeholder="Detected non-conformity…" className={`${fieldCls} resize-none`} style={inputStyle} />
                 </div>
                 <div>
                   <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Remediation Plan</label>
-                  <textarea value={remediation} onChange={e => setRemediation(e.target.value)} rows={2} placeholder="Düzəldici fəaliyyət…" className={`${fieldCls} resize-none`} style={inputStyle} />
+                  <textarea value={remediation} onChange={e => setRemediation(e.target.value)} rows={2} placeholder="Corrective action…" className={`${fieldCls} resize-none`} style={inputStyle} />
                 </div>
                 {result === 'non_compliant' && !item?.created_incident_id && (
                   <p className="text-[10px] text-red-400 flex items-center gap-1"><AlertTriangle className="w-3 h-3" /> Yadda saxlananda avtomatik incident yaradılacaq.</p>
@@ -220,7 +220,7 @@ function AssessmentRegister() {
   async function handleSave(a: ComplianceAssessment) {
     const saved = await db.saveComplianceAssessment(a)
     setShowForm(false); setEditItem(null); reload()
-    toast.success(saved.created_incident_id && a.result === 'non_compliant' ? 'Saved — incident yaradıldı' : (editItem ? 'Updated' : 'Created'))
+    toast.success(saved.created_incident_id && a.result === 'non_compliant' ? 'Saved — incident created' : (editItem ? 'Updated' : 'Created'))
   }
   async function handleDelete(id: string) { await db.deleteComplianceAssessment(id); reload(); toast.success('Deleted') }
 

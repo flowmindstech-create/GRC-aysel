@@ -14,10 +14,10 @@ import { toast } from 'sonner'
 
 const ROOT_CAUSE_CATEGORIES = [
   { value: 'process',       label: 'Proses (Process)' },
-  { value: 'human',         label: 'İnsan amili (Human factor)' },
-  { value: 'control_gap',   label: 'Kontrol boşluğu (Control gap)' },
-  { value: 'procedure_gap', label: 'Prosedur boşluğu (Procedure gap)' },
-  { value: 'third_party',   label: 'Üçüncü tərəf (Third party)' },
+  { value: 'human',         label: 'Human factor' },
+  { value: 'control_gap',   label: 'Control gap' },
+  { value: 'procedure_gap', label: 'Procedure gap' },
+  { value: 'third_party',   label: 'Third party' },
 ] as const
 
 // 6-stage incident status (same as the detail sheet) — also editable in investigation.
@@ -32,11 +32,11 @@ const STATUS_OPTIONS: { value: Incident['status']; label: string }[] = [
 
 // Fixed clarifying questions (replace the old free "investigation notes").
 const CLARIFYING_QUESTIONS = [
-  'Nə baş verdi?',
-  'Necə aşkarlandı?',
-  'Kim / nə təsirləndi?',
-  'Nə vaxt baş verdi / nə qədər davam etdi?',
-  'İlkin / ehtimal olunan səbəb nədir?',
+  'What happened?',
+  'How was it detected?',
+  'Who / what was affected?',
+  'When did it happen / how long did it last?',
+  'What is the initial / probable cause?',
 ]
 
 const todayLocal = () => new Date().toISOString().slice(0, 10)
@@ -91,7 +91,7 @@ export function IncidentInvestigationForm({ data, onChange }: Props) {
         await db.saveObligation({ ...obl, status: 'non_compliant' })
         toast.success(`Uyğunsuzluq işarələndi: ${obl.obligation_code}`)
       }
-    } catch { toast.error('İşarələnə bilmədi') } finally { setFlagging(false) }
+    } catch { toast.error('Could not be marked') } finally { setFlagging(false) }
   }
 
   // 5-Why helpers
@@ -192,7 +192,7 @@ export function IncidentInvestigationForm({ data, onChange }: Props) {
         <div>
           <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>SLA (son tarix)</label>
           <input type="text" readOnly
-            value={data.sla_due_date ? new Date(data.sla_due_date).toLocaleDateString('az-AZ') : '— (prioritetə görə təyin olunur)'}
+            value={data.sla_due_date ? new Date(data.sla_due_date).toLocaleDateString('az-AZ') : '— (assigned by priority)'}
             className={`${fieldCls} opacity-70`} style={inputStyle} />
         </div>
       </div>
@@ -212,7 +212,7 @@ export function IncidentInvestigationForm({ data, onChange }: Props) {
         </div>
         <div>
           <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Məsul şəxs (avtomatik)</label>
-          <input value={data.resolution_assignee_name ?? ''} readOnly placeholder="Departament rəhbəri"
+          <input value={data.resolution_assignee_name ?? ''} readOnly placeholder="Department Head"
             className={`${fieldCls} opacity-70`} style={inputStyle} />
         </div>
       </div>
@@ -363,7 +363,7 @@ export function IncidentInvestigationForm({ data, onChange }: Props) {
           {data.compliance_obligation_id && (
             <button type="button" onClick={flagNonCompliance} disabled={flagging}
               className="shrink-0 px-3 py-2 rounded-lg text-[11px] font-semibold text-white disabled:opacity-50" style={{ background: 'rgb(225,29,72)' }}>
-              {flagging ? '…' : 'Uyğunsuzluq işarələ'}
+              {flagging ? '…' : 'Mark Non-compliance'}
             </button>
           )}
         </div>
@@ -393,7 +393,7 @@ export function IncidentInvestigationForm({ data, onChange }: Props) {
             <div key={i}>
               {i === 4 && <p className="text-[10px] text-amber-400 font-semibold mb-0.5">Yekun səbəb:</p>}
               <input value={whys[i] ?? ''} onChange={e => setWhy(i, e.target.value)}
-                placeholder={i === 4 ? '5. Niyə? (yekun kök səbəb)' : `${i + 1}. Niyə?`}
+                placeholder={i === 4 ? '5. Why? (final root cause)' : `${i + 1}. Niyə?`}
                 className={cn(fieldCls, i === 4 && 'font-medium')}
                 style={i === 4 ? { background: 'rgba(234,179,8,0.08)', border: '1px solid rgba(234,179,8,0.3)', color: 'var(--foreground)' } : inputStyle}
                 onFocus={focus} onBlur={blur} />
@@ -406,7 +406,7 @@ export function IncidentInvestigationForm({ data, onChange }: Props) {
       <div>
         <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Root Cause Təfərrüatı</label>
         <textarea value={data.root_cause ?? ''} onChange={e => onChange({ ...data, root_cause: e.target.value })} rows={2}
-          placeholder="Əsas səbəbi ətraflı izah edin..."
+          placeholder="Explain the root cause in detail..."
           className={`${fieldCls} resize-none`} style={inputStyle} onFocus={focus} onBlur={blur} />
       </div>
 

@@ -111,9 +111,9 @@ export function IncidentDetailSheet({ incident, onClose, onUpdate, onEdit }: Pro
       
       const saved = await db.saveIncident(updated)
       if (onUpdate) onUpdate(saved)
-      toast.success(`Hadisə statusu yeniləndi: ${newStatus}`)
+      toast.success(`Incident status updated: ${newStatus}`)
     } catch (err) {
-      toast.error('Status yenilənərkən xəta baş verdi')
+      toast.error('Error updating status')
     } finally {
       setUpdatingStatus(false)
     }
@@ -131,18 +131,18 @@ export function IncidentDetailSheet({ incident, onClose, onUpdate, onEdit }: Pro
     }
     const saved = await db.saveIncident(updated)
     if (onUpdate) onUpdate(saved)
-    toast.success(`Üzərinə götürüldü · SLA: ${days} gün`)
+    toast.success(`Assigned · SLA: ${days} days`)
   }
 
   const handleForward = async () => {
-    const to = window.prompt('Kimə ötürülsün? (ad/struktur)')
+    const to = window.prompt('Assign to? (name/structure)')
     if (!to) return
     const updated: Incident = {
       ...incident, forwarded_at: new Date().toISOString(), forwarded_to: to, updated_at: new Date().toISOString(),
     }
     const saved = await db.saveIncident(updated)
     if (onUpdate) onUpdate(saved)
-    toast.success(`Ötürüldü: ${to}`)
+    toast.success(`Assigned: ${to}`)
   }
 
   const pCfg = incident.priority ? PRIORITY_CONFIG[incident.priority] : null
@@ -182,7 +182,7 @@ export function IncidentDetailSheet({ incident, onClose, onUpdate, onEdit }: Pro
                 )
               })}
               {simRole && simRole !== 'risk_manager' && (
-                <span className="ml-auto text-amber-400">🔒 {simRole === 'ero' ? 'ERO: yalnız resolution + qeyd, status yox' : 'User: yalnız öz intake-i'}</span>
+                <span className="ml-auto text-amber-400">🔒 {simRole === 'ero' ? 'ERO: resolution + note only, no status' : 'User: own intake only'}</span>
               )}
             </div>
           )}
@@ -223,9 +223,9 @@ export function IncidentDetailSheet({ incident, onClose, onUpdate, onEdit }: Pro
             {(['intake', 'investigation', 'resolution'] as const).map(tab => {
               const active = activeTab === tab
               const labels = {
-                intake: 'Intake (Hadisə)',
-                investigation: 'Investigation (Araşdırma)',
-                resolution: 'Resolution (Həll)',
+                intake: 'Intake',
+                investigation: 'Investigation',
+                resolution: 'Resolution',
               }
               return (
                 <button
@@ -278,7 +278,7 @@ export function IncidentDetailSheet({ incident, onClose, onUpdate, onEdit }: Pro
                       <div className="p-3 rounded-xl border" style={{ borderColor: 'var(--border)', background: 'var(--muted)/20' }}>
                         <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">Şöbə (Reporter Structure)</p>
                         <p className="text-xs font-semibold" style={{ color: 'var(--foreground)' }}>
-                          {incident.reporter_structure || 'Məlum deyil'}
+                          {incident.reporter_structure || 'Unknown'}
                         </p>
                       </div>
 
@@ -286,7 +286,7 @@ export function IncidentDetailSheet({ incident, onClose, onUpdate, onEdit }: Pro
                         <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">Baş Vermə Tarixi</p>
                         <p className="text-xs font-semibold flex items-center gap-1" style={{ color: 'var(--foreground)' }}>
                           <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                          {incident.occurrence_datetime ? format(new Date(incident.occurrence_datetime), 'dd.MM.yyyy HH:mm') : 'Seçilməyib'}
+                          {incident.occurrence_datetime ? format(new Date(incident.occurrence_datetime), 'dd.MM.yyyy HH:mm') : 'Not selected'}
                         </p>
                       </div>
 
@@ -294,7 +294,7 @@ export function IncidentDetailSheet({ incident, onClose, onUpdate, onEdit }: Pro
                         <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">Aşkarlanma Tarixi</p>
                         <p className="text-xs font-semibold flex items-center gap-1" style={{ color: 'var(--foreground)' }}>
                           <Clock className="w-3.5 h-3.5 text-slate-400" />
-                          {incident.discovery_datetime ? format(new Date(incident.discovery_datetime), 'dd.MM.yyyy HH:mm') : 'Məlum deyil'}
+                          {incident.discovery_datetime ? format(new Date(incident.discovery_datetime), 'dd.MM.yyyy HH:mm') : 'Unknown'}
                         </p>
                       </div>
                     </div>
@@ -370,7 +370,7 @@ export function IncidentDetailSheet({ incident, onClose, onUpdate, onEdit }: Pro
                       <div>
                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Araşdırma Rəhbəri</p>
                         <p className="text-xs font-semibold mt-1" style={{ color: 'var(--foreground)' }}>
-                          {incident.investigation_lead || incident.assigned_name || 'Təyin edilməyib'}
+                          {incident.investigation_lead || incident.assigned_name || 'Not assigned'}
                         </p>
                       </div>
                       <div>
@@ -381,7 +381,7 @@ export function IncidentDetailSheet({ incident, onClose, onUpdate, onEdit }: Pro
                               {format(new Date(incident.investigation_start), 'dd.MM.yyyy')}
                               {incident.investigation_end ? ` - ${format(new Date(incident.investigation_end), 'dd.MM.yyyy')}` : ' (Davam edir)'}
                             </>
-                          ) : 'Başlanmayıb'}
+                          ) : 'Not started'}
                         </p>
                       </div>
                     </div>
@@ -397,7 +397,7 @@ export function IncidentDetailSheet({ incident, onClose, onUpdate, onEdit }: Pro
                         )}
                       </div>
                       <div className="p-3.5 rounded-xl border text-xs leading-relaxed" style={{ borderColor: 'var(--border)' }}>
-                        {incident.root_cause || 'Əsas səbəb hələ araşdırılmayıb.'}
+                        {incident.root_cause || 'Root cause not yet investigated.'}
                       </div>
                     </div>
 
@@ -405,7 +405,7 @@ export function IncidentDetailSheet({ incident, onClose, onUpdate, onEdit }: Pro
                     <div className="space-y-2">
                       <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Araşdırma Qeydləri (Investigation Notes)</p>
                       <div className="p-3.5 rounded-xl border text-xs leading-relaxed whitespace-pre-line" style={{ borderColor: 'var(--border)' }}>
-                        {incident.investigation_notes || 'Əlavə araşdırma qeydləri daxil edilməyib.'}
+                        {incident.investigation_notes || 'No additional investigation notes.'}
                       </div>
                     </div>
 
@@ -476,7 +476,7 @@ export function IncidentDetailSheet({ incident, onClose, onUpdate, onEdit }: Pro
                     <div className="space-y-2">
                       <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Həll Xülasəsi (Resolution Summary)</p>
                       <div className="p-3.5 rounded-xl border text-xs leading-relaxed whitespace-pre-line" style={{ borderColor: 'var(--border)' }}>
-                        {incident.resolution_summary || 'Hadisənin həlli hələ tamamlanmayıb.'}
+                        {incident.resolution_summary || 'Incident resolution not yet completed.'}
                       </div>
                       {(incident.resolved_at || incident.closed_at) && (
                         <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-mono mt-1">
@@ -502,14 +502,14 @@ export function IncidentDetailSheet({ incident, onClose, onUpdate, onEdit }: Pro
                             >
                               <div className="flex items-center justify-between">
                                 <span className="font-semibold" style={{ color: 'var(--foreground)' }}>
-                                  {action.title || 'Başlıqsız tədbir'}
+                                  {action.title || 'Untitled action'}
                                 </span>
                                 <span className={cn('px-2 py-0.5 rounded-full text-[9px] font-bold capitalize',
                                   action.status === 'done' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/10' :
                                   action.status === 'in_progress' ? 'bg-blue-500/10 text-blue-400 border border-blue-500/10' :
                                   'bg-amber-500/10 text-amber-400 border border-amber-500/10'
                                 )}>
-                                  {action.status === 'done' ? 'Tamamlanıb' : action.status === 'in_progress' ? 'İcrada' : 'Gözləyir'}
+                                  {action.status === 'done' ? 'Completed' : action.status === 'in_progress' ? 'In progress' : 'Pending'}
                                 </span>
                               </div>
                               <div className="flex items-center justify-between text-[10px] text-slate-400">
@@ -528,7 +528,7 @@ export function IncidentDetailSheet({ incident, onClose, onUpdate, onEdit }: Pro
                     <div className="space-y-2">
                       <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Alınan Dərslər (Lessons Learned)</p>
                       <div className="p-3.5 rounded-xl border text-xs leading-relaxed whitespace-pre-line" style={{ borderColor: 'var(--border)' }}>
-                        {incident.lessons_learned || 'Dərslər qeyd olunmayıb.'}
+                        {incident.lessons_learned || 'No lessons recorded.'}
                       </div>
                     </div>
 
@@ -701,7 +701,7 @@ export function IncidentDetailSheet({ incident, onClose, onUpdate, onEdit }: Pro
               {incident.acknowledged_at ? (
                 <span className={cn('inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold', slaOverdue ? 'bg-red-500/15 text-red-400' : 'bg-emerald-500/15 text-emerald-400')}>
                   <Clock className="w-3 h-3" />
-                  {slaOverdue ? 'SLA keçib' : 'SLA'}: {incident.sla_due_date ? format(new Date(incident.sla_due_date), 'd MMM yyyy') : '—'}
+                  {slaOverdue ? 'SLA exceeded' : 'SLA'}: {incident.sla_due_date ? format(new Date(incident.sla_due_date), 'd MMM yyyy') : '—'}
                 </span>
               ) : (
                 <button onClick={handleAcknowledge}

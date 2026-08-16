@@ -15,8 +15,8 @@ import { usePermissions } from '@/hooks/usePermissions'
 
 const SECTIONS: { id: string; icon: LucideIcon; label: string; superAdminOnly?: boolean }[] = [
   { id: 'profile',       icon: User,      label: 'Profile' },
-  { id: 'users',         icon: Users,     label: 'İstifadəçilər', superAdminOnly: true },
-  { id: 'access',        icon: KeyRound,  label: 'Xüsusi icazələr', superAdminOnly: true },
+  { id: 'users',         icon: Users,     label: 'Users', superAdminOnly: true },
+  { id: 'access',        icon: KeyRound,  label: 'Access Exceptions', superAdminOnly: true },
   { id: 'notifications', icon: Bell,      label: 'Notifications' },
   { id: 'security',      icon: Shield,    label: 'Security' },
   { id: 'integrations',  icon: Database,  label: 'Integrations' },
@@ -87,9 +87,9 @@ export default function SettingsPage() {
         const { error } = await createClient().from('profiles').update({ full_name: fullName.trim() }).eq('id', profile.id)
         if (error) throw error
       }
-      toast.success('Profil məlumatları yeniləndi')
+      toast.success('Profile updated')
     } catch (e: any) {
-      toast.error(e?.message || 'Profil yadda saxlanmadı')
+      toast.error(e?.message || 'Profile not saved')
     } finally {
       setSavingProfile(false)
     }
@@ -100,7 +100,7 @@ export default function SettingsPage() {
   }
   function onAvatarSelected(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
-    if (file) toast.success(`Avatar seçildi: ${file.name} (yükləmə tezliklə)`)
+    if (file) toast.success(`Avatar selected: ${file.name} (upload coming soon)`)
   }
 
   function toggleNotif(idx: number) {
@@ -108,8 +108,8 @@ export default function SettingsPage() {
   }
 
   async function handleUpdatePassword() {
-    if (!newPwd || newPwd.length < 8) { toast.error('Yeni parol ən azı 8 simvol olmalıdır'); return }
-    if (newPwd !== confirmPwd) { toast.error('Yeni parol və təsdiq uyğun gəlmir'); return }
+    if (!newPwd || newPwd.length < 8) { toast.error('New password must be at least 8 characters'); return }
+    if (newPwd !== confirmPwd) { toast.error('New password and confirmation do not match'); return }
     setSavingPwd(true)
     try {
       const { createClient } = await import('@/lib/supabase/client')
@@ -119,14 +119,14 @@ export default function SettingsPage() {
       // Cari parolu yoxla (verify by re-auth)
       if (email && curPwd) {
         const { error: signInErr } = await supabase.auth.signInWithPassword({ email, password: curPwd })
-        if (signInErr) { toast.error('Cari parol yanlışdır'); setSavingPwd(false); return }
+        if (signInErr) { toast.error('Current password is incorrect'); setSavingPwd(false); return }
       }
       const { error } = await supabase.auth.updateUser({ password: newPwd })
       if (error) throw error
-      toast.success('Parol uğurla yeniləndi')
+      toast.success('Password updated successfully')
       setCurPwd(''); setNewPwd(''); setConfirmPwd('')
     } catch (e: any) {
-      toast.error(e?.message || 'Parol yenilənmədi')
+      toast.error(e?.message || 'Password not updated')
     } finally {
       setSavingPwd(false)
     }
@@ -135,7 +135,7 @@ export default function SettingsPage() {
   function handleToggle2FA() {
     setTwoFA(prev => {
       const next = !prev
-      toast.success(next ? 'İki-faktorlu autentifikasiya aktivləşdirildi' : '2FA söndürüldü')
+      toast.success(next ? 'Two-factor authentication enabled' : '2FA disabled')
       return next
     })
   }
@@ -143,14 +143,14 @@ export default function SettingsPage() {
   async function handleSaveApiConfig() {
     try {
       await db.saveJiraConfig(jiraConfig)
-      toast.success('API konfiqurasiyası saxlanıldı')
+      toast.success('API configuration saved')
     } catch (e: any) {
-      toast.error(e?.message || 'API konfiqurasiyası saxlanmadı')
+      toast.error(e?.message || 'API configuration not saved')
     }
   }
 
   function handleSaveOrganization() {
-    toast.success('Təşkilat məlumatları saxlanıldı')
+    toast.success('Organization settings saved')
   }
 
 
@@ -204,13 +204,13 @@ export default function SettingsPage() {
                     </div>
                     <div>
                       <label className="block text-xs font-semibold mb-1.5" style={{ color: 'var(--foreground)' }}>Email</label>
-                      <input value={user.email ?? ''} readOnly title="E-poçt Authentication tərəfindən idarə olunur"
+                      <input value={user.email ?? ''} readOnly title="Email is managed by Authentication"
                         className="w-full px-3 py-2.5 rounded-xl text-sm border outline-none opacity-70 cursor-not-allowed"
                         style={{ background: 'var(--muted)', borderColor: 'var(--border)', color: 'var(--muted-fg)' }} />
                     </div>
                     <div>
                       <label className="block text-xs font-semibold mb-1.5" style={{ color: 'var(--foreground)' }}>Role</label>
-                      <input value={user.role.replace('_', ' ')} readOnly title="Rolu Super Admin təyin edir"
+                      <input value={user.role.replace('_', ' ')} readOnly title="Sets role to Super Admin"
                         className="w-full px-3 py-2.5 rounded-xl text-sm border outline-none capitalize opacity-70 cursor-not-allowed"
                         style={{ background: 'var(--muted)', borderColor: 'var(--border)', color: 'var(--muted-fg)' }} />
                     </div>
@@ -300,7 +300,7 @@ export default function SettingsPage() {
                     <div className="pt-4 border-t" style={{ borderColor: 'var(--border)' }}>
                       <p className="text-sm font-semibold mb-1" style={{ color: 'var(--foreground)' }}>Two-Factor Authentication</p>
                       <p className="text-xs mb-3" style={{ color: 'var(--muted-fg)' }}>
-                        {twoFA ? 'İki-faktorlu autentifikasiya AKTİVDİR.' : 'Add an extra layer of security to your account'}
+                        {twoFA ? 'Two-factor authentication is ACTIVE.' : 'Add an extra layer of security to your account'}
                       </p>
                       <button type="button" onClick={handleToggle2FA}
                         className="px-4 py-2 rounded-xl text-xs font-semibold border hover:bg-black/5 dark:hover:bg-white/5"

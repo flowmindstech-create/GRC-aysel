@@ -18,15 +18,15 @@ import { ExportMenu } from '@/components/shared/ExportMenu'
 import type { ExportColumn } from '@/lib/export'
 
 const REGCHANGE_EXPORT_COLUMNS: ExportColumn<RegulatoryChange>[] = [
-  { key: 'change_code', label: 'Kod', value: c => c.change_code },
-  { key: 'title', label: 'Dəyişiklik', value: c => c.title },
-  { key: 'source', label: 'Mənbə', value: c => c.source },
-  { key: 'regulator', label: 'Tənzimləyici', value: c => c.regulator ?? '' },
+  { key: 'change_code', label: 'Code', value: c => c.change_code },
+  { key: 'title', label: 'Change', value: c => c.title },
+  { key: 'source', label: 'Source', value: c => c.source },
+  { key: 'regulator', label: 'Regulator', value: c => c.regulator ?? '' },
   { key: 'status', label: 'Status', value: c => c.status },
-  { key: 'change_date', label: 'Dərc tarixi', value: c => c.change_date ? new Date(c.change_date).toLocaleDateString('az-AZ') : '' },
-  { key: 'effective_date', label: 'Qüvvəyə minmə', value: c => c.effective_date ? new Date(c.effective_date).toLocaleDateString('az-AZ') : '' },
-  { key: 'responsible_structure', label: 'Struktur', value: c => c.responsible_structure ?? '' },
-  { key: 'responsible_person', label: 'Cavabdeh', value: c => c.responsible_person ?? '' },
+  { key: 'change_date', label: 'Published Date', value: c => c.change_date ? new Date(c.change_date).toLocaleDateString('az-AZ') : '' },
+  { key: 'effective_date', label: 'Effective Date', value: c => c.effective_date ? new Date(c.effective_date).toLocaleDateString('az-AZ') : '' },
+  { key: 'responsible_structure', label: 'Structure', value: c => c.responsible_structure ?? '' },
+  { key: 'responsible_person', label: 'Responsible', value: c => c.responsible_person ?? '' },
 ]
 
 const STATUS_CONFIG: Record<RegulatoryChangeStatus, { label: string; classes: string }> = {

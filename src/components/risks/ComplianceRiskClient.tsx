@@ -42,7 +42,7 @@ function RiskFormDialog({ item, obligations, controls, onClose, onSave }: {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
-    if (!description.trim()) { toast.error('Risk description məcburidir'); return }
+    if (!description.trim()) { toast.error('Risk description is required'); return }
     setLoading(true)
     const now = new Date().toISOString()
     await onSave({
@@ -88,7 +88,7 @@ function RiskFormDialog({ item, obligations, controls, onClose, onSave }: {
             <div>
               <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Risk Description <span className="text-red-400">*</span></label>
               <textarea value={description} onChange={e => setDescription(e.target.value)} rows={2}
-                placeholder="Tələb pozulsa hansı risk yaranır…" className={`${fieldCls} resize-none`} style={inputStyle} />
+                placeholder="What risk arises if the requirement is breached…" className={`${fieldCls} resize-none`} style={inputStyle} />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
@@ -114,7 +114,7 @@ function RiskFormDialog({ item, obligations, controls, onClose, onSave }: {
             </div>
             <div>
               <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Risk Trigger</label>
-              <input value={trigger} onChange={e => setTrigger(e.target.value)} placeholder="Riski aktivləşdirən hal/hadisə…" className={fieldCls} style={inputStyle} />
+              <input value={trigger} onChange={e => setTrigger(e.target.value)} placeholder="Triggering event / incident…" className={fieldCls} style={inputStyle} />
             </div>
             <div>
               <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Related Control</label>
@@ -126,7 +126,7 @@ function RiskFormDialog({ item, obligations, controls, onClose, onSave }: {
             <div>
               <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Mitigation Plan</label>
               <textarea value={mitigation} onChange={e => setMitigation(e.target.value)} rows={2}
-                placeholder="Riskin azaldılması planı…" className={`${fieldCls} resize-none`} style={inputStyle} />
+                placeholder="Risk mitigation plan…" className={`${fieldCls} resize-none`} style={inputStyle} />
             </div>
             <div>
               <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Risk Treatment Plan</label>

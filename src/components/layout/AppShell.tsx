@@ -38,7 +38,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         >
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
-            aria-label="Menyunu aç"
+            aria-label="Open Menu"
             className="p-1.5 rounded-lg text-white shadow cursor-pointer"
             style={{ background: 'var(--brand-500)' }}
           >

@@ -19,12 +19,12 @@ import { usePermissions } from '@/hooks/usePermissions'
 
 const VENDOR_EXPORT_COLUMNS: ExportColumn<Vendor>[] = [
   { key: 'name', label: 'Vendor', value: v => v.name },
-  { key: 'category', label: 'Kateqoriya', value: v => v.category },
+  { key: 'category', label: 'Category', value: v => v.category },
   { key: 'risk_score', label: 'Risk Skoru', value: v => v.risk_score },
   { key: 'status', label: 'Status', value: v => v.status },
-  { key: 'contact_name', label: 'Əlaqə', value: v => v.contact_name ?? '' },
-  { key: 'contact_email', label: 'E-poçt', value: v => v.contact_email ?? '' },
-  { key: 'contract_renewal', label: 'Müqavilə yenilənməsi', value: v => v.contract_renewal ?? '' },
+  { key: 'contact_name', label: 'Contact', value: v => v.contact_name ?? '' },
+  { key: 'contact_email', label: 'Email', value: v => v.contact_email ?? '' },
+  { key: 'contract_renewal', label: 'Contract Renewal', value: v => v.contract_renewal ?? '' },
 ]
 import { VendorFormDialog } from './VendorFormDialog'
 

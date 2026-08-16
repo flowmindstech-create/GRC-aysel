@@ -460,7 +460,7 @@ export function RiskFormDialog({ risk, onClose, onSave }: Props) {
                     <span className="text-base font-black text-sky-400 uppercase">{residualLevelWord(residualLevel)}</span>
                   </div>
 
-                  {/* 1. Impact domains (Excel "Təsir Şkalası" — 9 dimensions, compact dropdowns) */}
+                  {/* 1. Impact domains (Excel "Impact Scale" — 9 dimensions, compact dropdowns) */}
                   <div className="space-y-3">
                     <h4 className="text-[11px] font-bold text-sky-400 uppercase tracking-wide border-b pb-1" style={{ borderColor: 'var(--border)' }}>1. Təsir domenləri (max watermark)</h4>
                     <div className="grid grid-cols-2 gap-3">

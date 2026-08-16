@@ -76,20 +76,20 @@ export function RiskControlMappingClient() {
       }
       const saved = await dbExt.saveControlMapping(newMap)
       setMappings(prev => [...prev, saved])
-      toast.success('Risk bağlandı')
-    } catch { toast.error('Bağlana bilmədi') } finally { setSavingRisk(false) }
+      toast.success('Risk closed')
+    } catch { toast.error('Could not be closed') } finally { setSavingRisk(false) }
   }
 
   async function changeType(mapping: ControlMapping, type: MappingType) {
     const saved = await dbExt.saveControlMapping({ ...mapping, mapping_type: type })
     setMappings(prev => prev.map(m => m.id === saved.id ? saved : m))
-    toast.success('Əlaqə tipi dəyişdi')
+    toast.success('Link type changed')
   }
 
   async function removeLink(mappingId: string) {
     await dbExt.deleteControlMapping(mappingId)
     setMappings(prev => prev.filter(m => m.id !== mappingId))
-    toast.success('Əlaqə silindi')
+    toast.success('Link removed')
   }
 
   const drawerMappings = drawerControl ? (mappingsByControl[drawerControl.id] ?? []) : []
@@ -103,7 +103,7 @@ export function RiskControlMappingClient() {
       <div className="flex flex-wrap items-center gap-3">
         <div className="flex flex-wrap items-center gap-1 p-1 rounded-xl" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
           {([
-            { key: 'list', label: 'Siyahı', icon: List },
+            { key: 'list', label: 'List', icon: List },
             { key: 'matrix', label: 'Matris', icon: Grid3x3 },
           ] as const).map(v => (
             <button key={v.key} onClick={() => setViewMode(v.key)}
@@ -116,7 +116,7 @@ export function RiskControlMappingClient() {
         {viewMode === 'list' && (
           <div className="flex items-center gap-2 px-3 py-2 rounded-xl flex-1 min-w-52" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
             <Search className="w-4 h-4 shrink-0" style={{ color: 'var(--muted-fg)' }} />
-            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Kontrol və ya risk axtar…"
+            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search control or risk…"
               className="flex-1 text-sm bg-transparent outline-none" style={{ color: 'var(--foreground)' }} />
           </div>
         )}
@@ -128,7 +128,7 @@ export function RiskControlMappingClient() {
         /* ── LIST VIEW — controls as rows, linked risks as chips (from Risk Register) ── */
         <div className="card overflow-hidden"><div className="overflow-x-auto"><table className="w-full">
           <thead><tr style={{ borderBottom: '1px solid var(--border)', background: 'var(--muted)' }}>
-            {['Nəzarət Mexanizmi (Control)', 'Əlaqəli Risklər (Risk Register-dən)', 'Son yenilənmə', ''].map(h => (
+            {['Control Mechanism', 'Related Risks (from Risk Register)', 'Last Updated', ''].map(h => (
               <th key={h} className="text-left px-4 py-3 text-[11px] font-semibold uppercase tracking-wide whitespace-nowrap" style={{ color: 'var(--muted-fg)' }}>{h}</th>))}
           </tr></thead>
           <tbody>
@@ -178,7 +178,7 @@ export function RiskControlMappingClient() {
                   </span>
                 </td>
                 <td className="px-4 py-4 text-right">
-                  <button onClick={() => setDrawerControl(c)} title="Riskləri idarə et"
+                  <button onClick={() => setDrawerControl(c)} title="Manage Risks"
                     className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold border transition-colors hover:bg-black/[0.04]"
                     style={{ borderColor: 'var(--border)', color: 'var(--foreground)' }}>
                     <Edit className="w-3.5 h-3.5" /> Redaktə
@@ -227,9 +227,9 @@ export function RiskControlMappingClient() {
                             <div className="flex items-center justify-between gap-2">
                               <div className="min-w-0">
                                 <span className="text-[10px] font-mono font-bold" style={{ color: 'var(--brand-500)' }}>{r?.risk_code ?? '—'}</span>
-                                <p className="text-xs font-medium truncate" style={{ color: 'var(--foreground)' }}>{r?.title ?? 'Risk tapılmadı'}</p>
+                                <p className="text-xs font-medium truncate" style={{ color: 'var(--foreground)' }}>{r?.title ?? 'No risk found'}</p>
                               </div>
-                              <button onClick={() => removeLink(m.id)} title="Əlaqəni sil"
+                              <button onClick={() => removeLink(m.id)} title="Remove Link"
                                 className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-red-500/10 shrink-0">
                                 <Trash2 className="w-3.5 h-3.5 text-red-500" />
                               </button>
@@ -263,7 +263,7 @@ export function RiskControlMappingClient() {
                       const riskId = e.target.value
                       if (riskId && drawerControl) { addRiskLink(drawerControl, riskId, 'risk_mitigation_only'); e.target.value = '' }
                     }}>
-                    <option value="">{drawerAvailableRisks.length === 0 ? 'Bütün risklər artıq bağlıdır' : '— Risk seç —'}</option>
+                    <option value="">{drawerAvailableRisks.length === 0 ? 'All risks are already closed' : '— Select Risk —'}</option>
                     {drawerAvailableRisks.map(r => <option key={r.id} value={r.id}>{(r.risk_code ?? '—') + ' · ' + r.title}</option>)}
                   </select>
                   <p className="text-[10px]" style={{ color: 'var(--muted-fg)' }}>

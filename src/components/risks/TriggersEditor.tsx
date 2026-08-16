@@ -91,7 +91,7 @@ export function TriggersEditor({ triggers, onChange, library }: Props) {
                     {library.map((l) => <option key={l.id} value={l.id}>{l.control_id} — {l.title}</option>)}
                   </select>
                   <span className="text-[10px] font-bold shrink-0" style={{ color: assessed ? '#0ea5e9' : 'var(--muted-fg)' }}>
-                    {assessed ? CONTROL_RATING_INFO[rating].label : 'qiymətləndirilməyib'}
+                    {assessed ? CONTROL_RATING_INFO[rating].label : 'not assessed'}
                   </span>
                   <button type="button" onClick={() => removeControl(t.id, c.id)} aria-label="Remove control" className="p-1 rounded hover:bg-red-500/10 cursor-pointer">
                     <Trash2 className="w-3 h-3 text-red-500" />

@@ -14,23 +14,23 @@ import type { ExportColumn } from '@/lib/export'
 
 const DOC_EXPORT_COLUMNS: ExportColumn<InternalDocument>[] = [
   { key: 'doc_uid', label: 'ID', value: d => d.doc_uid },
-  { key: 'name', label: 'Sənədin adı', value: d => d.name },
-  { key: 'doc_type', label: 'Növ', value: d => d.doc_type },
-  { key: 'doc_number', label: 'Nömrə', value: d => d.doc_number ?? '' },
-  { key: 'version', label: 'Versiya', value: d => d.version },
-  { key: 'effective_date', label: 'Qüvvəyə minmə', value: d => d.effective_date ? new Date(d.effective_date).toLocaleDateString('az-AZ') : '' },
-  { key: 'approved_by', label: 'Təsdiqləyən', value: d => d.approved_by ?? '' },
-  { key: 'author_dept', label: 'Tərtib edən struktur', value: d => d.author_dept ?? '' },
+  { key: 'name', label: 'Document Name', value: d => d.name },
+  { key: 'doc_type', label: 'Type', value: d => d.doc_type },
+  { key: 'doc_number', label: 'Number', value: d => d.doc_number ?? '' },
+  { key: 'version', label: 'Version', value: d => d.version },
+  { key: 'effective_date', label: 'Effective Date', value: d => d.effective_date ? new Date(d.effective_date).toLocaleDateString('az-AZ') : '' },
+  { key: 'approved_by', label: 'Approver', value: d => d.approved_by ?? '' },
+  { key: 'author_dept', label: 'Prepared by Structure', value: d => d.author_dept ?? '' },
 ]
 
 export const DOC_TYPE_CFG: Record<InternalDocType, { label: string; cls: string }> = {
-  policy:      { label: 'Siyasət',      cls: 'bg-indigo-500/15 text-indigo-400' },
+  policy:      { label: 'Policy',      cls: 'bg-indigo-500/15 text-indigo-400' },
   rule:        { label: 'Qayda',        cls: 'bg-sky-500/15 text-sky-400' },
   procedure:   { label: 'Prosedur',     cls: 'bg-emerald-500/15 text-emerald-400' },
-  instruction: { label: 'Təlimat',      cls: 'bg-amber-500/15 text-amber-400' },
-  charter:     { label: 'Əsasnamə',     cls: 'bg-violet-500/15 text-violet-400' },
+  instruction: { label: 'Directive',      cls: 'bg-amber-500/15 text-amber-400' },
+  charter:     { label: 'Regulation',     cls: 'bg-violet-500/15 text-violet-400' },
   methodology: { label: 'Metodologiya', cls: 'bg-teal-500/15 text-teal-400' },
-  other:       { label: 'Digər',        cls: 'bg-zinc-500/15 text-zinc-400' },
+  other:       { label: 'Other',        cls: 'bg-zinc-500/15 text-zinc-400' },
 }
 
 function DocumentFormDialog({ doc, departments, profiles, onClose, onSave }: {
@@ -88,9 +88,9 @@ function DocumentFormDialog({ doc, departments, profiles, onClose, onSave }: {
           style={{ background: 'var(--card)', borderColor: 'var(--border)' }}>
           <div className="flex items-center justify-between px-6 py-4 border-b sticky top-0 z-10" style={{ borderColor: 'var(--border)', background: 'var(--card)' }}>
             <div>
-              <h2 className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>{isEdit ? 'Sənədi redaktə et' : 'Yeni Daxili Sənəd'}</h2>
+              <h2 className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>{isEdit ? 'Edit Document' : 'New Internal Document'}</h2>
               <p className="text-xs mt-0.5" style={{ color: 'var(--muted-fg)' }}>
-                {isEdit ? `Unikal ID: ${doc.doc_uid}` : 'Unikal ID avtomatik veriləcək (DOC-…)'}
+                {isEdit ? `Unikal ID: ${doc.doc_uid}` : 'Unique ID auto-generated (DOC-…)'}
               </p>
             </div>
             <button onClick={onClose} className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-black/[0.04]"><X className="w-4 h-4" style={{ color: 'var(--muted-fg)' }} /></button>
@@ -99,7 +99,7 @@ function DocumentFormDialog({ doc, departments, profiles, onClose, onSave }: {
           <form onSubmit={handleSubmit} className="px-6 py-5 space-y-4">
             <div>
               <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Sənədin adı <span className="text-red-400">*</span></label>
-              <input autoFocus value={name} onChange={e => setName(e.target.value)} placeholder="məs. İnformasiya Təhlükəsizliyi Qaydaları"
+              <input autoFocus value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Information Security Rules"
                 className={fieldCls} style={inputStyle} required />
             </div>
             <div className="grid grid-cols-2 gap-3">
@@ -111,7 +111,7 @@ function DocumentFormDialog({ doc, departments, profiles, onClose, onSave }: {
               </div>
               <div>
                 <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Sənəd nömrəsi</label>
-                <input value={docNumber} onChange={e => setDocNumber(e.target.value)} placeholder="məs. QN-2026/14" className={fieldCls} style={inputStyle} />
+                <input value={docNumber} onChange={e => setDocNumber(e.target.value)} placeholder="e.g. QN-2026/14" className={fieldCls} style={inputStyle} />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
@@ -170,7 +170,7 @@ function DocumentFormDialog({ doc, departments, profiles, onClose, onSave }: {
               <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg text-sm hover:bg-black/[0.04]" style={{ color: 'var(--muted-fg)' }}>Ləğv et</button>
               <button type="submit" disabled={!name.trim() || loading}
                 className="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold text-white transition-colors disabled:opacity-50" style={{ background: 'var(--brand-500)' }}>
-                {loading ? 'Saxlanılır…' : (<>{isEdit ? <Save className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}{isEdit ? 'Yenilə' : 'Yarat'}</>)}
+                {loading ? 'Saving…' : (<>{isEdit ? <Save className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}{isEdit ? 'Refresh' : 'Create'}</>)}
               </button>
             </div>
           </form>
@@ -220,14 +220,14 @@ export function InternalDocumentsClient() {
     await dbExt.saveInternalDocument(item)
     setShowForm(false); setEditItem(null)
     reload()
-    toast.success(editItem ? 'Sənəd yeniləndi' : 'Sənəd yaradıldı')
+    toast.success(editItem ? 'Document updated' : 'Document Created')
   }
 
   async function handleDelete(id: string) {
     await dbExt.deleteInternalDocument(id)
     setMenuOpen(null)
     reload()
-    toast.success('Sənəd silindi')
+    toast.success('Document Deleted')
   }
 
   return (
@@ -235,7 +235,7 @@ export function InternalDocumentsClient() {
       <div className="flex flex-wrap items-center gap-3">
         <div className="flex items-center gap-2 px-3 py-2 rounded-xl flex-1 min-w-52" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
           <Search className="w-4 h-4 shrink-0" style={{ color: 'var(--muted-fg)' }} />
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Sənəd axtar (ad / ID / nömrə)…" aria-label="Search documents"
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search documents (name / ID / number)…" aria-label="Search documents"
             className="flex-1 text-sm bg-transparent outline-none" style={{ color: 'var(--foreground)' }} />
         </div>
         <ExportMenu columns={DOC_EXPORT_COLUMNS} rows={filtered} filename="internal-documents" title="Internal Document List" />
@@ -251,7 +251,7 @@ export function InternalDocumentsClient() {
           <table className="w-full">
             <thead>
               <tr style={{ borderBottom: '1px solid var(--border)', background: 'var(--muted)' }}>
-                {['Unikal ID', 'Sənədin adı', 'Növü', 'Nömrəsi', 'Versiya', 'Qüvvəyə minmə', 'Təsdiqləyən rəhbər', 'Tərtib edən struktur', 'İştirakçı strukturlar', ''].map(h => (
+                {['Unique ID', 'Document Name', 'Type', 'Number', 'Version', 'Effective Date', 'Approving Manager', 'Prepared by Structure', 'Participating Structures', ''].map(h => (
                   <th key={h} className="text-left px-3 py-3 text-[11px] font-semibold uppercase tracking-wide whitespace-nowrap" style={{ color: 'var(--muted-fg)' }}>{h}</th>
                 ))}
               </tr>

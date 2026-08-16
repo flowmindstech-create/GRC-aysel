@@ -4,9 +4,9 @@ import { cn } from '@/lib/utils'
 import { ClipboardList, Search, CheckCircle2 } from 'lucide-react'
 
 const STEPS = [
-  { id: 'intake',        label: 'Intake',        icon: ClipboardList, desc: 'Hadisəni bəyan et' },
-  { id: 'investigation', label: 'Investigation',  icon: Search,        desc: 'Araşdırma' },
-  { id: 'resolution',    label: 'Resolution',     icon: CheckCircle2,  desc: 'Həll və bağlama' },
+  { id: 'intake',        label: 'Intake',        icon: ClipboardList, desc: 'Report Incident' },
+  { id: 'investigation', label: 'Investigation',  icon: Search,        desc: 'Investigation' },
+  { id: 'resolution',    label: 'Resolution',     icon: CheckCircle2,  desc: 'Resolution & Closure' },
 ] as const
 
 interface Props {

@@ -60,17 +60,17 @@ function getNextStep(wf: AuditFindingWorkflow): AuditFindingWorkflowStep | null 
 function canAdvance(wf: AuditFindingWorkflow): { ok: boolean; reason?: string } {
   const { step } = wf
   if (step === 'severity_assessment' && !wf.priority)
-    return { ok: false, reason: 'Priority seçilməlidir.' }
+    return { ok: false, reason: 'Priority must be selected.' }
   if (step === 'immediate_correction' && !wf.immediate_correction_note?.trim())
-    return { ok: false, reason: 'Düzəliş qeydi tələb olunur.' }
+    return { ok: false, reason: 'Correction note required.' }
   if (step === 'verification' && !wf.verification_note?.trim())
-    return { ok: false, reason: 'Yoxlama qeydi tələb olunur.' }
+    return { ok: false, reason: 'Verification note required.' }
   if (step === 'root_cause_analysis' && !wf.root_cause?.trim())
-    return { ok: false, reason: 'Kök səbəb tələb olunur.' }
+    return { ok: false, reason: 'Root cause required.' }
   if (step === 'action_plan' && !wf.action_plan?.trim())
-    return { ok: false, reason: 'Fəaliyyət planı tələb olunur.' }
+    return { ok: false, reason: 'Action plan required.' }
   if (step === 'validation' && !wf.validation_note?.trim())
-    return { ok: false, reason: 'Yoxlama qeydi tələb olunur.' }
+    return { ok: false, reason: 'Verification note required.' }
   return { ok: true }
 }
 

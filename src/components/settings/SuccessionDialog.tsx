@@ -27,11 +27,11 @@ export function SuccessionDialog({ fromUser, users, onClose, onDone }: Props) {
   }, [fromUser.id])
 
   async function submit() {
-    if (!toUserId) { toast.error('Yeni məsul şəxsi seçin'); return }
+    if (!toUserId) { toast.error('Select new responsible person'); return }
     setSubmitting(true)
     const res = await db.transferOwnership(fromUser.id, toUserId, { disposition })
     setSubmitting(false)
-    if (!res.ok) { toast.error(res.error ?? 'Transfer alınmadı'); return }
+    if (!res.ok) { toast.error(res.error ?? 'Transfer failed'); return }
     const c = res.counts
     toast.success(`Transfer tamamlandı: ${c.risks} risk, ${c.units} bölmə, ${c.vendors} vendor köçürüldü`)
     onDone()
@@ -89,7 +89,7 @@ export function SuccessionDialog({ fromUser, users, onClose, onDone }: Props) {
           <div>
             <label className="block text-xs font-semibold mb-2" style={{ color: 'var(--foreground)' }}>Köhnə profil</label>
             <div className="flex gap-2">
-              {([['deactivate', 'Deaktiv et'], ['delete', 'Sil']] as const).map(([val, label]) => (
+              {([['deactivate', 'Deaktiv et'], ['delete', 'Delete']] as const).map(([val, label]) => (
                 <button key={val} type="button" onClick={() => setDisposition(val)}
                   className="flex-1 px-3 py-2 rounded-lg text-xs font-semibold border transition-colors"
                   style={disposition === val

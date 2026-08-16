@@ -20,9 +20,9 @@ const SLA_DAYS: Record<IncidentPriority, number> = {
 }
 
 const STATUS_BADGES = {
-  pending:     { label: 'Gözləyir', cls: 'bg-amber-500/15 text-amber-400' },
-  in_progress: { label: 'İcrada', cls: 'bg-blue-500/15 text-blue-400' },
-  done:        { label: 'Tamamlanıb', cls: 'bg-emerald-500/15 text-emerald-400' },
+  pending:     { label: 'Pending', cls: 'bg-amber-500/15 text-amber-400' },
+  in_progress: { label: 'In progress', cls: 'bg-blue-500/15 text-blue-400' },
+  done:        { label: 'Completed', cls: 'bg-emerald-500/15 text-emerald-400' },
 } as const
 
 export function IncidentResolutionForm({ data, onChange }: Props) {
@@ -89,7 +89,7 @@ export function IncidentResolutionForm({ data, onChange }: Props) {
       patchAction('preventive', { created_control_id: created.id })
       toast.success(`Sorğu göndərildi: ${created.control_id} — Control Library-də təsdiq gözləyir`)
     } catch {
-      toast.error('Sorğu göndərilə bilmədi')
+      toast.error('Request could not be sent')
     } finally {
       setCreating(false)
     }
@@ -97,7 +97,7 @@ export function IncidentResolutionForm({ data, onChange }: Props) {
 
   async function createOptimizationRequest() {
     if (!inheritedControl) { toast.error('Investigation-da "Cari Kontrol" seçilməyib'); return }
-    if (!preventive?.optimization_proposal?.trim()) { toast.error('Optimallaşdırma təklifini yaz'); return }
+    if (!preventive?.optimization_proposal?.trim()) { toast.error('Write optimization suggestion'); return }
     await createPendingControlEntry({
       title: `Optimizasiya: ${inheritedControl.control_id} · ${inheritedControl.title}`,
       description: `Optimallaşdırma təklifi (insident: ${data.title ?? '—'}): ${preventive.optimization_proposal.trim()}`,
@@ -105,10 +105,10 @@ export function IncidentResolutionForm({ data, onChange }: Props) {
   }
 
   async function createNewControl() {
-    if (!preventive?.title?.trim()) { toast.error('Əvvəlcə preventiv tədbirin adını yaz'); return }
+    if (!preventive?.title?.trim()) { toast.error('First enter the preventive action name'); return }
     await createPendingControlEntry({
       title: preventive.title.trim(),
-      description: `${preventive.description?.trim() || 'Insidentdən yaradılan kontrol (CAPA).'} · İnsident: ${data.title ?? ''}`.trim(),
+      description: `${preventive.description?.trim() || 'Control created from incident (CAPA).'} · İnsident: ${data.title ?? ''}`.trim(),
     })
   }
 
@@ -156,7 +156,7 @@ export function IncidentResolutionForm({ data, onChange }: Props) {
   const reflectBadge = sent && (
     <p className={cn('text-[10px] flex items-center gap-1', approved ? 'text-emerald-400' : 'text-amber-400')}>
       <ShieldPlus className="w-3 h-3" />
-      {approved ? '✅ Təsdiqləndi — kontrol əlavə olundu' : '🟡 Risk Management-də təsdiq gözləyir'}
+      {approved ? '✅ Approved — control added' : '🟡 Awaiting approval in Risk Management'}
     </p>
   )
 
@@ -166,7 +166,7 @@ export function IncidentResolutionForm({ data, onChange }: Props) {
       <div>
         <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Həll Xülasəsi <span className="text-red-400">*</span></label>
         <textarea value={data.resolution_summary ?? ''} onChange={e => onChange({ ...data, resolution_summary: e.target.value })} rows={3}
-          placeholder="Hadisə necə həll edildi — atılan addımlar, nəticə..."
+          placeholder="How was the incident resolved — steps taken, outcome..."
           className={`${fieldCls} resize-none`} style={inputStyle} onFocus={focus} onBlur={blur} />
       </div>
 
@@ -190,7 +190,7 @@ export function IncidentResolutionForm({ data, onChange }: Props) {
           <div className="rounded-xl border p-3 space-y-2" style={{ borderColor: 'var(--border)', background: 'var(--muted)' }}>
             <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-sky-500/15 text-sky-400">Korrektiv</span>
             <input value={corrective?.title ?? ''} onChange={e => patchAction('collective', { title: e.target.value })}
-              placeholder="Korrektiv tədbirin adı..." className="w-full px-2.5 py-1.5 rounded-lg text-xs outline-none" style={cardInput} />
+              placeholder="Corrective action name..." className="w-full px-2.5 py-1.5 rounded-lg text-xs outline-none" style={cardInput} />
             <div className="flex items-center gap-1.5">{statusButtons(corrective, 'collective')}</div>
             {assigneeDue(corrective, 'collective')}
           </div>
@@ -199,7 +199,7 @@ export function IncidentResolutionForm({ data, onChange }: Props) {
           <div className="rounded-xl border p-3 space-y-2" style={{ borderColor: 'var(--border)', background: 'var(--muted)' }}>
             <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-violet-500/15 text-violet-400">Preventiv</span>
             <input value={preventive?.title ?? ''} onChange={e => patchAction('preventive', { title: e.target.value })}
-              placeholder="Preventiv tədbirin adı..." className="w-full px-2.5 py-1.5 rounded-lg text-xs outline-none" style={cardInput} />
+              placeholder="Preventive action name..." className="w-full px-2.5 py-1.5 rounded-lg text-xs outline-none" style={cardInput} />
             <div className="flex items-center gap-1.5">{statusButtons(preventive, 'preventive')}</div>
 
             {/* Control plan — optimize inherited control OR apply a new (pending) control */}
@@ -208,7 +208,7 @@ export function IncidentResolutionForm({ data, onChange }: Props) {
                 <button key={m} type="button" onClick={() => patchAction('preventive', { control_mode: m })}
                   className="flex-1 py-1 rounded text-[10px] font-semibold transition-all"
                   style={(preventive?.control_mode ?? 'improve_existing') === m ? { background: 'var(--brand-500)', color: '#fff' } : { color: 'var(--muted-fg)' }}>
-                  {m === 'improve_existing' ? 'Cari kontrolu optimallaşdır' : 'Yeni kontrol tətbiq et'}
+                  {m === 'improve_existing' ? 'Optimize current control' : 'Apply New Control'}
                 </button>
               ))}
             </div>
@@ -230,26 +230,26 @@ export function IncidentResolutionForm({ data, onChange }: Props) {
                   )}
                 </div>
                 <textarea value={preventive?.optimization_proposal ?? ''} onChange={e => patchAction('preventive', { optimization_proposal: e.target.value })}
-                  rows={2} placeholder="Optimallaşdırma təklifi — nə dəyişdirilməlidir..."
+                  rows={2} placeholder="Optimization suggestion — what should change..."
                   className="w-full px-2.5 py-1.5 rounded-lg text-xs outline-none resize-none" style={cardInput} />
                 {sent ? reflectBadge : (
                   <button type="button" onClick={createOptimizationRequest} disabled={creating || !inheritedControl}
                     className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold text-white transition-colors disabled:opacity-50"
                     style={{ background: 'var(--brand-500)' }}>
-                    <ShieldPlus className="w-3.5 h-3.5" /> {creating ? 'Göndərilir…' : 'Risk Management-ə optimizasiya sorğusu göndər'}
+                    <ShieldPlus className="w-3.5 h-3.5" /> {creating ? 'Sending…' : 'Send optimization request to Risk Management'}
                   </button>
                 )}
               </div>
             ) : (
               <div className="space-y-2">
                 <textarea value={preventive?.description ?? ''} onChange={e => patchAction('preventive', { description: e.target.value })}
-                  rows={2} placeholder="Yeni kontrolun təsviri — nə tətbiq olunacaq..."
+                  rows={2} placeholder="New control description — what will be applied..."
                   className="w-full px-2.5 py-1.5 rounded-lg text-xs outline-none resize-none" style={cardInput} />
                 {sent ? reflectBadge : (
                   <button type="button" onClick={createNewControl} disabled={creating}
                     className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold text-white transition-colors disabled:opacity-50"
                     style={{ background: 'var(--brand-500)' }}>
-                    <ShieldPlus className="w-3.5 h-3.5" /> {creating ? 'Yaradılır…' : 'Risk Management-ə yeni kontrol sorğusu göndər'}
+                    <ShieldPlus className="w-3.5 h-3.5" /> {creating ? 'Creating…' : 'Send new control request to Risk Management'}
                   </button>
                 )}
               </div>
@@ -278,7 +278,7 @@ export function IncidentResolutionForm({ data, onChange }: Props) {
               style={data.status === s
                 ? { background: 'rgb(5,150,105)', color: '#fff' }
                 : { color: 'var(--muted-fg)' }
-              }>{s === 'done' ? 'İcra olundu (Done)' : 'Bağlandı (Closed)'}</button>
+              }>{s === 'done' ? 'Completed (Done)' : 'Closed'}</button>
           ))}
         </div>
       </div>

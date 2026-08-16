@@ -41,8 +41,8 @@ export function priorityFromLevel(level: IncidentSeverity): IncidentPriority {
 // Core systems list for the "Affected Systems" picker (intake). Editable here.
 export const INCIDENT_SYSTEMS = [
   'Core Banking', 'CRM', 'ERP', 'Internet Banking', 'Mobile Banking',
-  'Kart sistemi', 'AML / Sanksiya', 'HR sistemi', 'AD / Şəbəkə', 'Email',
-  'EDMS (sənəd dövriyyəsi)', 'BI / Hesabatlıq', 'Digər',
+  'Kart sistemi', 'AML / Sanksiya', 'HR sistemi', 'AD / Network', 'Email',
+  'EDMS (document flow)', 'BI / Reporting', 'Other',
 ]
 
 const SEVERITY_CONFIG: Record<IncidentSeverity, { label: string; classes: string }> = {
@@ -75,9 +75,9 @@ const IMPACT_OPTIONS: ScaleOption[] = IMPACT_LEVEL_LABELS.map((label, i) => ({
   desc: [
     'Cüzi təsir — əməliyyata/maliyyəyə demək olar təsir yoxdur',
     'Kiçik təsir — məhdud, asanlıqla aradan qaldırılan təsir',
-    'Mülayim təsir — nəzərəçarpan, idarə oluna bilən təsir',
+    'Moderate impact — noticeable, manageable impact',
     'Əhəmiyyətli təsir — ciddi əməliyyat/maliyyə/nüfuz təsiri',
-    'Fəlakətli təsir — kritik, geniş miqyaslı təsir',
+    'Catastrophic impact — critical, wide-scale impact',
   ][i],
 }))
 
@@ -197,7 +197,7 @@ export function IncidentIntakeForm({ data, onChange }: Props) {
       <div>
         <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Summary <span className="text-red-400">*</span></label>
         <input autoFocus value={data.title ?? ''} onChange={e => onChange({ ...data, title: e.target.value })}
-          placeholder="Qısa təsvir — Hadisəni bir cümlə ilə izah edin"
+          placeholder="Brief description — explain the incident in one sentence"
           className={fieldCls} style={inputStyle} onFocus={focus} onBlur={blur} />
       </div>
 
@@ -221,7 +221,7 @@ export function IncidentIntakeForm({ data, onChange }: Props) {
           <select value={data.incident_category ?? ''} disabled={!data.risk_category}
             onChange={e => onChange({ ...data, incident_category: e.target.value || undefined })}
             className={`${fieldCls} ${data.risk_category ? 'cursor-pointer' : 'opacity-60 cursor-not-allowed'}`} style={inputStyle}>
-            <option value="">{data.risk_category ? '— Seçin —' : 'Əvvəlcə risk kateqoriyası'}</option>
+            <option value="">{data.risk_category ? '— Select —' : 'Select risk category first'}</option>
             {incidentSubcategories(data.risk_category).map(c => <option key={c} value={c}>{c}</option>)}
           </select>
         </div>
@@ -274,7 +274,7 @@ export function IncidentIntakeForm({ data, onChange }: Props) {
           <select value={data.reporter_person ?? ''}
             onChange={e => onChange({ ...data, reporter_person: e.target.value })}
             className={`${fieldCls} cursor-pointer`} style={inputStyle}>
-            <option value="">{data.reporter_structure ? 'Şəxs seçin…' : 'Əvvəlcə struktur'}</option>
+            <option value="">{data.reporter_structure ? 'Select person…' : 'Select structure first'}</option>
             {profiles.map(u => <option key={u.id} value={u.full_name}>{u.full_name}</option>)}
           </select>
         </div>
@@ -394,7 +394,7 @@ export function IncidentIntakeForm({ data, onChange }: Props) {
               const v = e.target.value
               onChange({ ...data, loss_amount: v === '' ? undefined : Math.max(0, Number(v)) })
             }}
-            placeholder="0.00 (məcburi — yalnız rəqəm)" className={fieldCls} style={inputStyle} onFocus={focus} onBlur={blur} />
+            placeholder="0.00 (required — numbers only)" className={fieldCls} style={inputStyle} onFocus={focus} onBlur={blur} />
           <p className="text-[10px] mt-0.5" style={{ color: 'var(--muted-fg)' }}>İtki yoxdursa 0 yazın</p>
         </div>
         <div>

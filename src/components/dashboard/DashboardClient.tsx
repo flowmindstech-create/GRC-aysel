@@ -170,17 +170,17 @@ export function DashboardClient({
         <div className="grid grid-cols-2 gap-4 mb-6">
           <StatsCard
             index={0}
-            title="Mənim Risklərim"
+            title="My Risks"
             href="/risks"
             value={openRisks.length}
-            subtitle="açıq / icrada"
+            subtitle="open / in progress"
             icon={ShieldAlert}
             iconColor="text-sky-500"
             iconBg="bg-sky-500/10"
           />
           <StatsCard
             index={1}
-            title="Mənim İnsidentlərim"
+            title="My Incidents"
             href="/incidents"
             value={openIncidents.length}
             subtitle="aktiv"

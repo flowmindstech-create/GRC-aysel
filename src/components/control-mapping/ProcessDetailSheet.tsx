@@ -51,8 +51,8 @@ const MATURITY_LABEL: Record<number, { label: string; cls: string }> = {
   5: { label: '5 — Optimized',  cls: 'bg-emerald-500/15 text-emerald-400' },
 }
 const DOC_TYPE_LABEL: Record<string, string> = {
-  policy: 'Siyasət', rule: 'Qayda', procedure: 'Prosedur', instruction: 'Təlimat',
-  charter: 'Əsasnamə', methodology: 'Metodologiya', other: 'Digər',
+  policy: 'Policy', rule: 'Qayda', procedure: 'Prosedur', instruction: 'Directive',
+  charter: 'Regulation', methodology: 'Metodologiya', other: 'Other',
 }
 
 const ctrlDot = (s?: string) =>

@@ -113,7 +113,7 @@ function NewPolicyDialog({ onClose, onCreate }: { onClose: () => void; onCreate:
       linked_control_ids: [],
       linked_requirement_ids: linkedReqs,
       change_history: [
-        { version: '1.0', changed_by: 'Ali Hasanov', changed_at: now, summary: 'Siyasət yaradıldı.' }
+        { version: '1.0', changed_by: 'Ali Hasanov', changed_at: now, summary: 'Policy created.' }
       ],
       created_at: now, updated_at: now,
     }
@@ -263,7 +263,7 @@ function PolicyDetailDrawer({ policy, onClose, onUpdate }: { policy: Policy; onC
         version: nextVersion,
         changed_by: 'Ali Hasanov',
         changed_at: new Date().toISOString(),
-        summary: `Siyasət təsdiqləndi və nəşr edildi (${approval.comments || 'Yenilənmə'}).`
+        summary: `Siyasət təsdiqləndi və nəşr edildi (${approval.comments || 'Update'}).`
       })
     }
 
@@ -491,7 +491,7 @@ export function PolicyKanbanClient() {
         version: nextVersion,
         changed_by: 'Ali Hasanov',
         changed_at: new Date().toISOString(),
-        summary: 'Siyasət yayınlandı.'
+        summary: 'Policy published.'
       })
     }
 

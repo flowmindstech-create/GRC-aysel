@@ -96,7 +96,7 @@ export function RiskHeatmap({ stats }: RiskHeatmapProps) {
                   getCellColor(cell.likelihood, cell.impact),
                   getCellOpacity(cell.count)
                 )}
-                title={cell.count > 0 ? `L:${cell.likelihood} × I:${cell.impact} — ${cell.count} risk · klik → Risk Register` : `L:${cell.likelihood} × I:${cell.impact} — boş`}
+                title={cell.count > 0 ? `L:${cell.likelihood} × I:${cell.impact} — ${cell.count} risk · klik → Risk Register` : `L:${cell.likelihood} × I:${cell.impact} — empty`}
               >
                 {cell.count > 0 ? cell.count : ''}
               </motion.div>

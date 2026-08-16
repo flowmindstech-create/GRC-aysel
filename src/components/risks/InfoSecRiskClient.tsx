@@ -122,27 +122,27 @@ function InfoSecFormDialog({ item, controls, processes, departments, profiles, o
               </div>
               <div>
                 <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Asset <span className="text-red-400">*</span></label>
-                <input value={asset} onChange={e => setAsset(e.target.value)} placeholder="məs. Core Banking DB, AD server…" className={fieldCls} style={inputStyle} />
+                <input value={asset} onChange={e => setAsset(e.target.value)} placeholder="e.g. Core Banking DB, AD server…" className={fieldCls} style={inputStyle} />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Threat <span className="text-red-400">*</span></label>
-                <input value={threat} onChange={e => setThreat(e.target.value)} placeholder="məs. Ransomware, data sızması…" className={fieldCls} style={inputStyle} />
+                <input value={threat} onChange={e => setThreat(e.target.value)} placeholder="e.g. Ransomware, data breach…" className={fieldCls} style={inputStyle} />
               </div>
               <div>
                 <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Vulnerability <span className="text-red-400">*</span></label>
-                <input value={vulnerability} onChange={e => setVulnerability(e.target.value)} placeholder="məs. köhnəlmiş patch, zəif şifrələmə…" className={fieldCls} style={inputStyle} />
+                <input value={vulnerability} onChange={e => setVulnerability(e.target.value)} placeholder="e.g. outdated patch, weak encryption…" className={fieldCls} style={inputStyle} />
               </div>
             </div>
             <div>
               <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Risk Description <span className="text-red-400">*</span></label>
               <textarea value={description} onChange={e => setDescription(e.target.value)} rows={2}
-                placeholder="Riskin ümumi təsviri…" className={`${fieldCls} resize-none`} style={inputStyle} />
+                placeholder="General risk description…" className={`${fieldCls} resize-none`} style={inputStyle} />
             </div>
             <div>
               <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Risk Trigger</label>
-              <input value={trigger} onChange={e => setTrigger(e.target.value)} placeholder="Riski aktivləşdirən hadisə…" className={fieldCls} style={inputStyle} />
+              <input value={trigger} onChange={e => setTrigger(e.target.value)} placeholder="Triggering event…" className={fieldCls} style={inputStyle} />
             </div>
 
             {/* Probability + Impact per RCSA dimensions */}
@@ -208,13 +208,13 @@ function InfoSecFormDialog({ item, controls, processes, departments, profiles, o
             <div>
               <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Mitigation Plan</label>
               <textarea value={mitigation} onChange={e => setMitigation(e.target.value)} rows={2}
-                placeholder="Riskin azaldılması üçün fəaliyyət planı…" className={`${fieldCls} resize-none`} style={inputStyle} />
+                placeholder="Action plan to mitigate the risk…" className={`${fieldCls} resize-none`} style={inputStyle} />
             </div>
 
             {/* Locked management fields */}
             <div className="rounded-xl border p-3 space-y-3" style={{ borderColor: 'var(--border)', background: 'var(--muted)' }}>
               <p className="text-[11px] font-bold uppercase tracking-wide flex items-center gap-1.5" style={{ color: 'var(--brand-500)' }}>
-                <Lock className="w-3.5 h-3.5" /> İdarəetmə sahələri {isEdit && '(dəyişdirilə bilməz)'}
+                <Lock className="w-3.5 h-3.5" /> İdarəetmə sahələri {isEdit && '(cannot be changed)'}
               </p>
               <div className="grid grid-cols-3 gap-2">
                 <div>

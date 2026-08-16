@@ -8,9 +8,9 @@ import { db } from '@/lib/db'
 
 const ITEMS = [
   { href: '/dashboard',           label: 'Ana',        icon: LayoutDashboard },
-  { href: '/risks',               label: 'Risklər',    icon: ShieldAlert },
+  { href: '/risks',               label: 'Risks',    icon: ShieldAlert },
   { href: '/compliance-workflow', label: 'Compliance', icon: ScrollText },
-  { href: '/incidents',           label: 'İnsident',   icon: AlertTriangle, badge: true },
+  { href: '/incidents',           label: 'Incident',   icon: AlertTriangle, badge: true },
   { href: '/compliance-monitoring', label: 'Monitor',  icon: ClipboardCheck },
 ]
 

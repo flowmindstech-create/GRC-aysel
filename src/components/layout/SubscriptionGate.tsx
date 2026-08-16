@@ -26,9 +26,9 @@ export function SubscriptionGate({ children }: { children: React.ReactNode }) {
 
   const org = state.org
   const status = org?.subscription_status
-  const heading = status === 'suspended' ? 'Abunəlik dayandırılıb'
-    : status === 'cancelled' ? 'Abunəlik ləğv olunub'
-    : 'Abunəlik müddəti bitib'
+  const heading = status === 'suspended' ? 'Subscription suspended'
+    : status === 'cancelled' ? 'Subscription cancelled'
+    : 'Subscription expired'
 
   async function signOut() {
     try {

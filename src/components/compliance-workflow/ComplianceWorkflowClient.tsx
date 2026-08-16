@@ -13,15 +13,15 @@ import type { ExportColumn } from '@/lib/export'
 import { usePermissions } from '@/hooks/usePermissions'
 
 const OBLIGATION_EXPORT_COLUMNS: ExportColumn<ComplianceObligation>[] = [
-  { key: 'obligation_code', label: 'Kod', value: o => o.obligation_code },
-  { key: 'title', label: 'Öhdəlik', value: o => o.title },
-  { key: 'source', label: 'Mənbə', value: o => o.source },
-  { key: 'regulator', label: 'Tənzimləyici', value: o => o.regulator ?? '' },
+  { key: 'obligation_code', label: 'Code', value: o => o.obligation_code },
+  { key: 'title', label: 'Obligation', value: o => o.title },
+  { key: 'source', label: 'Source', value: o => o.source },
+  { key: 'regulator', label: 'Regulator', value: o => o.regulator ?? '' },
   { key: 'criticality', label: 'Kritiklik', value: o => o.criticality },
   { key: 'status', label: 'Status', value: o => o.status },
-  { key: 'accountable_owner', label: 'Cavabdeh', value: o => o.accountable_owner ?? '' },
-  { key: 'responsible_structure', label: 'Struktur', value: o => o.responsible_structure ?? '' },
-  { key: 'next_review_date', label: 'Növbəti baxış', value: o => o.next_review_date ? new Date(o.next_review_date).toLocaleDateString('az-AZ') : '' },
+  { key: 'accountable_owner', label: 'Responsible', value: o => o.accountable_owner ?? '' },
+  { key: 'responsible_structure', label: 'Structure', value: o => o.responsible_structure ?? '' },
+  { key: 'next_review_date', label: 'Next Review', value: o => o.next_review_date ? new Date(o.next_review_date).toLocaleDateString('az-AZ') : '' },
 ]
 import {
   Plus, Search, MoreHorizontal, Edit, Trash2, Eye,

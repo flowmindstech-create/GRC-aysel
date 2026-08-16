@@ -49,7 +49,7 @@ export function ControlFormDialog({ control, existing, onClose, onSave }: Props)
   const sty = { background: 'var(--muted)', borderColor: 'var(--border)', color: 'var(--foreground)' }
 
   const handleSave = async () => {
-    if (!form.title.trim()) { toast.error('Kontrol adı tələb olunur'); return }
+    if (!form.title.trim()) { toast.error('Control name is required'); return }
     const record: Control = {
       ...form,
       framework: isCompliance ? (COMPLIANCE_FRAMEWORKS.includes(form.framework) ? form.framework : 'iso27001') : 'custom',
@@ -62,9 +62,9 @@ export function ControlFormDialog({ control, existing, onClose, onSave }: Props)
     try {
       const saved = await db.saveControl(record)
       onSave(saved)
-      toast.success(`Kontrol ${saved.control_id} saxlanıldı`)
+      toast.success(`Control ${saved.control_id} saved`)
     } catch {
-      toast.error('Kontrol saxlanmadı')
+      toast.error('Control not saved')
     }
   }
 
@@ -77,7 +77,7 @@ export function ControlFormDialog({ control, existing, onClose, onSave }: Props)
         style={{ background: 'var(--card)', border: '1px solid var(--border)' }}
       >
         <div className="flex items-center justify-between px-6 py-4 border-b" style={{ borderColor: 'var(--border)' }}>
-          <h2 className="text-base font-semibold" style={{ color: 'var(--foreground)' }}>{isEdit ? 'Kontrolu redaktə et' : 'Yeni Kontrol (Library)'}</h2>
+          <h2 className="text-base font-semibold" style={{ color: 'var(--foreground)' }}>{isEdit ? 'Edit Control' : 'Yeni Kontrol (Library)'}</h2>
           <button onClick={onClose} className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-black/10 dark:hover:bg-white/10 cursor-pointer">
             <X className="w-4 h-4" style={{ color: 'var(--muted-fg)' }} />
           </button>
@@ -99,7 +99,7 @@ export function ControlFormDialog({ control, existing, onClose, onSave }: Props)
 
           <div>
             <label className="block text-[11px] font-bold mb-1.5" style={{ color: 'var(--foreground)' }}>Kontrol adı *</label>
-            <input value={form.title} onChange={(e) => set({ title: e.target.value })} placeholder="məs. Çox faktorlu autentifikasiya" className={inputCls} style={sty} />
+            <input value={form.title} onChange={(e) => set({ title: e.target.value })} placeholder="e.g. Multi-factor authentication" className={inputCls} style={sty} />
           </div>
 
           <div>
@@ -125,7 +125,7 @@ export function ControlFormDialog({ control, existing, onClose, onSave }: Props)
 
           <div>
             <label className="block text-[11px] font-bold mb-1.5" style={{ color: 'var(--foreground)' }}>Evidence (icranı sübut edən göstərici)</label>
-            <input value={form.evidence_requirements ?? ''} onChange={(e) => set({ evidence_requirements: e.target.value })} placeholder="məs. Aylıq giriş loqları, audit hesabatı" className={inputCls} style={sty} />
+            <input value={form.evidence_requirements ?? ''} onChange={(e) => set({ evidence_requirements: e.target.value })} placeholder="e.g. Monthly access logs, audit report" className={inputCls} style={sty} />
           </div>
 
           {/* Compliance toggle */}

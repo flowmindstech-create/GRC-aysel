@@ -73,7 +73,7 @@ export function IncidentFormDialog({ incident, onClose, onSave }: Props) {
         priority: 'P3_medium',
         reporter_name: 'Ali Hasanov',
         reporter_email: 'ali@acmecorp.az',
-        reporter_structure: 'Korporativ xidmətlər departamenti',
+        reporter_structure: 'Corporate Services Department',
         discovery_datetime: new Date().toISOString(),
         attached_files: [],
         corrective_actions: [],
@@ -105,7 +105,7 @@ export function IncidentFormDialog({ incident, onClose, onSave }: Props) {
 
   const handleNext = () => {
     if (!validateStep(activeStep)) {
-      alert('Zəhmət olmasa tələb olunan sahələri doldurun!')
+      alert('Please fill in required fields!')
       return
     }
     
@@ -133,7 +133,7 @@ export function IncidentFormDialog({ incident, onClose, onSave }: Props) {
   const handleStepClick = (stepIdx: number) => {
     // Check validation of current step before jumping
     if (stepIdx > activeStep && !validateStep(activeStep)) {
-      alert('Zəhmət olmasa tələb olunan sahələri doldurun!')
+      alert('Please fill in required fields!')
       return
     }
     setActiveStep(stepIdx)
@@ -143,7 +143,7 @@ export function IncidentFormDialog({ incident, onClose, onSave }: Props) {
   const handleSaveDraft = () => {
     // To save as draft, we only require title (minimum summary)
     if (!formData.title?.trim()) {
-      alert('Zəhmət olmasa ən azı qısa təsvir (Summary) daxil edin!')
+      alert('Please enter at least a brief summary!')
       return
     }
 
@@ -167,7 +167,7 @@ export function IncidentFormDialog({ incident, onClose, onSave }: Props) {
 
   const handleComplete = () => {
     if (!validateStep(activeStep)) {
-      alert('Zəhmət olmasa tələb olunan sahələri doldurun!')
+      alert('Please fill in required fields!')
       return
     }
 
@@ -221,7 +221,7 @@ export function IncidentFormDialog({ incident, onClose, onSave }: Props) {
                 {isEdit ? 'Edit Incident' : 'Report Incident'}
               </h2>
               <p className="text-xs" style={{ color: 'var(--muted-fg)' }}>
-                ID: {formData.id || 'Yeni'} • Status: <span className="capitalize">{formData.status}</span>
+                ID: {formData.id || 'New'} • Status: <span className="capitalize">{formData.status}</span>
               </p>
             </div>
             <button

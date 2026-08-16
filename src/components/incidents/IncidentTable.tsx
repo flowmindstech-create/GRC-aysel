@@ -18,12 +18,12 @@ import { usePermissions } from '@/hooks/usePermissions'
 import { atLeast } from '@/lib/permissions'
 
 const INCIDENT_EXPORT_COLUMNS: ExportColumn<Incident>[] = [
-  { key: 'title', label: 'Başlıq', value: i => i.title },
-  { key: 'severity', label: 'Ciddiyyət', value: i => i.severity },
+  { key: 'title', label: 'Title', value: i => i.title },
+  { key: 'severity', label: 'Severity', value: i => i.severity },
   { key: 'status', label: 'Status', value: i => i.status },
-  { key: 'assigned_name', label: 'Təhkim olunub', value: i => i.assigned_name ?? '' },
-  { key: 'reporter_name', label: 'Bildirən', value: i => i.reporter_name ?? '' },
-  { key: 'created_at', label: 'Yaradılıb', value: i => i.created_at ? new Date(i.created_at).toLocaleDateString('az-AZ') : '' },
+  { key: 'assigned_name', label: 'Assigned To', value: i => i.assigned_name ?? '' },
+  { key: 'reporter_name', label: 'Reported By', value: i => i.reporter_name ?? '' },
+  { key: 'created_at', label: 'Created', value: i => i.created_at ? new Date(i.created_at).toLocaleDateString('az-AZ') : '' },
 ]
 
 const severities: (IncidentSeverity | 'all')[] = ['all', 'critical', 'high', 'medium', 'low', 'minimal']

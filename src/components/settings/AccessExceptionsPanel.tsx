@@ -9,17 +9,17 @@ import { KeyRound, Lock, Loader2, Plus, Ban } from 'lucide-react'
 import { toast } from 'sonner'
 
 const ENTITY_OPTIONS: { value: string; label: string }[] = [
-  { value: 'all', label: 'Bütün obyektlər' },
-  { value: 'risk', label: 'Risklər' },
-  { value: 'incident', label: 'İnsidentlər' },
-  { value: 'audit', label: 'Auditlər' },
-  { value: 'org_unit', label: 'Bölmə' },
+  { value: 'all', label: 'All Entities' },
+  { value: 'risk', label: 'Risks' },
+  { value: 'incident', label: 'Incidents' },
+  { value: 'audit', label: 'Audits' },
+  { value: 'org_unit', label: 'Division' },
 ]
-const PERM_LABEL: Record<AccessPermission, string> = { view: 'Baxış', edit: 'Redaktə', approve: 'Təsdiq' }
+const PERM_LABEL: Record<AccessPermission, string> = { view: 'Review', edit: 'Edit', approve: 'Approval' }
 const entLabel = (t: string) => ENTITY_OPTIONS.find(o => o.value === t)?.label ?? t
 
 function statusOf(ex: AccessException): { label: string; rgb: string } {
-  if (ex.revoked) return { label: 'Ləğv olunub', rgb: '100,116,139' }
+  if (ex.revoked) return { label: 'Cancelled', rgb: '100,116,139' }
   if (!isExceptionActive(ex)) return { label: 'Bitib', rgb: '217,119,6' }
   return { label: 'Aktiv', rgb: '5,150,105' }
 }
@@ -46,7 +46,7 @@ export function AccessExceptionsPanel() {
   function reload() {
     Promise.all([db.getAccessExceptions(), db.getProfiles(), db.getOrgUnits()])
       .then(([ex, us, un]) => { setItems(ex); setUsers(us); setUnits(un) })
-      .catch(() => toast.error('Xüsusi icazələr yüklənmədi'))
+      .catch(() => toast.error('Failed to load access exceptions'))
       .finally(() => setLoading(false))
   }
   useEffect(() => { reload() }, [])
@@ -57,9 +57,9 @@ export function AccessExceptionsPanel() {
   }, [users])
 
   async function create() {
-    if (!userId) { toast.error('İstifadəçi seçin'); return }
-    if (!reason.trim()) { toast.error('Səbəb məcburidir'); return }
-    if (entityType === 'org_unit' && !unitId) { toast.error('Bölmə seçin'); return }
+    if (!userId) { toast.error('Select User'); return }
+    if (!reason.trim()) { toast.error('Reason is required'); return }
+    if (entityType === 'org_unit' && !unitId) { toast.error('Select Department'); return }
     setSaving(true)
     const u = users.find(x => x.id === userId)
     const unit = units.find(x => x.id === unitId)
@@ -75,15 +75,15 @@ export function AccessExceptionsPanel() {
       expires_at: expiresAt || null,
     }).catch(() => null)
     setSaving(false)
-    if (!res) { toast.error('İcazə yaradılmadı'); return }
-    toast.success('Xüsusi icazə verildi')
+    if (!res) { toast.error('Access not created'); return }
+    toast.success('Access Granted')
     setShowForm(false); setUserId(''); setReason(''); setExpiresAt('')
     reload()
   }
 
   async function revoke(id: string) {
     await db.revokeAccessException(id)
-    toast.success('İcazə ləğv olundu')
+    toast.success('Access revoked')
     setItems(prev => prev.map(e => (e.id === id ? { ...e, revoked: true } : e)))
   }
 
@@ -158,7 +158,7 @@ export function AccessExceptionsPanel() {
           </div>
           <div>
             <label className="block text-xs font-medium mb-1.5" style={{ color: 'var(--muted-fg)' }}>Səbəb <span className="text-red-400">*</span></label>
-            <textarea value={reason} onChange={e => setReason(e.target.value)} rows={2} placeholder="Bu icazə niyə verilir…" className={`${fieldCls} resize-none`} style={inputSty} />
+            <textarea value={reason} onChange={e => setReason(e.target.value)} rows={2} placeholder="Why is this access granted…" className={`${fieldCls} resize-none`} style={inputSty} />
           </div>
           <div className="flex justify-end gap-2">
             <button onClick={() => setShowForm(false)} className="px-4 py-2 rounded-lg text-sm font-semibold border" style={{ borderColor: 'var(--border)', color: 'var(--foreground)' }}>Ləğv et</button>
@@ -172,7 +172,7 @@ export function AccessExceptionsPanel() {
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead><tr style={{ borderBottom: '1px solid var(--border)' }}>
-            {['İstifadəçi', 'Hədəf', 'İcazə', 'Səbəb', 'Müddət', 'Status', ''].map(h => (
+            {['User', 'Target', 'Permission', 'Reason', 'Duration', 'Status', ''].map(h => (
               <th key={h} className="text-left px-3 py-2.5 text-[11px] font-semibold uppercase tracking-wide" style={{ color: 'var(--muted-fg)' }}>{h}</th>
             ))}
           </tr></thead>

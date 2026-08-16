@@ -21,7 +21,7 @@ export function UserManagementPanel() {
   function reload() {
     db.getProfiles()
       .then(setUsers)
-      .catch(() => toast.error('İstifadəçilər yüklənmədi'))
+      .catch(() => toast.error('Failed to load users'))
       .finally(() => setLoading(false))
   }
   useEffect(() => { reload() }, [])
@@ -34,7 +34,7 @@ export function UserManagementPanel() {
     const res = await db.updateProfileRole(user.id, role)
     setSavingId(null)
     if (!res.ok) {
-      toast.error(res.error?.includes('one_super_admin') ? 'Yalnız bir super_admin ola bilər' : (res.error ?? 'Rol dəyişmədi'))
+      toast.error(res.error?.includes('one_super_admin') ? 'Only one super admin is allowed' : (res.error ?? 'Role not changed'))
       return
     }
     setUsers(prev => prev.map(u => u.id === user.id ? { ...u, role } : u))
@@ -72,7 +72,7 @@ export function UserManagementPanel() {
         <table className="w-full">
           <thead>
             <tr style={{ borderBottom: '1px solid var(--border)' }}>
-              {['İstifadəçi', 'Rütbə', 'Rol', 'Əməliyyat'].map(h => (
+              {['User', 'Rank', 'Role', 'Action'].map(h => (
                 <th key={h} className="text-left px-3 py-2.5 text-[11px] font-semibold uppercase tracking-wide" style={{ color: 'var(--muted-fg)' }}>{h}</th>
               ))}
             </tr>
@@ -107,7 +107,7 @@ export function UserManagementPanel() {
                         onChange={e => changeRole(u, e.target.value as UserRole)}
                         className="px-2.5 py-1.5 rounded-lg text-xs font-medium border outline-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                         style={{ background: 'var(--muted)', borderColor: 'var(--border)', color: 'var(--foreground)' }}
-                        title={isMe ? 'Öz rolunu dəyişə bilməzsən' : undefined}
+                        title={isMe ? 'You cannot change your own role' : undefined}
                       >
                         {ROLE_ORDER.map(r => (
                           <option

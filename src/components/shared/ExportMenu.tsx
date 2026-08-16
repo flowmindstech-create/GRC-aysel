@@ -38,14 +38,14 @@ export function ExportMenu<T>({ columns, rows, filename, title }: Props<T>) {
   async function run(format: ExportFormat) {
     setOpen(false)
     setStep('format')
-    if (rows.length === 0) { toast.error('İxrac üçün məlumat yoxdur'); return }
-    if (selected.size === 0) { toast.error('Ən azı bir sütun seç'); return }
+    if (rows.length === 0) { toast.error('No data to export'); return }
+    if (selected.size === 0) { toast.error('Select at least one column'); return }
     try {
       const chosen = columns.filter((_, i) => selected.has(i))
       await exportRows(format, chosen, rows, filename, title)
       toast.success(`${format.toUpperCase()} yükləndi`)
     } catch {
-      toast.error('İxrac alınmadı')
+      toast.error('Export failed')
     }
   }
 

@@ -25,15 +25,15 @@ const EFF_LABEL = (e?: string) =>
 const fmtDate = (d?: string | null) => d ? new Date(d).toLocaleDateString('az-AZ') : '—'
 
 const EXPORT_COLUMNS: ExportColumn<Control>[] = [
-  { key: 'control_id', label: 'Kod', value: c => c.control_id },
-  { key: 'title', label: 'Nəzarət Adı', value: c => c.title },
+  { key: 'control_id', label: 'Code', value: c => c.control_id },
+  { key: 'title', label: 'Control Name', value: c => c.title },
   { key: 'framework', label: 'Framework', value: c => c.framework },
-  { key: 'control_type', label: 'Tip', value: c => c.control_type ?? '' },
-  { key: 'execution_frequency', label: 'Tezlik', value: c => c.execution_frequency ?? '' },
-  { key: 'owner_dept', label: 'Sahib / Şöbə', value: c => c.owner_dept ?? '' },
+  { key: 'control_type', label: 'Type', value: c => c.control_type ?? '' },
+  { key: 'execution_frequency', label: 'Frequency', value: c => c.execution_frequency ?? '' },
+  { key: 'owner_dept', label: 'Owner / Department', value: c => c.owner_dept ?? '' },
   { key: 'last_tested_at', label: 'Son yoxlama', value: c => c.last_tested_at ? new Date(c.last_tested_at).toLocaleDateString('az-AZ') : '' },
-  { key: 'effectiveness', label: 'Effektivlik', value: c => EFF_LABEL(c.effectiveness_rating) },
-  { key: 'status', label: 'Status', value: c => c.approval_status === 'pending_review' ? 'Gözləmədə' : 'Aktiv' },
+  { key: 'effectiveness', label: 'Effectiveness', value: c => EFF_LABEL(c.effectiveness_rating) },
+  { key: 'status', label: 'Status', value: c => c.approval_status === 'pending_review' ? 'Pending' : 'Aktiv' },
 ]
 
 export function ControlsClient() {
@@ -54,7 +54,7 @@ export function ControlsClient() {
     const [c, o, maps] = await Promise.all([db.getControls(), db.getObligations(), db.getObligationLinkMaps()])
     setControls(c); setObligations(o); setLinkMaps(maps); setLoading(false)
   }
-  useEffect(() => { reload().catch(() => { toast.error('Nəzarətlər yüklənmədi'); setLoading(false) }) }, [])
+  useEffect(() => { reload().catch(() => { toast.error('Failed to load controls'); setLoading(false) }) }, [])
 
   const handleSaveControl = (saved: Control) => {
     setControls(prev => {
@@ -68,7 +68,7 @@ export function ControlsClient() {
   const handleApprove = async (ctrl: Control) => {
     const saved = await db.saveControl({ ...ctrl, approval_status: 'approved' })
     setControls(prev => prev.map(c => c.id === saved.id ? saved : c))
-    toast.success(`Kontrol təsdiqləndi: ${saved.control_id}`)
+    toast.success(`Control approved: ${saved.control_id}`)
   }
 
   // Obligations reachable from a control (reverse of obligation_control_links)
@@ -94,9 +94,9 @@ export function ControlsClient() {
         compliance_obligation_id: brokenObligations[0]?.id,
         created_at: now, updated_at: now,
       } as Incident)
-      toast.success('İnsident yaradıldı (Incidents modulunda)')
+      toast.success('Incident created (in Incidents module)')
       setSimCtrl(null)
-    } catch { toast.error('İnsident yaradıla bilmədi') } finally { setCreatingInc(false) }
+    } catch { toast.error('Failed to create incident') } finally { setCreatingInc(false) }
   }
 
   const frameworks = ['all', ...Array.from(new Set(controls.map(c => c.framework)))]
@@ -122,9 +122,9 @@ export function ControlsClient() {
       {/* Stats — clickable filters (click a card to show only those controls) */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {([
-          { key: 'all',        label: 'Ümumi Nəzarətlər',           value: stats.total,      rgb: '14,165,233' },
-          { key: 'preventive', label: 'Preventive (Önləyici)',      value: stats.preventive, rgb: '59,130,246' },
-          { key: 'detective',  label: 'Detective (Aşkarlayıcı)',    value: stats.detective,  rgb: '234,179,8' },
+          { key: 'all',        label: 'All Controls',           value: stats.total,      rgb: '14,165,233' },
+          { key: 'preventive', label: 'Preventive',      value: stats.preventive, rgb: '59,130,246' },
+          { key: 'detective',  label: 'Detective',    value: stats.detective,  rgb: '234,179,8' },
           { key: 'failures',   label: 'Effektiv olmayanlar (Ineffective)', value: stats.failures,  rgb: '225,29,72' },
         ] as const).map((s, i) => {
           const active = statFilter === s.key
@@ -173,7 +173,7 @@ export function ControlsClient() {
       {/* Table */}
       <div className="card overflow-hidden"><div className="overflow-x-auto"><table className="w-full">
         <thead><tr style={{ borderBottom: '1px solid var(--border)', background: 'var(--muted)' }}>
-          {['Kod', 'Nəzarət Adı', 'Tip', 'Metod / Tezlik', 'Sahib / Şöbə', 'Son yoxlama', 'Status', 'Simulyator', ''].map(h => (
+          {['Code', 'Control Name', 'Type', 'Method / Frequency', 'Owner / Department', 'Son yoxlama', 'Status', 'Simulator', ''].map(h => (
             <th key={h} className="text-left px-3 py-3 text-[11px] font-semibold uppercase tracking-wide whitespace-nowrap" style={{ color: 'var(--muted-fg)' }}>{h}</th>))}
         </tr></thead>
         <tbody>
@@ -215,7 +215,7 @@ export function ControlsClient() {
               </td>
               <td className="px-3 py-3.5"><div className="flex items-center gap-1">
                 {pending && can('approve') && (
-                  <button onClick={() => handleApprove(c)} title="Təsdiqlə" className="px-2.5 py-1 rounded-lg text-[11px] font-semibold text-white bg-emerald-600 hover:bg-emerald-700"><Check className="w-3.5 h-3.5" /></button>
+                  <button onClick={() => handleApprove(c)} title="Approve" className="px-2.5 py-1 rounded-lg text-[11px] font-semibold text-white bg-emerald-600 hover:bg-emerald-700"><Check className="w-3.5 h-3.5" /></button>
                 )}
                 {isSuperAdmin && <button onClick={() => { setEditControl(c); setShowForm(true) }} className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-black/10 dark:hover:bg-white/10"><Edit className="w-3.5 h-3.5" style={{ color: 'var(--muted-fg)' }} /></button>}
               </div></td>
@@ -261,7 +261,7 @@ export function ControlsClient() {
                   <button onClick={() => setSimCtrl(null)} className="px-4 py-2 rounded-lg text-sm hover:bg-black/[0.04]" style={{ color: 'var(--muted-fg)' }}>Bağla</button>
                   <button onClick={raiseIncidentFromSim} disabled={creatingInc}
                     className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-white disabled:opacity-50" style={{ background: 'rgb(225,29,72)' }}>
-                    <Zap className="w-3.5 h-3.5" /> {creatingInc ? 'Yaradılır…' : 'Real İnsident Yarat'}
+                    <Zap className="w-3.5 h-3.5" /> {creatingInc ? 'Creating…' : 'Create Real Incident'}
                   </button>
                 </div>
               </div>

@@ -10,7 +10,7 @@ const UNIT_TYPES: { value: OrgUnitType; label: string }[] = [
   { value: 'executive', label: 'Executive' },
   { value: 'committee', label: 'Committee' },
   { value: 'department', label: 'Department' },
-  { value: 'division', label: 'Division (şöbə)' },
+  { value: 'division', label: 'Division' },
 ]
 
 const inputCls = 'w-full px-3 py-2.5 rounded-xl text-sm border outline-none focus:ring-2 focus:ring-sky-500/30'
@@ -109,7 +109,7 @@ export function OrgStructurePanel() {
             <div>
               <label className="block text-[11px] font-semibold mb-1.5" style={{ color: 'var(--foreground)' }}>Name *</label>
               <input value={editing.name} onChange={e => setEditing({ ...editing, name: e.target.value })}
-                placeholder="e.g. Risklərin idarəedilməsi şöbəsi" className={inputCls} style={{ ...inputSty, background: 'var(--card)' }} />
+                placeholder="e.g. Risk management department" className={inputCls} style={{ ...inputSty, background: 'var(--card)' }} />
             </div>
             <div>
               <label className="block text-[11px] font-semibold mb-1.5" style={{ color: 'var(--foreground)' }}>Type</label>
@@ -142,7 +142,7 @@ export function OrgStructurePanel() {
             <div className="md:col-span-2">
               <label className="block text-[11px] font-semibold mb-1.5" style={{ color: 'var(--foreground)' }}>Head Role / Title</label>
               <input value={editing.head_role ?? ''} onChange={e => setEditing({ ...editing, head_role: e.target.value || null })}
-                placeholder="e.g. Risklərin idarəedilməsi şöbəsinin rəhbəri" className={inputCls} style={{ ...inputSty, background: 'var(--card)' }} />
+                placeholder="e.g. Head of risk management department" className={inputCls} style={{ ...inputSty, background: 'var(--card)' }} />
             </div>
           </div>
           <div className="flex justify-end gap-2">

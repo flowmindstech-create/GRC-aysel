@@ -52,7 +52,7 @@ export function ExecutiveApprovalModal({ strategyLabel, levelWord, canApprove, o
             <div>
               <label className="block text-[11px] font-bold mb-1.5" style={{ color: 'var(--foreground)' }}>Əsaslandırma *</label>
               <textarea value={note} onChange={(e) => setNote(e.target.value)} rows={3}
-                placeholder="Bu istisnanın səbəbini yazın…"
+                placeholder="Write the reason for this exception…"
                 className="w-full px-3 py-2 rounded-xl text-sm border outline-none focus:ring-2 focus:ring-sky-500/30 resize-none" style={sty} />
             </div>
           )}

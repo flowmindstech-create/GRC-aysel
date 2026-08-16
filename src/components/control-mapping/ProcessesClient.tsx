@@ -15,15 +15,15 @@ import { ExportMenu } from '@/components/shared/ExportMenu'
 import type { ExportColumn } from '@/lib/export'
 
 const PROCESS_EXPORT_COLUMNS: ExportColumn<Process>[] = [
-  { key: 'code', label: 'Kod', value: p => p.code },
-  { key: 'name', label: 'Proses', value: p => p.name },
+  { key: 'code', label: 'Code', value: p => p.code },
+  { key: 'name', label: 'Process', value: p => p.name },
   { key: 'owner_dept', label: 'Sahib struktur', value: p => p.owner_dept ?? '' },
-  { key: 'owner_name', label: 'Sahib', value: p => p.owner_name ?? '' },
+  { key: 'owner_name', label: 'Owner', value: p => p.owner_name ?? '' },
   { key: 'status', label: 'Status', value: p => p.status ?? '' },
   { key: 'criticality', label: 'Kritiklik', value: p => p.criticality ?? '' },
-  { key: 'automation', label: 'Avtomatlaşma', value: p => p.automation ?? '' },
+  { key: 'automation', label: 'Automation', value: p => p.automation ?? '' },
   { key: 'maturity', label: 'Yetkinlik', value: p => p.maturity ?? '' },
-  { key: 'sub_processes', label: 'Alt proseslər', value: p => (p.sub_processes ?? []).join('; ') },
+  { key: 'sub_processes', label: 'Sub-processes', value: p => (p.sub_processes ?? []).join('; ') },
 ]
 
 const STATUS_CFG: Record<ProcessStatus, { label: string; cls: string }> = {
@@ -269,7 +269,7 @@ function ProcessFormDialog({ process, controls, departments, profiles, policies,
               <div className="flex gap-2">
                 <input value={subProcessInput} onChange={e => setSubProcessInput(e.target.value)}
                   onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addSubProcess() } }}
-                  placeholder="Alt proses yaz və Enter bas…" className={fieldCls} style={inputStyle} />
+                  placeholder="Type sub-process and press Enter…" className={fieldCls} style={inputStyle} />
                 <button type="button" onClick={addSubProcess} disabled={!subProcessInput.trim()}
                   className="shrink-0 px-3 py-2 rounded-lg text-sm font-semibold text-white disabled:opacity-40" style={{ background: 'var(--brand-500)' }}>
                   <Plus className="w-4 h-4" />
@@ -289,8 +289,8 @@ function ProcessFormDialog({ process, controls, departments, profiles, policies,
                 </div>
               )}
             </div>
-            {chipPicker('İştirakçı strukturlar', departments.map(d => d.name), participantDepts, setParticipantDepts, '— Struktur əlavə et —')}
-            {chipPicker('İştirakçı şəxslər', profiles.map(p => p.full_name), participantPeople, setParticipantPeople, '— Şəxs əlavə et —')}
+            {chipPicker('Participating Structures', departments.map(d => d.name), participantDepts, setParticipantDepts, '— Add Structure —')}
+            {chipPicker('Participating Persons', profiles.map(p => p.full_name), participantPeople, setParticipantPeople, '— Add Person —')}
             <div>
               <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Description</label>
               <textarea value={description} onChange={e => setDescription(e.target.value)} rows={2} placeholder="What this process covers…"
@@ -301,7 +301,7 @@ function ProcessFormDialog({ process, controls, departments, profiles, policies,
             {multiBox('Related Risks', '', risks.map(r => ({ id: r.id, code: r.risk_code ?? '—', title: r.title })), linkedRiskIds, setLinkedRisk)}
             {multiBox('Related Obligations', '', obligations.map(o => ({ id: o.id, code: o.obligation_code, title: o.title })), linkedObligationIds, setLinkedObl)}
             {multiBox('Related Policies', '', policies.map(p => ({ id: p.id, code: p.policy_id, title: p.title })), linkedPolicyIds, setLinkedPol)}
-            {multiBox('Internal Documents (daxili sənədlər)', 'Mapping Matrix-də "Internal Policy" sütununda görünür.',
+            {multiBox('Internal Documents', 'Mapping Matrix-də "Internal Policy" sütununda görünür.',
               documents.map(d => ({ id: d.id, code: d.doc_uid, title: d.name })), linkedDocumentIds, setLinkedDoc)}
             <div className="flex items-center justify-between pt-2">
               <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg text-sm hover:bg-black/[0.04]" style={{ color: 'var(--muted-fg)' }}>Cancel</button>

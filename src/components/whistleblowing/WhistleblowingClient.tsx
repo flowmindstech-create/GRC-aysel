@@ -75,9 +75,9 @@ export function WhistleblowingClient() {
     const sample = reports.find(r => r.body_cipher && r.body_iv)
     if (sample) {
       try { await decryptBody(codeInput, sample.body_iv!, sample.body_cipher!) }
-      catch { toast.error('Kod yanlışdır'); return }
+      catch { toast.error('Code is incorrect'); return }
     }
-    setCode(codeInput); setCodeInput(''); toast.success('Kilid açıldı')
+    setCode(codeInput); setCodeInput(''); toast.success('Unlocked')
   }
 
   async function reveal(r: WhistleblowReport) {
@@ -85,7 +85,7 @@ export function WhistleblowingClient() {
     try {
       const text = await decryptBody(code, r.body_iv, r.body_cipher)
       setRevealed(prev => ({ ...prev, [r.id]: text }))
-    } catch { toast.error('Açıla bilmədi — kod yanlış ola bilər') }
+    } catch { toast.error('Could not be opened — code may be incorrect') }
   }
 
   async function handleSave(subject: string, body: string) {

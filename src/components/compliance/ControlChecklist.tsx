@@ -102,14 +102,14 @@ export function ControlChecklist() {
       await db.saveControl(updated)
       toast.success(`${control.control_id}: ${STATUS_CFG[result].label} — Library və matris yeniləndi`)
     } catch {
-      toast.error('Yadda saxlanıla bilmədi')
+      toast.error('Could not be saved')
     }
   }
 
   function patchField(control: Control, patch: Partial<Control>) {
     const updated = { ...control, ...patch }
     setControls(prev => prev.map(c => c.id === control.id ? updated : c))
-    db.saveControl(updated).catch(() => toast.error('Yadda saxlanıla bilmədi'))
+    db.saveControl(updated).catch(() => toast.error('Could not be saved'))
   }
 
   const inputCls = 'w-full px-3 py-2 rounded-lg text-xs outline-none'
@@ -246,13 +246,13 @@ export function ControlChecklist() {
                           <p className="text-[10px] font-bold uppercase tracking-wide mb-1" style={{ color: 'var(--muted-fg)' }}>Audit Observation</p>
                           <textarea defaultValue={control.evidence_note ?? ''} rows={3}
                             onBlur={e => { if (e.target.value !== (control.evidence_note ?? '')) patchField(control, { evidence_note: e.target.value }) }}
-                            placeholder="Yoxlama zamanı ortaya çıxan qeydlər və nöqsanlar…"
+                            placeholder="Notes and findings from the check…"
                             className={cn(inputCls, 'resize-none')} style={inputStyle} />
                         </div>
                         <div>
                           <p className="text-[10px] font-bold uppercase tracking-wide mb-1" style={{ color: 'var(--muted-fg)' }}>Evidence (link)</p>
                           <div className="flex items-center gap-2">
-                            <input defaultValue={control.evidence_url ?? ''} placeholder="https://… sübut sənədinin linki"
+                            <input defaultValue={control.evidence_url ?? ''} placeholder="https://… evidence document link"
                               onBlur={e => { if (e.target.value !== (control.evidence_url ?? '')) patchField(control, { evidence_url: e.target.value }) }}
                               className={inputCls} style={inputStyle} />
                             {control.evidence_url && (

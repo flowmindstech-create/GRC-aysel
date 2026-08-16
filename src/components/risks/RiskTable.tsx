@@ -25,7 +25,7 @@ import { atLeast } from '@/lib/permissions'
 const RISK_EXPORT_COLUMNS: ExportColumn<Risk>[] = [
   { key: 'risk_code', label: 'Risk ID', value: r => r.risk_code ?? r.id },
   { key: 'title', label: 'Risk', value: r => r.title },
-  { key: 'category', label: 'Kateqoriya', value: r => CATEGORY_LABELS[r.category as RiskCategory] ?? r.category },
+  { key: 'category', label: 'Category', value: r => CATEGORY_LABELS[r.category as RiskCategory] ?? r.category },
   { key: 'status', label: 'Status', value: r => STATUS_LABELS[r.status] ?? r.status },
   { key: 'level', label: 'Inherent', value: r => r.level },
   { key: 'residual_level', label: 'Residual', value: r => r.residual_level ?? '' },
@@ -363,14 +363,14 @@ export function RiskTable() {
                           <button
                             type="button"
                             onClick={(e) => { e.stopPropagation(); setEditRisk(risk); setShowForm(true) }}
-                            title={risk.treatment_plan || 'Mitigasiya planını idarə et'}
+                            title={risk.treatment_plan || 'Manage Mitigation Plan'}
                             className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-bold cursor-pointer transition-colors max-w-[170px]"
                             style={{ background: 'rgba(14,165,233,0.12)', color: 'var(--brand-500)', border: '1px solid rgba(14,165,233,0.25)' }}
                             onMouseEnter={e => ((e.currentTarget as HTMLElement).style.background = 'rgba(14,165,233,0.2)')}
                             onMouseLeave={e => ((e.currentTarget as HTMLElement).style.background = 'rgba(14,165,233,0.12)')}
                           >
                             <Wrench className="w-3 h-3 shrink-0" />
-                            <span className="truncate">{risk.treatment_plan ? risk.treatment_plan : 'Mitigation planı'}</span>
+                            <span className="truncate">{risk.treatment_plan ? risk.treatment_plan : 'Mitigation Plan'}</span>
                           </button>
                         ) : (
                           <span className="text-xs" style={{ color: 'var(--muted-fg)' }}>—</span>

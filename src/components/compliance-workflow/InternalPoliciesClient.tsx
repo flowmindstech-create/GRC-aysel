@@ -14,17 +14,17 @@ import { ExportMenu } from '@/components/shared/ExportMenu'
 import type { ExportColumn } from '@/lib/export'
 
 const POLICY_EXPORT_COLUMNS: ExportColumn<InternalPolicy>[] = [
-  { key: 'code', label: 'Kod', value: p => p.code },
-  { key: 'policy_name', label: 'Sənəd adı', value: p => p.policy_name },
-  { key: 'document_type', label: 'Tip', value: p => p.document_type },
-  { key: 'approving_body', label: 'Təsdiq orqanı', value: p => p.approving_body },
-  { key: 'version', label: 'Versiya', value: p => p.version },
-  { key: 'document_number', label: 'Sənəd №', value: p => p.document_number ?? '' },
+  { key: 'code', label: 'Code', value: p => p.code },
+  { key: 'policy_name', label: 'Document Name', value: p => p.policy_name },
+  { key: 'document_type', label: 'Type', value: p => p.document_type },
+  { key: 'approving_body', label: 'Approval Body', value: p => p.approving_body },
+  { key: 'version', label: 'Version', value: p => p.version },
+  { key: 'document_number', label: 'Document №', value: p => p.document_number ?? '' },
   { key: 'status', label: 'Status', value: p => p.status },
-  { key: 'publish_time', label: 'Dərc tarixi', value: p => p.publish_time ? new Date(p.publish_time).toLocaleDateString('az-AZ') : '' },
-  { key: 'validity_period', label: 'Qüvvə müddəti', value: p => p.validity_period ? new Date(p.validity_period).toLocaleDateString('az-AZ') : '' },
-  { key: 'responsible_structure', label: 'Struktur', value: p => p.responsible_structure ?? '' },
-  { key: 'responsible_person', label: 'Cavabdeh', value: p => p.responsible_person ?? '' },
+  { key: 'publish_time', label: 'Published Date', value: p => p.publish_time ? new Date(p.publish_time).toLocaleDateString('az-AZ') : '' },
+  { key: 'validity_period', label: 'Validity Period', value: p => p.validity_period ? new Date(p.validity_period).toLocaleDateString('az-AZ') : '' },
+  { key: 'responsible_structure', label: 'Structure', value: p => p.responsible_structure ?? '' },
+  { key: 'responsible_person', label: 'Responsible', value: p => p.responsible_person ?? '' },
 ]
 
 export const DOC_TYPE_CFG: Record<InternalPolicyDocType, { label: string; cls: string }> = {
@@ -79,7 +79,7 @@ function PolicyFormDialog({ item, departments, profiles, existingNumbers, onClos
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
-    if (!name.trim()) { toast.error('Policy name məcburidir'); return }
+    if (!name.trim()) { toast.error('Policy name is required'); return }
     setLoading(true)
     const now = new Date().toISOString()
     await onSave({
@@ -111,14 +111,14 @@ function PolicyFormDialog({ item, departments, profiles, existingNumbers, onClos
           <div className="flex items-center justify-between px-6 py-4 border-b sticky top-0 z-10" style={{ borderColor: 'var(--border)', background: 'var(--card)' }}>
             <div>
               <h2 className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>{isEdit ? 'Edit Internal Policy' : 'New Internal Policy'}</h2>
-              <p className="text-xs mt-0.5" style={{ color: 'var(--muted-fg)' }}>{isEdit ? `Code: ${item.code}` : 'Code avtomatik veriləcək (IP-…)'}</p>
+              <p className="text-xs mt-0.5" style={{ color: 'var(--muted-fg)' }}>{isEdit ? `Code: ${item.code}` : 'Code will be auto-generated (IP-…)'}</p>
             </div>
             <button onClick={onClose} className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-black/[0.04]"><X className="w-4 h-4" style={{ color: 'var(--muted-fg)' }} /></button>
           </div>
           <form onSubmit={submit} className="px-6 py-5 space-y-4">
             <div>
               <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Policy Name <span className="text-red-400">*</span></label>
-              <input autoFocus value={name} onChange={e => setName(e.target.value)} placeholder="məs. İnformasiya Təhlükəsizliyi Siyasəti" className={fieldCls} style={inputStyle} />
+              <input autoFocus value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Information Security Policy" className={fieldCls} style={inputStyle} />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
@@ -160,7 +160,7 @@ function PolicyFormDialog({ item, departments, profiles, existingNumbers, onClos
               <div>
                 <label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Document Number</label>
                 <input value={docNumber} onChange={e => setDocNumber(e.target.value)} list="doc-numbers"
-                  placeholder="seç və ya yeni yaz…" className={fieldCls} style={inputStyle} />
+                  placeholder="select or type new…" className={fieldCls} style={inputStyle} />
                 <datalist id="doc-numbers">
                   {existingNumbers.map(n => <option key={n} value={n} />)}
                 </datalist>

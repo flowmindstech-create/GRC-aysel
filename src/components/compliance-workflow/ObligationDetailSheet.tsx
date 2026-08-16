@@ -100,7 +100,7 @@ export function ObligationDetailSheet({ obligation, onClose, onEdit, onSaved }: 
         id: crypto.randomUUID(),
         org_id: obligation.org_id,
         risk_code: generateRiskCode(orgUnitCode(unit), allRisks),
-        title: `Uyğunsuzluq riski: ${obligation.title}`,
+        title: `Non-compliance risk: ${obligation.title}`,
         description: obligation.noncompliance_risk || obligation.description || obligation.title,
         category: 'compliance',
         level: calculateInherentLevel(likelihood, impact),
@@ -113,12 +113,12 @@ export function ObligationDetailSheet({ obligation, onClose, onEdit, onSaved }: 
       }
       const savedRisk = await db.saveRisk(risk)
       await db.saveObligation({ ...obligation, materialized_risk_id: savedRisk.id })
-      toast.success(`Aktiv risk yaradıldı: ${savedRisk.risk_code}`)
+      toast.success(`Active risk created: ${savedRisk.risk_code}`)
       onSaved?.()
       onClose()
     } catch (err) {
       console.error('Materialize risk failed:', err)
-      toast.error('Risk yaradıla bilmədi')
+      toast.error('Failed to create risk')
     } finally {
       setMaterializing(false)
     }
@@ -245,7 +245,7 @@ export function ObligationDetailSheet({ obligation, onClose, onEdit, onSaved }: 
                   <button onClick={handleMaterialize} disabled={materializing}
                     className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold text-white transition-colors disabled:opacity-50"
                     style={{ background: 'rgb(234,88,12)' }}>
-                    <Zap className="w-3.5 h-3.5" /> {materializing ? 'Yaradılır…' : 'Reallaşdı? Aktiv risk yarat'}
+                    <Zap className="w-3.5 h-3.5" /> {materializing ? 'Creating…' : 'Materialized? Create active risk'}
                   </button>
                 )}
               </div>

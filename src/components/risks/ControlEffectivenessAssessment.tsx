@@ -7,7 +7,7 @@ import { RcsaDropdown } from './RcsaDropdown'
 import { ControlRadar } from './ControlRadar'
 
 const RADAR_KEYS = ['design_compliance', 'design_strength', 'design_timeliness', 'impl_relevance', 'impl_sustainability', 'impl_traceability'] as const
-const RADAR_LABELS = ['Uyğunluq', 'Güclülük', 'Zamanlılıq', 'Münasiblik', 'Davamlılıq', 'İzlən.']
+const RADAR_LABELS = ['Compliance', 'Strength', 'Timeliness', 'Relevance', 'Consistency', 'Tracked.']
 
 interface Props {
   triggers: RiskTrigger[]

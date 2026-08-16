@@ -52,7 +52,7 @@ const navGroups = [
       { href: '/control-mapping',       label: 'Ctrl Mapping',    icon: Network   },
       { href: '/governance/policies',   label: 'Policies',        icon: ScrollText},
       { href: '/vendors',               label: 'Vendors',         icon: Users     },
-      { href: '/logs',                  label: 'Loglar',          icon: History   },
+      { href: '/logs',                  label: 'Logs',          icon: History   },
       { href: '/settings',              label: 'Settings',        icon: Settings, minRole: 'admin' as UserRole },
     ],
   },
@@ -127,7 +127,7 @@ export function Sidebar({ onMobileClose }: SidebarProps) {
       <Link
         href="/dashboard"
         onClick={onMobileClose}
-        aria-label="GRCell — ana səhifə"
+        aria-label="GRCell — home"
         className="flex items-center gap-3 px-4 py-5 border-b transition-colors hover:bg-black/[0.03]"
         style={{ borderColor: 'var(--border)' }}
       >
