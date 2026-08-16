@@ -2,19 +2,21 @@
 import { TopNav } from '@/components/layout/TopNav'
 import type { Metadata } from 'next'
 import { MOCK_USERS } from '@/lib/seed-data'
-import { User, Bell, Shield, Database, Key, Globe, Palette, Check, Loader2, ArrowLeft, ExternalLink, Settings, Building2, Users } from 'lucide-react'
+import { User, Bell, Shield, Database, Key, Globe, Palette, Check, Loader2, ArrowLeft, ExternalLink, Settings, Building2, Users, KeyRound } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react'
 import type { LucideIcon } from 'lucide-react'
 import { toast } from 'sonner'
 import { db } from '@/lib/db'
 import { OrgStructurePanel } from '@/components/settings/OrgStructurePanel'
 import { UserManagementPanel } from '@/components/settings/UserManagementPanel'
+import { AccessExceptionsPanel } from '@/components/settings/AccessExceptionsPanel'
 import { usePermissions } from '@/hooks/usePermissions'
 
 
 const SECTIONS: { id: string; icon: LucideIcon; label: string; superAdminOnly?: boolean }[] = [
   { id: 'profile',       icon: User,      label: 'Profile' },
   { id: 'users',         icon: Users,     label: 'İstifadəçilər', superAdminOnly: true },
+  { id: 'access',        icon: KeyRound,  label: 'Xüsusi icazələr', superAdminOnly: true },
   { id: 'notifications', icon: Bell,      label: 'Notifications' },
   { id: 'security',      icon: Shield,    label: 'Security' },
   { id: 'integrations',  icon: Database,  label: 'Integrations' },
@@ -231,6 +233,9 @@ export default function SettingsPage() {
 
               {/* İstifadəçilər — yalnız super_admin */}
               {activeSection === 'users' && <UserManagementPanel />}
+
+              {/* Xüsusi icazələr — yalnız super_admin */}
+              {activeSection === 'access' && <AccessExceptionsPanel />}
 
               {/* Notifications */}
               {activeSection === 'notifications' && (

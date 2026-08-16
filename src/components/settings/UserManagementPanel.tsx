@@ -5,8 +5,9 @@ import { db } from '@/lib/db'
 import type { UserProfile, UserRole } from '@/types'
 import { usePermissions } from '@/hooks/usePermissions'
 import { ROLE_ORDER, ROLE_LABEL, ROLE_LEVEL } from '@/lib/permissions'
-import { ShieldCheck, Lock, Loader2 } from 'lucide-react'
+import { ShieldCheck, Lock, Loader2, ArrowRightLeft } from 'lucide-react'
 import { toast } from 'sonner'
+import { SuccessionDialog } from './SuccessionDialog'
 
 // Yalnız super_admin görür. Rolları təyin edir.
 // DB tərəfdə guard_role_change trigger-i + one_super_admin_per_org index qoruyur (phase45).
@@ -15,13 +16,15 @@ export function UserManagementPanel() {
   const [users, setUsers] = useState<UserProfile[]>([])
   const [loading, setLoading] = useState(true)
   const [savingId, setSavingId] = useState<string | null>(null)
+  const [transferUser, setTransferUser] = useState<UserProfile | null>(null)
 
-  useEffect(() => {
+  function reload() {
     db.getProfiles()
       .then(setUsers)
       .catch(() => toast.error('İstifadəçilər yüklənmədi'))
       .finally(() => setLoading(false))
-  }, [])
+  }
+  useEffect(() => { reload() }, [])
 
   const hasSuperAdmin = users.some(u => u.role === 'super_admin')
 
@@ -69,16 +72,16 @@ export function UserManagementPanel() {
         <table className="w-full">
           <thead>
             <tr style={{ borderBottom: '1px solid var(--border)' }}>
-              {['İstifadəçi', 'Rütbə', 'Rol'].map(h => (
+              {['İstifadəçi', 'Rütbə', 'Rol', 'Əməliyyat'].map(h => (
                 <th key={h} className="text-left px-3 py-2.5 text-[11px] font-semibold uppercase tracking-wide" style={{ color: 'var(--muted-fg)' }}>{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={3} className="py-10 text-center text-sm" style={{ color: 'var(--muted-fg)' }}>Yüklənir…</td></tr>
+              <tr><td colSpan={4} className="py-10 text-center text-sm" style={{ color: 'var(--muted-fg)' }}>Yüklənir…</td></tr>
             ) : users.length === 0 ? (
-              <tr><td colSpan={3} className="py-10 text-center text-sm" style={{ color: 'var(--muted-fg)' }}>İstifadəçi yoxdur</td></tr>
+              <tr><td colSpan={4} className="py-10 text-center text-sm" style={{ color: 'var(--muted-fg)' }}>İstifadəçi yoxdur</td></tr>
             ) : users.map(u => {
               const isMe = u.id === me?.id
               return (
@@ -120,12 +123,30 @@ export function UserManagementPanel() {
                       {savingId === u.id && <Loader2 className="w-3.5 h-3.5 animate-spin" style={{ color: 'var(--muted-fg)' }} />}
                     </div>
                   </td>
+                  <td className="px-3 py-3">
+                    {!isMe && (
+                      <button type="button" onClick={() => setTransferUser(u)}
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold border transition-colors hover:bg-black/[0.04]"
+                        style={{ borderColor: 'var(--border)', color: 'var(--foreground)' }}>
+                        <ArrowRightLeft className="w-3.5 h-3.5" /> Vəzifəni təhvil ver
+                      </button>
+                    )}
+                  </td>
                 </tr>
               )
             })}
           </tbody>
         </table>
       </div>
+
+      {transferUser && (
+        <SuccessionDialog
+          fromUser={transferUser}
+          users={users}
+          onClose={() => setTransferUser(null)}
+          onDone={() => { setTransferUser(null); reload() }}
+        />
+      )}
     </div>
   )
 }

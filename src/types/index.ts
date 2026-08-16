@@ -9,6 +9,25 @@ export interface UserProfile {
   email: string
   role: UserRole
   avatar_url?: string
+  is_active?: boolean          // vəzifə transferindən sonra deaktiv (phase53)
+  created_at: string
+}
+
+// ── Xüsusi icazə (Access Exception) — ierarxiyadan kənar müvəqqəti giriş (phase53)
+export type AccessPermission = 'view' | 'edit' | 'approve'
+export interface AccessException {
+  id: string
+  org_id: string
+  user_id: string
+  user_name?: string
+  entity_type: string          // 'risk' | 'incident' | 'audit' | 'org_unit' | 'all'
+  entity_id?: string | null    // konkret obyekt/bölmə; null = bütün növ
+  entity_label?: string        // UI üçün oxunaqlı ad
+  permission: AccessPermission
+  reason: string
+  starts_at: string
+  expires_at?: string | null
+  revoked?: boolean
   created_at: string
 }
 

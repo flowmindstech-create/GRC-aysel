@@ -1,0 +1,116 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import { db } from '@/lib/db'
+import type { UserProfile } from '@/types'
+import { X, ArrowRightLeft, Loader2 } from 'lucide-react'
+import { toast } from 'sonner'
+
+interface Props {
+  fromUser: UserProfile
+  users: UserProfile[]
+  onClose: () => void
+  onDone: () => void
+}
+
+// Vəzifə transferi (Succession) — köhnə şəxsin məsuliyyətlərini yeniyə köçürür.
+export function SuccessionDialog({ fromUser, users, onClose, onDone }: Props) {
+  const [toUserId, setToUserId] = useState('')
+  const [disposition, setDisposition] = useState<'deactivate' | 'delete'>('deactivate')
+  const [preview, setPreview] = useState<{ risks: number; units: number; vendors: number } | null>(null)
+  const [submitting, setSubmitting] = useState(false)
+
+  const candidates = users.filter(u => u.id !== fromUser.id)
+
+  useEffect(() => {
+    db.previewTransfer(fromUser.id).then(setPreview).catch(() => setPreview({ risks: 0, units: 0, vendors: 0 }))
+  }, [fromUser.id])
+
+  async function submit() {
+    if (!toUserId) { toast.error('Yeni məsul şəxsi seçin'); return }
+    setSubmitting(true)
+    const res = await db.transferOwnership(fromUser.id, toUserId, { disposition })
+    setSubmitting(false)
+    if (!res.ok) { toast.error(res.error ?? 'Transfer alınmadı'); return }
+    const c = res.counts
+    toast.success(`Transfer tamamlandı: ${c.risks} risk, ${c.units} bölmə, ${c.vendors} vendor köçürüldü`)
+    onDone()
+  }
+
+  const total = preview ? preview.risks + preview.units + preview.vendors : 0
+  const toName = candidates.find(u => u.id === toUserId)?.full_name
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative w-full max-w-md rounded-2xl border shadow-2xl max-h-[90vh] overflow-y-auto"
+        style={{ background: 'var(--card)', borderColor: 'var(--border)' }}>
+        <div className="flex items-center justify-between px-6 py-4 border-b sticky top-0 z-10" style={{ borderColor: 'var(--border)', background: 'var(--card)' }}>
+          <div className="flex items-center gap-2">
+            <ArrowRightLeft className="w-4 h-4" style={{ color: 'var(--brand-500)' }} />
+            <h2 className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>Vəzifəni təhvil ver</h2>
+          </div>
+          <button onClick={onClose} className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-black/[0.04]"><X className="w-4 h-4" style={{ color: 'var(--muted-fg)' }} /></button>
+        </div>
+
+        <div className="px-6 py-5 space-y-5">
+          <p className="text-sm" style={{ color: 'var(--muted-fg)' }}>
+            <strong style={{ color: 'var(--foreground)' }}>{fromUser.full_name}</strong> şəxsinin bütün məsuliyyətləri seçdiyiniz yeni şəxsə köçürüləcək.
+          </p>
+
+          <div>
+            <label className="block text-xs font-semibold mb-1.5" style={{ color: 'var(--foreground)' }}>Yeni məsul şəxs</label>
+            <select value={toUserId} onChange={e => setToUserId(e.target.value)}
+              className="w-full px-3 py-2.5 rounded-lg text-sm border outline-none cursor-pointer"
+              style={{ background: 'var(--muted)', borderColor: 'var(--border)', color: 'var(--foreground)' }}>
+              <option value="">— Seçin —</option>
+              {candidates.map(u => <option key={u.id} value={u.id}>{u.full_name}</option>)}
+            </select>
+          </div>
+
+          {/* Xülasə */}
+          <div className="rounded-xl p-4" style={{ background: 'var(--muted)', border: '1px solid var(--border)' }}>
+            <p className="text-[11px] font-bold uppercase tracking-wide mb-2" style={{ color: 'var(--muted-fg)' }}>Köçürüləcək</p>
+            {preview === null ? (
+              <p className="text-xs flex items-center gap-2" style={{ color: 'var(--muted-fg)' }}><Loader2 className="w-3.5 h-3.5 animate-spin" /> hesablanır…</p>
+            ) : (
+              <div className="flex flex-wrap gap-4 text-sm" style={{ color: 'var(--foreground)' }}>
+                <span><strong>{preview.risks}</strong> risk</span>
+                <span><strong>{preview.units}</strong> bölmə rəhbərliyi</span>
+                <span><strong>{preview.vendors}</strong> vendor</span>
+              </div>
+            )}
+            {total === 0 && preview !== null && (
+              <p className="text-[11px] mt-2" style={{ color: 'var(--muted-fg)' }}>Bu şəxsə birbaşa bağlı obyekt yoxdur — yalnız profil taleyi tətbiq olunacaq.</p>
+            )}
+          </div>
+
+          {/* Köhnə profilin taleyi */}
+          <div>
+            <label className="block text-xs font-semibold mb-2" style={{ color: 'var(--foreground)' }}>Köhnə profil</label>
+            <div className="flex gap-2">
+              {([['deactivate', 'Deaktiv et'], ['delete', 'Sil']] as const).map(([val, label]) => (
+                <button key={val} type="button" onClick={() => setDisposition(val)}
+                  className="flex-1 px-3 py-2 rounded-lg text-xs font-semibold border transition-colors"
+                  style={disposition === val
+                    ? { background: val === 'delete' ? 'rgba(225,29,72,0.12)' : 'var(--brand-50)', borderColor: val === 'delete' ? 'rgba(225,29,72,0.4)' : 'var(--brand-500)', color: val === 'delete' ? '#f43f5e' : 'var(--brand-500)' }
+                    : { borderColor: 'var(--border)', color: 'var(--muted-fg)' }}>
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="flex items-center justify-end gap-2 px-6 py-4 border-t" style={{ borderColor: 'var(--border)' }}>
+          <button onClick={onClose} className="px-4 py-2 rounded-lg text-sm font-semibold border" style={{ borderColor: 'var(--border)', color: 'var(--foreground)' }}>Ləğv et</button>
+          <button onClick={submit} disabled={submitting || !toUserId}
+            className="px-4 py-2 rounded-lg text-sm font-semibold text-white bg-sky-500 hover:bg-sky-600 disabled:opacity-50 flex items-center gap-2">
+            {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
+            Təhvil ver{toName ? ` → ${toName}` : ''}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}

@@ -4,7 +4,7 @@
 // Bu qat SAF məntiqdir — DB qıfılı Supabase RLS-dədir (bax supabase-phase45-rbac.sql).
 // UI burada gizlədir; əsl təhlükəsizlik RLS-də dublikat olunur.
 
-import type { UserRole, UserProfile, Organization } from '@/types'
+import type { UserRole, UserProfile, Organization, AccessException, AccessPermission } from '@/types'
 
 // ── Rütbə səviyyələri ──────────────────────────────────────────────────────
 // Aralarda boşluq (10-luq addım) qoyulub ki gələcəkdə yeni rol asan əlavə olunsun.
@@ -85,4 +85,36 @@ export function orgIsActive(
   const notExpired = !org.subscription_expires_at || new Date(org.subscription_expires_at) > now
   const statusOk = !org.subscription_status || (ACTIVE_SUB_STATUSES as readonly string[]).includes(org.subscription_status)
   return org.is_active !== false && statusOk && notExpired
+}
+
+// ── Xüsusi icazə (Access Exception) — ierarxiyadan kənar müvəqqəti giriş ──────
+const PERM_RANK: Record<AccessPermission, number> = { view: 1, edit: 2, approve: 3 }
+
+// İcazə aktivdirmi? (ləğv olunmayıb, başlanıb, bitməyib)
+export function isExceptionActive(ex: AccessException, now: Date = new Date()): boolean {
+  if (ex.revoked) return false
+  const startedOk = !ex.starts_at || new Date(ex.starts_at) <= now
+  const notExpired = !ex.expires_at || new Date(ex.expires_at) >= now
+  return startedOk && notExpired
+}
+
+// İstifadəçinin verilmiş obyektə/növə aktiv xüsusi icazəsi varmı?
+// entity_type='all' bütün növləri, entity_id boş isə bütün obyektləri əhatə edir.
+// Tələb olunan icazə səviyyəsi ödənməlidir (approve ⊇ edit ⊇ view).
+export function hasAccess(
+  user: Pick<UserProfile, 'id'> | null | undefined,
+  exceptions: AccessException[],
+  entityType: string,
+  entityId?: string,
+  permission: AccessPermission = 'view',
+  now: Date = new Date(),
+): boolean {
+  if (!user?.id) return false
+  return exceptions.some(ex =>
+    ex.user_id === user.id &&
+    isExceptionActive(ex, now) &&
+    (ex.entity_type === 'all' || ex.entity_type === entityType) &&
+    (!ex.entity_id || ex.entity_id === entityId) &&
+    PERM_RANK[ex.permission] >= PERM_RANK[permission]
+  )
 }

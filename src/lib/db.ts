@@ -7,7 +7,7 @@ import {
 } from './seed-data'
 import type {
   Risk, Incident, Control, Audit, AuditFinding, Vendor, Activity, DashboardStats,
-  JiraConfig, JiraActivity, JiraComment, GRCIntakeItem, OrgUnit, UserProfile, UserRole, Organization,
+  JiraConfig, JiraActivity, JiraComment, GRCIntakeItem, OrgUnit, UserProfile, UserRole, Organization, AccessException,
   ComplianceObligation, ObligationAuditLog, RegulatoryChange, InterestedParty, Process,
   AppetiteEntry, FinancialRisk, StressTest, WhistleblowReport, ComplianceAssessment, ComplianceAssessmentHistory
 } from '@/types'
@@ -1922,6 +1922,130 @@ export const db = {
       return { ok: true }
     }
     return { ok: true }
+  },
+
+  // ─── VƏZİFƏ TRANSFERİ (Succession) — yalnız super_admin (phase53) ───────────
+  // Köhnə şəxsin məsuliyyətlərini yeni şəxsə köçürür: risk (assigned_name),
+  // org_units (head_user_id), vendor (contact_name). Köhnə profil deaktiv/silinir.
+  async previewTransfer(fromUserId: string): Promise<{ risks: number; units: number; vendors: number }> {
+    const profiles = await this.getProfiles()
+    const fromName = profiles.find(p => p.id === fromUserId)?.full_name
+    const [risks, units, vendors] = await Promise.all([this.getRisks(), this.getOrgUnits(), this.getVendors()])
+    return {
+      risks: fromName ? risks.filter(r => r.owner_name === fromName).length : 0,
+      units: units.filter(u => u.head_user_id === fromUserId).length,
+      vendors: fromName ? vendors.filter(v => v.contact_name === fromName).length : 0,
+    }
+  },
+
+  async transferOwnership(
+    fromUserId: string,
+    toUserId: string,
+    options: { disposition: 'deactivate' | 'delete' },
+  ): Promise<{ ok: boolean; counts: { risks: number; units: number; vendors: number }; error?: string }> {
+    const counts = { risks: 0, units: 0, vendors: 0 }
+    try {
+      const profiles = await this.getProfiles()
+      const fromName = profiles.find(p => p.id === fromUserId)?.full_name
+      const toName = profiles.find(p => p.id === toUserId)?.full_name
+      const configured = isSupabaseConfigured()
+      const supabase = configured ? (await import('./supabase/client')).createClient() : null
+
+      // Risklər — məsul şəxs (owner_name / owner_id). created_by dəyişmir (maker qalır).
+      const risks = await this.getRisks()
+      const risksToMove = fromName ? risks.filter(r => r.owner_name === fromName) : []
+      counts.risks = risksToMove.length
+      if (counts.risks) {
+        if (supabase) await supabase.from('risks').update({ owner_name: toName, owner_id: toUserId }).eq('owner_name', fromName)
+        else setLocalItem('risks', risks.map(r => (r.owner_name === fromName ? { ...r, owner_name: toName, owner_id: toUserId } : r)))
+      }
+
+      // Org units — head_user_id
+      const units = await this.getOrgUnits()
+      const unitsToMove = units.filter(u => u.head_user_id === fromUserId)
+      counts.units = unitsToMove.length
+      if (counts.units) {
+        if (supabase) await supabase.from('org_units').update({ head_user_id: toUserId }).eq('head_user_id', fromUserId)
+        else setLocalItem('org_units', units.map(u => (u.head_user_id === fromUserId ? { ...u, head_user_id: toUserId } : u)))
+      }
+
+      // Vendorlar — contact_name
+      const vendors = await this.getVendors()
+      const vendorsToMove = fromName ? vendors.filter(v => v.contact_name === fromName) : []
+      counts.vendors = vendorsToMove.length
+      if (counts.vendors) {
+        if (supabase) await supabase.from('vendors').update({ contact_name: toName }).eq('contact_name', fromName)
+        else setLocalItem('vendors', vendors.map(v => (v.contact_name === fromName ? { ...v, contact_name: toName } : v)))
+      }
+
+      // Köhnə profilin taleyi
+      if (supabase) {
+        try {
+          if (options.disposition === 'delete') await supabase.from('profiles').delete().eq('id', fromUserId)
+          else await supabase.from('profiles').update({ is_active: false }).eq('id', fromUserId)
+        } catch (e) { console.error('transfer profile disposition error:', e) }
+      }
+
+      await this.logActivity({
+        action: 'transfer',
+        entity_type: 'user',
+        entity_id: toUserId,
+        entity_title: `${fromName ?? fromUserId} → ${toName ?? toUserId} (${counts.risks}R/${counts.units}B/${counts.vendors}V)`,
+      })
+      return { ok: true, counts }
+    } catch (e: any) {
+      return { ok: false, counts, error: e?.message ?? 'Transfer alınmadı' }
+    }
+  },
+
+  // ─── XÜSUSİ İCAZƏLƏR (Access Exceptions) — yalnız super_admin (phase53) ─────
+  async getAccessExceptions(): Promise<AccessException[]> {
+    if (isSupabaseConfigured()) {
+      const { createClient } = await import('./supabase/client')
+      const supabase = createClient()
+      const { data, error } = await supabase.from('access_exceptions').select('*').order('created_at', { ascending: false })
+      if (!error && data) return data as AccessException[]
+    }
+    return getLocalItem<AccessException[]>('access_exceptions', [])
+  },
+
+  async createAccessException(input: Omit<AccessException, 'id' | 'org_id' | 'created_at'>): Promise<AccessException> {
+    const orgId = await getCurrentOrgId()
+    const record: AccessException = {
+      ...input,
+      id: ensureUUID(),
+      org_id: orgId,
+      created_at: new Date().toISOString(),
+    }
+    if (isSupabaseConfigured()) {
+      const { createClient } = await import('./supabase/client')
+      const supabase = createClient()
+      const payload: any = { ...record }
+      delete payload.user_name; delete payload.entity_label // görünüş sahələri, DB-də olmaya bilər
+      const { data, error } = await supabase.from('access_exceptions').insert(payload).select().single()
+      if (!error && data) {
+        await this.logActivity({ action: 'grant_access', entity_type: 'access_exception', entity_id: (data as any).id, entity_title: `${record.user_name ?? ''} · ${record.entity_type} · ${record.permission}` })
+        return { ...(data as AccessException), user_name: record.user_name, entity_label: record.entity_label }
+      }
+    }
+    const current = getLocalItem<AccessException[]>('access_exceptions', [])
+    current.unshift(record)
+    setLocalItem('access_exceptions', current)
+    await this.logActivity({ action: 'grant_access', entity_type: 'access_exception', entity_id: record.id, entity_title: `${record.user_name ?? ''} · ${record.entity_type} · ${record.permission}` })
+    return record
+  },
+
+  async revokeAccessException(id: string): Promise<boolean> {
+    if (isSupabaseConfigured()) {
+      const { createClient } = await import('./supabase/client')
+      const supabase = createClient()
+      const { error } = await supabase.from('access_exceptions').update({ revoked: true }).eq('id', id)
+      if (!error) { await this.logActivity({ action: 'revoke_access', entity_type: 'access_exception', entity_id: id }); return true }
+    }
+    const current = getLocalItem<AccessException[]>('access_exceptions', [])
+    setLocalItem('access_exceptions', current.map(e => (e.id === id ? { ...e, revoked: true } : e)))
+    await this.logActivity({ action: 'revoke_access', entity_type: 'access_exception', entity_id: id })
+    return true
   },
 
   // ─── ORG STRUCTURE (org_units) ─────────────────────────────────────────────
