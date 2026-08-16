@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { MOCK_AUDITS, MOCK_FINDINGS } from '@/lib/seed-data'
 import { db } from '@/lib/db'
+import { getCurrentOrgId } from '@/lib/db'
+import { dbExt } from '@/lib/db-extensions'
 import type { Audit, AuditFinding } from '@/types'
 import { AuditStatusBadge } from '@/components/shared/Badges'
 import { PageHeader } from '@/components/shared/PageHeader'
@@ -66,6 +68,21 @@ export function AuditList() {
       return [saved, ...prev]
     })
     setShowFindingForm(null)
+    // Audit tapıntısı avtomatik olaraq Finding Workflow-a promote edilir
+    // (15 addımlı proses: Registration → … → Closure) — workflow modulu ilə
+    // əlaqə belə qurulur.
+    try {
+      const orgId = await getCurrentOrgId()
+      await dbExt.promoteToWorkflow(
+        saved.id,
+        orgId,
+        saved.title,
+        saved.severity,
+        saved.recommendation
+      )
+    } catch {
+      // Workflow yaradıla bilməsə də tapıntı Audits-də saxlanılır
+    }
   }
 
   return (
