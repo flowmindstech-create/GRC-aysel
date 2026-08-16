@@ -9,7 +9,7 @@ import { cn } from '@/lib/utils'
 import {
   TrendingUp, TrendingDown, Minus, Bell, BellOff,
   AlertTriangle, CheckCircle2, Activity, BarChart3,
-  Shield, Gauge, RefreshCw,
+  Shield, Gauge, RefreshCw, Target,
 } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -294,7 +294,7 @@ export function MonitoringDashboard() {
   const [kpis, setKPIs]     = useState<KPIItem[]>([])
   const [alerts, setAlerts] = useState<MonitoringAlert[]>([])
   const [loading, setLoading] = useState(true)
-  const [tab, setTab]         = useState<'kri' | 'kci' | 'kpi'>('kri')
+  const [tab, setTab]         = useState<'kri' | 'kci' | 'kpi' | 'ras'>('kri')
   const [cardFilter, setCardFilter] = useState<'all' | 'red' | 'amber' | 'breach' | 'alerts'>('all')
 
   async function load() {
@@ -394,6 +394,7 @@ export function MonitoringDashboard() {
               { key: 'kri', label: 'KRI', icon: Shield },
               { key: 'kci', label: 'KCI', icon: Gauge },
               { key: 'kpi', label: 'KPI', icon: BarChart3 },
+              { key: 'ras', label: 'RAS', icon: Target },
             ] as const).map(t => (
               <button key={t.key} onClick={() => setTab(t.key)}
                 className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-semibold transition-all"
@@ -434,6 +435,51 @@ export function MonitoringDashboard() {
                     {visKpis.length === 0
                       ? <p className="text-sm col-span-2 text-center py-8" style={{ color: 'var(--muted-fg)' }}>No KPI items. Run the Phase 3 SQL to seed data.</p>
                       : visKpis.map((k, i) => <KPICard key={k.id} item={k} index={i} />)}
+                  </div>
+                </>
+              )}
+              {tab === 'ras' && (
+                <>
+                  <SectionHeader icon={Target} title="Risk Appetite Statement (RAS)" count={visKris.length} rgb="168,85,247" />
+                  <div className="card overflow-hidden">
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <thead>
+                          <tr style={{ borderBottom: '1px solid var(--border)', background: 'var(--muted)' }}>
+                            {['Risk Category', 'Indicator', 'Formula', 'Appetite', 'Frequency', 'Unit', 'Green', 'Amber', 'Red', 'Current', 'Previous'].map(h => (
+                              <th key={h} className="text-left px-3 py-3 text-[11px] font-semibold uppercase tracking-wide whitespace-nowrap" style={{ color: 'var(--muted-fg)' }}>{h}</th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {visKris.length === 0
+                            ? <tr><td colSpan={11} className="text-center py-8 text-sm" style={{ color: 'var(--muted-fg)' }}>No RAS indicators yet.</td></tr>
+                            : visKris.map((k, i) => (
+                              <tr key={k.id} className="hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors"
+                                style={{ borderBottom: '1px solid var(--border)' }}>
+                                <td className="px-3 py-3 text-xs font-semibold whitespace-nowrap" style={{ color: 'var(--foreground)' }}>
+                                  {k.risk_category ? k.risk_category.replace(/_/g, ' ') : '—'}
+                                </td>
+                                <td className="px-3 py-3 text-xs font-medium max-w-xs" style={{ color: 'var(--foreground)' }}>
+                                  <p className="font-semibold truncate">{k.name}</p>
+                                  <p className="text-[11px] mt-0.5 truncate" style={{ color: 'var(--muted-fg)' }}>{k.description}</p>
+                                </td>
+                                <td className="px-3 py-3 text-[11px] max-w-[220px]" style={{ color: 'var(--muted-fg)' }}>
+                                  <span className="line-clamp-2">{k.formula ?? '—'}</span>
+                                </td>
+                                <td className="px-3 py-3 text-xs whitespace-nowrap" style={{ color: 'var(--foreground)' }}>{k.appetite_limit ?? '—'}</td>
+                                <td className="px-3 py-3 text-[11px] capitalize whitespace-nowrap" style={{ color: 'var(--muted-fg)' }}>{k.frequency ?? '—'}</td>
+                                <td className="px-3 py-3 text-xs whitespace-nowrap" style={{ color: 'var(--muted-fg)' }}>{k.unit ?? '—'}</td>
+                                <td className="px-3 py-3 text-[11px] whitespace-nowrap" style={{ color: '#059669' }}>{k.threshold_green ?? '—'}</td>
+                                <td className="px-3 py-3 text-[11px] whitespace-nowrap" style={{ color: '#d97706' }}>{k.threshold_amber ?? '—'}</td>
+                                <td className="px-3 py-3 text-[11px] whitespace-nowrap" style={{ color: '#e11d48' }}>{k.threshold_red ?? '—'}</td>
+                                <td className="px-3 py-3 text-xs font-mono whitespace-nowrap" style={{ color: 'var(--foreground)' }}>{k.current_value ?? '—'}</td>
+                                <td className="px-3 py-3 text-xs font-mono whitespace-nowrap" style={{ color: 'var(--muted-fg)' }}>{k.previous_value ?? '—'}</td>
+                              </tr>
+                            ))}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
                 </>
               )}

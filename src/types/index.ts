@@ -845,6 +845,7 @@ export interface KRIItem {
   risk_category?: RiskCategory
   formula?: string
   data_source?: string
+  unit?: string
   frequency: MonitoringFreq
   current_value?: number
   previous_value?: number
