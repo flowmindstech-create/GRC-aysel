@@ -604,13 +604,23 @@ export const db = {
 
   // ─── ACTIVITIES ────────────────────────────────────────────────────────────
   async getActivities(): Promise<Activity[]> {
+    // HƏMİŞƏ localStorage-dan oxu — Supabase RLS insert-i bloklayanda loglar burada qalır.
+    // Supabase-dən gələnlərlə merge et (id-ə görə dedupe, created_at azalan sırala).
+    const local = getLocalItem<Activity[]>('activities', MOCK_ACTIVITIES)
     if (isSupabaseConfigured()) {
       const { createClient } = await import('./supabase/client')
       const supabase = createClient()
       const { data, error } = await supabase.from('activities').select('*').order('created_at', { ascending: false })
-      if (!error && data) return data as Activity[]
+      if (!error && data && Array.isArray(data)) {
+        const merged = new Map<string, Activity>()
+        for (const a of [...(data as Activity[]), ...local]) {
+          if (a && a.id) merged.set(a.id, a)
+        }
+        return Array.from(merged.values()).sort((a, b) =>
+          (b.created_at || '').localeCompare(a.created_at || ''))
+      }
     }
-    return getLocalItem<Activity[]>('activities', MOCK_ACTIVITIES)
+    return local
   },
 
   async addActivity(activity: Activity): Promise<Activity> {

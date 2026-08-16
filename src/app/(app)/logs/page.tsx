@@ -27,6 +27,34 @@ const ENTITY_LABELS: Record<string, string> = {
 }
 const entityLabel = (t: string) => ENTITY_LABELS[t] ?? (t || '—')
 
+// İngiliscə action-ları Azərbaycanca tərcümə edir (cədvəl + axtarış üçün)
+function actionLabel(action: string): string {
+  const a = (action || '').toLowerCase()
+  const map: [string, string][] = [
+    ['updated risk', 'Risk redaktə edildi'], ['created risk', 'Risk yaradıldı'], ['deleted risk', 'Risk silindi'],
+    ['reported incident', 'İnsident bildirildi'], ['updated incident', 'İnsident redaktə edildi'], ['deleted incident', 'İnsident silindi'],
+    ['created control', 'Nəzarət yaradıldı'], ['updated control', 'Nəzarət redaktə edildi'], ['deleted control', 'Nəzarət silindi'],
+    ['created audit', 'Audit yaradıldı'], ['updated audit', 'Audit redaktə edildi'], ['deleted audit', 'Audit silindi'],
+    ['created finding', 'Tapıntı yaradıldı'], ['updated finding', 'Tapıntı redaktə edildi'], ['deleted finding', 'Tapıntı silindi'],
+    ['added vendor', 'Vendor əlavə edildi'], ['updated vendor profile', 'Vendor redaktə edildi'], ['deleted vendor', 'Vendor silindi'],
+    ['created obligation', 'Öhdəlik yaradıldı'], ['updated obligation', 'Öhdəlik redaktə edildi'], ['deleted obligation', 'Öhdəlik silindi'],
+    ['created process', 'Proses yaradıldı'], ['updated process', 'Proses redaktə edildi'], ['deleted process', 'Proses silindi'],
+    ['created policy', 'Siyasət yaradıldı'], ['updated policy', 'Siyasət redaktə edildi'], ['deleted policy', 'Siyasət silindi'],
+    ['created document', 'Sənəd yaradıldı'], ['updated document', 'Sənəd redaktə edildi'], ['deleted document', 'Sənəd silindi'],
+    ['grant_access', 'Xüsusi icazə verildi'], ['revoke_access', 'Xüsusi icazə ləğv edildi'],
+    ['transfer', 'Vəzifə təhvil verildi'], ['role changed', 'Rol dəyişdirildi'],
+  ]
+  for (const [en, az] of map) {
+    if (a.includes(en)) return az
+  }
+  if (a.includes('open') || a.includes('view') || a.includes('bax')) return 'Açıldı'
+  if (a.includes('clos') || a.includes('solv') || a.includes('resolv')) return 'Bağlandı'
+  if (a.includes('creat') || a.includes('add') || a.includes('report')) return 'Yaradıldı'
+  if (a.includes('updat') || a.includes('edit') || a.includes('review')) return 'Redaktə edildi'
+  if (a.includes('delet') || a.includes('remov') || a.includes('sil')) return 'Silindi'
+  return action || '—'
+}
+
 const KIND_FILTERS = ['all', 'YARADILDI', 'REDAKTƏ', 'SİLİNDİ', 'AÇILDI', 'BAĞLANDI'] as const
 
 function fmtDate(iso: string) {
@@ -83,7 +111,7 @@ export default function LogsPage() {
     { key: 'created_at', label: 'Tarix', value: a => fmtDate(a.created_at) },
     { key: 'user', label: 'İstifadəçi', value: a => userName(a) },
     { key: 'kind', label: 'Status', value: a => actionKind(a.action).label },
-    { key: 'action', label: 'Əməliyyat', value: a => a.action },
+    { key: 'action', label: 'Əməliyyat', value: a => actionLabel(a.action) },
     { key: 'entity_type', label: 'Obyekt növü', value: a => entityLabel(a.entity_type) },
     { key: 'entity_title', label: 'Obyekt', value: a => a.entity_title ?? '' },
   ]
@@ -154,7 +182,7 @@ export default function LogsPage() {
                   <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold whitespace-nowrap"
                     style={{ background: `rgba(${k.rgb},0.14)`, color: `rgb(${k.rgb})` }}>{k.label}</span>
                 </td>
-                <td className="px-3 py-3 text-xs" style={{ color: 'var(--muted-fg)' }}>{a.action}</td>
+                <td className="px-3 py-3 text-xs" style={{ color: 'var(--muted-fg)' }}>{actionLabel(a.action)}</td>
                 <td className="px-3 py-3 text-xs whitespace-nowrap" style={{ color: 'var(--foreground)' }}>{entityLabel(a.entity_type)}</td>
                 <td className="px-3 py-3 text-sm max-w-[280px] truncate" style={{ color: 'var(--foreground)' }} title={a.entity_title ?? ''}>{a.entity_title ?? '—'}</td>
               </motion.tr>
