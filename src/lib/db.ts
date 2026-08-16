@@ -207,6 +207,7 @@ export const db = {
     if (isSupabaseConfigured()) {
       const { createClient } = await import('./supabase/client')
       const supabase = createClient()
+      const existed = await this._rowExists(supabase, 'risks', sanitized.id)
       const payload: any = {
         ...sanitized,
         owner_id: sanitized.owner_id || null
@@ -214,7 +215,10 @@ export const db = {
       delete payload.owner_name
       const { data, error } = await supabase.from('risks').upsert(payload).select().single()
       if (error) console.error('Supabase saveRisk error:', error)
-      if (!error && data) return data as Risk
+      if (!error && data) {
+        await this.logActivity({ action: existed ? 'updated risk' : 'created risk', entity_type: 'risk', entity_id: sanitized.id, entity_title: sanitized.title })
+        return data as Risk
+      }
     }
     const current = getLocalItem<Risk[]>('risks', MOCK_RISKS)
     const idx = current.findIndex(r => r.id === sanitized.id)
@@ -245,11 +249,12 @@ export const db = {
       const supabase = createClient()
       const { error } = await supabase.from('risks').delete().eq('id', id)
       if (error) console.error('Supabase deleteRisk error:', error)
-      if (!error) return true
+      if (!error) { await this.logActivity({ action: 'deleted risk', entity_type: 'risk', entity_id: id }); return true }
     }
     const current = getLocalItem<Risk[]>('risks', MOCK_RISKS)
     const filtered = current.filter(r => r.id !== id)
     setLocalItem('risks', filtered)
+    await this.logActivity({ action: 'deleted risk', entity_type: 'risk', entity_id: id })
     return true
   },
 
@@ -308,9 +313,13 @@ export const db = {
       for (const key of Object.keys(payload)) {
         if (!dbColumns.includes(key)) delete payload[key]
       }
+      const existed = await this._rowExists(supabase, 'incidents', sanitized.id)
       const { data, error } = await supabase.from('incidents').upsert(payload).select().single()
       if (error) console.error('Supabase saveIncident error:', error)
-      if (!error && data) return data as Incident
+      if (!error && data) {
+        await this.logActivity({ action: existed ? 'updated incident' : 'reported incident', entity_type: 'incident', entity_id: sanitized.id, entity_title: sanitized.title })
+        return data as Incident
+      }
     }
     const current = getLocalItem<Incident[]>('incidents', MOCK_INCIDENTS)
     const idx = current.findIndex(i => i.id === sanitized.id)
@@ -339,11 +348,12 @@ export const db = {
       const { createClient } = await import('./supabase/client')
       const supabase = createClient()
       const { error } = await supabase.from('incidents').delete().eq('id', id)
-      if (!error) return true
+      if (!error) { await this.logActivity({ action: 'deleted incident', entity_type: 'incident', entity_id: id }); return true }
     }
     const current = getLocalItem<Incident[]>('incidents', MOCK_INCIDENTS)
     const filtered = current.filter(i => i.id !== id)
     setLocalItem('incidents', filtered)
+    await this.logActivity({ action: 'deleted incident', entity_type: 'incident', entity_id: id })
     return true
   },
 
@@ -373,9 +383,13 @@ export const db = {
         ...sanitized,
         reviewed_by: sanitized.reviewed_by || null
       }
+      const existed = await this._rowExists(supabase, 'controls', sanitized.id)
       const { data, error } = await supabase.from('controls').upsert(payload).select().single()
       if (error) console.error('Supabase saveControl error:', error)
-      if (!error && data) return data as Control
+      if (!error && data) {
+        await this.logActivity({ action: existed ? 'updated control' : 'created control', entity_type: 'control', entity_id: sanitized.id, entity_title: `${sanitized.control_id} - ${sanitized.title}` })
+        return data as Control
+      }
     }
     const current = getLocalItem<Control[]>('controls', MOCK_CONTROLS)
     const idx = current.findIndex(c => c.id === sanitized.id)
@@ -426,9 +440,13 @@ export const db = {
         auditor_id: sanitized.auditor_id || null
       }
       delete payload.auditor_name
+      const existed = await this._rowExists(supabase, 'audits', sanitized.id)
       const { data, error } = await supabase.from('audits').upsert(payload).select().single()
       if (error) console.error('Supabase saveAudit error:', error)
-      if (!error && data) return data as Audit
+      if (!error && data) {
+        await this.logActivity({ action: existed ? 'updated audit' : 'created audit', entity_type: 'audit', entity_id: sanitized.id, entity_title: sanitized.title })
+        return data as Audit
+      }
     }
     const current = getLocalItem<Audit[]>('audits', MOCK_AUDITS)
     const idx = current.findIndex(a => a.id === sanitized.id)
@@ -457,11 +475,12 @@ export const db = {
       const { createClient } = await import('./supabase/client')
       const supabase = createClient()
       const { error } = await supabase.from('audits').delete().eq('id', id)
-      if (!error) return true
+      if (!error) { await this.logActivity({ action: 'deleted audit', entity_type: 'audit', entity_id: id }); return true }
     }
     const current = getLocalItem<Audit[]>('audits', MOCK_AUDITS)
     const filtered = current.filter(a => a.id !== id)
     setLocalItem('audits', filtered)
+    await this.logActivity({ action: 'deleted audit', entity_type: 'audit', entity_id: id })
     return true
   },
 
@@ -484,9 +503,13 @@ export const db = {
     if (isSupabaseConfigured()) {
       const { createClient } = await import('./supabase/client')
       const supabase = createClient()
+      const existed = await this._rowExists(supabase, 'audit_findings', sanitized.id)
       const { data, error } = await supabase.from('audit_findings').upsert(sanitized).select().single()
       if (error) console.error('Supabase saveFinding error:', error)
-      if (!error && data) return data as AuditFinding
+      if (!error && data) {
+        await this.logActivity({ action: existed ? 'updated finding' : 'created finding', entity_type: 'finding', entity_id: sanitized.id, entity_title: (sanitized as any).title ?? (sanitized as any).description })
+        return data as AuditFinding
+      }
     }
     const current = getLocalItem<AuditFinding[]>('findings', MOCK_FINDINGS)
     const idx = current.findIndex(f => f.id === sanitized.id)
@@ -496,6 +519,7 @@ export const db = {
       current.unshift(sanitized)
     }
     setLocalItem('findings', current)
+    await this.logActivity({ action: idx >= 0 ? 'updated finding' : 'created finding', entity_type: 'finding', entity_id: sanitized.id, entity_title: (sanitized as any).title ?? (sanitized as any).description })
     return sanitized
   },
 
@@ -504,11 +528,12 @@ export const db = {
       const { createClient } = await import('./supabase/client')
       const supabase = createClient()
       const { error } = await supabase.from('audit_findings').delete().eq('id', id)
-      if (!error) return true
+      if (!error) { await this.logActivity({ action: 'deleted finding', entity_type: 'finding', entity_id: id }); return true }
     }
     const current = getLocalItem<AuditFinding[]>('findings', MOCK_FINDINGS)
     const filtered = current.filter(f => f.id !== id)
     setLocalItem('findings', filtered)
+    await this.logActivity({ action: 'deleted finding', entity_type: 'finding', entity_id: id })
     return true
   },
 
@@ -533,9 +558,13 @@ export const db = {
     if (isSupabaseConfigured()) {
       const { createClient } = await import('./supabase/client')
       const supabase = createClient()
+      const existed = await this._rowExists(supabase, 'vendors', sanitized.id)
       const { data, error } = await supabase.from('vendors').upsert(sanitized).select().single()
       if (error) console.error('Supabase saveVendor error:', error)
-      if (!error && data) return data as Vendor
+      if (!error && data) {
+        await this.logActivity({ action: existed ? 'updated vendor profile' : 'added vendor', entity_type: 'vendor', entity_id: sanitized.id, entity_title: sanitized.name })
+        return data as Vendor
+      }
     }
     const current = getLocalItem<Vendor[]>('vendors', MOCK_VENDORS)
     const idx = current.findIndex(v => v.id === sanitized.id)
@@ -564,11 +593,12 @@ export const db = {
       const { createClient } = await import('./supabase/client')
       const supabase = createClient()
       const { error } = await supabase.from('vendors').delete().eq('id', id)
-      if (!error) return true
+      if (!error) { await this.logActivity({ action: 'deleted vendor', entity_type: 'vendor', entity_id: id }); return true }
     }
     const current = getLocalItem<Vendor[]>('vendors', MOCK_VENDORS)
     const filtered = current.filter(v => v.id !== id)
     setLocalItem('vendors', filtered)
+    await this.logActivity({ action: 'deleted vendor', entity_type: 'vendor', entity_id: id })
     return true
   },
 
@@ -609,6 +639,37 @@ export const db = {
     current.unshift(sanitized)
     setLocalItem('activities', current)
     return sanitized
+  },
+
+  // Audit-trail helper — cari profildən user_id/user_name-i avtomatik doldurur.
+  // { action, entity_type, entity_id?, entity_title? } qəbul edir; created_at = indi.
+  async logActivity(input: { action: string; entity_type: string; entity_id?: string; entity_title?: string }): Promise<void> {
+    try {
+      const profile = await getCurrentProfile()
+      await this.addActivity({
+        id: ensureUUID(),
+        org_id: profile?.org_id ?? DEFAULT_ORG_ID,
+        user_id: (profile?.id && isUUID(profile.id)) ? profile.id : undefined,
+        user_name: profile?.full_name ?? undefined,
+        action: input.action,
+        entity_type: input.entity_type,
+        entity_id: input.entity_id,
+        entity_title: input.entity_title,
+        created_at: new Date().toISOString(),
+      })
+    } catch (e) {
+      console.error('logActivity error:', e)
+    }
+  },
+
+  // Supabase-də sətir mövcuddurmu? (create vs update etiketi üçün — upsert-dən ƏVVƏL çağırılır)
+  async _rowExists(supabase: any, table: string, id: string): Promise<boolean> {
+    try {
+      const { data } = await supabase.from(table).select('id').eq('id', id).maybeSingle()
+      return !!data
+    } catch {
+      return false
+    }
   },
 
   // ─── DASHBOARD STATS ───────────────────────────────────────────────────────

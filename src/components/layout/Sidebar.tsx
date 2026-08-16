@@ -8,7 +8,7 @@ import {
   Search, Users, Settings, ChevronLeft, ChevronRight,
   Shield, GitBranch, FileSearch, Activity,
   BookOpen, Network, ScrollText, LogOut,
-  Target, Landmark, FlaskConical, Megaphone, Workflow,
+  Target, Landmark, FlaskConical, Megaphone, Workflow, History,
 } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { getCurrentProfile, db } from '@/lib/db'
@@ -52,6 +52,7 @@ const navGroups = [
       { href: '/control-mapping',       label: 'Ctrl Mapping',    icon: Network   },
       { href: '/governance/policies',   label: 'Policies',        icon: ScrollText},
       { href: '/vendors',               label: 'Vendors',         icon: Users     },
+      { href: '/logs',                  label: 'Loglar',          icon: History   },
       { href: '/settings',              label: 'Settings',        icon: Settings, minRole: 'admin' as UserRole },
     ],
   },
