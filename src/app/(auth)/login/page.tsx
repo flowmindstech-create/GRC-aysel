@@ -55,6 +55,10 @@ export default function LoginPage() {
         // Real Supabase auth — show the error (no silent mock fallback)
         setAuthError(error.message)
       } else {
+        // IMPORTANT: ensure the session cookie is flushed to the browser BEFORE
+        // navigating — otherwise proxy() sees no user and bounces back to /login
+        // (the classic "second click works" bug).
+        await supabase.auth.getSession()
         router.push('/dashboard')
       }
     }
@@ -124,12 +128,12 @@ export default function LoginPage() {
             Sign in to your GRCell account.
           </p>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
             <div>
               <label className="block text-xs font-semibold mb-1.5" style={{ color: 'var(--foreground)' }}>Email</label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'var(--muted-fg)' }} />
-                <input {...register('email')} type="email" placeholder="you@company.com"
+                <input {...register('email')} type="email" placeholder="you@company.com" autoComplete="email"
                   className={inp} style={{ background: 'var(--muted)', borderColor: 'var(--border)', color: 'var(--foreground)' }} />
               </div>
               {errors.email && <p className="text-xs text-red-500 mt-1">{errors.email.message}</p>}
@@ -142,7 +146,7 @@ export default function LoginPage() {
               </div>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'var(--muted-fg)' }} />
-                <input {...register('password')} type={showPass ? 'text' : 'password'}
+                <input {...register('password')} type={showPass ? 'text' : 'password'} autoComplete="current-password"
                   placeholder="••••••••" className={inp}
                   style={{ background: 'var(--muted)', borderColor: 'var(--border)', color: 'var(--foreground)' }} />
                 <button type="button" onClick={() => setShowPass(!showPass)}

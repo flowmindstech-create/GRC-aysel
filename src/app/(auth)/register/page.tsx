@@ -67,6 +67,8 @@ export default function RegisterPage() {
 
         if (data.session) {
           // E-poçt təsdiqi söndürülüb — birbaşa daxil ol
+          // Session cookie-nin yazılmasını gözlə (proxy /login-ə geri atmasın)
+          await supabase.auth.getSession()
           router.push('/dashboard')
         } else {
           // Təsdiq tələb olunur — istifadəçini yönləndirmə, izah göstər
