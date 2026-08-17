@@ -1124,7 +1124,7 @@ export interface AppetiteEntry {
   updated_at: string
 }
 
-export type FinancialRiskKind = 'portfolio' | 'investment'
+export type FinancialRiskKind = 'portfolio' | 'investment' | 'liquidity'
 export interface FinancialRisk {
   id: string
   org_id: string

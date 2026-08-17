@@ -7,7 +7,7 @@ import { calculateInherentLevel } from '@/lib/rcsa'
 import { inherentLevelWord } from '@/lib/rcsa-methodology'
 import type { FinancialRisk, FinancialRiskKind } from '@/types'
 import { cn } from '@/lib/utils'
-import { Plus, Search, Edit, Trash2, Landmark, X, Save, Briefcase, TrendingUp } from 'lucide-react'
+import { Plus, Search, Edit, Trash2, Landmark, X, Save, Briefcase, TrendingUp, Droplets } from 'lucide-react'
 import { toast } from 'sonner'
 
 function FormDialog({ item, kind, onClose, onSave }: { item: FinancialRisk | null; kind: FinancialRiskKind; onClose: () => void; onSave: (i: FinancialRisk) => Promise<void> }) {
@@ -101,6 +101,7 @@ export function FinancialRisksClient() {
   const tabs: { id: FinancialRiskKind; label: string; icon: typeof Briefcase }[] = [
     { id: 'portfolio', label: 'Portfolio Risks', icon: Briefcase },
     { id: 'investment', label: 'Investment Risks', icon: TrendingUp },
+    { id: 'liquidity', label: 'Liquidity Risks', icon: Droplets },
   ]
 
   return (
@@ -119,7 +120,7 @@ export function FinancialRisksClient() {
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search…" className="flex-1 text-sm bg-transparent outline-none" style={{ color: 'var(--foreground)' }} />
         </div>
         <button onClick={() => { setEditItem(null); setShowForm(true) }} className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white shadow-lg" style={{ background: 'var(--brand-500)' }}>
-          <Plus className="w-4 h-4" /> New {tab === 'portfolio' ? 'Portfolio' : 'Investment'} Risk
+          <Plus className="w-4 h-4" /> New {tab === 'portfolio' ? 'Portfolio' : tab === 'investment' ? 'Investment' : 'Liquidity'} Risk
         </button>
       </div>
       <div className="card overflow-hidden"><div className="overflow-x-auto"><table className="w-full">
