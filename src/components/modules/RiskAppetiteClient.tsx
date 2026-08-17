@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { db } from '@/lib/db'
 import { dbExt } from '@/lib/db-extensions'
+import { SEED_RAS_KRIS } from '@/lib/seed-ras'
 import type { AppetiteEntry, AppetiteEntryStatus, KRIItem } from '@/types'
 import { cn } from '@/lib/utils'
 import { Plus, Search, Edit, Trash2, Target, X, Save, Gauge } from 'lucide-react'
@@ -90,7 +91,15 @@ export function RiskAppetiteClient() {
   const [search, setSearch] = useState('')
 
   async function reload() {
-    const [a, k] = await Promise.all([db.getRiskAppetite(), dbExt.getKRIItems()])
+    let k = await dbExt.getKRIItems()
+    // RAS seed: KRI-lar boşdursa Excel RAS (04.08.2026) göstəricilərini yüklə
+    if (k.length === 0 && SEED_RAS_KRIS.length > 0) {
+      for (const item of SEED_RAS_KRIS) {
+        await dbExt.saveKRIItem(item)
+      }
+      k = await dbExt.getKRIItems()
+    }
+    const [a] = await Promise.all([db.getRiskAppetite()])
     setItems(a)
     setKris(k)
     setLoading(false)
