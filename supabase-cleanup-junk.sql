@@ -1,137 +1,124 @@
 -- ============================================================================
 -- GRCell — TEST/ZİBİL QEYDLƏRİN TƏMİZLƏNMƏSİ
--- Supabase → SQL Editor-də işə sal.
 --
--- ⚠️ QAYDA: ƏVVƏLCƏ ADDIM 1-i işə sal və siyahıya BAX.
---    Yalnız siyahıda silinməli olanları görəndən sonra ADDIM 2-ni işə sal.
---    Silinən qeyd geri qayıtmır.
+-- ⚠️ DİQQƏT: GRC sistemində "test" sözü QANUNİ risklərdə də olur —
+--    "Stress test", "Penetration test", "Control testing", "Test of design"...
+--    Ona görə burada AVTOMATIK kütləvi silmə YOXDUR.
+--    Qayda: ADDIM 1 siyahını göstərir → sən silinməli olanların id-lərini
+--    seçirsən → ADDIM 2-də yalnız onlar silinir.
 -- ============================================================================
 
 
 -- ─────────────────────────────────────────────────────────────────────────────
--- ADDIM 1 — ÖNBAXIŞ: nə silinəcək? (heç nə silinmir, sadəcə göstərir)
+-- ADDIM 1 — ÖNBAXIŞ (heç nə silinmir, sadəcə namizədləri göstərir)
+-- Hər sətirdə "sebeb" sütunu niyə şübhəli sayıldığını yazır.
 -- ─────────────────────────────────────────────────────────────────────────────
 
--- 1a. Zibil RİSKLƏR (test adları, çox qısa başlıq, boş təsvir)
-SELECT id, risk_code, title, description, owner_name, created_by_name, created_at
+SELECT id, risk_code, title, left(coalesce(description,''), 60) AS tesvir,
+       owner_name, created_at,
+       CASE
+         WHEN title ~* '^(test|tst|deneme|dene|debug|sample|yeni risk|new risk|asdf?|qwe|zxc|xxx|yyy|sdf|dsa|aaa+|bbb+|123)' THEN 'test adı'
+         WHEN length(trim(title)) < 5 THEN 'çox qısa ad'
+         WHEN length(trim(coalesce(description,''))) < 10 THEN 'boş/qısa təsvir'
+         ELSE 'digər'
+       END AS sebeb
 FROM risks
-WHERE
-     title ~* '^(test|tst|deneme|dene|debug|sample|nümunə|numune|yeni risk|new risk|risk|asdf?|qwe|zxc|xxx|yyy|sdf|dsa|aaa+|bbb+|123)'
-  OR title ~* '(test|debug)'
-  OR length(trim(title)) < 5
-  OR description IS NULL
-  OR length(trim(coalesce(description,''))) < 10
-ORDER BY created_at DESC;
-
--- 1b. Zibil İNSİDENTLƏR
-SELECT id, title, description, severity, status, created_at
-FROM incidents
-WHERE
-     title ~* '^(test|tst|deneme|dene|debug|sample|yeni|new|asdf?|qwe|zxc|xxx|aaa+|123)'
-  OR title ~* '(test|debug)'
-  OR length(trim(title)) < 5
-  OR length(trim(coalesce(description,''))) < 10
-ORDER BY created_at DESC;
-
--- 1c. Zibil KONTROLLAR
-SELECT id, control_id, title, description, created_at
-FROM controls
-WHERE title ~* '^(test|deneme|debug|sample|yeni|new|asdf?|qwe|aaa+|123)'
-   OR title ~* '(test|debug)'
+WHERE title ~* '^(test|tst|deneme|dene|debug|sample|yeni risk|new risk|asdf?|qwe|zxc|xxx|yyy|sdf|dsa|aaa+|bbb+|123)'
    OR length(trim(title)) < 5
+   OR length(trim(coalesce(description,''))) < 10
 ORDER BY created_at DESC;
 
--- 1d. Zibil AUDİTLƏR + TAPINTILAR
-SELECT id, title, scope, status, created_at FROM audits
+-- İnsidentlər
+SELECT id, title, left(coalesce(description,''), 60) AS tesvir, severity, status, created_at
+FROM incidents
+WHERE title ~* '^(test|tst|deneme|dene|debug|sample|yeni|new|asdf?|qwe|zxc|xxx|aaa+|123)'
+   OR length(trim(title)) < 5
+   OR length(trim(coalesce(description,''))) < 10
+ORDER BY created_at DESC;
+
+-- Kontrollar
+SELECT id, control_id, title, created_at FROM controls
+WHERE title ~* '^(test|deneme|debug|sample|yeni|new|asdf?|qwe|aaa+|123)' OR length(trim(title)) < 5
+ORDER BY created_at DESC;
+
+-- Auditlər və tapıntılar
+SELECT id, title, status, created_at FROM audits
 WHERE title ~* '^(test|deneme|debug|sample|yeni|new|asdf?|qwe|aaa+|123)' OR length(trim(title)) < 5;
 
-SELECT id, audit_id, title, severity, status, created_at FROM audit_findings
+SELECT id, audit_id, title, severity, created_at FROM audit_findings
 WHERE title ~* '^(test|deneme|debug|sample|yeni|new|asdf?|qwe|aaa+|123)' OR length(trim(title)) < 5;
 
--- 1e. Zibil VENDORLAR
-SELECT id, name, category, contact_email, created_at FROM vendors
+-- Vendorlar
+SELECT id, name, category, created_at FROM vendors
 WHERE name ~* '^(test|deneme|debug|sample|yeni|new|asdf?|qwe|aaa+|123)' OR length(trim(name)) < 3;
 
--- 1f. DEBUG/TEST İSTİFADƏÇİLƏRİ (profil)
-SELECT id, full_name, email, role, is_active, created_at FROM profiles
-WHERE email ~* '(debug|test|temp|noreply\+)' OR full_name ~* '(debug|test bot|test user)'
-ORDER BY created_at DESC;
+-- Debug/test istifadəçiləri
+SELECT id, full_name, email, role, is_active FROM profiles
+WHERE email ~* '(debug|test|temp)' OR full_name ~* '(debug|test bot|test user)';
 
 
 -- ─────────────────────────────────────────────────────────────────────────────
--- ADDIM 2 — SİLMƏ
--- Yuxarıdakı siyahıları YOXLADIQDAN sonra bu bloku işə sal.
--- Transaction-dadır: nəticə gözlədiyin kimi deyilsə COMMIT etmə, ROLLBACK yaz.
+-- ADDIM 2 — SİLMƏ (yalnız sənin seçdiyin id-lər)
+--
+-- Yuxarıdakı siyahılardan silinməli sətirlərin id-lərini kopyala və
+-- aşağıdakı mötərizələrə yaz. Lazım olmayan bloku olduğu kimi burax —
+-- boş siyahı heç nə silmir.
 -- ─────────────────────────────────────────────────────────────────────────────
 
 BEGIN;
 
--- Riskə bağlı əlaqələr əvvəl (foreign key qorunması üçün)
-DELETE FROM risk_control_mappings
-WHERE risk_id IN (
-  SELECT id FROM risks
-  WHERE title ~* '^(test|tst|deneme|dene|debug|sample|nümunə|numune|yeni risk|new risk|risk|asdf?|qwe|zxc|xxx|yyy|sdf|dsa|aaa+|bbb+|123)'
-     OR title ~* '(test|debug)'
-     OR length(trim(title)) < 5
-     OR length(trim(coalesce(description,''))) < 10
+-- Risklər (əvvəl bağlı map-lər, sonra riskin özü)
+DELETE FROM risk_control_mappings WHERE risk_id IN (
+  -- 'buraya-risk-id', 'daha-bir-id'
+  NULL
+);
+DELETE FROM risks WHERE id IN (
+  -- 'buraya-risk-id', 'daha-bir-id'
+  NULL
 );
 
-DELETE FROM risks
-WHERE title ~* '^(test|tst|deneme|dene|debug|sample|nümunə|numune|yeni risk|new risk|risk|asdf?|qwe|zxc|xxx|yyy|sdf|dsa|aaa+|bbb+|123)'
-   OR title ~* '(test|debug)'
-   OR length(trim(title)) < 5
-   OR length(trim(coalesce(description,''))) < 10;
+DELETE FROM incidents WHERE id IN (
+  NULL
+);
 
-DELETE FROM incidents
-WHERE title ~* '^(test|tst|deneme|dene|debug|sample|yeni|new|asdf?|qwe|zxc|xxx|aaa+|123)'
-   OR title ~* '(test|debug)'
-   OR length(trim(title)) < 5
-   OR length(trim(coalesce(description,''))) < 10;
+DELETE FROM controls WHERE id IN (
+  NULL
+);
 
-DELETE FROM controls
-WHERE title ~* '^(test|deneme|debug|sample|yeni|new|asdf?|qwe|aaa+|123)'
-   OR title ~* '(test|debug)'
-   OR length(trim(title)) < 5;
+DELETE FROM audit_findings WHERE id IN (
+  NULL
+);
 
-DELETE FROM audit_findings
-WHERE title ~* '^(test|deneme|debug|sample|yeni|new|asdf?|qwe|aaa+|123)' OR length(trim(title)) < 5;
+DELETE FROM audits WHERE id IN (
+  NULL
+);
 
-DELETE FROM audits
-WHERE title ~* '^(test|deneme|debug|sample|yeni|new|asdf?|qwe|aaa+|123)' OR length(trim(title)) < 5;
+DELETE FROM vendors WHERE id IN (
+  NULL
+);
 
-DELETE FROM vendors
-WHERE name ~* '^(test|deneme|debug|sample|yeni|new|asdf?|qwe|aaa+|123)' OR length(trim(name)) < 3;
-
--- Silinmiş obyektlərin log qeydləri (istəyə bağlı — audit izini saxlamaq istəsən bu sətri komment et)
-DELETE FROM activities
-WHERE entity_title ~* '^(test|deneme|debug|sample|asdf?|qwe|aaa+|123)'
-   OR entity_title ~* '(test|debug)';
-
--- Nəticəyə bax, sonra:
+-- Nəticəyə bax. Düzgündürsə:
 COMMIT;
--- səhv görsən bunun yerinə:  ROLLBACK;
+-- Səhv görsən bunun yerinə:  ROLLBACK;
 
 
 -- ─────────────────────────────────────────────────────────────────────────────
--- ADDIM 3 (istəyə bağlı) — DEBUG İSTİFADƏÇİSİNİN SİLİNMƏSİ
--- Profil silinməzdən əvvəl onun yaratdıqlarının başqasına keçdiyinə əmin ol
--- (Settings → İstifadəçilər → "Transfer role" ilə).
+-- ADDIM 3 (istəyə bağlı) — debug istifadəçisi
+-- Silməzdən əvvəl onun məsuliyyətlərini başqasına köçür:
+-- Settings → İstifadəçilər → "Transfer role"
 -- ─────────────────────────────────────────────────────────────────────────────
 
--- Əvvəl deaktiv et (təhlükəsiz variant):
+-- Təhlükəsiz variant — sadəcə deaktiv et:
 -- UPDATE profiles SET is_active = false WHERE email = 'grcell.debug.7f3@gmail.com';
 
--- Tam silmə (auth.users-dən də silinməlidir — Supabase → Authentication → Users):
+-- Tam silmə (auth.users-dən də sil: Supabase → Authentication → Users):
 -- DELETE FROM profiles WHERE email = 'grcell.debug.7f3@gmail.com';
 
 
--- ─────────────────────────────────────────────────────────────────────────────
--- YOXLAMA — təmizlikdən sonra qalan sayı
--- ─────────────────────────────────────────────────────────────────────────────
+-- ── Yoxlama: qalan sayı ─────────────────────────────────────────────────────
 SELECT 'risks' AS cedvel, count(*) FROM risks
 UNION ALL SELECT 'incidents', count(*) FROM incidents
 UNION ALL SELECT 'controls', count(*) FROM controls
 UNION ALL SELECT 'audits', count(*) FROM audits
 UNION ALL SELECT 'audit_findings', count(*) FROM audit_findings
-UNION ALL SELECT 'vendors', count(*) FROM vendors
-UNION ALL SELECT 'activities', count(*) FROM activities;
+UNION ALL SELECT 'vendors', count(*) FROM vendors;
