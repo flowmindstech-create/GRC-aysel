@@ -446,14 +446,14 @@ export function MonitoringDashboard() {
                       <table className="w-full">
                         <thead>
                           <tr style={{ borderBottom: '1px solid var(--border)', background: 'var(--muted)' }}>
-                            {['Risk Category', 'Indicator', 'Formula', 'Appetite', 'Frequency', 'Unit', 'Green', 'Amber', 'Red', 'Current', 'Previous'].map(h => (
+                            {['Risk Category', 'Indicator', 'Formula', 'Risk Owner', 'Data Source', 'Appetite', 'Frequency', 'Unit', 'Green', 'Amber', 'Red', 'Current', 'Previous'].map(h => (
                               <th key={h} className="text-left px-3 py-3 text-[11px] font-semibold uppercase tracking-wide whitespace-nowrap" style={{ color: 'var(--muted-fg)' }}>{h}</th>
                             ))}
                           </tr>
                         </thead>
                         <tbody>
                           {visKris.length === 0
-                            ? <tr><td colSpan={11} className="text-center py-8 text-sm" style={{ color: 'var(--muted-fg)' }}>No RAS indicators yet.</td></tr>
+                            ? <tr><td colSpan={13} className="text-center py-8 text-sm" style={{ color: 'var(--muted-fg)' }}>No RAS indicators yet.</td></tr>
                             : visKris.map((k, i) => (
                               <tr key={k.id} className="hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors"
                                 style={{ borderBottom: '1px solid var(--border)' }}>
@@ -463,9 +463,18 @@ export function MonitoringDashboard() {
                                 <td className="px-3 py-3 text-xs font-medium max-w-xs" style={{ color: 'var(--foreground)' }}>
                                   <p className="font-semibold truncate">{k.name}</p>
                                   <p className="text-[11px] mt-0.5 truncate" style={{ color: 'var(--muted-fg)' }}>{k.description}</p>
+                                  {k.note && (
+                                    <p className="text-[10px] mt-1 line-clamp-2" title={k.note} style={{ color: '#d97706' }}>Note: {k.note}</p>
+                                  )}
                                 </td>
                                 <td className="px-3 py-3 text-[11px] max-w-[220px]" style={{ color: 'var(--muted-fg)' }}>
                                   <span className="line-clamp-2">{k.formula ?? '—'}</span>
+                                </td>
+                                <td className="px-3 py-3 text-[11px] max-w-[160px]" style={{ color: 'var(--foreground)' }}>
+                                  <span className="line-clamp-2">{k.risk_owner ?? '—'}</span>
+                                </td>
+                                <td className="px-3 py-3 text-[11px] max-w-[140px]" style={{ color: 'var(--muted-fg)' }}>
+                                  <span className="line-clamp-2">{k.data_source ?? '—'}</span>
                                 </td>
                                 <td className="px-3 py-3 text-xs whitespace-nowrap" style={{ color: 'var(--foreground)' }}>{k.appetite_limit ?? '—'}</td>
                                 <td className="px-3 py-3 text-[11px] capitalize whitespace-nowrap" style={{ color: 'var(--muted-fg)' }}>{k.frequency ?? '—'}</td>

@@ -856,6 +856,10 @@ export interface KRIItem {
   current_status: MonitoringStatus
   appetite_limit?: string
   appetite_breach: boolean
+  // RAS workbook "Risk Sahibi" — the org unit/role accountable for the indicator
+  risk_owner?: string
+  // RAS workbook "Qeyd" — explanatory note recorded against the indicator
+  note?: string
   owner_id?: string
   data_owner_id?: string
   last_updated_at?: string
