@@ -67,15 +67,20 @@ WHERE email ~* '(debug|test|temp)' OR full_name ~* '(debug|test bot|test user)';
 
 BEGIN;
 
--- Risklər (əvvəl bağlı map-lər, sonra riskin özü)
-DELETE FROM risk_control_mappings WHERE risk_id IN (
-  -- 'buraya-risk-id', 'daha-bir-id'
-  NULL
-);
+-- Risklər.
+-- QEYD: risks(id)-ə bağlı bütün xarici açarlar ON DELETE CASCADE / SET NULL-dır
+-- (obligation_risk_links, process_risk_links, incidents.risk_id, ...) — ona görə
+-- riski silmək kifayətdir, bağlı sətirlər avtomatik təmizlənir.
 DELETE FROM risks WHERE id IN (
   -- 'buraya-risk-id', 'daha-bir-id'
   NULL
 );
+
+-- control_mappings riskə entity_type/entity_id ilə bağlanır (FK yoxdur),
+-- ona görə yetim sətirləri ayrıca silirik:
+DELETE FROM control_mappings
+WHERE entity_type = 'risk'
+  AND entity_id NOT IN (SELECT id FROM risks);
 
 DELETE FROM incidents WHERE id IN (
   NULL
