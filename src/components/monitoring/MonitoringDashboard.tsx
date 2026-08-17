@@ -311,6 +311,11 @@ export function MonitoringDashboard() {
         await dbExt.saveKRIItem(item)
       }
       kr = await dbExt.getKRIItems()
+      // saveKRIItem xətanı udub localStorage-a düşür, oxumaq isə Supabase-dəndir —
+      // belə halda cədvəl səssizcə boş qalırdı. İndi bunu görünən edirik.
+      if (kr.length === 0) {
+        toast.error('RAS göstəriciləri yüklənmədi — baza sxemi köhnədir (supabase-phase55-kri-schema-fix.sql işə salın).')
+      }
     }
     setKRIs(kr); setKCIs(c); setKPIs(p); setAlerts(a)
     setLoading(false)
