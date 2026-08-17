@@ -1935,14 +1935,23 @@ export const db = {
   },
 
   // ─── VƏZİFƏ TRANSFERİ (Succession) — yalnız super_admin (phase53) ───────────
-  // Köhnə şəxsin məsuliyyətlərini yeni şəxsə köçürür: risk (assigned_name),
+  // Köhnə şəxsin məsuliyyətlərini yeni şəxsə köçürür: risk (owner_id),
   // org_units (head_user_id), vendor (contact_name). Köhnə profil deaktiv/silinir.
+  //
+  // DİQQƏT: risks cədvəlində Supabase tərəfdə owner_name sütunu YOXDUR —
+  // saveRisk onu payload-dan silir (bax _sanitizeRisk). Ona görə uyğunlaşdırma
+  // owner_id (UUID) üzərindən gedir; owner_name yalnız localStorage rejimində
+  // mövcud olduğu üçün ehtiyat şərt kimi saxlanılır.
+  _matchesOwner(r: Risk, fromUserId: string, fromName?: string): boolean {
+    return r.owner_id === fromUserId || (!!fromName && r.owner_name === fromName)
+  },
+
   async previewTransfer(fromUserId: string): Promise<{ risks: number; units: number; vendors: number }> {
     const profiles = await this.getProfiles()
     const fromName = profiles.find(p => p.id === fromUserId)?.full_name
     const [risks, units, vendors] = await Promise.all([this.getRisks(), this.getOrgUnits(), this.getVendors()])
     return {
-      risks: fromName ? risks.filter(r => r.owner_name === fromName).length : 0,
+      risks: risks.filter(r => this._matchesOwner(r, fromUserId, fromName)).length,
       units: units.filter(u => u.head_user_id === fromUserId).length,
       vendors: fromName ? vendors.filter(v => v.contact_name === fromName).length : 0,
     }
@@ -1961,13 +1970,19 @@ export const db = {
       const configured = isSupabaseConfigured()
       const supabase = configured ? (await import('./supabase/client')).createClient() : null
 
-      // Risklər — məsul şəxs (owner_name / owner_id). created_by dəyişmir (maker qalır).
+      // Risklər — məsul şəxs. created_by dəyişmir (maker qalır).
+      // Supabase-də yalnız owner_id yazılır (owner_name sütunu yoxdur);
+      // localStorage rejimində hər ikisi yenilənir.
       const risks = await this.getRisks()
-      const risksToMove = fromName ? risks.filter(r => r.owner_name === fromName) : []
+      const risksToMove = risks.filter(r => this._matchesOwner(r, fromUserId, fromName))
       counts.risks = risksToMove.length
       if (counts.risks) {
-        if (supabase) await supabase.from('risks').update({ owner_name: toName, owner_id: toUserId }).eq('owner_name', fromName)
-        else setLocalItem('risks', risks.map(r => (r.owner_name === fromName ? { ...r, owner_name: toName, owner_id: toUserId } : r)))
+        if (supabase) {
+          const { error } = await supabase.from('risks').update({ owner_id: toUserId }).eq('owner_id', fromUserId)
+          if (error) throw error
+        } else {
+          setLocalItem('risks', risks.map(r => (this._matchesOwner(r, fromUserId, fromName) ? { ...r, owner_name: toName, owner_id: toUserId } : r)))
+        }
       }
 
       // Org units — head_user_id
