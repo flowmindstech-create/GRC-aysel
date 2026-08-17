@@ -12,18 +12,27 @@ import {
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { formatDistanceToNow } from 'date-fns'
-import type { DashboardStats, Activity, Risk, Incident, JiraConfig, UserProfile } from '@/types'
+import type { DashboardStats, Activity, Risk, Incident, JiraConfig, UserProfile, RiskLevel, RiskCategory } from '@/types'
 import { useState, useEffect } from 'react'
 import { db, getCurrentProfile } from '@/lib/db'
 import { atLeast } from '@/lib/permissions'
 import { visibleOpenIncidents, visibleOpenRisks } from '@/lib/visibility'
 import { toast } from 'sonner'
 
+// Server mock data gəlməyəndə boş placeholder — real data client loadData() ilə gəlir
+const initialStatsPlaceholder: DashboardStats = {
+  total_risks: 0, critical_risks: 0, open_incidents: 0, incidents_investigating: 0,
+  compliance_score: 0, controls_failing: 0, active_vendors: 0, vendors_under_review: 0,
+  risk_by_level: {} as Record<RiskLevel, number>,
+  risk_by_category: {} as Record<RiskCategory, number>,
+  monthly_risks: [], monthly_incidents: [],
+}
+
 interface DashboardClientProps {
-  stats: DashboardStats
-  activities: Activity[]
-  openRisks: Risk[]
-  openIncidents: Incident[]
+  stats?: DashboardStats
+  activities?: Activity[]
+  openRisks?: Risk[]
+  openIncidents?: Incident[]
 }
 
 export function DashboardClient({
@@ -32,10 +41,10 @@ export function DashboardClient({
   openRisks: initialOpenRisks,
   openIncidents: initialOpenIncidents,
 }: DashboardClientProps) {
-  const [stats, setStats] = useState<DashboardStats>(initialStats)
-  const [activities, setActivities] = useState<Activity[]>(initialActivities)
-  const [openRisks, setOpenRisks] = useState<Risk[]>(initialOpenRisks)
-  const [openIncidents, setOpenIncidents] = useState<Incident[]>(initialOpenIncidents)
+  const [stats, setStats] = useState<DashboardStats>(initialStats ?? initialStatsPlaceholder)
+  const [activities, setActivities] = useState<Activity[]>(initialActivities ?? [])
+  const [openRisks, setOpenRisks] = useState<Risk[]>(initialOpenRisks ?? [])
+  const [openIncidents, setOpenIncidents] = useState<Incident[]>(initialOpenIncidents ?? [])
   const [jiraConfig, setJiraConfig] = useState<JiraConfig | null>(null)
   const [syncedStats, setSyncedStats] = useState({ total: 0, done: 0 })
   const [syncing, setSyncing] = useState(false)
