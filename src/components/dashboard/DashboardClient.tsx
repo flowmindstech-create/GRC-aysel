@@ -16,6 +16,7 @@ import type { DashboardStats, Activity, Risk, Incident, JiraConfig, UserProfile 
 import { useState, useEffect } from 'react'
 import { db, getCurrentProfile } from '@/lib/db'
 import { atLeast } from '@/lib/permissions'
+import { visibleOpenIncidents, visibleOpenRisks } from '@/lib/visibility'
 import { toast } from 'sonner'
 
 interface DashboardClientProps {
@@ -49,18 +50,14 @@ export function DashboardClient({
     const p = await getCurrentProfile()
     setProfile(p)
 
-    // Risk team sees the whole org; a plain employee only their own work.
-    const manager = atLeast(p, 'auditor')
-    const mineRisks = (x: Risk) => manager
-      || x.owner_id === p?.id
-      || x.created_by === p?.id
-      || (!!p?.full_name && (x.owner_name === p.full_name || x.created_by_name === p.full_name))
-    const mineIncidents = (x: Incident) => manager || x.reported_by === p?.id || x.assigned_to === p?.id || x.resolution_assignee === p?.id
-
     setStats(s)
     setActivities(a)
-    setOpenRisks(r.filter(x => (x.status === 'open' || x.status === 'in_progress') && mineRisks(x)))
-    setOpenIncidents(i.filter(x => x.status !== 'done' && x.status !== 'closed' && mineIncidents(x)))
+    // Görünürlük qaydası lib/visibility.ts-dədir — sidebar badge-i və
+    // Incidents/Risks cədvəlləri eyni funksiyalardan keçir ki, saylar uyğun olsun.
+    // (Əvvəl burada insident qaydası natamam idi: araşdırma rəhbəri/üzvü
+    //  ada görə yoxlanmırdı və hədd auditor idi, cədvəldə isə risk_manager.)
+    setOpenRisks(visibleOpenRisks(p, r))
+    setOpenIncidents(visibleOpenIncidents(p, i))
     setJiraConfig(jira)
 
     if (jira.connected) {

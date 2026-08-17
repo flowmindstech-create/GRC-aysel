@@ -15,7 +15,7 @@ import { cn } from '@/lib/utils'
 import { ExportMenu } from '@/components/shared/ExportMenu'
 import type { ExportColumn } from '@/lib/export'
 import { usePermissions } from '@/hooks/usePermissions'
-import { atLeast } from '@/lib/permissions'
+import { canSeeIncident } from '@/lib/visibility'
 
 const INCIDENT_EXPORT_COLUMNS: ExportColumn<Incident>[] = [
   { key: 'title', label: 'Title', value: i => i.title },
@@ -62,26 +62,13 @@ export function IncidentTable() {
     load()
   }, [])
 
-  // 3-tier RBAC: managers (admin/risk_manager) see all; everyone else sees only
-  // incidents they reported or are assigned to (RLS enforces this server-side too).
-  const isManager = atLeast(profile, 'risk_manager')
-  const myId = profile?.id
-  const myName = profile?.full_name
-
-  // Confidentiality: an incident is visible only to the risk team (all), the
-  // reporter, the assigned investigation lead/member, and the resolution assignee.
+  // Görünürlük qaydası lib/visibility.ts-dədir — sidebar badge-i də eyni
+  // funksiyadan keçir ki, say ilə cədvəl bir-birinə uyğun olsun.
   const filtered = incidents.filter(i => {
     const matchS = (i.title ?? '').toLowerCase().includes(search.toLowerCase())
     const matchSev = severity === 'all' || i.severity === severity
     const matchSt = status === 'all' || i.status === status
-    const matchTier = isManager
-      || i.reported_by === myId || i.assigned_to === myId || i.resolution_assignee === myId
-      || (!!myName && (
-        i.reporter_person === myName
-        || i.investigation_lead === myName
-        || (i.investigation_members ?? []).includes(myName)
-      ))
-    return matchS && matchSev && matchSt && matchTier
+    return matchS && matchSev && matchSt && canSeeIncident(profile, i)
   })
 
   const handleDelete = async (id: string) => {

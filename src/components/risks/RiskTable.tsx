@@ -20,7 +20,7 @@ import { toast } from 'sonner'
 import { ExportMenu } from '@/components/shared/ExportMenu'
 import type { ExportColumn } from '@/lib/export'
 import { usePermissions } from '@/hooks/usePermissions'
-import { atLeast } from '@/lib/permissions'
+import { canSeeRisk } from '@/lib/visibility'
 
 const RISK_EXPORT_COLUMNS: ExportColumn<Risk>[] = [
   { key: 'risk_code', label: 'Risk ID', value: r => r.risk_code ?? r.id },
@@ -76,17 +76,9 @@ export function RiskTable() {
     load()
   }, [])
 
-  // Risk team (auditor+) hamısını görür; adi əməkdaş isə sahibi olduğu
-  // VƏ YA ÖZÜNÜN YARATDIĞI riskləri görür (created_by — phase49).
-  const isManager = atLeast(profile, 'auditor')
-  const myId = profile?.id
-  const myName = profile?.full_name
-
+  // Görünürlük qaydası lib/visibility.ts-dədir (dashboard sayğacı da onu işlədir).
   const filtered = risks.filter(r => {
-    const matchTier = isManager
-      || r.owner_id === myId
-      || r.created_by === myId
-      || (!!myName && (r.owner_name === myName || r.created_by_name === myName))
+    const matchTier = canSeeRisk(profile, r)
     const matchSearch = (r.title ?? '').toLowerCase().includes(search.toLowerCase()) ||
       (r.description ?? '').toLowerCase().includes(search.toLowerCase())
     const matchLevel = levelFilter === 'all' || r.level === levelFilter

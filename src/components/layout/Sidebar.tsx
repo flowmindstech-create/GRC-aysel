@@ -14,6 +14,7 @@ import { useState, useEffect } from 'react'
 import { getCurrentProfile, db } from '@/lib/db'
 import type { UserProfile, UserRole } from '@/types'
 import { atLeast, ROLE_LABEL } from '@/lib/permissions'
+import { visibleOpenIncidents } from '@/lib/visibility'
 
 const navGroups = [
   {
@@ -81,8 +82,14 @@ export function Sidebar({ onMobileClose }: SidebarProps) {
   const [openIncidents, setOpenIncidents] = useState(0)
 
   useEffect(() => {
-    getCurrentProfile().then(setProfile)
-    db.getIncidents().then(list => setOpenIncidents(list.filter(i => i.status !== 'done' && i.status !== 'closed').length))
+    // Badge cədvəllə eyni görünürlük qaydasından keçməlidir, yoxsa sidebar
+    // başqasının insidentini sayır və istifadəçi boş cədvəl görür (lib/visibility.ts).
+    Promise.all([getCurrentProfile(), db.getIncidents()])
+      .then(([p, list]) => {
+        setProfile(p)
+        setOpenIncidents(visibleOpenIncidents(p, list).length)
+      })
+      .catch(() => { /* say göstərilmir — naviqasiya yenə işləyir */ })
   }, [])
 
   // Risk team (auditor səviyyəsi və yuxarı: super_admin/admin/risk_manager/auditor)

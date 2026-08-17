@@ -4,7 +4,8 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import { LayoutDashboard, ShieldAlert, ScrollText, AlertTriangle, ClipboardCheck } from 'lucide-react'
-import { db } from '@/lib/db'
+import { db, getCurrentProfile } from '@/lib/db'
+import { visibleOpenIncidents } from '@/lib/visibility'
 
 const ITEMS = [
   { href: '/dashboard',           label: 'Ana',        icon: LayoutDashboard },
@@ -20,8 +21,9 @@ export function MobileNav() {
   const [openIncidents, setOpenIncidents] = useState(0)
 
   useEffect(() => {
-    db.getIncidents()
-      .then(list => setOpenIncidents(list.filter(i => i.status !== 'done' && i.status !== 'closed').length))
+    // Sidebar ilə eyni görünürlük qaydası — badge cədvəldəki sətir sayını göstərməlidir.
+    Promise.all([getCurrentProfile(), db.getIncidents()])
+      .then(([p, list]) => setOpenIncidents(visibleOpenIncidents(p, list).length))
       .catch(() => { /* say göstərilmir — nav yenə işləyir */ })
   }, [])
 
