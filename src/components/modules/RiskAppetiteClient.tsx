@@ -3,9 +3,10 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { db } from '@/lib/db'
-import type { AppetiteEntry, AppetiteEntryStatus } from '@/types'
+import { dbExt } from '@/lib/db-extensions'
+import type { AppetiteEntry, AppetiteEntryStatus, KRIItem } from '@/types'
 import { cn } from '@/lib/utils'
-import { Plus, Search, Edit, Trash2, Target, X, Save } from 'lucide-react'
+import { Plus, Search, Edit, Trash2, Target, X, Save, Gauge } from 'lucide-react'
 import { toast } from 'sonner'
 
 const STATUS: Record<AppetiteEntryStatus, { label: string; cls: string }> = {
@@ -80,16 +81,24 @@ function FormDialog({ item, onClose, onSave }: { item: AppetiteEntry | null; onC
 }
 
 export function RiskAppetiteClient() {
+  const [tab, setTab] = useState<'statements' | 'ras'>('statements')
   const [items, setItems] = useState<AppetiteEntry[]>([])
+  const [kris, setKris] = useState<KRIItem[]>([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [editItem, setEditItem] = useState<AppetiteEntry | null>(null)
   const [search, setSearch] = useState('')
 
-  async function reload() { setItems(await db.getRiskAppetite()); setLoading(false) }
+  async function reload() {
+    const [a, k] = await Promise.all([db.getRiskAppetite(), dbExt.getKRIItems()])
+    setItems(a)
+    setKris(k)
+    setLoading(false)
+  }
   useEffect(() => { reload() }, [])
 
   const filtered = items.filter(i => !search || (i.statement ?? '').toLowerCase().includes(search.toLowerCase()) || (i.category ?? '').toLowerCase().includes(search.toLowerCase()))
+  const filteredKris = kris.filter(k => !search || (k.name ?? '').toLowerCase().includes(search.toLowerCase()) || (k.risk_category ?? '').toLowerCase().includes(search.toLowerCase()))
 
   async function handleSave(i: AppetiteEntry) {
     await db.saveRiskAppetite(i); setShowForm(false); setEditItem(null); reload(); toast.success(editItem ? 'Updated' : 'Created')
@@ -98,6 +107,20 @@ export function RiskAppetiteClient() {
 
   return (
     <div className="space-y-5">
+      {/* Tab bar */}
+      <div className="flex gap-1 p-1 rounded-xl w-fit" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
+        {([
+          { key: 'statements', label: 'Statements', icon: Target },
+          { key: 'ras', label: 'RAS Indicators', icon: Gauge },
+        ] as const).map(t => (
+          <button key={t.key} onClick={() => setTab(t.key)} className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-semibold transition-all"
+            style={tab === t.key ? { background: 'var(--brand-500)', color: '#fff' } : { color: 'var(--muted-fg)' }}>
+            <t.icon className="w-3.5 h-3.5" />{t.label}
+          </button>
+        ))}
+      </div>
+
+      {tab === 'statements' && (<>
       <div className="flex flex-wrap items-center gap-3">
         <div className="flex items-center gap-2 px-3 py-2 rounded-xl flex-1 min-w-52" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
           <Search className="w-4 h-4 shrink-0" style={{ color: 'var(--muted-fg)' }} />
@@ -133,6 +156,41 @@ export function RiskAppetiteClient() {
         </tbody>
       </table></div></div>
       {showForm && <FormDialog key={editItem?.id ?? 'new'} item={editItem} onClose={() => { setShowForm(false); setEditItem(null) }} onSave={handleSave} />}
+      </>)}
+
+      {tab === 'ras' && (<>
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-2 px-3 py-2 rounded-xl flex-1 min-w-52" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
+            <Search className="w-4 h-4 shrink-0" style={{ color: 'var(--muted-fg)' }} />
+            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search indicators…" className="flex-1 text-sm bg-transparent outline-none" style={{ color: 'var(--foreground)' }} />
+          </div>
+        </div>
+        <div className="card overflow-hidden"><div className="overflow-x-auto"><table className="w-full">
+          <thead><tr style={{ borderBottom: '1px solid var(--border)', background: 'var(--muted)' }}>
+            {['Risk Category', 'Indicator', 'Formula', 'Appetite', 'Frequency', 'Unit', 'Green', 'Amber', 'Red', 'Current', 'Previous'].map(h => (
+              <th key={h} className="text-left px-3 py-3 text-[11px] font-semibold uppercase tracking-wide whitespace-nowrap" style={{ color: 'var(--muted-fg)' }}>{h}</th>))}
+          </tr></thead>
+          <tbody>
+            {loading ? (<tr><td colSpan={11} className="py-16 text-center text-sm" style={{ color: 'var(--muted-fg)' }}>Loading…</td></tr>)
+            : filteredKris.length === 0 ? (<tr><td colSpan={11} className="py-16 text-center" style={{ color: 'var(--muted-fg)' }}><div className="flex flex-col items-center gap-2"><Gauge className="w-8 h-8 opacity-30" /><p className="text-sm">No RAS indicators yet</p></div></td></tr>)
+            : filteredKris.map((k, i) => (
+              <motion.tr key={k.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.03 }} className="group hover:bg-black/[0.02] dark:hover:bg-white/[0.02]" style={{ borderBottom: '1px solid var(--border)' }}>
+                <td className="px-3 py-3.5"><span className="text-xs font-semibold capitalize whitespace-nowrap" style={{ color: 'var(--foreground)' }}>{(k.risk_category ?? '—').replace(/_/g, ' ')}</span></td>
+                <td className="px-3 py-3.5 max-w-xs"><span className="text-sm font-medium truncate block" style={{ color: 'var(--foreground)' }}>{k.name}</span></td>
+                <td className="px-3 py-3.5 max-w-[220px]"><span className="text-[11px] line-clamp-2" style={{ color: 'var(--muted-fg)' }}>{k.formula ?? '—'}</span></td>
+                <td className="px-3 py-3.5"><span className="text-xs whitespace-nowrap" style={{ color: 'var(--foreground)' }}>{k.appetite_limit ?? '—'}</span></td>
+                <td className="px-3 py-3.5"><span className="text-[11px] capitalize whitespace-nowrap" style={{ color: 'var(--muted-fg)' }}>{k.frequency ?? '—'}</span></td>
+                <td className="px-3 py-3.5"><span className="text-xs whitespace-nowrap" style={{ color: 'var(--muted-fg)' }}>{k.unit ?? '—'}</span></td>
+                <td className="px-3 py-3.5"><span className="text-[11px] whitespace-nowrap" style={{ color: '#059669' }}>{k.threshold_green ?? '—'}</span></td>
+                <td className="px-3 py-3.5"><span className="text-[11px] whitespace-nowrap" style={{ color: '#d97706' }}>{k.threshold_amber ?? '—'}</span></td>
+                <td className="px-3 py-3.5"><span className="text-[11px] whitespace-nowrap" style={{ color: '#e11d48' }}>{k.threshold_red ?? '—'}</span></td>
+                <td className="px-3 py-3.5"><span className="text-xs font-mono whitespace-nowrap" style={{ color: 'var(--foreground)' }}>{k.current_value ?? '—'}</span></td>
+                <td className="px-3 py-3.5"><span className="text-xs font-mono whitespace-nowrap" style={{ color: 'var(--muted-fg)' }}>{k.previous_value ?? '—'}</span></td>
+              </motion.tr>
+            ))}
+          </tbody>
+        </table></div></div>
+      </>)}
     </div>
   )
 }
