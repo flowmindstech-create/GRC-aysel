@@ -52,10 +52,19 @@ export function ensureUUID(id?: string): string {
 }
 
 const isSupabaseConfigured = () => {
-  if (typeof window !== 'undefined' && document.cookie.includes('mock-session=true')) {
-    return false
+  const configured = !!(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
+  // Köhnə "mock-session" cookie-si konfiqurasiyalı app-ı localStorage-a SALMAMALIDIR.
+  // Əvvəl salırdı: brauzerdə qalmış cookie bütün getXxx-ləri mock data-ya yönləndirir,
+  // getCurrentProfile() isə demo hesabı (MOCK_USERS[0]) qaytarırdı — real hesabla
+  // girsən belə ekranda demo görünürdü. Proxy (lib/supabase/middleware.ts) eyni
+  // qaydanı server tərəfdə artıq tətbiq edir; client də ona uyğunlaşdırılır.
+  if (configured) {
+    if (typeof document !== 'undefined' && document.cookie.includes('mock-session=true')) {
+      document.cookie = 'mock-session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'
+    }
+    return true
   }
-  return !!(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
+  return false
 }
 
 // Resolve the authenticated user's org_id (Supabase mode) so writes satisfy RLS.

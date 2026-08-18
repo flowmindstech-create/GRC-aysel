@@ -3,10 +3,15 @@ import { isUUID, ensureUUID } from './db'
 import { MOCK_POLICIES } from './seed-data'
 
 const isSupabase = () => {
-  if (typeof window !== 'undefined' && document.cookie.includes('mock-session=true')) {
-    return false
+  // Bax: lib/db.ts — köhnə demo cookie-si konfiqurasiyalı app-ı mock-a salmır.
+  const configured = !!(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
+  if (configured) {
+    if (typeof document !== 'undefined' && document.cookie.includes('mock-session=true')) {
+      document.cookie = 'mock-session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'
+    }
+    return true
   }
-  return !!(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
+  return false
 }
 
 function getLocal<T>(key: string, def: T): T {
