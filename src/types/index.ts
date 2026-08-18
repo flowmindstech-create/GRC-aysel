@@ -860,6 +860,10 @@ export interface KRIItem {
   risk_owner?: string
   // RAS workbook "Qeyd" — explanatory note recorded against the indicator
   note?: string
+  // RAS workbook Q1/Q2 blocks — the three monthly readings recorded per quarter.
+  // Keyed by period label so later quarters need no schema change; a null entry
+  // means the month was not reported (distinct from a reported 0).
+  period_values?: Record<string, (number | null)[]>
   owner_id?: string
   data_owner_id?: string
   last_updated_at?: string

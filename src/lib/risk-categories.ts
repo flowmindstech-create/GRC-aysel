@@ -9,6 +9,9 @@ export const RISK_CATEGORIES = [
   { value: 'information_security', label: 'Information Security' },
   { value: 'strategic', label: 'Strategic' },
   { value: 'compliance', label: 'Compliance' },
+  // RAS(RİB) CİB-RMU-FM(RIB)-01-2026 sənədində "Bazar Riski" ayrıca risk sahəsidir
+  // (Ehtiyat Adekvatlığı + Qarantiya Fondu göstəriciləri) — Maliyyə ilə birləşdirilmir.
+  { value: 'market', label: 'Market' },
 ] as const
 
 export type RiskCategory = (typeof RISK_CATEGORIES)[number]['value']

@@ -22,6 +22,26 @@ const STATUS: Record<AppetiteEntryStatus, { label: string; cls: string }> = {
 const LEVELS: AppetiteLevel[] = ['zero', 'low', 'moderate', 'elevated', 'high']
 // Kateqoriyalar tək mənbədən gəlir (lib/risk-categories.ts) — burada təkrar siyahı saxlamırıq.
 const CATEGORIES: AppetiteRiskCategory[] = [...RISK_CATEGORY_VALUES, 'overall']
+const MONTHS = ['M1', 'M2', 'M3'] as const
+const thCls = 'text-left px-3 py-3 text-[11px] font-semibold uppercase tracking-wide whitespace-nowrap'
+
+function categoryLabel(c: string | undefined): string {
+  if (!c) return '—'
+  return CATEGORY_LABELS[c as keyof typeof CATEGORY_LABELS] ?? c.replace(/_/g, ' ')
+}
+
+// Faiz göstəriciləri mənbədə iki cür saxlanılır: bəziləri 1-in hissəsi kimi
+// (0.0078 = 0.78%), likvidlik əmsalı kimi olanlar isə birbaşa faiz ədədi (494.9).
+// Boş ay (null) hesabat sayılmır və "—" göstərilir — bildirilmiş 0-dan fərqlidir.
+function formatReading(v: number | null | undefined, unit?: string): string {
+  if (v === null || v === undefined) return '—'
+  if (unit === 'Percent') {
+    const pct = Math.abs(v) <= 1 ? v * 100 : v
+    return `${Number(pct.toFixed(2))}%`
+  }
+  return String(Number(v.toFixed(2)))
+}
+
 const LEVEL_CLS: Record<AppetiteLevel, string> = {
   zero:     'bg-red-500/15 text-red-400',
   low:      'bg-emerald-500/15 text-emerald-400',
@@ -144,6 +164,9 @@ export function RiskAppetiteClient() {
 
   const filtered = items.filter(i => !search || (i.title ?? '').toLowerCase().includes(search.toLowerCase()) || (i.risk_category ?? '').toLowerCase().includes(search.toLowerCase()))
   const filteredKris = kris.filter(k => !search || (k.name ?? '').toLowerCase().includes(search.toLowerCase()) || (k.risk_category ?? '').toLowerCase().includes(search.toLowerCase()))
+  // Rüb başlıqları datadan gəlir — Q3/Q4 əlavə olunanda kod dəyişmir.
+  const periods = Array.from(new Set(kris.flatMap(k => Object.keys(k.period_values ?? {})))).sort()
+  const leafCols = 7 + 3 + periods.length * 3 + 3
 
   async function handleSave(i: AppetiteEntry) {
     await db.saveRiskAppetite(i); setShowForm(false); setEditItem(null); reload(); toast.success(editItem ? 'Updated' : 'Created')
@@ -221,26 +244,52 @@ export function RiskAppetiteClient() {
           </div>
         </div>
         <div className="card overflow-hidden"><div className="overflow-x-auto"><table className="w-full">
-          <thead><tr style={{ borderBottom: '1px solid var(--border)', background: 'var(--muted)' }}>
-            {['Risk Category', 'Indicator', 'Formula', 'Appetite', 'Frequency', 'Unit', 'Green', 'Amber', 'Red', 'Current', 'Previous'].map(h => (
-              <th key={h} className="text-left px-3 py-3 text-[11px] font-semibold uppercase tracking-wide whitespace-nowrap" style={{ color: 'var(--muted-fg)' }}>{h}</th>))}
-          </tr></thead>
+          {/* Sütunlar RAS(RİB) sənədindəki ardıcıllıqla: hədlər (RİB) və rübləri
+              ayrı-ayrı aylıq xanalarla göstərən iki sıralı başlıq. */}
+          <thead style={{ background: 'var(--muted)' }}>
+            <tr style={{ borderBottom: '1px solid var(--border)' }}>
+              {['Risk Area', 'Indicator', 'Formula', 'Appetite', 'Appetite Statement', 'Frequency', 'Unit'].map(h => (
+                <th key={h} rowSpan={2} className={thCls} style={{ color: 'var(--muted-fg)' }}>{h}</th>))}
+              <th colSpan={3} className={`${thCls} text-center`} style={{ color: 'var(--muted-fg)' }}>RİB</th>
+              {periods.map(p => (
+                <th key={p} colSpan={3} className={`${thCls} text-center`} style={{ color: 'var(--muted-fg)' }}>{p}</th>))}
+              {['Risk Owner', 'Data Source', 'Note'].map(h => (
+                <th key={h} rowSpan={2} className={thCls} style={{ color: 'var(--muted-fg)' }}>{h}</th>))}
+            </tr>
+            <tr style={{ borderBottom: '1px solid var(--border)' }}>
+              <th className={thCls} style={{ color: '#059669' }}>Green</th>
+              <th className={thCls} style={{ color: '#d97706' }}>Amber</th>
+              <th className={thCls} style={{ color: '#e11d48' }}>Red</th>
+              {periods.flatMap(p => MONTHS.map(mo => (
+                <th key={`${p}-${mo}`} className={thCls} style={{ color: 'var(--muted-fg)' }}>{mo}</th>)))}
+            </tr>
+          </thead>
           <tbody>
-            {loading ? (<tr><td colSpan={11} className="py-16 text-center text-sm" style={{ color: 'var(--muted-fg)' }}>Loading…</td></tr>)
-            : filteredKris.length === 0 ? (<tr><td colSpan={11} className="py-16 text-center" style={{ color: 'var(--muted-fg)' }}><div className="flex flex-col items-center gap-2"><Gauge className="w-8 h-8 opacity-30" /><p className="text-sm">No RAS indicators yet</p></div></td></tr>)
+            {loading ? (<tr><td colSpan={leafCols} className="py-16 text-center text-sm" style={{ color: 'var(--muted-fg)' }}>Loading…</td></tr>)
+            : filteredKris.length === 0 ? (<tr><td colSpan={leafCols} className="py-16 text-center" style={{ color: 'var(--muted-fg)' }}><div className="flex flex-col items-center gap-2"><Gauge className="w-8 h-8 opacity-30" /><p className="text-sm">No RAS indicators yet</p></div></td></tr>)
             : filteredKris.map((k, i) => (
-              <motion.tr key={k.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.03 }} className="group hover:bg-black/[0.02] dark:hover:bg-white/[0.02]" style={{ borderBottom: '1px solid var(--border)' }}>
-                <td className="px-3 py-3.5"><span className="text-xs font-semibold capitalize whitespace-nowrap" style={{ color: 'var(--foreground)' }}>{(k.risk_category ?? '—').replace(/_/g, ' ')}</span></td>
-                <td className="px-3 py-3.5 max-w-xs"><span className="text-sm font-medium truncate block" style={{ color: 'var(--foreground)' }}>{k.name}</span></td>
-                <td className="px-3 py-3.5 max-w-[220px]"><span className="text-[11px] line-clamp-2" style={{ color: 'var(--muted-fg)' }}>{k.formula ?? '—'}</span></td>
+              <motion.tr key={k.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.03 }} className="group hover:bg-black/[0.02] dark:hover:bg-white/[0.02] align-top" style={{ borderBottom: '1px solid var(--border)' }}>
+                <td className="px-3 py-3.5"><span className="text-xs font-semibold whitespace-nowrap" style={{ color: 'var(--foreground)' }}>{categoryLabel(k.risk_category)}</span></td>
+                <td className="px-3 py-3.5 min-w-[170px] max-w-[230px]"><span className="text-sm font-medium block" style={{ color: 'var(--foreground)' }}>{k.name}</span>
+                  <span className="text-[10px] font-mono" style={{ color: 'var(--brand-500)' }}>{k.kri_id}</span></td>
+                <td className="px-3 py-3.5 max-w-[240px]"><span className="text-[11px] line-clamp-3" style={{ color: 'var(--muted-fg)' }}>{k.formula ?? '—'}</span></td>
                 <td className="px-3 py-3.5"><span className="text-xs whitespace-nowrap" style={{ color: 'var(--foreground)' }}>{k.appetite_limit ?? '—'}</span></td>
+                <td className="px-3 py-3.5 max-w-[300px]"><span className="text-[11px] line-clamp-4" style={{ color: 'var(--muted-fg)' }}>{k.description ?? '—'}</span></td>
                 <td className="px-3 py-3.5"><span className="text-[11px] capitalize whitespace-nowrap" style={{ color: 'var(--muted-fg)' }}>{k.frequency ?? '—'}</span></td>
                 <td className="px-3 py-3.5"><span className="text-xs whitespace-nowrap" style={{ color: 'var(--muted-fg)' }}>{k.unit ?? '—'}</span></td>
                 <td className="px-3 py-3.5"><span className="text-[11px] whitespace-nowrap" style={{ color: '#059669' }}>{k.threshold_green ?? '—'}</span></td>
                 <td className="px-3 py-3.5"><span className="text-[11px] whitespace-nowrap" style={{ color: '#d97706' }}>{k.threshold_amber ?? '—'}</span></td>
                 <td className="px-3 py-3.5"><span className="text-[11px] whitespace-nowrap" style={{ color: '#e11d48' }}>{k.threshold_red ?? '—'}</span></td>
-                <td className="px-3 py-3.5"><span className="text-xs font-mono whitespace-nowrap" style={{ color: 'var(--foreground)' }}>{k.current_value ?? '—'}</span></td>
-                <td className="px-3 py-3.5"><span className="text-xs font-mono whitespace-nowrap" style={{ color: 'var(--muted-fg)' }}>{k.previous_value ?? '—'}</span></td>
+                {periods.flatMap(p => {
+                  const vals = k.period_values?.[p] ?? [null, null, null]
+                  return [0, 1, 2].map(idx => (
+                    <td key={`${p}-${idx}`} className="px-3 py-3.5">
+                      <span className="text-xs font-mono whitespace-nowrap" style={{ color: 'var(--foreground)' }}>{formatReading(vals[idx], k.unit)}</span>
+                    </td>))
+                })}
+                <td className="px-3 py-3.5 max-w-[170px]"><span className="text-[11px]" style={{ color: 'var(--muted-fg)' }}>{k.risk_owner ?? '—'}</span></td>
+                <td className="px-3 py-3.5 max-w-[150px]"><span className="text-[11px]" style={{ color: 'var(--muted-fg)' }}>{k.data_source ?? '—'}</span></td>
+                <td className="px-3 py-3.5 max-w-[240px]"><span className="text-[11px] line-clamp-4" style={{ color: 'var(--muted-fg)' }}>{k.note ?? '—'}</span></td>
               </motion.tr>
             ))}
           </tbody>

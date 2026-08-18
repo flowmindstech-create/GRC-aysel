@@ -44,6 +44,14 @@ export const INCIDENT_TAXONOMY: Record<RiskCategory, string[]> = {
     'AML / sanctions',
     OTHER,
   ],
+  // Bazar Riski — RAS(RİB) sənədində ayrıca risk sahəsi (Qarantiya Fondu göstəriciləri)
+  market: [
+    'Reserve adequacy breach',
+    'Guarantee Fund coverage shortfall',
+    'Liquidity shortfall in the Fund',
+    'Adverse market movement',
+    OTHER,
+  ],
 }
 
 // Sub-categories for a given risk category (empty array if none selected).
