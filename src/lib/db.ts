@@ -72,8 +72,14 @@ export async function getCurrentProfile(): Promise<UserProfile | null> {
     const { data: { user } } = await supabase.auth.getUser()
     if (user) {
       const { data, error } = await supabase.from('profiles').select('*').eq('id', user.id).single()
+      // PGRST116 = sətir yoxdur (normal, yeni istifadəçi). Hər hansı BAŞQA xəta
+      // (RLS bloku, icazə, şəbəkə) o deməkdir ki, sətir ola bilər, sadəcə oxuya
+      // bilmirik — belə halda AŞAĞIDA yeni profil QURMAQ OLMAZ: əks halda app
+      // auth metadata-dan saxta 'employee' profil düzəldir və bazadakı əsl
+      // super_admin sətri gizli qalır (hesabların "qarışması" məhz budur).
       if (error && error.code !== 'PGRST116') {
         console.error('Supabase getCurrentProfile select error:', error)
+        return null
       }
       
       const fullName = (user.user_metadata?.full_name as string) || user.email?.split('@')[0] || 'User'
