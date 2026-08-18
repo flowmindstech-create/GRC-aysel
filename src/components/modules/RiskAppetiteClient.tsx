@@ -5,36 +5,56 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { db } from '@/lib/db'
 import { dbExt } from '@/lib/db-extensions'
 import { SEED_RAS_KRIS } from '@/lib/seed-ras'
-import type { AppetiteEntry, AppetiteEntryStatus, KRIItem } from '@/types'
+import type { AppetiteEntry, AppetiteEntryStatus, AppetiteLevel, AppetiteRiskCategory, KRIItem } from '@/types'
+import { RISK_CATEGORY_VALUES, CATEGORY_LABELS } from '@/lib/risk-categories'
 import { cn } from '@/lib/utils'
 import { Plus, Search, Edit, Trash2, Target, X, Save, Gauge } from 'lucide-react'
 import { toast } from 'sonner'
 
+// Dəyərlər bazadakı CHECK məhdudiyyətləri ilə eynidir (phase1-foundation).
 const STATUS: Record<AppetiteEntryStatus, { label: string; cls: string }> = {
-  within:   { label: 'Within Appetite', cls: 'bg-emerald-500/15 text-emerald-400' },
-  warning:  { label: 'Warning',         cls: 'bg-amber-500/15 text-amber-400' },
-  breached: { label: 'Breached',        cls: 'bg-red-500/15 text-red-400' },
+  draft:            { label: 'Draft',            cls: 'bg-slate-500/15 text-slate-400' },
+  pending_approval: { label: 'Pending Approval', cls: 'bg-amber-500/15 text-amber-400' },
+  approved:         { label: 'Approved',         cls: 'bg-sky-500/15 text-sky-400' },
+  active:           { label: 'Active',           cls: 'bg-emerald-500/15 text-emerald-400' },
+  superseded:       { label: 'Superseded',       cls: 'bg-neutral-500/15 text-neutral-400' },
+}
+const LEVELS: AppetiteLevel[] = ['zero', 'low', 'moderate', 'elevated', 'high']
+// Kateqoriyalar tək mənbədən gəlir (lib/risk-categories.ts) — burada təkrar siyahı saxlamırıq.
+const CATEGORIES: AppetiteRiskCategory[] = [...RISK_CATEGORY_VALUES, 'overall']
+const LEVEL_CLS: Record<AppetiteLevel, string> = {
+  zero:     'bg-red-500/15 text-red-400',
+  low:      'bg-emerald-500/15 text-emerald-400',
+  moderate: 'bg-sky-500/15 text-sky-400',
+  elevated: 'bg-amber-500/15 text-amber-400',
+  high:     'bg-orange-500/15 text-orange-400',
 }
 
 function FormDialog({ item, onClose, onSave }: { item: AppetiteEntry | null; onClose: () => void; onSave: (i: AppetiteEntry) => Promise<void> }) {
   const isEdit = !!item
-  const [category, setCategory] = useState(item?.category ?? '')
-  const [statement, setStatement] = useState(item?.statement ?? '')
-  const [tolerance, setTolerance] = useState(item?.tolerance ?? '')
-  const [measure, setMeasure] = useState(item?.measure ?? '')
-  const [status, setStatus] = useState<AppetiteEntryStatus>(item?.status ?? 'within')
-  const [owner, setOwner] = useState(item?.owner ?? '')
+  const [category, setCategory] = useState<AppetiteRiskCategory>(item?.risk_category ?? 'operational')
+  const [title, setTitle] = useState(item?.title ?? '')
+  const [description, setDescription] = useState(item?.description ?? '')
+  const [appetite, setAppetite] = useState<AppetiteLevel>(item?.appetite_level ?? 'low')
+  const [tolerance, setTolerance] = useState<AppetiteLevel>(item?.tolerance_level ?? 'low')
+  const [green, setGreen] = useState(item?.threshold_green ?? '')
+  const [amber, setAmber] = useState(item?.threshold_amber ?? '')
+  const [red, setRed] = useState(item?.threshold_red ?? '')
+  const [status, setStatus] = useState<AppetiteEntryStatus>(item?.status ?? 'draft')
+  const [unit, setUnit] = useState(item?.business_unit ?? '')
   const [loading, setLoading] = useState(false)
   const inputStyle = { background: 'var(--muted)', border: '1px solid var(--border)', color: 'var(--foreground)' }
   const fieldCls = 'w-full px-3 py-2 rounded-lg text-sm outline-none'
   const labelCls = 'block text-xs font-medium mb-1.5'
 
   async function submit(e: React.FormEvent) {
-    e.preventDefault(); if (!statement.trim()) return; setLoading(true)
+    e.preventDefault(); if (!title.trim()) return; setLoading(true)
     const now = new Date().toISOString()
-    await onSave({ id: item?.id ?? crypto.randomUUID(), org_id: item?.org_id ?? '', code: item?.code ?? '',
-      category: category.trim() || undefined, statement: statement.trim(), tolerance: tolerance.trim() || undefined,
-      measure: measure.trim() || undefined, status, owner: owner.trim() || undefined,
+    await onSave({ id: item?.id ?? crypto.randomUUID(), org_id: item?.org_id ?? '',
+      title: title.trim(), risk_category: category, description: description.trim() || undefined,
+      appetite_level: appetite, tolerance_level: tolerance,
+      threshold_green: green.trim() || undefined, threshold_amber: amber.trim() || undefined,
+      threshold_red: red.trim() || undefined, status, business_unit: unit.trim() || undefined,
       created_at: item?.created_at ?? now, updated_at: now })
     setLoading(false)
   }
@@ -50,27 +70,43 @@ function FormDialog({ item, onClose, onSave }: { item: AppetiteEntry | null; onC
             <button onClick={onClose} className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-black/[0.04]"><X className="w-4 h-4" style={{ color: 'var(--muted-fg)' }} /></button>
           </div>
           <form onSubmit={submit} className="px-6 py-5 space-y-4">
-            <div><label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Category</label>
-              <input value={category} onChange={e => setCategory(e.target.value)} placeholder="e.g. Credit / Operational / Cyber" className={fieldCls} style={inputStyle} /></div>
-            <div><label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Statement <span className="text-red-400">*</span></label>
-              <textarea value={statement} onChange={e => setStatement(e.target.value)} rows={2} placeholder="The organisation accepts…" className={`${fieldCls} resize-none`} style={inputStyle} required /></div>
+            <div><label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Title <span className="text-red-400">*</span></label>
+              <input value={title} onChange={e => setTitle(e.target.value)} placeholder="e.g. Operational Risk Appetite" className={fieldCls} style={inputStyle} required /></div>
+            <div><label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Risk Category</label>
+              <select value={category} onChange={e => setCategory(e.target.value as AppetiteRiskCategory)} className={`${fieldCls} cursor-pointer capitalize`} style={inputStyle}>
+                {CATEGORIES.map(c => <option key={c} value={c}>{c === 'overall' ? 'Overall' : CATEGORY_LABELS[c]}</option>)}
+              </select></div>
+            <div><label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Description</label>
+              <textarea value={description} onChange={e => setDescription(e.target.value)} rows={2} placeholder="The organisation accepts…" className={`${fieldCls} resize-none`} style={inputStyle} /></div>
             <div className="grid grid-cols-2 gap-3">
-              <div><label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Tolerance / Limit</label>
-                <input value={tolerance} onChange={e => setTolerance(e.target.value)} placeholder="e.g. ≤ 2% of capital" className={fieldCls} style={inputStyle} /></div>
-              <div><label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Measure (KRI)</label>
-                <input value={measure} onChange={e => setMeasure(e.target.value)} placeholder="metric" className={fieldCls} style={inputStyle} /></div>
+              <div><label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Appetite Level</label>
+                <select value={appetite} onChange={e => setAppetite(e.target.value as AppetiteLevel)} className={`${fieldCls} cursor-pointer capitalize`} style={inputStyle}>
+                  {LEVELS.map(l => <option key={l} value={l}>{l}</option>)}
+                </select></div>
+              <div><label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Tolerance Level</label>
+                <select value={tolerance} onChange={e => setTolerance(e.target.value as AppetiteLevel)} className={`${fieldCls} cursor-pointer capitalize`} style={inputStyle}>
+                  {LEVELS.map(l => <option key={l} value={l}>{l}</option>)}
+                </select></div>
+            </div>
+            <div className="grid grid-cols-3 gap-3">
+              <div><label className={labelCls} style={{ color: '#059669' }}>Green</label>
+                <input value={green} onChange={e => setGreen(e.target.value)} placeholder="&lt;4%" className={fieldCls} style={inputStyle} /></div>
+              <div><label className={labelCls} style={{ color: '#d97706' }}>Amber</label>
+                <input value={amber} onChange={e => setAmber(e.target.value)} placeholder="4%-5%" className={fieldCls} style={inputStyle} /></div>
+              <div><label className={labelCls} style={{ color: '#e11d48' }}>Red</label>
+                <input value={red} onChange={e => setRed(e.target.value)} placeholder="&gt;5%" className={fieldCls} style={inputStyle} /></div>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div><label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Status</label>
                 <select value={status} onChange={e => setStatus(e.target.value as AppetiteEntryStatus)} className={`${fieldCls} cursor-pointer`} style={inputStyle}>
                   {(Object.keys(STATUS) as AppetiteEntryStatus[]).map(s => <option key={s} value={s}>{STATUS[s].label}</option>)}
                 </select></div>
-              <div><label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Owner</label>
-                <input value={owner} onChange={e => setOwner(e.target.value)} className={fieldCls} style={inputStyle} /></div>
+              <div><label className={labelCls} style={{ color: 'var(--muted-fg)' }}>Business Unit</label>
+                <input value={unit} onChange={e => setUnit(e.target.value)} className={fieldCls} style={inputStyle} /></div>
             </div>
             <div className="flex items-center justify-between pt-2">
               <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg text-sm hover:bg-black/[0.04]" style={{ color: 'var(--muted-fg)' }}>Cancel</button>
-              <button type="submit" disabled={!statement.trim() || loading} className="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold text-white disabled:opacity-50" style={{ background: 'var(--brand-500)' }}>
+              <button type="submit" disabled={!title.trim() || loading} className="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold text-white disabled:opacity-50" style={{ background: 'var(--brand-500)' }}>
                 {loading ? 'Saving…' : (<>{isEdit ? <Save className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}{isEdit ? 'Update' : 'Create'}</>)}
               </button>
             </div>
@@ -106,7 +142,7 @@ export function RiskAppetiteClient() {
   }
   useEffect(() => { reload() }, [])
 
-  const filtered = items.filter(i => !search || (i.statement ?? '').toLowerCase().includes(search.toLowerCase()) || (i.category ?? '').toLowerCase().includes(search.toLowerCase()))
+  const filtered = items.filter(i => !search || (i.title ?? '').toLowerCase().includes(search.toLowerCase()) || (i.risk_category ?? '').toLowerCase().includes(search.toLowerCase()))
   const filteredKris = kris.filter(k => !search || (k.name ?? '').toLowerCase().includes(search.toLowerCase()) || (k.risk_category ?? '').toLowerCase().includes(search.toLowerCase()))
 
   async function handleSave(i: AppetiteEntry) {
@@ -141,21 +177,31 @@ export function RiskAppetiteClient() {
       </div>
       <div className="card overflow-hidden"><div className="overflow-x-auto"><table className="w-full">
         <thead><tr style={{ borderBottom: '1px solid var(--border)', background: 'var(--muted)' }}>
-          {['Code', 'Category', 'Statement', 'Tolerance', 'Measure', 'Status', 'Owner', ''].map(h => (
+          {['Category', 'Statement', 'Appetite', 'Tolerance', 'Green', 'Amber', 'Red', 'Status', 'Business Unit', ''].map(h => (
             <th key={h} className="text-left px-3 py-3 text-[11px] font-semibold uppercase tracking-wide whitespace-nowrap" style={{ color: 'var(--muted-fg)' }}>{h}</th>))}
         </tr></thead>
         <tbody>
-          {loading ? (<tr><td colSpan={8} className="py-16 text-center text-sm" style={{ color: 'var(--muted-fg)' }}>Loading…</td></tr>)
-          : filtered.length === 0 ? (<tr><td colSpan={8} className="py-16 text-center" style={{ color: 'var(--muted-fg)' }}><div className="flex flex-col items-center gap-2"><Target className="w-8 h-8 opacity-30" /><p className="text-sm">No statements yet</p></div></td></tr>)
+          {loading ? (<tr><td colSpan={10} className="py-16 text-center text-sm" style={{ color: 'var(--muted-fg)' }}>Loading…</td></tr>)
+          : filtered.length === 0 ? (<tr><td colSpan={10} className="py-16 text-center" style={{ color: 'var(--muted-fg)' }}><div className="flex flex-col items-center gap-2"><Target className="w-8 h-8 opacity-30" /><p className="text-sm">No statements yet</p></div></td></tr>)
           : filtered.map((it, i) => (
             <motion.tr key={it.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.03 }} className="group hover:bg-black/[0.02] dark:hover:bg-white/[0.02]" style={{ borderBottom: '1px solid var(--border)' }}>
-              <td className="px-3 py-3.5"><span className="text-[11px] font-mono font-bold" style={{ color: 'var(--brand-500)' }}>{it.code}</span></td>
-              <td className="px-3 py-3.5"><span className="text-xs" style={{ color: it.category ? 'var(--foreground)' : 'var(--muted-fg)' }}>{it.category || '—'}</span></td>
-              <td className="px-3 py-3.5 max-w-xs"><span className="text-sm truncate block" style={{ color: 'var(--foreground)' }}>{it.statement}</span></td>
-              <td className="px-3 py-3.5"><span className="text-xs" style={{ color: it.tolerance ? 'var(--foreground)' : 'var(--muted-fg)' }}>{it.tolerance || '—'}</span></td>
-              <td className="px-3 py-3.5"><span className="text-xs" style={{ color: it.measure ? 'var(--foreground)' : 'var(--muted-fg)' }}>{it.measure || '—'}</span></td>
+              <td className="px-3 py-3.5"><span className="text-xs font-semibold whitespace-nowrap" style={{ color: 'var(--foreground)' }}>
+                {it.risk_category === 'overall' ? 'Overall' : (CATEGORY_LABELS[it.risk_category] ?? it.risk_category ?? '—')}</span></td>
+              <td className="px-3 py-3.5 max-w-xs">
+                <span className="text-sm font-medium truncate block" style={{ color: 'var(--foreground)' }}>{it.title}</span>
+                {it.description && <span className="text-[11px] line-clamp-1" style={{ color: 'var(--muted-fg)' }}>{it.description}</span>}
+              </td>
+              <td className="px-3 py-3.5">{it.appetite_level
+                ? <span className={cn('inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold capitalize', LEVEL_CLS[it.appetite_level])}>{it.appetite_level}</span>
+                : <span className="text-xs" style={{ color: 'var(--muted-fg)' }}>—</span>}</td>
+              <td className="px-3 py-3.5">{it.tolerance_level
+                ? <span className={cn('inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold capitalize', LEVEL_CLS[it.tolerance_level])}>{it.tolerance_level}</span>
+                : <span className="text-xs" style={{ color: 'var(--muted-fg)' }}>—</span>}</td>
+              <td className="px-3 py-3.5"><span className="text-[11px] whitespace-nowrap" style={{ color: '#059669' }}>{it.threshold_green ?? '—'}</span></td>
+              <td className="px-3 py-3.5"><span className="text-[11px] whitespace-nowrap" style={{ color: '#d97706' }}>{it.threshold_amber ?? '—'}</span></td>
+              <td className="px-3 py-3.5"><span className="text-[11px] whitespace-nowrap" style={{ color: '#e11d48' }}>{it.threshold_red ?? '—'}</span></td>
               <td className="px-3 py-3.5">{(() => { const s = STATUS[it.status] ?? { label: String(it.status ?? '—'), cls: 'bg-zinc-500/15 text-zinc-400' }; return <span className={cn('inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold', s.cls)}>{s.label}</span> })()}</td>
-              <td className="px-3 py-3.5"><span className="text-xs" style={{ color: it.owner ? 'var(--foreground)' : 'var(--muted-fg)' }}>{it.owner || '—'}</span></td>
+              <td className="px-3 py-3.5"><span className="text-xs" style={{ color: it.business_unit ? 'var(--foreground)' : 'var(--muted-fg)' }}>{it.business_unit || '—'}</span></td>
               <td className="px-3 py-3.5"><div className="flex items-center gap-1">
                 <button onClick={() => { setEditItem(it); setShowForm(true) }} className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-black/10 dark:hover:bg-white/10"><Edit className="w-3.5 h-3.5" style={{ color: 'var(--muted-fg)' }} /></button>
                 <button onClick={() => handleDelete(it.id)} className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-red-500/10"><Trash2 className="w-3.5 h-3.5 text-red-400" /></button>

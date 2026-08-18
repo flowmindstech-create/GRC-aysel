@@ -5,7 +5,7 @@ import type { KRIItem } from '@/types'
 
 export const SEED_RAS_KRIS: KRIItem[] = [
   {
-    id: 'ras-001-0000-0000-0000-0000000000001',
+    id: 'a5000000-0000-4000-8000-000000000001',
     org_id: '00000000-0000-0000-0000-000000000001',
     kri_id: 'RAS-001',
     name: 'Negative and image-damaging information published in the media',
@@ -29,7 +29,7 @@ export const SEED_RAS_KRIS: KRIItem[] = [
     updated_at: new Date().toISOString(),
   },
   {
-    id: 'ras-002-0000-0000-0000-0000000000002',
+    id: 'a5000000-0000-4000-8000-000000000002',
     org_id: '00000000-0000-0000-0000-000000000001',
     kri_id: 'RAS-002',
     name: 'Recovery Time (RTO)',
@@ -53,7 +53,7 @@ export const SEED_RAS_KRIS: KRIItem[] = [
     updated_at: new Date().toISOString(),
   },
   {
-    id: 'ras-003-0000-0000-0000-0000000000003',
+    id: 'a5000000-0000-4000-8000-000000000003',
     org_id: '00000000-0000-0000-0000-000000000001',
     kri_id: 'RAS-003',
     name: 'Recovery Point Objective (RPO)',
@@ -77,7 +77,7 @@ export const SEED_RAS_KRIS: KRIItem[] = [
     updated_at: new Date().toISOString(),
   },
   {
-    id: 'ras-004-0000-0000-0000-0000000000004',
+    id: 'a5000000-0000-4000-8000-000000000004',
     org_id: '00000000-0000-0000-0000-000000000001',
     kri_id: 'RAS-004',
     name: 'Transfer of sensitive data (DLP)',
@@ -101,7 +101,7 @@ export const SEED_RAS_KRIS: KRIItem[] = [
     updated_at: new Date().toISOString(),
   },
   {
-    id: 'ras-005-0000-0000-0000-0000000000005',
+    id: 'a5000000-0000-4000-8000-000000000005',
     org_id: '00000000-0000-0000-0000-000000000001',
     kri_id: 'RAS-005',
     name: 'Interruptions in sector-affecting business processes',
@@ -125,7 +125,7 @@ export const SEED_RAS_KRIS: KRIItem[] = [
     updated_at: new Date().toISOString(),
   },
   {
-    id: 'ras-006-0000-0000-0000-0000000000006',
+    id: 'a5000000-0000-4000-8000-000000000006',
     org_id: '00000000-0000-0000-0000-000000000001',
     kri_id: 'RAS-006',
     name: 'Remediation of risks and events arising during the period and of audit findings',
@@ -149,7 +149,7 @@ export const SEED_RAS_KRIS: KRIItem[] = [
     updated_at: new Date().toISOString(),
   },
   {
-    id: 'ras-007-0000-0000-0000-0000000000007',
+    id: 'a5000000-0000-4000-8000-000000000007',
     org_id: '00000000-0000-0000-0000-000000000001',
     kri_id: 'RAS-007',
     name: 'Unanswered Calls',
@@ -174,7 +174,7 @@ export const SEED_RAS_KRIS: KRIItem[] = [
     updated_at: new Date().toISOString(),
   },
   {
-    id: 'ras-008-0000-0000-0000-0000000000008',
+    id: 'a5000000-0000-4000-8000-000000000008',
     org_id: '00000000-0000-0000-0000-000000000001',
     kri_id: 'RAS-008',
     name: 'Employee turnover',
@@ -198,7 +198,7 @@ export const SEED_RAS_KRIS: KRIItem[] = [
     updated_at: new Date().toISOString(),
   },
   {
-    id: 'ras-009-0000-0000-0000-0000000000009',
+    id: 'a5000000-0000-4000-8000-000000000009',
     org_id: '00000000-0000-0000-0000-000000000001',
     kri_id: 'RAS-009',
     name: 'Critical employee turnover',
@@ -222,7 +222,7 @@ export const SEED_RAS_KRIS: KRIItem[] = [
     updated_at: new Date().toISOString(),
   },
   {
-    id: 'ras-010-0000-0000-0000-0000000000010',
+    id: 'a5000000-0000-4000-8000-000000000010',
     org_id: '00000000-0000-0000-0000-000000000001',
     kri_id: 'RAS-010',
     name: 'Operational losses',
@@ -246,7 +246,7 @@ export const SEED_RAS_KRIS: KRIItem[] = [
     updated_at: new Date().toISOString(),
   },
   {
-    id: 'ras-011-0000-0000-0000-0000000000011',
+    id: 'a5000000-0000-4000-8000-000000000011',
     org_id: '00000000-0000-0000-0000-000000000001',
     kri_id: 'RAS-011',
     name: 'Open currency position',
@@ -271,7 +271,7 @@ export const SEED_RAS_KRIS: KRIItem[] = [
     updated_at: new Date().toISOString(),
   },
   {
-    id: 'ras-012-0000-0000-0000-0000000000012',
+    id: 'a5000000-0000-4000-8000-000000000012',
     org_id: '00000000-0000-0000-0000-000000000001',
     kri_id: 'RAS-012',
     name: 'Liquidity shortfall',
@@ -295,7 +295,7 @@ export const SEED_RAS_KRIS: KRIItem[] = [
     updated_at: new Date().toISOString(),
   },
   {
-    id: 'ras-013-0000-0000-0000-0000000000013',
+    id: 'a5000000-0000-4000-8000-000000000013',
     org_id: '00000000-0000-0000-0000-000000000001',
     kri_id: 'RAS-013',
     name: 'Expected credit loss on the investment portfolio',
@@ -319,7 +319,7 @@ export const SEED_RAS_KRIS: KRIItem[] = [
     updated_at: new Date().toISOString(),
   },
   {
-    id: 'ras-014-0000-0000-0000-0000000000014',
+    id: 'a5000000-0000-4000-8000-000000000014',
     org_id: '00000000-0000-0000-0000-000000000001',
     kri_id: 'RAS-014',
     name: 'Reserve Adequacy',
@@ -343,7 +343,7 @@ export const SEED_RAS_KRIS: KRIItem[] = [
     updated_at: new Date().toISOString(),
   },
   {
-    id: 'ras-015-0000-0000-0000-0000000000015',
+    id: 'a5000000-0000-4000-8000-000000000015',
     org_id: '00000000-0000-0000-0000-000000000001',
     kri_id: 'RAS-015',
     name: 'Stress resilience of the Guarantee Fund',
@@ -367,7 +367,7 @@ export const SEED_RAS_KRIS: KRIItem[] = [
     updated_at: new Date().toISOString(),
   },
   {
-    id: 'ras-016-0000-0000-0000-0000000000016',
+    id: 'a5000000-0000-4000-8000-000000000016',
     org_id: '00000000-0000-0000-0000-000000000001',
     kri_id: 'RAS-016',
     name: 'Liquidity of the Guarantee Fund',
@@ -391,7 +391,7 @@ export const SEED_RAS_KRIS: KRIItem[] = [
     updated_at: new Date().toISOString(),
   },
   {
-    id: 'ras-017-0000-0000-0000-0000000000017',
+    id: 'a5000000-0000-4000-8000-000000000017',
     org_id: '00000000-0000-0000-0000-000000000001',
     kri_id: 'RAS-017',
     name: 'Guarantee Fund coverage of the IBNR reserve',
@@ -415,7 +415,7 @@ export const SEED_RAS_KRIS: KRIItem[] = [
     updated_at: new Date().toISOString(),
   },
   {
-    id: 'ras-018-0000-0000-0000-0000000000018',
+    id: 'a5000000-0000-4000-8000-000000000018',
     org_id: '00000000-0000-0000-0000-000000000001',
     kri_id: 'RAS-018',
     name: 'Market coverage of the Guarantee Fund',

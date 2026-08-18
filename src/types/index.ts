@@ -1109,20 +1109,19 @@ export interface PartyObligationLink {
 }
 
 // ─── New dashboard modules (phase 30) ────────────────────────────────────────
-export type AppetiteEntryStatus = 'within' | 'warning' | 'breached'
-export interface AppetiteEntry {
-  id: string
-  org_id: string
-  code: string // RA-YYYY-NNN
-  category?: string
-  statement: string
-  tolerance?: string
-  measure?: string
-  status: AppetiteEntryStatus
-  owner?: string
-  created_at: string
-  updated_at: string
-}
+// Bazadakı `risk_appetite_statements` sxemi ilə birebir uyğundur
+// (supabase-phase1-foundation.sql). Əvvəlki tip mock formasına görə yazılmışdı —
+// `statement/category/tolerance/measure/owner` adlı sütunlar bazada heç vaxt
+// olmayıb, ona görə cədvəl dolu olsa da bütün xanalar boş görünürdü, yeni sətir
+// yazmaq isə status CHECK-ini pozduğu üçün düşürdü.
+// RiskAppetiteStatement (yuxarıda) bazadakı sxemi artıq dəqiq təsvir edir —
+// ikinci dəfə yazmırıq. UI yeni sətir qurarkən `linked_kri_ids` və `version`
+// göndərmir (bazada DEFAULT var), ona görə yalnız o ikisi opsional edilir.
+export type AppetiteEntryStatus = AppetiteStatus
+export type AppetiteRiskCategory = AppetiteCategory
+export type AppetiteEntry =
+  Omit<RiskAppetiteStatement, 'linked_kri_ids' | 'version'>
+  & { linked_kri_ids?: string[]; version?: number }
 
 export type FinancialRiskKind = 'portfolio' | 'investment' | 'liquidity'
 export interface FinancialRisk {

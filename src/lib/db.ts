@@ -120,8 +120,12 @@ export async function getCurrentProfile(): Promise<UserProfile | null> {
           .single()
         
         if (insertErr) {
+          // Yaddaşdakı saxta profili QAYTARMIRIQ. Əvvəl belə idi və `profiles`
+          // cədvəlində `email` sütunu olmadığı üçün INSERT hər dəfə 42703 ilə
+          // düşürdü — app isə heç nə deməyib uydurma 'employee' profillə
+          // işləyirdi: boş dashboard, minimal sidebar, hər yenilənmədə eyni.
           console.error('Supabase getCurrentProfile auto-create profile error:', insertErr)
-          return newProfile
+          return null
         }
         return insertedData as UserProfile
       }
@@ -1701,7 +1705,13 @@ export const db = {
     if (isSupabaseConfigured()) {
       const { createClient } = await import('./supabase/client')
       const { data, error } = await createClient().from('risk_appetite_statements').select('*').order('created_at', { ascending: false })
-      if (!error && data) return data as AppetiteEntry[]
+      if (error) console.error('Supabase getRiskAppetite error:', error)
+      // Köhnə sətirlərdə kateqoriya hələ 'cybersecurity'/'legal'/'hr' ola bilər —
+      // normalizeCategory onları cari taksonomiyaya gətirir ('overall' toxunulmaz).
+      if (!error && data) return (data as AppetiteEntry[]).map(s => ({
+        ...s,
+        risk_category: s.risk_category === 'overall' ? 'overall' : normalizeCategory(s.risk_category),
+      }))
       // Supabase konfiqurasiyalıdırsa xəta halında mock/localStorage-a DÜŞMÜRÜK —
       // köhnə demo data real data kimi görünməsin (boş nəticə + yuxarıdakı console.error).
       return []
@@ -1712,10 +1722,13 @@ export const db = {
     const orgId = await getCurrentOrgId()
     const now = new Date().toISOString()
     const s: AppetiteEntry = { ...item, id: ensureUUID(item.id), org_id: orgId, updated_at: now }
-    if (!s.code) { const all = await this.getRiskAppetite(); s.code = `RA-${new Date().getFullYear()}-${String(all.length + 1).padStart(3, '0')}` }
     if (isSupabaseConfigured()) {
       const { createClient } = await import('./supabase/client')
-      const cols = ['id','org_id','code','category','statement','tolerance','measure','status','owner','created_at','updated_at']
+      // Sütun siyahısı bazadakı risk_appetite_statements ilə eynidir; kənar açar
+      // göndərmək PostgREST-də bütün upsert-i düşürür.
+      const cols = ['id','org_id','title','risk_category','description','appetite_level','tolerance_level',
+        'threshold_green','threshold_amber','threshold_red','max_residual_score','status',
+        'effective_date','review_date','business_unit','version','created_at','updated_at']
       const payload: any = { ...s }; for (const k of Object.keys(payload)) if (!cols.includes(k)) delete payload[k]
       const { data, error } = await createClient().from('risk_appetite_statements').upsert(payload).select().single()
       if (error) console.error('saveRiskAppetite error:', error)
