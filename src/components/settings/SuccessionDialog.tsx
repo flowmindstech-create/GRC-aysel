@@ -16,7 +16,6 @@ interface Props {
 // Vəzifə transferi (Succession) — köhnə şəxsin məsuliyyətlərini yeniyə köçürür.
 export function SuccessionDialog({ fromUser, users, onClose, onDone }: Props) {
   const [toUserId, setToUserId] = useState('')
-  const [disposition, setDisposition] = useState<'deactivate' | 'delete'>('deactivate')
   const [preview, setPreview] = useState<{ risks: number; units: number; vendors: number } | null>(null)
   const [submitting, setSubmitting] = useState(false)
 
@@ -29,7 +28,7 @@ export function SuccessionDialog({ fromUser, users, onClose, onDone }: Props) {
   async function submit() {
     if (!toUserId) { toast.error('Select new responsible person'); return }
     setSubmitting(true)
-    const res = await db.transferOwnership(fromUser.id, toUserId, { disposition })
+    const res = await db.transferOwnership(fromUser.id, toUserId)
     setSubmitting(false)
     if (!res.ok) { toast.error(res.error ?? 'Transfer failed'); return }
     const c = res.counts
@@ -81,24 +80,19 @@ export function SuccessionDialog({ fromUser, users, onClose, onDone }: Props) {
               </div>
             )}
             {total === 0 && preview !== null && (
-              <p className="text-[11px] mt-2" style={{ color: 'var(--muted-fg)' }}>No objects are directly linked to this person — only the profile disposition will apply.</p>
+              <p className="text-[11px] mt-2" style={{ color: 'var(--muted-fg)' }}>No objects are directly linked to this person — only the profile deactivation will apply.</p>
             )}
           </div>
 
-          {/* Köhnə profilin taleyi */}
-          <div>
-            <label className="block text-xs font-semibold mb-2" style={{ color: 'var(--foreground)' }}>Old profile</label>
-            <div className="flex gap-2">
-              {([['deactivate', 'Deactivate'], ['delete', 'Delete']] as const).map(([val, label]) => (
-                <button key={val} type="button" onClick={() => setDisposition(val)}
-                  className="flex-1 px-3 py-2 rounded-lg text-xs font-semibold border transition-colors"
-                  style={disposition === val
-                    ? { background: val === 'delete' ? 'rgba(225,29,72,0.12)' : 'var(--brand-50)', borderColor: val === 'delete' ? 'rgba(225,29,72,0.4)' : 'var(--brand-500)', color: val === 'delete' ? '#f43f5e' : 'var(--brand-500)' }
-                    : { borderColor: 'var(--border)', color: 'var(--muted-fg)' }}>
-                  {label}
-                </button>
-              ))}
-            </div>
+          {/* Köhnə profilin taleyi — həmişə deaktivləşdirmə */}
+          <div className="rounded-xl p-3" style={{ background: 'var(--muted)', border: '1px solid var(--border)' }}>
+            <p className="text-xs font-semibold mb-1" style={{ color: 'var(--foreground)' }}>Old profile will be deactivated</p>
+            <p className="text-[11px] leading-relaxed" style={{ color: 'var(--muted-fg)' }}>
+              They lose access immediately but stay in the audit trail. The profile row is kept on
+              purpose: deleting it while the login still exists would recreate the account as a
+              plain employee under the name it was registered with. To remove the person entirely,
+              delete their user in Supabase → Authentication.
+            </p>
           </div>
         </div>
 

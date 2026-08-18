@@ -2002,8 +2002,17 @@ export const db = {
     if (isSupabaseConfigured()) {
       const { createClient } = await import('./supabase/client')
       const supabase = createClient()
+      // Adı loga yazmaq üçün dəyişiklikdən ƏVVƏL oxuyuruq
+      const { data: before } = await supabase.from('profiles').select('full_name, role').eq('id', id).single()
       const { error } = await supabase.from('profiles').update({ role }).eq('id', id)
       if (error) return { ok: false, error: error.message }
+      // Səlahiyyət dəyişikliyi audit izində görünməlidir (GRC tələbi)
+      await this.logActivity({
+        action: 'role changed',
+        entity_type: 'user',
+        entity_id: id,
+        entity_title: `${before?.full_name ?? id}: ${before?.role ?? '?'} → ${role}`,
+      })
       return { ok: true }
     }
     return { ok: true }
@@ -2035,7 +2044,6 @@ export const db = {
   async transferOwnership(
     fromUserId: string,
     toUserId: string,
-    options: { disposition: 'deactivate' | 'delete' },
   ): Promise<{ ok: boolean; counts: { risks: number; units: number; vendors: number }; error?: string }> {
     const counts = { risks: 0, units: 0, vendors: 0 }
     try {
@@ -2078,11 +2086,18 @@ export const db = {
         else setLocalItem('vendors', vendors.map(v => (v.contact_name === fromName ? { ...v, contact_name: toName } : v)))
       }
 
-      // Köhnə profilin taleyi
+      // Köhnə profilin taleyi — HƏMİŞƏ deaktivləşdirmə.
+      //
+      // Əvvəl 'delete' seçimi profiles sətrini silirdi, amma auth istifadəçisi
+      // qalırdı. Həmin e-poçtla növbəti girişdə getCurrentProfile() sətri tapmayıb
+      // YENİDƏN yaradırdı: ad auth metadata-dan (hesabı qeydiyyatdan keçirən şəxs),
+      // rol isə 'employee'. Yəni super_admin sakitcə başqa adlı adi user-ə çevrilirdi.
+      // Profili tam silmək yalnız auth istifadəçisi ilə birlikdə mümkündür
+      // (Supabase → Authentication → Users), ona görə burada sətri saxlayırıq.
       if (supabase) {
         try {
-          if (options.disposition === 'delete') await supabase.from('profiles').delete().eq('id', fromUserId)
-          else await supabase.from('profiles').update({ is_active: false }).eq('id', fromUserId)
+          const { error: dispErr } = await supabase.from('profiles').update({ is_active: false }).eq('id', fromUserId)
+          if (dispErr) throw dispErr
         } catch (e) { console.error('transfer profile disposition error:', e) }
       }
 
