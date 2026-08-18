@@ -164,6 +164,9 @@ export const db = {
       const { data, error } = await supabase.from('risks').select('*').order('created_at', { ascending: false })
       if (error) console.error('Supabase getRisks error:', error)
       if (!error && data) return (data as Risk[]).map(r => ({ ...r, category: normalizeCategory(r.category), status: normalizeStatus(r.status) }))
+      // Supabase konfiqurasiyalıdırsa xəta halında mock/localStorage-a DÜŞMÜRÜK —
+      // köhnə demo data real data kimi görünməsin (boş nəticə + yuxarıdakı console.error).
+      return []
     }
     const risks = getLocalItem<Risk[]>('risks', MOCK_RISKS)
     let modified = false
@@ -265,6 +268,9 @@ export const db = {
       const supabase = createClient()
       const { data, error } = await supabase.from('incidents').select('*').order('created_at', { ascending: false })
       if (!error && data) return data as Incident[]
+      // Supabase konfiqurasiyalıdırsa xəta halında mock/localStorage-a DÜŞMÜRÜK —
+      // köhnə demo data real data kimi görünməsin (boş nəticə + yuxarıdakı console.error).
+      return []
     }
     return getLocalItem<Incident[]>('incidents', MOCK_INCIDENTS)
   },
@@ -364,6 +370,9 @@ export const db = {
       const supabase = createClient()
       const { data, error } = await supabase.from('controls').select('*').order('control_id', { ascending: true })
       if (!error && data) return data as Control[]
+      // Supabase konfiqurasiyalıdırsa xəta halında mock/localStorage-a DÜŞMÜRÜK —
+      // köhnə demo data real data kimi görünməsin (boş nəticə + yuxarıdakı console.error).
+      return []
     }
     return getLocalItem<Control[]>('controls', MOCK_CONTROLS)
   },
@@ -420,6 +429,9 @@ export const db = {
       const supabase = createClient()
       const { data, error } = await supabase.from('audits').select('*').order('created_at', { ascending: false })
       if (!error && data) return data as Audit[]
+      // Supabase konfiqurasiyalıdırsa xəta halında mock/localStorage-a DÜŞMÜRÜK —
+      // köhnə demo data real data kimi görünməsin (boş nəticə + yuxarıdakı console.error).
+      return []
     }
     return getLocalItem<Audit[]>('audits', MOCK_AUDITS)
   },
@@ -490,6 +502,9 @@ export const db = {
       const supabase = createClient()
       const { data, error } = await supabase.from('audit_findings').select('*').order('created_at', { ascending: false })
       if (!error && data) return data as AuditFinding[]
+      // Supabase konfiqurasiyalıdırsa xəta halında mock/localStorage-a DÜŞMÜRÜK —
+      // köhnə demo data real data kimi görünməsin (boş nəticə + yuxarıdakı console.error).
+      return []
     }
     return getLocalItem<AuditFinding[]>('findings', MOCK_FINDINGS)
   },
@@ -544,6 +559,9 @@ export const db = {
       const supabase = createClient()
       const { data, error } = await supabase.from('vendors').select('*').order('created_at', { ascending: false })
       if (!error && data) return data as Vendor[]
+      // Supabase konfiqurasiyalıdırsa xəta halında mock/localStorage-a DÜŞMÜRÜK —
+      // köhnə demo data real data kimi görünməsin (boş nəticə + yuxarıdakı console.error).
+      return []
     }
     return getLocalItem<Vendor[]>('vendors', MOCK_VENDORS)
   },
@@ -606,8 +624,11 @@ export const db = {
   async getActivities(): Promise<Activity[]> {
     // HƏMİŞƏ localStorage-dan oxu — Supabase RLS insert-i bloklayanda loglar burada qalır.
     // Supabase-dən gələnlərlə merge et (id-ə görə dedupe, created_at azalan sırala).
-    const local = getLocalItem<Activity[]>('activities', MOCK_ACTIVITIES)
-    if (isSupabaseConfigured()) {
+    // Fərq: Supabase rejimində seed MOCK_ACTIVITIES istifadə olunmur — yalnız
+    // bu brauzerdə həqiqətən yazılmış loglar qalır (demo data real kimi görünməsin).
+    const configured = isSupabaseConfigured()
+    const local = getLocalItem<Activity[]>('activities', configured ? [] : MOCK_ACTIVITIES)
+    if (configured) {
       const { createClient } = await import('./supabase/client')
       const supabase = createClient()
       const { data, error } = await supabase.from('activities').select('*').order('created_at', { ascending: false })
@@ -968,6 +989,9 @@ export const db = {
         .select('*')
         .order('created_at', { ascending: false })
       if (!error && data) return data as ComplianceObligation[]
+      // Supabase konfiqurasiyalıdırsa xəta halında mock/localStorage-a DÜŞMÜRÜK —
+      // köhnə demo data real data kimi görünməsin (boş nəticə + yuxarıdakı console.error).
+      return []
     }
     return getLocalItem<ComplianceObligation[]>('compliance_obligations', [])
   },
@@ -1107,6 +1131,9 @@ export const db = {
         .eq('obligation_id', obligationId)
         .order('created_at', { ascending: false })
       if (!error && data) return data as ObligationAuditLog[]
+      // Supabase konfiqurasiyalıdırsa xəta halında mock/localStorage-a DÜŞMÜRÜK —
+      // köhnə demo data real data kimi görünməsin (boş nəticə + yuxarıdakı console.error).
+      return []
     }
     return getLocalItem<ObligationAuditLog[]>('obligation_audit_logs', [])
       .filter(l => l.obligation_id === obligationId)
@@ -1120,6 +1147,9 @@ export const db = {
       const supabase = createClient()
       const { data, error } = await supabase.from('obligation_risk_links').select('risk_id').eq('obligation_id', obligationId)
       if (!error && data) return (data as any[]).map(r => r.risk_id)
+      // Supabase konfiqurasiyalıdırsa xəta halında mock/localStorage-a DÜŞMÜRÜK —
+      // köhnə demo data real data kimi görünməsin (boş nəticə + yuxarıdakı console.error).
+      return []
     }
     return getLocalItem<any[]>('obligation_risk_links', []).filter(l => l.obligation_id === obligationId).map(l => l.risk_id)
   },
@@ -1149,6 +1179,9 @@ export const db = {
       const supabase = createClient()
       const { data, error } = await supabase.from('obligation_control_links').select('control_id').eq('obligation_id', obligationId)
       if (!error && data) return (data as any[]).map(r => r.control_id)
+      // Supabase konfiqurasiyalıdırsa xəta halında mock/localStorage-a DÜŞMÜRÜK —
+      // köhnə demo data real data kimi görünməsin (boş nəticə + yuxarıdakı console.error).
+      return []
     }
     return getLocalItem<any[]>('obligation_control_links', []).filter(l => l.obligation_id === obligationId).map(l => l.control_id)
   },
@@ -1178,6 +1211,9 @@ export const db = {
       const supabase = createClient()
       const { data, error } = await supabase.from('obligation_policy_links').select('policy_id').eq('obligation_id', obligationId)
       if (!error && data) return (data as any[]).map(r => r.policy_id)
+      // Supabase konfiqurasiyalıdırsa xəta halında mock/localStorage-a DÜŞMÜRÜK —
+      // köhnə demo data real data kimi görünməsin (boş nəticə + yuxarıdakı console.error).
+      return []
     }
     return getLocalItem<any[]>('obligation_policy_links', []).filter(l => l.obligation_id === obligationId).map(l => l.policy_id)
   },
@@ -1255,6 +1291,9 @@ export const db = {
       const { data, error } = await supabase.from('regulatory_changes').select('*').order('created_at', { ascending: false })
       if (error) console.error('Supabase getRegulatoryChanges error:', error)
       if (!error && data) return data as RegulatoryChange[]
+      // Supabase konfiqurasiyalıdırsa xəta halında mock/localStorage-a DÜŞMÜRÜK —
+      // köhnə demo data real data kimi görünməsin (boş nəticə + yuxarıdakı console.error).
+      return []
     }
     return getLocalItem<RegulatoryChange[]>('regulatory_changes', MOCK_REGULATORY_CHANGES)
   },
@@ -1310,6 +1349,9 @@ export const db = {
       const supabase = createClient()
       const { data, error } = await supabase.from('regulatory_change_links').select('obligation_id').eq('change_id', changeId)
       if (!error && data) return (data as any[]).map(r => r.obligation_id)
+      // Supabase konfiqurasiyalıdırsa xəta halında mock/localStorage-a DÜŞMÜRÜK —
+      // köhnə demo data real data kimi görünməsin (boş nəticə + yuxarıdakı console.error).
+      return []
     }
     return getLocalItem<any[]>('regulatory_change_links', []).filter(l => l.change_id === changeId).map(l => l.obligation_id)
   },
@@ -1354,6 +1396,9 @@ export const db = {
       const { data, error } = await supabase.from('interested_parties').select('*').order('created_at', { ascending: false })
       if (error) console.error('Supabase getInterestedParties error:', error)
       if (!error && data) return data as InterestedParty[]
+      // Supabase konfiqurasiyalıdırsa xəta halında mock/localStorage-a DÜŞMÜRÜK —
+      // köhnə demo data real data kimi görünməsin (boş nəticə + yuxarıdakı console.error).
+      return []
     }
     return getLocalItem<InterestedParty[]>('interested_parties', [])
   },
@@ -1409,6 +1454,9 @@ export const db = {
       const supabase = createClient()
       const { data, error } = await supabase.from('party_obligation_links').select('obligation_id').eq('party_id', partyId)
       if (!error && data) return (data as any[]).map(r => r.obligation_id)
+      // Supabase konfiqurasiyalıdırsa xəta halında mock/localStorage-a DÜŞMÜRÜK —
+      // köhnə demo data real data kimi görünməsin (boş nəticə + yuxarıdakı console.error).
+      return []
     }
     return getLocalItem<any[]>('party_obligation_links', []).filter(l => l.party_id === partyId).map(l => l.obligation_id)
   },
@@ -1453,6 +1501,9 @@ export const db = {
       const { data, error } = await supabase.from('processes').select('*').order('created_at', { ascending: false })
       if (error) console.error('Supabase getProcesses error:', error)
       if (!error && data) return data as Process[]
+      // Supabase konfiqurasiyalıdırsa xəta halında mock/localStorage-a DÜŞMÜRÜK —
+      // köhnə demo data real data kimi görünməsin (boş nəticə + yuxarıdakı console.error).
+      return []
     }
     return getLocalItem<Process[]>('processes', [])
   },
@@ -1504,6 +1555,9 @@ export const db = {
       const supabase = createClient()
       const { data, error } = await supabase.from('process_control_links').select('control_id').eq('process_id', processId)
       if (!error && data) return (data as any[]).map(r => r.control_id)
+      // Supabase konfiqurasiyalıdırsa xəta halında mock/localStorage-a DÜŞMÜRÜK —
+      // köhnə demo data real data kimi görünməsin (boş nəticə + yuxarıdakı console.error).
+      return []
     }
     return getLocalItem<any[]>('process_control_links', []).filter(l => l.process_id === processId).map(l => l.control_id)
   },
@@ -1633,6 +1687,9 @@ export const db = {
       const { createClient } = await import('./supabase/client')
       const { data, error } = await createClient().from('risk_appetite_statements').select('*').order('created_at', { ascending: false })
       if (!error && data) return data as AppetiteEntry[]
+      // Supabase konfiqurasiyalıdırsa xəta halında mock/localStorage-a DÜŞMÜRÜK —
+      // köhnə demo data real data kimi görünməsin (boş nəticə + yuxarıdakı console.error).
+      return []
     }
     return getLocalItem<AppetiteEntry[]>('risk_appetite_statements', [])
   },
@@ -1664,6 +1721,9 @@ export const db = {
       const { createClient } = await import('./supabase/client')
       const { data, error } = await createClient().from('financial_risks').select('*').order('created_at', { ascending: false })
       if (!error && data) return data as FinancialRisk[]
+      // Supabase konfiqurasiyalıdırsa xəta halında mock/localStorage-a DÜŞMÜRÜK —
+      // köhnə demo data real data kimi görünməsin (boş nəticə + yuxarıdakı console.error).
+      return []
     }
     return getLocalItem<FinancialRisk[]>('financial_risks', [])
   },
@@ -1695,6 +1755,9 @@ export const db = {
       const { createClient } = await import('./supabase/client')
       const { data, error } = await createClient().from('stress_tests').select('*').order('created_at', { ascending: false })
       if (!error && data) return data as StressTest[]
+      // Supabase konfiqurasiyalıdırsa xəta halında mock/localStorage-a DÜŞMÜRÜK —
+      // köhnə demo data real data kimi görünməsin (boş nəticə + yuxarıdakı console.error).
+      return []
     }
     return getLocalItem<StressTest[]>('stress_tests', [])
   },
@@ -1726,6 +1789,9 @@ export const db = {
       const { createClient } = await import('./supabase/client')
       const { data, error } = await createClient().from('whistleblow_reports').select('*').order('created_at', { ascending: false })
       if (!error && data) return data as WhistleblowReport[]
+      // Supabase konfiqurasiyalıdırsa xəta halında mock/localStorage-a DÜŞMÜRÜK —
+      // köhnə demo data real data kimi görünməsin (boş nəticə + yuxarıdakı console.error).
+      return []
     }
     return getLocalItem<WhistleblowReport[]>('whistleblow_reports', [])
   },
@@ -1757,6 +1823,9 @@ export const db = {
       const { createClient } = await import('./supabase/client')
       const { data, error } = await createClient().from('compliance_assessments').select('*').order('created_at', { ascending: false })
       if (!error && data) return data as ComplianceAssessment[]
+      // Supabase konfiqurasiyalıdırsa xəta halında mock/localStorage-a DÜŞMÜRÜK —
+      // köhnə demo data real data kimi görünməsin (boş nəticə + yuxarıdakı console.error).
+      return []
     }
     return getLocalItem<ComplianceAssessment[]>('compliance_assessments', [])
   },
@@ -1845,6 +1914,9 @@ export const db = {
       const supabase = createClient()
       const { data, error } = await supabase.from('grc_intake_items').select('*').order('created_at', { ascending: false })
       if (!error && data) return data as GRCIntakeItem[]
+      // Supabase konfiqurasiyalıdırsa xəta halında mock/localStorage-a DÜŞMÜRÜK —
+      // köhnə demo data real data kimi görünməsin (boş nəticə + yuxarıdakı console.error).
+      return []
     }
     return getLocalItem<GRCIntakeItem[]>('grc_intake_items', [])
   },
@@ -1917,6 +1989,9 @@ export const db = {
       const supabase = createClient()
       const { data, error } = await supabase.from('profiles').select('*').order('full_name')
       if (!error && data) return data as UserProfile[]
+      // Supabase konfiqurasiyalıdırsa xəta halında mock/localStorage-a DÜŞMÜRÜK —
+      // köhnə demo data real data kimi görünməsin (boş nəticə + yuxarıdakı console.error).
+      return []
     }
     return MOCK_USERS
   },
@@ -2030,6 +2105,9 @@ export const db = {
       const supabase = createClient()
       const { data, error } = await supabase.from('access_exceptions').select('*').order('created_at', { ascending: false })
       if (!error && data) return data as AccessException[]
+      // Supabase konfiqurasiyalıdırsa xəta halında mock/localStorage-a DÜŞMÜRÜK —
+      // köhnə demo data real data kimi görünməsin (boş nəticə + yuxarıdakı console.error).
+      return []
     }
     return getLocalItem<AccessException[]>('access_exceptions', [])
   },
@@ -2080,6 +2158,9 @@ export const db = {
       const supabase = createClient()
       const { data, error } = await supabase.from('org_units').select('*').order('order_index', { ascending: true })
       if (!error && data) return data as OrgUnit[]
+      // Supabase konfiqurasiyalıdırsa xəta halında mock/localStorage-a DÜŞMÜRÜK —
+      // köhnə demo data real data kimi görünməsin (boş nəticə + yuxarıdakı console.error).
+      return []
     }
     return getLocalItem<OrgUnit[]>('org_units', SEED_ORG_UNITS)
   },
