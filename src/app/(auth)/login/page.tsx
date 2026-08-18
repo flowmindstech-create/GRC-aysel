@@ -16,6 +16,20 @@ const schema = z.object({
 })
 type FormValues = z.infer<typeof schema>
 
+// Demo rejimi YALNIZ lokal işləmə üçündür. Real domendə env çatışmırsa
+// istifadəçini parolsuz demo hesaba buraxmaq olmaz — açıq xəta göstərilir.
+function isLocalHost() {
+  if (typeof window === 'undefined') return false
+  return ['localhost', '127.0.0.1', '::1'].includes(window.location.hostname)
+}
+
+// Köhnə demo cookie-si qalıbsa bütün app localStorage-a düşür — təmizləyirik.
+function clearMockSessionCookie() {
+  if (typeof document !== 'undefined') {
+    document.cookie = 'mock-session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'
+  }
+}
+
 function setMockSessionCookie() {
   if (typeof document !== 'undefined') {
     document.cookie = "mock-session=true; path=/; max-age=86400; SameSite=Lax"
@@ -39,12 +53,20 @@ export default function LoginPage() {
   const onSubmit = async (v: FormValues) => {
     setLoading(true)
     setAuthError(null)
-    const isMock = !process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-    if (isMock) {
+    const envMissing = !process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    if (envMissing && !isLocalHost()) {
+      // Produksiyada səssizcə demo-ya düşmək təhlükəlidir: parol yoxlanmır və
+      // real data əvəzinə mock görünür. Bunun yerinə açıq şəkildə dayanırıq.
+      setAuthError('Server konfiqurasiyası çatışmır (Supabase env dəyişənləri). Sistem administratoruna müraciət edin.')
+      setLoading(false)
+      return
+    }
+    if (envMissing) {
       await new Promise(r => setTimeout(r, 800))
       setMockSessionCookie()
       router.push('/dashboard')
     } else {
+      clearMockSessionCookie()
       const { createClient } = await import('@/lib/supabase/client')
       const supabase = createClient()
       const { error } = await supabase.auth.signInWithPassword({

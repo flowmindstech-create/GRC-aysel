@@ -36,6 +36,12 @@ export default function RegisterPage() {
   const onSubmit = async (v: FormValues) => {
     setLoading(true)
     const isMock = !process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    const local = typeof window !== 'undefined' && ['localhost', '127.0.0.1', '::1'].includes(window.location.hostname)
+    if (isMock && !local) {
+      alert('Server konfiqurasiyası çatışmır (Supabase env dəyişənləri). Sistem administratoruna müraciət edin.')
+      setLoading(false)
+      return
+    }
     if (isMock) {
       await new Promise(r => setTimeout(r, 800))
       setMockSessionCookie()
