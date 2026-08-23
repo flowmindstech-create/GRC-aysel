@@ -27,8 +27,10 @@ describe('risk-categories', () => {
   })
 
   it('categoryLabel insan oxuya bilən etiket qaytarır', () => {
-    expect(categoryLabel('financial')).toBe('Financial')
-    expect(categoryLabel('information_security')).toBe('Information Security')
-    expect(categoryLabel(undefined)).toBe('Operational')
+    // Etiketlər məzmun sayılır və Azərbaycan dilindədir; interfeys İngiliscə qalır.
+    expect(categoryLabel('financial')).toBe('Maliyyə')
+    expect(categoryLabel('information_security')).toBe('İnformasiya Təhlükəsizliyi')
+    expect(categoryLabel('market')).toBe('Bazar Riski')
+    expect(categoryLabel(undefined)).toBe('Əməliyyat')
   })
 })

@@ -3,15 +3,17 @@
 // derives its options and labels from this list.
 
 export const RISK_CATEGORIES = [
-  { value: 'financial', label: 'Financial' },
-  { value: 'operational', label: 'Operational' },
-  { value: 'reputation', label: 'Reputation' },
-  { value: 'information_security', label: 'Information Security' },
-  { value: 'strategic', label: 'Strategic' },
-  { value: 'compliance', label: 'Compliance' },
+  // Etiketlər Azərbaycan dilindədir: bunlar cədvəl xanasında məzmun kimi görünür.
+  // İnterfeysin özü (başlıqlar, düymələr, menyu) İngilis dilində qalır.
+  { value: 'financial', label: 'Maliyyə' },
+  { value: 'operational', label: 'Əməliyyat' },
+  { value: 'reputation', label: 'Reputasiya' },
+  { value: 'information_security', label: 'İnformasiya Təhlükəsizliyi' },
+  { value: 'strategic', label: 'Strateji' },
+  { value: 'compliance', label: 'Komplayens' },
   // RAS(RİB) CİB-RMU-FM(RIB)-01-2026 sənədində "Bazar Riski" ayrıca risk sahəsidir
   // (Ehtiyat Adekvatlığı + Qarantiya Fondu göstəriciləri) — Maliyyə ilə birləşdirilmir.
-  { value: 'market', label: 'Market' },
+  { value: 'market', label: 'Bazar Riski' },
 ] as const
 
 export type RiskCategory = (typeof RISK_CATEGORIES)[number]['value']

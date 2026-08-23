@@ -5,51 +5,51 @@
 
 import type { RiskCategory } from './risk-categories'
 
-const OTHER = 'Other'
+const OTHER = 'Digər (Other)'
 
 export const INCIDENT_TAXONOMY: Record<RiskCategory, string[]> = {
   financial: [
-    'Financial loss / Incorrect payment',
-    'Accounting / reporting error',
-    'Budget violation',
+    'Maliyyə itkisi / Yanlış ödəniş',
+    'Mühasibat / hesabat səhvi',
+    'Büdcə pozuntusu',
     OTHER,
   ],
   operational: [
-    'Operational error / Procedure violation',
-    'Internal fraud',
-    'Third party / Vendor',
-    'Process / system outage',
+    'Əməliyyat səhvi / Prosedur pozuntusu',
+    'Daxili saxtakarlıq',
+    'Üçüncü tərəf / Vendor',
+    'Proses / sistem dayanması',
     OTHER,
   ],
   reputation: [
-    'Media / public complaint',
-    'Customer dissatisfaction',
-    'Brand damage',
+    'Media / ictimai şikayət',
+    'Müştəri narazılığı',
+    'Brend zərəri',
     OTHER,
   ],
   information_security: [
-    'Cybersecurity / Data breach',
-    'Confidentiality breach',
-    'Unauthorized access',
+    'Kibertəhlükəsizlik / Data breach',
+    'Məxfilik pozuntusu',
+    'İcazəsiz giriş',
     OTHER,
   ],
   strategic: [
-    'Strategic decision risk',
-    'Market / competition change',
+    'Strateji qərar riski',
+    'Bazar / rəqabət dəyişikliyi',
     OTHER,
   ],
   compliance: [
-    'Compliance breach',
-    'Regulatory requirement violation',
-    'AML / sanctions',
+    'Uyğunluq pozuntusu (Compliance breach)',
+    'Tənzimləyici tələb pozuntusu',
+    'AML / sanksiya',
     OTHER,
   ],
   // Bazar Riski — RAS(RİB) sənədində ayrıca risk sahəsi (Qarantiya Fondu göstəriciləri)
   market: [
-    'Reserve adequacy breach',
-    'Guarantee Fund coverage shortfall',
-    'Liquidity shortfall in the Fund',
-    'Adverse market movement',
+    'Ehtiyat adekvatlığının pozulması',
+    'Qarantiya Fondunun təminat çatışmazlığı',
+    'Fondun likvidlik çatışmazlığı',
+    'Əlverişsiz bazar hərəkəti',
     OTHER,
   ],
 }
