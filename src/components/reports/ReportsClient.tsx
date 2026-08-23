@@ -110,7 +110,8 @@ export function ReportsClient() {
 
   function download() {
     if (!report) return
-    const blob = new Blob(['﻿' + reportToCsv(report)], { type: 'text/csv;charset=utf-8' })
+    // BOM olmadan Excel Azərbaycan hərflərini pozuq göstərir
+    const blob = new Blob(['\uFEFF' + reportToCsv(report)], { type: 'text/csv;charset=utf-8' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
@@ -122,7 +123,7 @@ export function ReportsClient() {
   if (report) {
     const def = REPORT_DEFINITIONS.find(d => d.id === report.definitionId)
     return (
-      <div className="space-y-5 max-w-5xl">
+      <div className="space-y-5 max-w-5xl print-document">
         <div className="flex items-center justify-between gap-3 flex-wrap print:hidden">
           <button onClick={() => setReport(null)}
             className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold border transition-colors hover:bg-black/[0.04]"
@@ -148,7 +149,7 @@ export function ReportsClient() {
           </div>
         </div>
 
-        <div className="card p-6 space-y-6">
+        <div className="card p-6 space-y-6 print-document">
           <header className="pb-4" style={{ borderBottom: '2px solid var(--foreground)' }}>
             <h2 className="text-xl font-black" style={{ color: 'var(--foreground)' }}>{report.title}</h2>
             <p className="text-sm mt-1" style={{ color: 'var(--muted-fg)' }}>{report.subtitle}</p>

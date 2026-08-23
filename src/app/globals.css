@@ -240,3 +240,33 @@ input[type="range"]::-moz-range-thumb:hover {
   transform: scale(1.15);
   background-color: var(--brand-200); /* lighter sky blue */
 }
+
+/* ── Çap ────────────────────────────────────────────────────────────────────
+   Reports modulu rəhbərliyə verilən sənəd istehsal edir; çap zamanı app
+   naviqasiyası kağıza düşməməlidir. `print-document` sinfi olan element
+   tam enlə tək qalır, qalan hər şey gizlənir. */
+@media print {
+  body { background: #fff; color: #000; }
+
+  /* Naviqasiya və idarəetmə elementləri kağıza düşmür */
+  aside, nav, header button, .print\:hidden { display: none !important; }
+
+  /* Sənəd tam enə açılır, kölgə və çərçivə çıxarılır */
+  .print-document {
+    position: static !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+    background: #fff !important;
+  }
+
+  /* Cədvəllər səhifə arasında yarımçıq kəsilməsin */
+  table { page-break-inside: auto; }
+  tr    { page-break-inside: avoid; page-break-after: auto; }
+  thead { display: table-header-group; }
+  section { page-break-inside: avoid; }
+
+  a[href]::after { content: ''; }
+}

@@ -2,8 +2,9 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import { motion } from 'framer-motion'
+import { db } from '@/lib/db'
 import { dbExt } from '@/lib/db-extensions'
-import type { KRIItem, KCIItem, KPIItem, MonitoringAlert, MonitoringStatus, Trend } from '@/types'
+import type { KRIItem, KCIItem, KPIItem, MonitoringAlert, MonitoringStatus, Trend, Control } from '@/types'
 import { KriRegister, KciRegister, KpiRegister } from './registers'
 import { cn } from '@/lib/utils'
 import {
@@ -292,6 +293,8 @@ export function MonitoringDashboard() {
   const [kris, setKRIs]     = useState<KRIItem[]>([])
   const [kcis, setKCIs]     = useState<KCIItem[]>([])
   const [kpis, setKPIs]     = useState<KPIItem[]>([])
+  // KCI reyestri bağlı nəzarətin kodunu göstərmək üçün lazımdır
+  const [controls, setControls] = useState<Control[]>([])
   const [alerts, setAlerts] = useState<MonitoringAlert[]>([])
   const [loading, setLoading] = useState(true)
   const [tab, setTab]         = useState<'kri' | 'kci' | 'kpi'>('kri')
@@ -300,13 +303,14 @@ export function MonitoringDashboard() {
   const [cardFilter, setCardFilter] = useState<'all' | 'red' | 'amber' | 'breach' | 'alerts'>('all')
 
   async function load() {
-    const [k, c, p, a] = await Promise.all([
+    const [k, c, p, a, ctrls] = await Promise.all([
       dbExt.getKRIItems(),
       dbExt.getKCIItems(),
       dbExt.getKPIItems(),
       dbExt.getMonitoringAlerts(),
+      db.getControls(),
     ])
-    setKRIs(k); setKCIs(c); setKPIs(p); setAlerts(a)
+    setKRIs(k); setKCIs(c); setKPIs(p); setAlerts(a); setControls(ctrls)
     setLoading(false)
   }
 
@@ -431,7 +435,7 @@ export function MonitoringDashboard() {
                 <>
                   <SectionHeader icon={Gauge} title="Key Control Indicators" count={visKcis.length} rgb="14,165,233" />
                   {view === 'register'
-                    ? <KciRegister rows={visKcis} />
+                    ? <KciRegister rows={visKcis} controls={controls} />
                     : (<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {visKcis.length === 0
                       ? <p className="text-sm col-span-2 text-center py-8" style={{ color: 'var(--muted-fg)' }}>No KCI items. Run the Phase 3 SQL to seed data.</p>

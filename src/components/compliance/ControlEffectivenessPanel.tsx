@@ -47,7 +47,11 @@ export function ControlEffectivenessPanel({ control, onSave, canEdit = true }: P
     values.impl_relevance, values.impl_sustainability, values.impl_traceability,
   )
 
-  const dirty = KEYS.some(k => (control[k] ?? 3) !== values[k]) || control.effectiveness_score === undefined
+  // Postgres qiymətləndirilməmiş sətri `null` qaytarır, `undefined` yox — yalnız
+  // `undefined` yoxlansaydı, ilk dəfə heç nə dəyişmədən yadda saxlamaq mümkün
+  // olmazdı, çünki düymə sönük qalırdı.
+  const notAssessed = control.effectiveness_score === undefined || control.effectiveness_score === null
+  const dirty = notAssessed || KEYS.some(k => (control[k] ?? 3) !== values[k])
 
   async function save() {
     setSaving(true)

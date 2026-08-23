@@ -3,6 +3,10 @@ import { dbExt } from './db-extensions'
 import { CATEGORY_LABELS } from './risk-categories'
 import { ratingFromScore } from './rcsa'
 import { isOpenRisk } from './visibility'
+import {
+  levelAz, obligationStatusAz, riskStatusAz, incidentStatusAz,
+  workflowStageAz, controlRatingAz,
+} from './labels'
 import type { Control, Incident, Risk } from '@/types'
 
 // Hesabatlar heç nə saxlamır — hər dəfə modulların canlı məlumatından qurulur,
@@ -49,7 +53,8 @@ export interface ReportDefinition {
 // ── köməkçilər ──────────────────────────────────────────────────────────────
 
 const fmtDate = (iso?: string | null) => iso ? new Date(iso).toLocaleDateString('az-AZ') : '—'
-const pct = (n: number, d: number) => d === 0 ? '0%' : `${Math.round((n / d) * 100)}%`
+// Məxrəc sıfırdırsa faiz mənasızdır — 0% yazmaq yanlış təəssürat yaradır
+const pct = (n: number, d: number) => d === 0 ? '—' : `${Math.round((n / d) * 100)}%`
 const num = (v: number | null | undefined, digits = 2) =>
   v === null || v === undefined ? '—' : Number(v).toFixed(digits)
 
@@ -153,7 +158,7 @@ async function buildControlReport(): Promise<GeneratedReport> {
       rows: weakest.map(c => [
         c.control_id, c.title,
         num(c.design_score, 2), num(c.implementation_score, 2), num(c.effectiveness_score, 2),
-        ratingFromScore(Number(c.effectiveness_score)).label, fmtDate(c.last_tested_at),
+        controlRatingAz(ratingFromScore(Number(c.effectiveness_score)).rating), fmtDate(c.last_tested_at),
       ]),
       rowTones: weakest.map(c => {
         const s = Number(c.effectiveness_score)
@@ -189,8 +194,8 @@ async function buildComplianceReport(): Promise<GeneratedReport> {
       title: 'Öhdəlik reyestri',
       columns: ['Kod', 'Öhdəlik', 'Status', 'Kritiklik', 'Məsul', 'Nəzarət', 'Növbəti baxış'],
       rows: obligations.map(o => [
-        o.obligation_code ?? '—', o.title, String(o.status).replace(/_/g, ' '),
-        o.criticality ?? '—', o.responsible_party ?? '—',
+        o.obligation_code ?? '—', o.title, obligationStatusAz(o.status),
+        levelAz(o.criticality), o.responsible_party ?? '—',
         counts[o.id]?.controls ?? 0, fmtDate(o.next_review_date),
       ]),
       rowTones: obligations.map(o =>
@@ -211,7 +216,7 @@ async function buildIncidentReport(): Promise<GeneratedReport> {
 
   const bySeverity = ['critical', 'high', 'medium', 'low'].map(sev => {
     const all = incidents.filter(i => i.severity === sev)
-    return [sev, all.length, all.filter(OPEN_INCIDENT).length, all.length - all.filter(OPEN_INCIDENT).length]
+    return [levelAz(sev), all.length, all.filter(OPEN_INCIDENT).length, all.length - all.filter(OPEN_INCIDENT).length]
   })
 
   return head('incidents', 'İnsident Hesabatı',
@@ -236,8 +241,8 @@ async function buildIncidentReport(): Promise<GeneratedReport> {
       title: 'Açıq insidentlər',
       columns: ['Başlıq', 'Ciddilik', 'Status', 'Mərhələ', 'Məsul', 'Açılıb'],
       rows: open.map(i => [
-        i.title, i.severity ?? '—', String(i.status).replace(/_/g, ' '),
-        String(i.workflow_stage ?? '—').replace(/_/g, ' '),
+        i.title, levelAz(i.severity), incidentStatusAz(i.status),
+        workflowStageAz(i.workflow_stage),
         i.assigned_name ?? '—', fmtDate(i.created_at),
       ]),
       rowTones: open.map(i => i.severity === 'critical' ? 'crit' : i.severity === 'high' ? 'warn' : 'neutral'),
@@ -298,7 +303,7 @@ async function buildExecutiveReport(): Promise<GeneratedReport> {
       rows: highRisks.map(r => [
         r.risk_code ?? '—', r.title,
         r.category ? (CATEGORY_LABELS[r.category] ?? r.category) : '—',
-        r.level ?? '—', String(r.status ?? '—').replace(/_/g, ' '), r.owner_name ?? '—',
+        levelAz(r.level), riskStatusAz(r.status), r.owner_name ?? '—',
       ]),
       rowTones: highRisks.map(r => r.level === 'critical' ? 'crit' : 'warn'),
       empty: 'Yüksək və ya kritik açıq risk yoxdur',

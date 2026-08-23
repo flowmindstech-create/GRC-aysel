@@ -96,7 +96,12 @@ export function Mono({ children, color }: { children: ReactNode; color?: string 
 }
 
 export function Muted({ children, clamp }: { children: ReactNode; clamp?: number }) {
-  return <span className={`text-[11px] ${clamp ? `line-clamp-${clamp}` : ''}`} style={{ color: 'var(--muted-fg)' }}>{children}</span>
+  // Sətir məhdudiyyəti inline style ilə verilir: `line-clamp-${clamp}` kimi
+  // dinamik sinif adını Tailwind generasiya etmir və heç bir təsir göstərmirdi.
+  const clampStyle = clamp
+    ? { display: '-webkit-box', WebkitBoxOrient: 'vertical' as const, WebkitLineClamp: clamp, overflow: 'hidden' }
+    : undefined
+  return <span className="text-[11px]" style={{ color: 'var(--muted-fg)', ...clampStyle }}>{children}</span>
 }
 
 export function Name({ title, sub }: { title: ReactNode; sub?: ReactNode }) {

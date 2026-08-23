@@ -1,7 +1,8 @@
 'use client'
 
-import type { KRIItem, KCIItem, KPIItem } from '@/types'
+import type { KRIItem, KCIItem, KPIItem, Control } from '@/types'
 import { CATEGORY_LABELS } from '@/lib/risk-categories'
+import { monitoringStatusAz, effectivenessAz, frequencyAz } from '@/lib/labels'
 import { RegisterTable, Mono, Muted, Name, StatusPill } from './RegisterTable'
 import type { RegisterColumn, RegisterGroup } from './RegisterTable'
 
@@ -22,10 +23,18 @@ const STATUS_RGB: Record<string, string> = {
   green: '5,150,105', amber: '217,119,6', red: '225,29,72',
   effective: '5,150,105', partially_effective: '217,119,6', ineffective: '225,29,72',
 }
-const pill = (s?: string) =>
-  s ? <StatusPill label={s.replace(/_/g, ' ')} rgb={STATUS_RGB[s] ?? '113,113,122'} /> : DASH
+// Status xanası məzmundur — Azərbaycanca göstərilir, enum dəyəri dəyişmir.
+// KRI/KPI svetofor dəyərləri (green/amber/red), KCI isə effektivlik dəyərləri
+// işlədir, ona görə etiket iki lüğətdən uyğun olanı ilə götürülür.
+const TRAFFIC = new Set(['green', 'amber', 'red'])
+const pill = (s?: string) => {
+  if (!s) return DASH
+  const label = TRAFFIC.has(s) ? monitoringStatusAz(s) : effectivenessAz(s)
+  return <StatusPill label={label} rgb={STATUS_RGB[s] ?? '113,113,122'} />
+}
 
-const freq = (f?: string) =>
+// Dövrilik, test üsulu, nəzarət növü — hamısı eyni sadə mətn kimi göstərilir
+const capText = (f?: string) =>
   f ? <span className="text-[11px] capitalize whitespace-nowrap" style={{ color: 'var(--muted-fg)' }}>{f}</span> : DASH
 
 // ── KRI ─────────────────────────────────────────────────────────────────────
@@ -40,7 +49,7 @@ export function KriRegister({ rows }: { rows: KRIItem[] }) {
         : DASH },
     { key: 'name', label: 'Indicator', value: r => <Name title={r.name} sub={r.kri_id} /> },
     { key: 'formula', label: 'Formula', wide: true, value: r => txt(r.formula) },
-    { key: 'freq', label: 'Frequency', value: r => freq(r.frequency) },
+    { key: 'freq', label: 'Frequency', value: r => capText(frequencyAz(r.frequency)) },
     { key: 'unit', label: 'Unit', value: r => r.unit ? <span className="text-xs whitespace-nowrap" style={{ color: 'var(--muted-fg)' }}>{r.unit}</span> : DASH },
   ]
 
@@ -72,14 +81,17 @@ export function KriRegister({ rows }: { rows: KRIItem[] }) {
 
 // ── KCI ─────────────────────────────────────────────────────────────────────
 
-export function KciRegister({ rows }: { rows: KCIItem[] }) {
+export function KciRegister({ rows, controls = [] }: { rows: KCIItem[]; controls?: Control[] }) {
+  // kci_items.control_id controls(id)-ə UUID istinadıdır — sətirdə xam UUID
+  // göstərmək mənasızdır, ona görə nəzarətin kodu ilə əvəz olunur.
+  const codeOf = (id?: string) => id ? controls.find(c => c.id === id)?.control_id : undefined
   const lead: RegisterColumn<KCIItem>[] = [
-    { key: 'name', label: 'Indicator', value: r => <Name title={r.name} sub={r.control_id} /> },
+    { key: 'name', label: 'Indicator', value: r => <Name title={r.name} sub={codeOf(r.control_id)} /> },
     { key: 'obj', label: 'Objective', wide: true, value: r => txt(r.objective ?? r.description) },
     { key: 'type', label: 'Control Type', value: r => r.control_type
         ? <span className="text-[11px] capitalize whitespace-nowrap" style={{ color: 'var(--muted-fg)' }}>{r.control_type}</span> : DASH },
-    { key: 'method', label: 'Test Method', value: r => freq(r.test_method) },
-    { key: 'freq', label: 'Frequency', value: r => freq(r.frequency) },
+    { key: 'method', label: 'Test Method', value: r => capText(r.test_method) },
+    { key: 'freq', label: 'Frequency', value: r => capText(frequencyAz(r.frequency)) },
   ]
 
   const groups: RegisterGroup<KCIItem>[] = [
@@ -113,7 +125,7 @@ export function KpiRegister({ rows }: { rows: KPIItem[] }) {
     { key: 'name', label: 'Indicator', value: r => <Name title={r.name} sub={r.related_process} /> },
     { key: 'desc', label: 'Description', wide: true, value: r => txt(r.description) },
     { key: 'formula', label: 'Formula', wide: true, value: r => txt(r.formula) },
-    { key: 'freq', label: 'Frequency', value: r => freq(r.frequency) },
+    { key: 'freq', label: 'Frequency', value: r => capText(frequencyAz(r.frequency)) },
   ]
 
   const groups: RegisterGroup<KPIItem>[] = [

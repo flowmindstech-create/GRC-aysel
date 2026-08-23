@@ -213,7 +213,7 @@ export function ControlChecklist() {
                   <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: EFF_DOT(control.effectiveness_rating) }} />
                   {EFF_LABEL(control.effectiveness_rating)}
                   {control.effectiveness_score !== undefined && control.effectiveness_score !== null && (
-                    <span className="font-mono font-bold tabular-nums" style={{ color: effColor(control.effectiveness_score) }}
+                    <span className="font-mono font-bold tabular-nums" style={{ color: effColor(Number(control.effectiveness_score)) }}
                       title="Last efficiency rate — average of control design and implementation">
                       {Number(control.effectiveness_score).toFixed(2)}
                     </span>
