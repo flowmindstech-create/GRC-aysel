@@ -8,7 +8,7 @@ import {
   Search, Users, Settings, ChevronLeft, ChevronRight,
   Shield, GitBranch, FileSearch, Activity,
   BookOpen, Network, ScrollText, LogOut,
-  Target, Landmark, FlaskConical, Megaphone, Workflow, History,
+  Target, Landmark, FlaskConical, Megaphone, Workflow, History, FileText,
 } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { getCurrentProfile, db } from '@/lib/db'
@@ -41,6 +41,7 @@ const navGroups = [
     label: 'Risk Modules',
     items: [
       { href: '/risk-appetite',   label: 'Risk Appetite',   icon: Target },
+      { href: '/reports',         label: 'Reports',         icon: FileText },
       { href: '/financial-risks', label: 'Financial Risks', icon: Landmark },
       { href: '/stress-tests',    label: 'Stress Tests',    icon: FlaskConical },
       { href: '/whistleblowing',  label: 'Whistleblowing',  icon: Megaphone },
