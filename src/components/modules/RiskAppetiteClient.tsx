@@ -33,9 +33,10 @@ function categoryLabel(c: string | undefined): string {
 // Faiz göstəriciləri mənbədə iki cür saxlanılır: bəziləri 1-in hissəsi kimi
 // (0.0078 = 0.78%), likvidlik əmsalı kimi olanlar isə birbaşa faiz ədədi (494.9).
 // Boş ay (null) hesabat sayılmır və "—" göstərilir — bildirilmiş 0-dan fərqlidir.
+const PERCENT_UNITS = ['Faiz', 'Percent', '%']
 function formatReading(v: number | null | undefined, unit?: string): string {
   if (v === null || v === undefined) return '—'
-  if (unit === 'Percent') {
+  if (unit && PERCENT_UNITS.includes(unit)) {
     const pct = Math.abs(v) <= 1 ? v * 100 : v
     return `${Number(pct.toFixed(2))}%`
   }
