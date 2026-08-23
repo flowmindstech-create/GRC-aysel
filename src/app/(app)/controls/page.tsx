@@ -1,5 +1,5 @@
 import { TopNav } from '@/components/layout/TopNav'
-import { ControlsClient } from '@/components/control-mapping/ControlsClient'
+import { ControlsTabs } from '@/components/control-mapping/ControlsTabs'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = { title: 'Control Library | GRCell IRM' }
@@ -7,9 +7,9 @@ export const metadata: Metadata = { title: 'Control Library | GRCell IRM' }
 export default function ControlsPage() {
   return (
     <>
-      <TopNav title="Control Library" subtitle="Full expanded control card — design, testing, effectiveness and mapping" />
+      <TopNav title="Control Library" subtitle="Control register, periodic testing and effectiveness scoring" />
       <main className="flex-1 overflow-y-auto p-6">
-        <ControlsClient />
+        <ControlsTabs />
       </main>
     </>
   )

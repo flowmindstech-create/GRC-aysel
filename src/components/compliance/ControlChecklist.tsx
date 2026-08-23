@@ -70,7 +70,9 @@ function fmtDate(iso?: string) {
   return iso ? new Date(iso).toLocaleDateString('az-AZ') : '—'
 }
 
-export function ControlChecklist() {
+// `embedded` — Control Library-nin tabı kimi göstəriləndə öz başlığını çəkmir,
+// çünki səhifənin başlığı və "Add New Control" düyməsi onsuz da yuxarıdadır.
+export function ControlChecklist({ embedded = false }: { embedded?: boolean } = {}) {
   const [controls, setControls] = useState<Control[]>([])
   const [activeFramework, setActiveFramework] = useState<ControlFramework>('iso27001')
   const [expanded, setExpanded] = useState<string | null>(null)
@@ -131,17 +133,19 @@ export function ControlChecklist() {
 
   return (
     <div>
-      <PageHeader
-        title="Compliance Management"
-        subtitle="Periodic control test area — Pass/Fail results automatically reflect in the Control Library and matrix"
-        actions={
-          <Link href="/controls"
-            className="px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 border transition-colors hover:bg-black/[0.04]"
-            style={{ borderColor: 'var(--border)', color: 'var(--foreground)' }}>
-            <BookOpen className="w-3.5 h-3.5" /> Create in Control Library
-          </Link>
-        }
-      />
+      {!embedded && (
+        <PageHeader
+          title="Compliance Management"
+          subtitle="Periodic control test area — Pass/Fail results automatically reflect in the Control Library and matrix"
+          actions={
+            <Link href="/controls"
+              className="px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 border transition-colors hover:bg-black/[0.04]"
+              style={{ borderColor: 'var(--border)', color: 'var(--foreground)' }}>
+              <BookOpen className="w-3.5 h-3.5" /> Create in Control Library
+            </Link>
+          }
+        />
+      )}
 
       {/* Framework scores */}
       <div className="grid grid-cols-3 gap-4 mb-6">
