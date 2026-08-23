@@ -4,11 +4,12 @@ import { useState, useEffect, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { dbExt } from '@/lib/db-extensions'
 import type { KRIItem, KCIItem, KPIItem, MonitoringAlert, MonitoringStatus, Trend } from '@/types'
+import { KriRegister, KciRegister, KpiRegister } from './registers'
 import { cn } from '@/lib/utils'
 import {
   TrendingUp, TrendingDown, Minus, Bell, BellOff,
   AlertTriangle, CheckCircle2, Activity, BarChart3,
-  Shield, Gauge, RefreshCw,
+  Shield, Gauge, RefreshCw, Table2, LayoutGrid,
 } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -294,6 +295,8 @@ export function MonitoringDashboard() {
   const [alerts, setAlerts] = useState<MonitoringAlert[]>([])
   const [loading, setLoading] = useState(true)
   const [tab, setTab]         = useState<'kri' | 'kci' | 'kpi'>('kri')
+  // Reyestr = RAS-dakı cədvəl formatı; kartlar qısa baxış üçün qalır.
+  const [view, setView]       = useState<'register' | 'cards'>('register')
   const [cardFilter, setCardFilter] = useState<'all' | 'red' | 'amber' | 'breach' | 'alerts'>('all')
 
   async function load() {
@@ -379,19 +382,33 @@ export function MonitoringDashboard() {
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         {/* Left — tabs KRI/KCI/KPI */}
         <div className="xl:col-span-2 space-y-4">
-          {/* Tab bar */}
-          <div className="flex gap-1 p-1 rounded-xl w-fit" style={{ background: 'var(--muted)', border: '1px solid var(--border)' }}>
-            {([
-              { key: 'kri', label: 'KRI', icon: Shield },
-              { key: 'kci', label: 'KCI', icon: Gauge },
-              { key: 'kpi', label: 'KPI', icon: BarChart3 },
-            ] as const).map(t => (
-              <button key={t.key} onClick={() => setTab(t.key)}
-                className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-semibold transition-all"
-                style={tab === t.key ? { background: 'var(--brand-500)', color: '#fff' } : { color: 'var(--muted-fg)' }}>
-                <t.icon className="w-3.5 h-3.5" />{t.label}
-              </button>
-            ))}
+          {/* Tab bar + görünüş keçidi */}
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <div className="flex gap-1 p-1 rounded-xl w-fit" style={{ background: 'var(--muted)', border: '1px solid var(--border)' }}>
+              {([
+                { key: 'kri', label: 'KRI', icon: Shield },
+                { key: 'kci', label: 'KCI', icon: Gauge },
+                { key: 'kpi', label: 'KPI', icon: BarChart3 },
+              ] as const).map(t => (
+                <button key={t.key} onClick={() => setTab(t.key)}
+                  className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-semibold transition-all"
+                  style={tab === t.key ? { background: 'var(--brand-500)', color: '#fff' } : { color: 'var(--muted-fg)' }}>
+                  <t.icon className="w-3.5 h-3.5" />{t.label}
+                </button>
+              ))}
+            </div>
+            <div className="flex gap-1 p-1 rounded-xl w-fit" style={{ background: 'var(--muted)', border: '1px solid var(--border)' }}>
+              {([
+                { key: 'register', label: 'Register', icon: Table2 },
+                { key: 'cards',    label: 'Cards',    icon: LayoutGrid },
+              ] as const).map(v => (
+                <button key={v.key} onClick={() => setView(v.key)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
+                  style={view === v.key ? { background: 'var(--brand-500)', color: '#fff' } : { color: 'var(--muted-fg)' }}>
+                  <v.icon className="w-3.5 h-3.5" />{v.label}
+                </button>
+              ))}
+            </div>
           </div>
 
           {loading ? (
@@ -401,31 +418,37 @@ export function MonitoringDashboard() {
               {tab === 'kri' && (
                 <>
                   <SectionHeader icon={Shield} title="Key Risk Indicators" count={visKris.length} rgb="225,29,72" />
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {view === 'register'
+                    ? <KriRegister rows={visKris} />
+                    : (<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {visKris.length === 0
                       ? <p className="text-sm col-span-2 text-center py-8" style={{ color: 'var(--muted-fg)' }}>No KRI items. Run the Phase 3 SQL to seed data.</p>
                       : visKris.map((k, i) => <KRICard key={k.id} item={k} index={i} />)}
-                  </div>
+                  </div>)}
                 </>
               )}
               {tab === 'kci' && (
                 <>
                   <SectionHeader icon={Gauge} title="Key Control Indicators" count={visKcis.length} rgb="14,165,233" />
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {view === 'register'
+                    ? <KciRegister rows={visKcis} />
+                    : (<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {visKcis.length === 0
                       ? <p className="text-sm col-span-2 text-center py-8" style={{ color: 'var(--muted-fg)' }}>No KCI items. Run the Phase 3 SQL to seed data.</p>
                       : visKcis.map((k, i) => <KCICard key={k.id} item={k} index={i} />)}
-                  </div>
+                  </div>)}
                 </>
               )}
               {tab === 'kpi' && (
                 <>
                   <SectionHeader icon={BarChart3} title="Key Performance Indicators" count={visKpis.length} rgb="59,130,246" />
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {view === 'register'
+                    ? <KpiRegister rows={visKpis} />
+                    : (<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {visKpis.length === 0
                       ? <p className="text-sm col-span-2 text-center py-8" style={{ color: 'var(--muted-fg)' }}>No KPI items. Run the Phase 3 SQL to seed data.</p>
                       : visKpis.map((k, i) => <KPICard key={k.id} item={k} index={i} />)}
-                  </div>
+                  </div>)}
                 </>
               )}
             </>
