@@ -9,6 +9,7 @@ import { ChevronDown, ChevronUp, RotateCw, BookOpen, ExternalLink } from 'lucide
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
+import { ControlEffectivenessPanel, scoreColor as effColor } from './ControlEffectivenessPanel'
 
 const FRAMEWORKS: { key: ControlFramework; label: string }[] = [
   { key: 'iso27001', label: 'ISO 27001' },
@@ -106,6 +107,19 @@ export function ControlChecklist() {
     }
   }
 
+  // Effektivlik balını yadda saxlayır — Control Library və mapping matrisi eyni
+  // sətri oxuduğu üçün nəticə oraya öz-özünə çatır.
+  async function saveEffectiveness(control: Control, patch: Partial<Control>) {
+    const updated: Control = { ...control, ...patch, effectiveness_assessed_by: me }
+    setControls(prev => prev.map(c => c.id === control.id ? updated : c))
+    try {
+      await db.saveControl(updated)
+      toast.success(`${control.control_id}: efficiency rate ${patch.effectiveness_score?.toFixed(2)} — Library updated`)
+    } catch {
+      toast.error('Could not be saved')
+    }
+  }
+
   function patchField(control: Control, patch: Partial<Control>) {
     const updated = { ...control, ...patch }
     setControls(prev => prev.map(c => c.id === control.id ? updated : c))
@@ -198,6 +212,12 @@ export function ControlChecklist() {
                 <div className="col-span-6 md:col-span-2 flex items-center gap-1.5 text-xs" style={{ color: 'var(--foreground)' }}>
                   <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: EFF_DOT(control.effectiveness_rating) }} />
                   {EFF_LABEL(control.effectiveness_rating)}
+                  {control.effectiveness_score !== undefined && control.effectiveness_score !== null && (
+                    <span className="font-mono font-bold tabular-nums" style={{ color: effColor(control.effectiveness_score) }}
+                      title="Last efficiency rate — average of control design and implementation">
+                      {Number(control.effectiveness_score).toFixed(2)}
+                    </span>
+                  )}
                 </div>
                 <div className="col-span-4 md:col-span-1">
                   <span className={cn('inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold border', st.cls)}>{st.label}</span>
@@ -240,8 +260,14 @@ export function ControlChecklist() {
                         </div>
                       </div>
 
-                      {/* Right — observation + evidence */}
+                      {/* Right — effectiveness, observation, evidence */}
                       <div className="space-y-3" onClick={e => e.stopPropagation()}>
+                        {/* Dizayn + Tətbiq → effektivlik. Bal Control Library-yə
+                            "Last efficiency rate" kimi sinxronlaşır. */}
+                        <ControlEffectivenessPanel
+                          control={control}
+                          onSave={patch => saveEffectiveness(control, patch)}
+                        />
                         <div>
                           <p className="text-[10px] font-bold uppercase tracking-wide mb-1" style={{ color: 'var(--muted-fg)' }}>Audit Observation</p>
                           <textarea defaultValue={control.evidence_note ?? ''} rows={3}

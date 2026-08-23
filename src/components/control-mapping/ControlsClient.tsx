@@ -11,6 +11,7 @@ import { ControlFormDialog } from './ControlFormDialog'
 import { ExportMenu } from '@/components/shared/ExportMenu'
 import type { ExportColumn } from '@/lib/export'
 import { usePermissions } from '@/hooks/usePermissions'
+import { scoreColor as effColor } from '@/components/compliance/ControlEffectivenessPanel'
 
 const TYPE_COLOR: Record<string, string> = {
   preventive: 'bg-blue-500/12 text-blue-400',
@@ -33,6 +34,9 @@ const EXPORT_COLUMNS: ExportColumn<Control>[] = [
   { key: 'owner_dept', label: 'Owner / Department', value: c => c.owner_dept ?? '' },
   { key: 'last_tested_at', label: 'Son yoxlama', value: c => c.last_tested_at ? new Date(c.last_tested_at).toLocaleDateString('az-AZ') : '' },
   { key: 'effectiveness', label: 'Effectiveness', value: c => EFF_LABEL(c.effectiveness_rating) },
+  { key: 'effectiveness_score', label: 'Last efficiency rate', value: c => c.effectiveness_score != null ? Number(c.effectiveness_score).toFixed(2) : '' },
+  { key: 'design_score', label: 'Design score', value: c => c.design_score != null ? Number(c.design_score).toFixed(2) : '' },
+  { key: 'implementation_score', label: 'Implementation score', value: c => c.implementation_score != null ? Number(c.implementation_score).toFixed(2) : '' },
   { key: 'status', label: 'Status', value: c => c.approval_status === 'pending_review' ? 'Pending' : 'Aktiv' },
 ]
 
@@ -49,12 +53,32 @@ export function ControlsClient() {
   const [editControl, setEditControl] = useState<Control | null>(null)
   const [simCtrl, setSimCtrl]     = useState<Control | null>(null)   // simulator target
   const [creatingInc, setCreatingInc] = useState(false)
+  // Başqa moduldan gələn dərin keçid: /controls?ctrl=A.5.1 həmin nəzarəti süzür
+  // və işıqlandırır. useSearchParams əvəzinə location oxunur ki, səhifə statik
+  // qalsın və Suspense sərhədi tələb olunmasın.
+  const [highlight, setHighlight] = useState<string | null>(null)
 
   async function reload() {
     const [c, o, maps] = await Promise.all([db.getControls(), db.getObligations(), db.getObligationLinkMaps()])
     setControls(c); setObligations(o); setLinkMaps(maps); setLoading(false)
   }
   useEffect(() => { reload().catch(() => { toast.error('Failed to load controls'); setLoading(false) }) }, [])
+
+  useEffect(() => {
+    const wanted = new URLSearchParams(window.location.search).get('ctrl')
+    if (!wanted) return
+    setSearch(wanted)      // axtarış qutusunu doldurur ki, süzgəcin səbəbi görünsün
+    setFwFilter('all')     // gələn nəzarət başqa çərçivədə ola bilər
+    setStatFilter('all')
+    setHighlight(wanted)
+  }, [])
+
+  // Sətir DOM-a düşəndən sonra ona sürüşdürürük
+  useEffect(() => {
+    if (!highlight || loading) return
+    const el = document.querySelector(`[data-control-id="${CSS.escape(highlight)}"]`)
+    el?.scrollIntoView({ block: 'center', behavior: 'smooth' })
+  }, [highlight, loading])
 
   const handleSaveControl = (saved: Control) => {
     setControls(prev => {
@@ -175,7 +199,7 @@ export function ControlsClient() {
       {/* Table */}
       <div className="card overflow-hidden"><div className="overflow-x-auto"><table className="w-full">
         <thead><tr style={{ borderBottom: '1px solid var(--border)', background: 'var(--muted)' }}>
-          {['Code', 'Control Name', 'Type', 'Method / Frequency', 'Owner / Department', 'Son yoxlama', 'Status', 'Simulator', ''].map(h => (
+          {['Code', 'Control Name', 'Type', 'Method / Frequency', 'Owner / Department', 'Son yoxlama', 'Last efficiency rate', 'Status', 'Simulator', ''].map(h => (
             <th key={h} className="text-left px-3 py-3 text-[11px] font-semibold uppercase tracking-wide whitespace-nowrap" style={{ color: 'var(--muted-fg)' }}>{h}</th>))}
         </tr></thead>
         <tbody>
@@ -184,7 +208,14 @@ export function ControlsClient() {
           : filtered.map((c, i) => {
             const pending = c.approval_status === 'pending_review'
             return (
-            <motion.tr key={c.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.02 }} className="group hover:bg-black/[0.02] dark:hover:bg-white/[0.02] align-top" style={{ borderBottom: '1px solid var(--border)' }}>
+            <motion.tr key={c.id} data-control-id={c.control_id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.02 }}
+              className="group hover:bg-black/[0.02] dark:hover:bg-white/[0.02] align-top"
+              style={{
+                borderBottom: '1px solid var(--border)',
+                ...(highlight === c.control_id
+                  ? { background: 'rgba(14,165,233,0.10)', boxShadow: 'inset 3px 0 0 var(--brand-500)' }
+                  : null),
+              }}>
               <td className="px-3 py-3.5"><span className="text-[11px] font-mono font-bold whitespace-nowrap" style={{ color: 'var(--brand-500)' }}>{c.control_id}</span>
                 <p className="text-[9px] uppercase mt-0.5" style={{ color: 'var(--muted-fg)' }}>{c.framework}</p>
               </td>
@@ -199,6 +230,19 @@ export function ControlsClient() {
               </td>
               <td className="px-3 py-3.5"><span className="text-xs whitespace-nowrap" style={{ color: c.owner_dept ? 'var(--foreground)' : 'var(--muted-fg)' }}>{c.owner_dept || '—'}</span></td>
               <td className="px-3 py-3.5"><span className="text-xs whitespace-nowrap" style={{ color: c.last_tested_at ? 'var(--foreground)' : 'var(--muted-fg)' }}>{fmtDate(c.last_tested_at)}</span></td>
+              {/* Control Checklist-dəki dizayn+tətbiq qiymətləndirməsindən gəlir */}
+              <td className="px-3 py-3.5">
+                {c.effectiveness_score === undefined || c.effectiveness_score === null
+                  ? <span className="text-xs" style={{ color: 'var(--muted-fg)' }}>—</span>
+                  : (<span className="inline-flex items-baseline gap-1.5 whitespace-nowrap">
+                      <span className="text-sm font-mono font-black tabular-nums" style={{ color: effColor(Number(c.effectiveness_score)) }}>
+                        {Number(c.effectiveness_score).toFixed(2)}
+                      </span>
+                      <span className="text-[10px]" style={{ color: 'var(--muted-fg)' }}>
+                        D {Number(c.design_score ?? 0).toFixed(1)} / T {Number(c.implementation_score ?? 0).toFixed(1)}
+                      </span>
+                    </span>)}
+              </td>
               <td className="px-3 py-3.5">
                 {pending ? (
                   <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/15 text-amber-400">Pending</span>

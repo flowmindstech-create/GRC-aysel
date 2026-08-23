@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Edit, ExternalLink, ShieldAlert, BookOpen, History, Building2, AlertTriangle, Zap } from 'lucide-react'
+import { X, Edit, ExternalLink, ShieldAlert, BookOpen, History, Building2, AlertTriangle, Zap, ArrowUpRight } from 'lucide-react'
+import Link from 'next/link'
 import { toast } from 'sonner'
 import { db } from '@/lib/db'
 import { dbExt } from '@/lib/db-extensions'
@@ -260,11 +261,16 @@ export function ObligationDetailSheet({ obligation, onClose, onEdit, onSaved }: 
                 : controls.length === 0 ? <p className="text-xs" style={{ color: 'var(--muted-fg)' }}>No linked controls.</p>
                 : (
                   <div className="space-y-1.5">
+                    {/* Control Library-də həmin nəzarətə keçid — orada süzülüb işıqlanır */}
                     {controls.map(c => (
-                      <div key={c.id} className="flex items-center gap-2 px-3 py-2 rounded-lg" style={{ background: 'var(--muted)' }}>
+                      <Link key={c.id} href={`/controls?ctrl=${encodeURIComponent(c.control_id)}`}
+                        className="flex items-center gap-2 px-3 py-2 rounded-lg transition-colors hover:bg-black/[0.06] dark:hover:bg-white/[0.06] focus-visible:outline-2 focus-visible:outline-offset-2"
+                        style={{ background: 'var(--muted)', outlineColor: 'var(--brand-500)' }}
+                        title={`Open ${c.control_id} in Control Library`}>
                         <span className="text-[10px] font-mono font-bold" style={{ color: 'var(--brand-500)' }}>{c.control_id}</span>
-                        <span className="text-xs truncate" style={{ color: 'var(--foreground)' }}>{c.title}</span>
-                      </div>
+                        <span className="text-xs truncate flex-1" style={{ color: 'var(--foreground)' }}>{c.title}</span>
+                        <ArrowUpRight className="w-3.5 h-3.5 shrink-0" style={{ color: 'var(--muted-fg)' }} />
+                      </Link>
                     ))}
                   </div>
                 )}

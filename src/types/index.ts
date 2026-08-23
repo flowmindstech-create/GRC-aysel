@@ -343,6 +343,21 @@ export interface Control {
   effectiveness_rating?: EffectivenessRating
   design_effectiveness?: DesignEffectiveness
   operating_effectiveness?: OperatingEffectiveness
+  // Effektivlik qiymətləndirməsi (RCSA metodologiyası, 1-5 şkalası).
+  // Nəzarətin DİZAYNI və TƏTBİQİ ayrıca qiymətləndirilir; hər biri üç
+  // alt-meyarın ortalamasıdır, effektivlik isə həmin iki ortalamanın
+  // ortalamasıdır — evaluateControlEffectiveness() bunu hesablayır.
+  design_compliance?: number
+  design_strength?: number
+  design_timeliness?: number
+  impl_relevance?: number
+  impl_sustainability?: number
+  impl_traceability?: number
+  design_score?: number          // dizayn ortalaması
+  implementation_score?: number  // tətbiq ortalaması
+  effectiveness_score?: number   // ikisinin ortalaması → "Last efficiency rate"
+  effectiveness_assessed_at?: string
+  effectiveness_assessed_by?: string
   last_tested_at?: string
   next_test_date?: string
   approval_status?: ControlApprovalStatus
