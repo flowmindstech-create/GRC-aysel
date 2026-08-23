@@ -87,10 +87,12 @@ export function ControlsClient() {
       const broken = brokenObligations.map(o => o.obligation_code).join(', ')
       await db.saveIncident({
         id: crypto.randomUUID(), org_id: '',
-        title: `Control failure: ${simCtrl.control_id}`,
-        description: `Control ${simCtrl.title} has failed.${broken ? ` Breached obligations: ${broken}.` : ''}`,
+        // Bu mətn insidentin özünə yazılır, yəni məzmundur — interfeys İngiliscə
+        // qalsa da, reyestrə düşən qeyd Azərbaycan dilində olmalıdır.
+        title: `Nəzarətin işləməməsi: ${simCtrl.control_id}`,
+        description: `${simCtrl.title} nəzarəti işləməyib.${broken ? ` Pozulan öhdəliklər: ${broken}.` : ''}`,
         severity: 'high', status: 'open', workflow_stage: 'intake',
-        incident_category: 'Control failure', control_id: simCtrl.id,
+        incident_category: 'Nəzarətin işləməməsi', control_id: simCtrl.id,
         compliance_obligation_id: brokenObligations[0]?.id,
         created_at: now, updated_at: now,
       } as Incident)
