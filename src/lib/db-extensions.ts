@@ -1,4 +1,4 @@
-import type { AuditFindingWorkflow, NIRAPItem, KRIItem, KCIItem, KPIItem, MonitoringAlert, Policy, PolicyApproval, InternalDocument, ComplianceRisk, InfoSecRisk, InternalPolicy } from '@/types'
+import type { AuditFindingWorkflow, NIRAPItem, KRIItem, KCIItem, KPIItem, MonitoringAlert, Policy, PolicyApproval, InternalDocument, ComplianceRisk, InfoSecRisk, InternalPolicy, MonteCarloRun } from '@/types'
 import { isUUID, ensureUUID } from './db'
 import { MOCK_POLICIES } from './seed-data'
 
@@ -589,5 +589,49 @@ export const dbExt = {
     all.push(sanitized)
     setLocal(key, all)
     return sanitized
+  },
+
+  // ─── MONTE CARLO (phase65) ──────────────────────────────────────────────────
+  // Simulyasiya qeydləri dəyişdirilmir: nəticəni sonradan redaktə etmək audit
+  // izini mənasız edir. Ona görə yalnız oxu, yazı və silmə var.
+  async getMonteCarloRuns(): Promise<MonteCarloRun[]> {
+    if (isSupabase()) {
+      const { createClient } = await import('./supabase/client')
+      const { data, error } = await createClient()
+        .from('monte_carlo_runs').select('*').order('executed_at', { ascending: false })
+      if (error) console.error('Supabase getMonteCarloRuns error:', error)
+      return (data ?? []) as MonteCarloRun[]
+    }
+    return getLocal<MonteCarloRun[]>('monte_carlo_runs', [])
+  },
+
+  async saveMonteCarloRun(run: MonteCarloRun): Promise<MonteCarloRun> {
+    const sanitized: MonteCarloRun = {
+      ...run,
+      id: ensureUUID(run.id),
+      org_id: ensureUUID(run.org_id),
+    }
+    if (isSupabase()) {
+      const { createClient } = await import('./supabase/client')
+      const { data, error } = await createClient()
+        .from('monte_carlo_runs').insert(sanitized).select().single()
+      if (error) console.error('Supabase saveMonteCarloRun error:', error)
+      if (!error && data) return data as MonteCarloRun
+      throw error ?? new Error('Simulyasiya yadda saxlanmadı')
+    }
+    const all = getLocal<MonteCarloRun[]>('monte_carlo_runs', [])
+    all.unshift(sanitized)
+    setLocal('monte_carlo_runs', all)
+    return sanitized
+  },
+
+  async deleteMonteCarloRun(id: string): Promise<void> {
+    if (isSupabase()) {
+      const { createClient } = await import('./supabase/client')
+      const { error } = await createClient().from('monte_carlo_runs').delete().eq('id', id)
+      if (error) console.error('Supabase deleteMonteCarloRun error:', error)
+      return
+    }
+    setLocal('monte_carlo_runs', getLocal<MonteCarloRun[]>('monte_carlo_runs', []).filter(r => r.id !== id))
   },
 }

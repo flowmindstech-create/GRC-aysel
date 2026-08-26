@@ -7,7 +7,8 @@ import { calculateInherentLevel } from '@/lib/rcsa'
 import { inherentLevelWord } from '@/lib/rcsa-methodology'
 import type { FinancialRisk, FinancialRiskKind } from '@/types'
 import { cn } from '@/lib/utils'
-import { Plus, Search, Edit, Trash2, Landmark, X, Save, Briefcase, TrendingUp, Droplets } from 'lucide-react'
+import { Plus, Search, Edit, Trash2, Landmark, X, Save, Briefcase, TrendingUp, Droplets, Sigma } from 'lucide-react'
+import { StochasticModelsClient } from './StochasticModelsClient'
 import { toast } from 'sonner'
 
 function FormDialog({ item, kind, onClose, onSave }: { item: FinancialRisk | null; kind: FinancialRiskKind; onClose: () => void; onSave: (i: FinancialRisk) => Promise<void> }) {
@@ -84,7 +85,9 @@ function FormDialog({ item, kind, onClose, onSave }: { item: FinancialRisk | nul
 
 export function FinancialRisksClient() {
   const [items, setItems] = useState<FinancialRisk[]>([])
-  const [tab, setTab] = useState<FinancialRiskKind>('portfolio')
+  // Stoxastik modellər reyestr növü deyil, ayrıca pəncərədir — ona görə
+  // tab dəyəri FinancialRiskKind-dən genişdir.
+  const [tab, setTab] = useState<FinancialRiskKind | 'stochastic'>('portfolio')
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [editItem, setEditItem] = useState<FinancialRisk | null>(null)
@@ -98,10 +101,11 @@ export function FinancialRisksClient() {
   async function handleSave(i: FinancialRisk) { await db.saveFinancialRisk(i); setShowForm(false); setEditItem(null); reload(); toast.success(editItem ? 'Updated' : 'Created') }
   async function handleDelete(id: string) { await db.deleteFinancialRisk(id); reload(); toast.success('Deleted') }
 
-  const tabs: { id: FinancialRiskKind; label: string; icon: typeof Briefcase }[] = [
+  const tabs: { id: FinancialRiskKind | 'stochastic'; label: string; icon: typeof Briefcase }[] = [
     { id: 'portfolio', label: 'Portfolio Risks', icon: Briefcase },
     { id: 'investment', label: 'Investment Risks', icon: TrendingUp },
     { id: 'liquidity', label: 'Liquidity Risks', icon: Droplets },
+    { id: 'stochastic', label: 'Stochastic Models', icon: Sigma },
   ]
 
   return (
@@ -114,6 +118,9 @@ export function FinancialRisksClient() {
           </button>
         ))}
       </div>
+      {tab === 'stochastic' && <StochasticModelsClient />}
+
+      {tab !== 'stochastic' && (<>
       <div className="flex flex-wrap items-center gap-3">
         <div className="flex items-center gap-2 px-3 py-2 rounded-xl flex-1 min-w-52" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
           <Search className="w-4 h-4 shrink-0" style={{ color: 'var(--muted-fg)' }} />
@@ -149,6 +156,7 @@ export function FinancialRisksClient() {
         </tbody>
       </table></div></div>
       {showForm && <FormDialog key={editItem?.id ?? 'new'} item={editItem} kind={tab} onClose={() => { setShowForm(false); setEditItem(null) }} onSave={handleSave} />}
+      </>)}
     </div>
   )
 }

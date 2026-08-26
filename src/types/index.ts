@@ -1143,6 +1143,37 @@ export type AppetiteEntry =
   & { linked_kri_ids?: string[]; version?: number }
 
 export type FinancialRiskKind = 'portfolio' | 'investment' | 'liquidity'
+
+// Monte Carlo simulyasiyasının qeydə alınmış işəsalması.
+// Nəticələr saxlanılır ki, hesabatdakı rəqəm sonradan yoxlana bilsin;
+// `seed` olmadan simulyasiya təkrarlana bilməz və sübut kimi işə yaramaz.
+export interface MonteCarloRun {
+  id: string
+  org_id: string
+  /** Hansı maliyyə riskinə aiddir — boşdursa sərbəst hesablamadır */
+  financial_risk_id?: string
+  label: string
+  asset_value: number
+  exposure_factor: number
+  aro: number
+  volatility: number
+  iterations: number
+  seed: number
+  sle: number
+  ale: number
+  simulated_mean_ale: number
+  median_loss: number
+  var_95: number
+  var_99: number
+  tvar_95: number
+  max_simulated_loss: number
+  zero_loss_probability: number
+  /** Histoqram səbətləri — qrafiki yenidən hesablamadan çəkmək üçün */
+  distribution_buckets: { from: number; to: number; count: number }[]
+  currency?: string
+  executed_by?: string
+  executed_at: string
+}
 export interface FinancialRisk {
   id: string
   org_id: string
@@ -1153,6 +1184,10 @@ export interface FinancialRisk {
   currency?: string
   likelihood: number
   impact: number
+  // Monte Carlo girişləri — stoxastik model bu üç sahədən qidalanır
+  asset_value?: number       // AV
+  exposure_factor?: number   // EF, 0-1
+  aro?: number               // illik başvermə tezliyi
   level?: RiskLevel
   notes?: string
   owner?: string
