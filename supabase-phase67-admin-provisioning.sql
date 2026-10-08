@@ -26,14 +26,32 @@ LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = public
 AS $$
+DECLARE
+  is_service_role boolean;
 BEGIN
+  -- service_role aşkarlanması — İKİ müstəqil yolla, çünki Supabase-in köhnə
+  -- (JWT `service_role`) və yeni (`sb_secret_…`) açar formatları eyni siqnalı
+  -- vermir:
+  --   1) JWT iddiası — köhnə format üçün. Claims JSON pozuqdursa partlamasın
+  --      deyə ayrıca blokda tutulur.
+  --   2) Sessiya rolu — PostgREST hər sorğuda `SET LOCAL ROLE service_role`
+  --      edir, ona görə bu hər iki formatda işləyir. SECURITY DEFINER
+  --      `current_user`-i dəyişir, amma `role` GUC-unu DEYİL.
+  BEGIN
+    is_service_role := COALESCE(
+      current_setting('request.jwt.claims', true)::json ->> 'role', ''
+    ) = 'service_role';
+  EXCEPTION WHEN others THEN
+    is_service_role := false;
+  END;
+
+  IF NOT is_service_role THEN
+    is_service_role := COALESCE(current_setting('role', true), '') = 'service_role';
+  END IF;
+
   IF NEW.role IS DISTINCT FROM OLD.role
      AND COALESCE(public.auth_role(), '') <> 'super_admin'
-     -- service_role: yalnız serverdəki admin route-dan gəlir
-     AND COALESCE(
-           current_setting('request.jwt.claims', true)::json ->> 'role',
-           ''
-         ) <> 'service_role'
+     AND NOT is_service_role
   THEN
     RAISE EXCEPTION 'Yalnız super_admin rol dəyişə bilər';
   END IF;
@@ -49,9 +67,9 @@ CREATE TRIGGER trg_guard_role_change
   EXECUTE FUNCTION public.guard_role_change();
 
 -- ── Yoxlama ────────────────────────────────────────────────────────────────
--- 1) Funksiya mətnində service_role istisnası görünməlidir
-SELECT 'guard_role_change' AS obyekt,
-       (pg_get_functiondef(oid) ILIKE '%service_role%') AS service_role_istisnasi_var
+-- 1) Funksiyada HƏR İKİ aşkarlama yolu var? (ikisi də true olmalıdır)
+SELECT (pg_get_functiondef(oid) ILIKE '%request.jwt.claims%') AS jwt_yolu_var,
+       (pg_get_functiondef(oid) ILIKE '%current_setting(''role''%') AS sessiya_rolu_yolu_var
   FROM pg_proc
  WHERE proname = 'guard_role_change'
    AND pronamespace = 'public'::regnamespace;
