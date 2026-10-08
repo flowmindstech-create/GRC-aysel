@@ -8,9 +8,10 @@ export async function updateSession(request: NextRequest) {
   // stay to set a new password — never bounce it to the dashboard.
   const isRecoveryPage = request.nextUrl.pathname.startsWith('/reset-password')
 
+  // /register burada sadalanmır: səhifə silinib və next.config-dəki redirect
+  // onu Proxy-yə çatmadan /login-ə yönləndirir (icra sırası: redirects → Proxy).
   const isAuthPage =
     request.nextUrl.pathname.startsWith('/login') ||
-    request.nextUrl.pathname.startsWith('/register') ||
     request.nextUrl.pathname.startsWith('/forgot-password') ||
     isRecoveryPage ||
     request.nextUrl.pathname === '/'

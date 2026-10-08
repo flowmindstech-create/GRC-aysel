@@ -38,14 +38,11 @@ export default function LandingPage() {
           <a href="#pricing" className="hover:text-sky-500 transition-colors">Pricing</a>
           <a href="#testimonials" className="hover:text-sky-500 transition-colors">Reviews</a>
         </div>
+        {/* Qeydiyyat yoxdur — hesabları Super Admin yaradır, ona görə tək CTA: giriş */}
         <div className="flex items-center gap-3">
-          <Link href="/login" className="text-sm font-medium hover:text-sky-500 transition-colors"
-            style={{ color: 'var(--muted-fg)' }}>
-            Sign in
-          </Link>
-          <Link href="/register"
+          <Link href="/login"
             className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-bold text-white bg-sky-500 hover:bg-sky-600 transition-colors shadow-lg shadow-sky-500/25">
-            Start Free Trial <ArrowRight className="w-3.5 h-3.5" />
+            Sign in <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
       </nav>
@@ -68,9 +65,9 @@ export default function LandingPage() {
           The lightweight alternative to Archer IRM. Manage risks, incidents, compliance, audits and vendor risk in one platform — without enterprise complexity or price tags.
         </p>
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-          <Link href="/register"
+          <Link href="/login"
             className="flex items-center gap-2 px-8 py-4 rounded-2xl text-base font-bold text-white bg-sky-500 hover:bg-sky-600 transition-all shadow-2xl shadow-sky-500/30 hover:scale-105">
-            Start 14-Day Free Trial <ArrowRight className="w-5 h-5" />
+            Sign in <ArrowRight className="w-5 h-5" />
           </Link>
           <Link href="/dashboard"
             className="flex items-center gap-2 px-8 py-4 rounded-2xl text-base font-bold transition-all border hover:bg-black/5 dark:hover:bg-white/5"
@@ -182,9 +179,9 @@ export default function LandingPage() {
           Join hundreds of security teams who trust GRCell.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Link href="/register"
+          <Link href="/login"
             className="flex items-center justify-center gap-2 px-8 py-4 rounded-2xl text-base font-bold text-white bg-sky-500 hover:bg-sky-600 shadow-xl shadow-sky-500/25 transition-all">
-            Start Free Trial <ArrowRight className="w-5 h-5" />
+            Sign in <ArrowRight className="w-5 h-5" />
           </Link>
           <Link href="/dashboard"
             className="flex items-center justify-center gap-2 px-8 py-4 rounded-2xl text-base font-bold border transition-all hover:bg-black/5 dark:hover:bg-white/5"

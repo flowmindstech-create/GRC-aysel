@@ -47,6 +47,19 @@ const nextConfig: NextConfig = {
   async headers() {
     return [{ source: '/:path*', headers: securityHeaders }]
   },
+  // Qeydiyyat səhifəsi tamamilə silindi — hesabları yalnız Super Admin yaradır
+  // (Settings → Users → Add user). Köhnə linklər, e-poçtlar və bookmark-lar
+  // 404 görməsin deyə /register girişə yönləndirilir.
+  //
+  // Yönləndirmə Proxy-dən (middleware) ƏVVƏL işləyir — icra sırası:
+  // headers → redirects → Proxy → fayl sistemi. Ona görə həm daxil olmuş,
+  // həm olmamış istifadəçi üçün eyni nəticə verir.
+  //
+  // permanent: false (307) — qəsdən. 308 brauzerlərdə əbədi keşlənir və qərar
+  // nə vaxtsa dəyişsə, bir dəfə ora düşmüş istifadəçini geri qaytarmaq olmur.
+  async redirects() {
+    return [{ source: '/register', destination: '/login', permanent: false }]
+  },
 }
 
 export default nextConfig
