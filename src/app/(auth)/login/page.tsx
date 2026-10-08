@@ -193,9 +193,9 @@ export default function LoginPage() {
             </button>
           </form>
 
+          {/* Açıq qeydiyyat bağlıdır (phase67) — hesabları yalnız Super Admin yaradır. */}
           <p className="text-sm text-center mt-6" style={{ color: 'var(--muted-fg)' }}>
-            Don&apos;t have an account?{' '}
-            <Link href="/register" className="text-sky-500 hover:text-sky-400 font-medium">Create account</Link>
+            Need an account? Your organization&apos;s Super Admin issues it.
           </p>
 
           {/* Demo bypass — only in local/demo builds (never in production auth) */}

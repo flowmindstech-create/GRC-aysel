@@ -1,96 +1,25 @@
-'use client'
-
 import Link from 'next/link'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
-import { motion } from 'framer-motion'
-import { Shield, Mail, Lock, User, Building, ArrowRight } from 'lucide-react'
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { Shield, Lock, ArrowRight } from 'lucide-react'
 
-// Rol seçimi YOXDUR — hər yeni istifadəçi 'employee' başlayır (phase18 trigger),
-// rütbəni yalnız Super Admin qaldırır (Settings → İstifadəçilər).
-const schema = z.object({
-  full_name: z.string().min(2),
-  company: z.string().min(2),
-  email: z.string().email(),
-  password: z.string().min(8),
-})
-type FormValues = z.infer<typeof schema>
+// Açıq qeydiyyat BAĞLANDI (phase67).
+//
+// Əvvəl bu səhifə `supabase.auth.signUp()` çağırırdı və internetdəki istənilən
+// adam qeydiyyatdan keçib birbaşa DEFAULT_ORG-a düşürdü — yəni müştərinin GRC
+// datası ilə eyni org-a. Bundan sonra hesabları yalnız Super Admin yaradır
+// (Settings → Users → Add user → /api/admin/users).
+//
+// Route silinmir ki, köhnə linklər və e-poçtlar 404 verməsin; əvəzinə izah
+// göstərilir. Müdafiənin ikinci qatı Supabase-dədir: Authentication →
+// Sign In / Providers → Email → "Allow new users to sign up" söndürülüb.
 
-function setMockSessionCookie() {
-  if (typeof document !== 'undefined') {
-    document.cookie = "mock-session=true; path=/; max-age=86400; SameSite=Lax"
-  }
+export const metadata = {
+  title: 'Registration closed — GRCell',
 }
 
-export default function RegisterPage() {
-  const [loading, setLoading] = useState(false)
-  const [awaitingConfirm, setAwaitingConfirm] = useState<string | null>(null) // e-poçt təsdiqi gözlənilir
-  const router = useRouter()
-  const { register, handleSubmit, formState: { errors } } = useForm<FormValues>({
-    resolver: zodResolver(schema),
-  })
-
-  const onSubmit = async (v: FormValues) => {
-    setLoading(true)
-    const isMock = !process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-    const local = typeof window !== 'undefined' && ['localhost', '127.0.0.1', '::1'].includes(window.location.hostname)
-    if (isMock && !local) {
-      alert('Server konfiqurasiyası çatışmır (Supabase env dəyişənləri). Sistem administratoruna müraciət edin.')
-      setLoading(false)
-      return
-    }
-    if (isMock) {
-      await new Promise(r => setTimeout(r, 800))
-      setMockSessionCookie()
-      router.push('/dashboard')
-    } else {
-      const { createClient } = await import('@/lib/supabase/client')
-      const supabase = createClient()
-      const { data, error } = await supabase.auth.signUp({
-        email: v.email,
-        password: v.password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/login`,
-          data: {
-            full_name: v.full_name,
-            company: v.company,
-            // rol göndərilmir — DB trigger-i (phase18) hər yeni istifadəçini 'employee' edir
-          }
-        }
-      })
-      if (error) {
-        alert(error.message)
-      } else {
-        // Welcome email — fire-and-forget; a mail failure must not block onboarding
-        fetch('/api/emails/welcome', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: v.email, full_name: v.full_name, company: v.company }),
-        }).catch(() => {})
-
-        if (data.session) {
-          // E-poçt təsdiqi söndürülüb — birbaşa daxil ol
-          // Session cookie-nin yazılmasını gözlə (proxy /login-ə geri atmasın)
-          await supabase.auth.getSession()
-          router.push('/dashboard')
-        } else {
-          // Təsdiq tələb olunur — istifadəçini yönləndirmə, izah göstər
-          setAwaitingConfirm(v.email)
-        }
-      }
-    }
-    setLoading(false)
-  }
-
-
-  const inp = "w-full pl-10 pr-4 py-3 rounded-xl text-sm border outline-none transition-all focus:ring-2 focus:ring-sky-500/30 focus:border-sky-500"
-
+export default function RegisterClosedPage() {
   return (
     <div className="min-h-screen flex items-center justify-center p-8" style={{ background: 'var(--background)' }}>
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md">
+      <div className="w-full max-w-md">
         <div className="flex items-center gap-2 mb-8">
           <div className="w-8 h-8 rounded-lg bg-sky-500 flex items-center justify-center">
             <Shield className="w-4 h-4 text-white" />
@@ -98,64 +27,32 @@ export default function RegisterPage() {
           <span className="font-bold text-lg" style={{ color: 'var(--foreground)' }}>GRCell</span>
         </div>
 
-        {awaitingConfirm ? (
-          <div className="rounded-2xl border p-6 space-y-3" style={{ borderColor: 'var(--border)', background: 'var(--card)' }}>
-            <div className="w-11 h-11 rounded-xl bg-sky-500/10 flex items-center justify-center">
-              <Mail className="w-5 h-5 text-sky-500" />
-            </div>
-            <h2 className="text-lg font-bold" style={{ color: 'var(--foreground)' }}>Check your email</h2>
-            <p className="text-sm leading-relaxed" style={{ color: 'var(--muted-fg)' }}>
-              We sent a confirmation link to <strong style={{ color: 'var(--foreground)' }}>{awaitingConfirm}</strong>.
-              After you click the link, your account will be activated and you can sign in.
-            </p>
-            <p className="text-xs" style={{ color: 'var(--muted-fg)' }}>If the email hasn’t arrived, check your spam folder.</p>
-            <Link href="/login" className="inline-flex items-center gap-1.5 text-sm font-semibold text-sky-500 hover:text-sky-400">
-              Back to sign in <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
+        <div className="rounded-2xl border p-6 space-y-4" style={{ borderColor: 'var(--border)', background: 'var(--card)' }}>
+          <div className="w-11 h-11 rounded-xl bg-sky-500/10 flex items-center justify-center">
+            <Lock className="w-5 h-5 text-sky-500" />
           </div>
-        ) : (
-        <>
-        <h2 className="text-2xl font-black mb-1" style={{ color: 'var(--foreground)' }}>Create your account</h2>
-        <p className="text-sm mb-8" style={{ color: 'var(--muted-fg)' }}>Start managing risks — free 14-day trial.</p>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          {[
-            { name: 'full_name', label: 'Full Name', icon: User, type: 'text', placeholder: 'Ali Hasanov' },
-            { name: 'company', label: 'Company', icon: Building, type: 'text', placeholder: 'GRCell' },
-            { name: 'email', label: 'Work Email', icon: Mail, type: 'email', placeholder: 'you@company.com' },
-            { name: 'password', label: 'Password', icon: Lock, type: 'password', placeholder: '••••••••' },
-          ].map(f => (
-            <div key={f.name}>
-              <label className="block text-xs font-semibold mb-1.5" style={{ color: 'var(--foreground)' }}>{f.label}</label>
-              <div className="relative">
-                <f.icon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'var(--muted-fg)' }} />
-                <input {...register(f.name as keyof FormValues)} type={f.type} placeholder={f.placeholder}
-                  className={inp} style={{ background: 'var(--muted)', borderColor: 'var(--border)', color: 'var(--foreground)' }} />
-              </div>
-            </div>
-          ))}
+          <div>
+            <h1 className="text-lg font-bold" style={{ color: 'var(--foreground)' }}>Self sign-up is closed</h1>
+            <p className="text-sm leading-relaxed mt-1.5" style={{ color: 'var(--muted-fg)' }}>
+              GRCell accounts are issued by your organization&apos;s Super Admin. Public registration is disabled so that
+              only authorized personnel can reach your risk and compliance data.
+            </p>
+          </div>
 
-          <p className="text-[11px] leading-relaxed" style={{ color: 'var(--muted-fg)' }}>
-            After registration your account is created at the <strong>Employee</strong> level.
-            Your rank is assigned by your organization’s Super Admin.
-          </p>
+          <div className="rounded-lg p-3" style={{ background: 'var(--muted)' }}>
+            <p className="text-xs leading-relaxed" style={{ color: 'var(--muted-fg)' }}>
+              Need access? Ask your Super Admin to create an account for you. You will receive your email address and a
+              temporary password, which you should change after your first sign-in.
+            </p>
+          </div>
 
-          <button type="submit" disabled={loading}
-            className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold text-white bg-sky-500 hover:bg-sky-600 disabled:opacity-60 transition-all shadow-lg shadow-sky-500/25 mt-2">
-            {loading
-              ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              : <><span>Create Account</span><ArrowRight className="w-4 h-4" /></>}
-          </button>
-        </form>
-
-        <p className="text-sm text-center mt-6" style={{ color: 'var(--muted-fg)' }}>
-          Already have an account?{' '}
-          <Link href="/login" className="text-sky-500 hover:text-sky-400 font-medium">Sign in</Link>
-        </p>
-        </>
-        )}
-      </motion.div>
+          <Link href="/login"
+            className="inline-flex items-center gap-1.5 text-sm font-semibold text-sky-500 hover:text-sky-400">
+            Go to sign in <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
+      </div>
     </div>
   )
 }
-

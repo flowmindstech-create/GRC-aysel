@@ -5,9 +5,10 @@ import { db } from '@/lib/db'
 import type { UserProfile, UserRole } from '@/types'
 import { usePermissions } from '@/hooks/usePermissions'
 import { ROLE_ORDER, ROLE_LABEL, ROLE_LEVEL } from '@/lib/permissions'
-import { ShieldCheck, Lock, Loader2, ArrowRightLeft } from 'lucide-react'
+import { ShieldCheck, Lock, Loader2, ArrowRightLeft, UserPlus } from 'lucide-react'
 import { toast } from 'sonner'
 import { SuccessionDialog } from './SuccessionDialog'
+import { AddUserDialog } from './AddUserDialog'
 
 // Yalnız super_admin görür. Rolları təyin edir.
 // DB tərəfdə guard_role_change trigger-i + one_super_admin_per_org index qoruyur (phase45).
@@ -17,6 +18,7 @@ export function UserManagementPanel() {
   const [loading, setLoading] = useState(true)
   const [savingId, setSavingId] = useState<string | null>(null)
   const [transferUser, setTransferUser] = useState<UserProfile | null>(null)
+  const [addingUser, setAddingUser] = useState(false)
 
   function reload() {
     db.getProfiles()
@@ -60,13 +62,22 @@ export function UserManagementPanel() {
 
   return (
     <div className="card p-6">
-      <div className="flex items-center gap-2 mb-1">
-        <ShieldCheck className="w-4 h-4" style={{ color: 'var(--brand-500)' }} />
-        <h3 className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>User Management</h3>
+      <div className="flex items-start justify-between gap-4 mb-5">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <ShieldCheck className="w-4 h-4" style={{ color: 'var(--brand-500)' }} />
+            <h3 className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>User Management</h3>
+          </div>
+          <p className="text-xs" style={{ color: 'var(--muted-fg)' }}>
+            Public sign-up is closed — accounts are created here. Assign roles; higher rank means more permissions.
+            Super Admin is unique — deletion and user management belong to them alone.
+          </p>
+        </div>
+        <button type="button" onClick={() => setAddingUser(true)}
+          className="shrink-0 inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold text-white bg-sky-500 hover:bg-sky-600 transition-colors">
+          <UserPlus className="w-3.5 h-3.5" /> Add user
+        </button>
       </div>
-      <p className="text-xs mb-5" style={{ color: 'var(--muted-fg)' }}>
-        Assign roles. Higher rank means more permissions. Super Admin is unique — deletion and user management belong to them alone.
-      </p>
 
       <div className="overflow-x-auto">
         <table className="w-full">
@@ -145,6 +156,13 @@ export function UserManagementPanel() {
           users={users}
           onClose={() => setTransferUser(null)}
           onDone={() => { setTransferUser(null); reload() }}
+        />
+      )}
+
+      {addingUser && (
+        <AddUserDialog
+          onClose={() => setAddingUser(false)}
+          onCreated={reload}
         />
       )}
     </div>
