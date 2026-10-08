@@ -1978,16 +1978,45 @@ export const db = {
       const { createClient } = await import('./supabase/client')
       const supabase = createClient()
       const payload: any = { ...sanitized }
+      // DİQQƏT: bu siyahı grc_intake_items-in BÜTÜN sütunlarını saymalıdır.
+      // Siyahıda olmayan sahə upsert-dən əvvəl silinir — yəni natamam siyahı
+      // xəta vermir, sadəcə datanı sükutla itirir. phase66-ya qədər aşağıdaki
+      // ikinci blok (risk qiymətləndirmə + treatment) burada yox idi və bütün
+      // RCSA axını hər saxlamada itirdi. Yeni miqrasiya sütun əlavə edəndə
+      // buraya da əlavə et.
       const dbColumns = [
         'id', 'org_id', 'type', 'title', 'description', 'classification',
         'mapped_control_ids', 'evidence_url', 'evidence_note', 'status',
         'step', 'gap_identified', 'risk_creation_required', 'risk_created_id',
-        'created_at'
+        'created_at',
+        // phase66 — risk qiymətləndirmə
+        'inherent_likelihood', 'inherent_impact', 'inherent_risk_level',
+        'control_effectiveness', 'residual_likelihood', 'residual_impact',
+        'residual_risk_level',
+        // phase66 — nəzarət/təsdiq zənciri
+        'risk_owner_id', 'risk_owner_reviewed_at', 'mgt_reviewer_id', 'mgt_reviewed_at',
+        // phase66 — appetite qərarı və treatment axını
+        'appetite_decision', 'action_plan', 'assigned_to', 'implementation_due',
+        'implementation_evidence_url', 'validation_note', 'validated_at',
+        'validated_by', 'post_treatment_appetite', 'escalated_at',
+        'committee_decision', 'closed_at',
       ]
       for (const key of Object.keys(payload)) {
         if (!dbColumns.includes(key)) {
           delete payload[key]
         }
+      }
+      // Boş sətri NULL-a çevir: stepper-in select/input-ları təmizlənəndə ''
+      // yazır, bu isə CHECK-li (control_effectiveness, appetite_decision…),
+      // uuid və timestamptz sütunlarını 22P02/22007 ilə sındırardı.
+      const nullIfBlank = [
+        'inherent_risk_level', 'control_effectiveness', 'residual_risk_level',
+        'risk_owner_id', 'risk_owner_reviewed_at', 'mgt_reviewer_id', 'mgt_reviewed_at',
+        'appetite_decision', 'validated_at', 'post_treatment_appetite',
+        'escalated_at', 'closed_at',
+      ]
+      for (const key of nullIfBlank) {
+        if (payload[key] === '') payload[key] = null
       }
       const { data, error } = await supabase.from('grc_intake_items').upsert(payload).select().single()
       if (error) console.error('Supabase saveGRCIntakeItem error:', error)
@@ -2193,6 +2222,13 @@ export const db = {
         await this.logActivity({ action: 'grant_access', entity_type: 'access_exception', entity_id: (data as any).id, entity_title: `${record.user_name ?? ''} · ${record.entity_type} · ${record.permission}` })
         return { ...(data as AccessException), user_name: record.user_name, entity_label: record.entity_label }
       }
+      // Supabase konfiqurasiyalıdırsa localStorage-a DÜŞMÜRÜK: icazə bir
+      // təhlükəsizlik qeydidir, RLS onu yalnız bazadan oxuyur. Sükutla yerli
+      // yaddaşa yazmaq UI-da "Access Granted" göstərir, halbuki icazə əslində
+      // verilməyib (phase66-ya qədər entity_id sütunu yox idi → hər veriliş
+      // 42703 ilə uğursuz olurdu və heç kim xəbər tutmurdu).
+      console.error('Supabase createAccessException error:', error)
+      throw new Error(error?.message ?? 'Access exception could not be created')
     }
     const current = getLocalItem<AccessException[]>('access_exceptions', [])
     current.unshift(record)
